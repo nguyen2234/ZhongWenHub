@@ -1,0 +1,196 @@
+/* ==========================================================================
+   CHINESE LEARNING PLATFORM DESIGN SYSTEM TOKENS
+   Visual Identity riêng cho nền tảng tự học tiếng Trung cho người Việt.
+   - Hỗ trợ Typography ba ngôn ngữ: Tiếng Việt, Chữ Hán (Hanzi), Pinyin thanh điệu
+   - Lộ trình HSK 1 → HSK 6 phân cấp màu sắc trực quan
+   - Gamification: XP, Streak, Daily Goal, Daily Challenge, Leaderboard
+   - Chuẩn Flat Gu, Light theme, WCAG AA Contrast > 4.5:1
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ===== 1. TYPOGRAPHY MULTI-LANGUAGE ===== */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-hanzi: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Thang cỡ chữ chuẩn (budgets.md) */
+  --text-xs: 0.75rem;    /* 12px - nhãn phụ, timestamp, badge */
+  --text-sm: 0.875rem;   /* 14px - mặc định app, nội dung, label, nút */
+  --text-base: 1rem;     /* 16px - tên thẻ, tiêu đề card */
+  --text-lg: 1.125rem;   /* 18px - tiêu đề khối, section title */
+  --text-xl: 1.25rem;    /* 20px - tên trang chính */
+  --text-2xl: 1.5rem;    /* 24px - số liệu thống kê lớn, card XP */
+  --text-3xl: 1.875rem;  /* 30px - tiêu đề lớn màn hình đặc biệt */
+
+  /* Chữ Hán hiển thị đặc biệt */
+  --hanzi-display-sm: 1.75rem;  /* 28px - chữ Hán trong danh sách từ vựng */
+  --hanzi-display-md: 2.5rem;   /* 40px - chữ Hán trong thẻ học từ vựng */
+  --hanzi-display-lg: 4rem;     /* 64px - chữ Hán lớn trong Flashcard lật */
+
+  /* ===== 2. BRAND & ACCENT COLOR PALETTE ===== */
+  /* Bản sắc riêng: Sắc xanh Chàm hiện đại (Modern Indigo) kết hợp Chu Sa Đông Phương (Crimson Seal) */
+  --primary: #4338ca;            /* Indigo 700 - Đĩnh đạc, hiện đại, uy tín cho giáo dục */
+  --primary-hover: #3730a3;      /* Indigo 800 */
+  --primary-foreground: #ffffff;
+  --primary-light: #eef2ff;      /* Indigo 50 */
+
+  /* Sắc đỏ Chu Sa (Crimson Seal) - bản sắc Hán tự tinh tế, không lạm dụng */
+  --seal: #be123c;               /* Rose 700 - Con dấu, điểm nhấn văn hóa tinh tế */
+  --seal-bg: #fff1f2;            /* Rose 50 */
+  --seal-border: #fecdd3;        /* Rose 200 */
+
+  /* 3 màu nhấn gợi ý chuyển đổi */
+  --color-indigo: #4338ca;
+  --color-indigo-hover: #3730a3;
+  --color-indigo-light: #eef2ff;
+
+  --color-ocean: #1d4ed8;
+  --color-ocean-hover: #1e40af;
+  --color-ocean-light: #eff6ff;
+
+  --color-teal: #0f766e;
+  --color-teal-hover: #115e59;
+  --color-teal-light: #f0fdfa;
+
+  /* Nền trang & bề mặt */
+  --background: #f8fafc;        /* Xám nhạt dịu mát (M1) */
+  --surface: #ffffff;           /* Nền card, input, container */
+  --surface-hover: #f1f5f9;     /* Hover trên bảng/danh sách (I10) */
+  --surface-overlay: #ffffff;   /* Nền dropdown, modal, popover */
+  --item-hover: #f1f5f9;        /* Nền hover mục danh sách, menu */
+
+  /* Chữ & biểu tượng */
+  --foreground: #0f172a;        /* Chữ chính (tỉ lệ tương phản > 14:1) */
+  --muted: #64748b;             /* Chữ phụ, placeholder, Pinyin phụ (> 4.5:1) */
+  --pinyin: #475569;            /* Màu riêng cho phiên âm Pinyin rõ nét */
+
+  /* Đường viền chuẩn (M13, M14) */
+  --border: #f1f5f9;            /* Đường tóc 1px cho card, divider */
+  --border-strong: #e2e8f0;     /* Viền input, viền nút outline, viền control */
+  --grid-hanzi: #e2e8f0;        /* Viền ô lưới kẻ chữ Hán điền tự (Tian Zi Ge) */
+
+  /* Focus rings (I13) */
+  --border-focus: var(--primary);
+  --ring-focus: rgba(67, 56, 202, 0.15);
+
+  /* Nút phụ & outline */
+  --secondary: #f1f5f9;
+  --secondary-hover: #e2e8f0;
+  --button-hover: #f1f5f9;
+  --button-hover-page: #e2e8f0;
+
+  /* ===== 3. HSK LEVEL PALETTE (HSK 1 → HSK 6) ===== */
+  --hsk1: #0284c7;
+  --hsk1-bg: #f0f9ff;
+  --hsk1-border: #bae6fd;
+
+  --hsk2: #0d9488;
+  --hsk2-bg: #f0fdfa;
+  --hsk2-border: #99f6e4;
+
+  --hsk3: #059669;
+  --hsk3-bg: #ecfdf5;
+  --hsk3-border: #a7f3d0;
+
+  --hsk4: #d97706;
+  --hsk4-bg: #fffbeb;
+  --hsk4-border: #fde68a;
+
+  --hsk5: #ea580c;
+  --hsk5-bg: #fff7ed;
+  --hsk5-border: #fed7aa;
+
+  --hsk6: #be123c;
+  --hsk6-bg: #fff1f2;
+  --hsk6-border: #fecdd3;
+
+  /* ===== 4. GAMIFICATION & EDTECH TOKENS ===== */
+  /* Chuỗi ngày học Streak (Lửa) */
+  --streak: #ea580c;
+  --streak-bg: #fff7ed;
+  --streak-border: #ffedd5;
+
+  /* Điểm thưởng kinh nghiệm XP (Vàng sao) */
+  --xp: #d97706;
+  --xp-bg: #fef3c7;
+  --xp-border: #fde68a;
+
+  /* Trợ giảng AI Tutor (Tím thông thái) */
+  --ai: #7c3aed;
+  --ai-bg: #f5f3ff;
+  --ai-border: #ede9fe;
+
+  /* Bảng xếp hạng League Ranks */
+  --rank-gold: #b45309;
+  --rank-gold-bg: #fef3c7;
+  --rank-silver: #475569;
+  --rank-silver-bg: #f1f5f9;
+  --rank-bronze: #9a3412;
+  --rank-bronze-bg: #ffedd5;
+
+  /* Trạng thái hệ thống (M7, M30) */
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+
+  --warning: #d97706;
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  --danger-hover: #b91c1c;
+
+  --neutral: #64748b;
+  --neutral-bg: #f1f5f9;
+  --neutral-border: #e2e8f0;
+
+  /* ===== 5. BO GÓC THÂN THIỆN (ROUNDED COMPONENTS) ===== */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;   /* Cho control: Button, Input (F1) */
+  --radius-xl: 16px;   /* Cho Card thân thiện, Panel */
+  --radius-2xl: 20px;  /* Cho Modal, Flashcard */
+  --radius-full: 9999px; /* Cho Badge, Pill, Avatar, Progress bar */
+
+  /* ===== 6. BÓNG LỚP NỔI (CHỈ CHO MODAL & POPOVER - M15) ===== */
+  --elevation-popover: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+  --elevation-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+
+  /* ===== 7. SPACING SCALE (BUDGETS.MD) ===== */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Chiều cao control (budgets.md) */
+  --control-height: 40px;
+  --control-height-mobile: 44px;
+}
+
+[data-theme-color="ocean"] {
+  --primary: var(--color-ocean);
+  --primary-hover: var(--color-ocean-hover);
+  --primary-light: var(--color-ocean-light);
+  --border-focus: var(--color-ocean);
+  --ring-focus: rgba(29, 78, 216, 0.15);
+}
+
+[data-theme-color="teal"] {
+  --primary: var(--color-teal);
+  --primary-hover: var(--color-teal-hover);
+  --primary-light: var(--color-teal-light);
+  --border-focus: var(--color-teal);
+  --ring-focus: rgba(15, 118, 110, 0.15);
+}

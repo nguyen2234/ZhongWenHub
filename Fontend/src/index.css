@@ -1,0 +1,81 @@
+@import "./design-system/ds.css";
+
+/* Reset container to allow clean full-width responsive design system showcase */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   Lesson Experience Responsive & Animation Enhancements
+   ========================================================================== */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Responsive adjustments for mobile 375px - 640px */
+@media (max-width: 640px) {
+  .lesson-step-labels {
+    display: none !important;
+  }
+  .lesson-header-pinyin {
+    display: none !important;
+  }
+  .lesson-header-gamification {
+    display: none !important;
+  }
+  .lesson-action-back-text {
+    display: none !important;
+  }
+  .ai-tutor-drawer {
+    top: auto !important;
+    height: 85vh !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0 !important;
+    animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .srs-rating-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --action-btn-flex: 1 1 100%;
+  }
+}
