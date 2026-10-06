@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, CheckCircle2, AlertCircle, Send } from 'lucide-react';
 import { AuthLayout } from '../components/AuthLayout';
 import { AuthCard } from '../components/AuthCard';
@@ -10,8 +11,11 @@ export interface ForgotPasswordPageProps {
   onNavigate?: (route: 'login' | 'register' | 'forgot-password' | 'dashboard') => void;
 }
 
-export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) => {
+export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate: customNav }) => {
+  const routerNavigate = useNavigate();
+  const onNavigate = customNav ?? ((r) => routerNavigate(`/${r}`));
   const { isSubmitting, apiError, apiSuccess, forgotPassword } = useAuth();
+
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState<string | undefined>();
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);

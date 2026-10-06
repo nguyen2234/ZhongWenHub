@@ -8,3 +8,4 @@ export * from './components/SkillPracticeCard';
 export * from './components/HSKFilterSection';
 export * from './components/PracticeResult';
 export * from './data/mockPracticeData';
+export * from './pages/PracticePage';

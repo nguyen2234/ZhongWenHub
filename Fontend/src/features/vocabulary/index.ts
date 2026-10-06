@@ -10,3 +10,7 @@ export * from './components/ReviewHeader';
 export * from './components/ReviewRating';
 export * from './components/ReviewResult';
 export * from './components/ReviewSession';
+export * from './context/VocabularyReviewContext';
+export * from './pages/VocabularyPage';
+export * from './pages/ReviewSessionPage';
+export * from './hooks/useVocabularyReview';

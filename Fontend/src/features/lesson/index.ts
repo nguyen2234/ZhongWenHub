@@ -15,3 +15,4 @@ export * from './steps/ListeningStep';
 export * from './steps/ExerciseStep';
 export * from './steps/QuizStep';
 export * from './steps/LessonComplete';
+export * from './pages/LessonPage';

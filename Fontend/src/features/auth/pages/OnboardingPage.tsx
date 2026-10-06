@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { HSKLevel } from '../../../design-system';
 
@@ -6,8 +7,11 @@ export interface OnboardingPageProps {
   onComplete?: () => void;
 }
 
-export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onComplete }) => {
+export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onComplete: customComplete }) => {
+  const routerNavigate = useNavigate();
+  const onComplete = customComplete ?? (() => routerNavigate('/dashboard'));
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
+
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<number>(15);
 
   const levels = [

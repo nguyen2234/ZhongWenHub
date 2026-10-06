@@ -16,3 +16,6 @@ export * from './components/VocabularyCard';
 export * from './components/Flashcard';
 export * from './components/LearningCard';
 export * from './components/XPIndicator';
+export * from './showcase/ChineseDesignSystemShowcase';
+export * from './showcase/DesignSystemShowcase';
+export * from './pages/DesignSystemShowcasePage';

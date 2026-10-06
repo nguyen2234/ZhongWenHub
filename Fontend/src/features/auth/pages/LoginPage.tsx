@@ -1,4 +1,4 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { LoginForm } from '../components/LoginForm';
 import type { AuthUser } from '../types/auth.types';
@@ -12,25 +12,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onSuccessLogin,
   onNavigate,
 }) => {
+  const routerNavigate = useNavigate();
+  const handleNav = onNavigate ?? ((r) => routerNavigate(`/${r}`));
+
   const handleSuccess = (user: AuthUser) => {
     if (onSuccessLogin) {
       onSuccessLogin(user);
     }
-    if (onNavigate) {
-      onNavigate('dashboard');
-    }
+    handleNav('dashboard');
   };
 
   return (
     <AuthLayout
       activeRoute="login"
-      onNavigate={(r) => onNavigate && onNavigate(r)}
+      onNavigate={(r) => handleNav(r)}
     >
       <LoginForm
         onSuccess={handleSuccess}
-        onNavigateToRegister={() => onNavigate && onNavigate('register')}
-        onNavigateToForgotPassword={() => onNavigate && onNavigate('forgot-password')}
+        onNavigateToRegister={() => handleNav('register')}
+        onNavigateToForgotPassword={() => handleNav('forgot-password')}
       />
     </AuthLayout>
   );
 };
+
