@@ -1,0 +1,597 @@
+/* ==========================================================================
+   LEARNING CONTENT MANAGEMENT STYLES
+   Design System: Modern EdTech / Flat SaaS (#4338ca)
+   ========================================================================== */
+
+/* Main Page Container */
+.lcm-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* --------------------------------------------------------------------------
+   Level Filter Bar (Data-driven Pills)
+   -------------------------------------------------------------------------- */
+.lcm-level-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.lcm-level-bar-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.lcm-level-pills {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+}
+
+.lcm-level-pill {
+  padding: 6px 14px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  outline: none;
+}
+
+.lcm-level-pill:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.lcm-level-pill.is-active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(67, 56, 202, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Tabs Bar
+   -------------------------------------------------------------------------- */
+.lcm-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-4);
+  overflow-x: auto;
+}
+
+.lcm-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  outline: none;
+}
+
+.lcm-tab-btn:hover {
+  color: var(--foreground);
+}
+
+.lcm-tab-btn.is-active {
+  color: var(--primary);
+  font-weight: 700;
+  border-bottom-color: var(--primary);
+}
+
+.lcm-tab-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  background-color: var(--background);
+  color: var(--muted);
+}
+
+.lcm-tab-btn.is-active .lcm-tab-badge {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   Toolbar
+   -------------------------------------------------------------------------- */
+.lcm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.lcm-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.lcm-search-input {
+  min-width: 240px;
+  max-width: 360px;
+  flex: 1;
+}
+
+.lcm-select-filter {
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--foreground);
+  outline: none;
+}
+
+.lcm-select-filter:focus {
+  border-color: var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   Table & Mobile Cards
+   -------------------------------------------------------------------------- */
+.lcm-table-container {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.lcm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.lcm-table th {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.lcm-table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.lcm-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lcm-table tr:hover td {
+  background-color: var(--surface-hover);
+}
+
+.lcm-row-clickable {
+  cursor: pointer;
+}
+
+.lcm-hanzi-cell {
+  font-family: var(--font-hanzi);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.lcm-pinyin-cell {
+  font-family: var(--font-sans);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Mobile cards (hidden on desktop) */
+.lcm-card-list {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lcm-item-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.lcm-item-card:hover {
+  border-color: var(--border-strong);
+}
+
+/* --------------------------------------------------------------------------
+   Drawer
+   -------------------------------------------------------------------------- */
+.lcm-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lcm-drawer-content {
+  width: 100%;
+  max-width: 540px;
+  height: 100%;
+  background-color: var(--surface);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lcm-drawer-header {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lcm-drawer-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.lcm-drawer-body {
+  padding: var(--space-5);
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.lcm-drawer-footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  background-color: var(--background);
+}
+
+.lcm-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.lcm-form-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.lcm-form-input {
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: inherit;
+}
+
+.lcm-form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+/* --------------------------------------------------------------------------
+   Curriculum / Units & Lessons
+   -------------------------------------------------------------------------- */
+.lcm-course-header-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.lcm-units-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lcm-unit-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease;
+}
+
+.lcm-unit-card:hover {
+  border-color: var(--border-strong);
+}
+
+.lcm-unit-header {
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+}
+
+.lcm-unit-card.is-expanded .lcm-unit-header {
+  border-bottom-color: var(--border);
+  background-color: #fafbfe;
+}
+
+.lcm-unit-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.lcm-unit-number-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-lg);
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lcm-unit-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.lcm-unit-zh {
+  font-family: var(--font-hanzi);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.lcm-unit-vi {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.lcm-unit-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.lcm-unit-lessons-body {
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lcm-lesson-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.15s ease;
+}
+
+.lcm-lesson-item:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.lcm-lesson-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.lcm-lesson-num {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--muted);
+  width: 24px;
+}
+
+.lcm-lesson-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.lcm-lesson-zh {
+  font-family: var(--font-hanzi);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.lcm-lesson-vi {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.lcm-lesson-metrics {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.lcm-metric-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--background);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   Import Wizard Modal
+   -------------------------------------------------------------------------- */
+.lcm-wizard-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-3);
+}
+
+.lcm-step-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lcm-step-item.is-active {
+  color: var(--primary);
+}
+
+.lcm-step-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: var(--background);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.lcm-step-item.is-active .lcm-step-badge {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.lcm-upload-dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  background-color: var(--background);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lcm-upload-dropzone:hover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Adaptations
+   -------------------------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .lcm-drawer-content {
+    max-width: 100%;
+  }
+
+  .lcm-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lcm-search-input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .lcm-table-container {
+    display: none;
+  }
+
+  .lcm-card-list {
+    display: flex;
+  }
+
+  .lcm-unit-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .lcm-lesson-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .lcm-lesson-metrics {
+    flex-wrap: wrap;
+  }
+}

@@ -7,6 +7,7 @@ import type {
   TeacherTeachingStatus,
   TeachingLevel,
 } from '../types/teacher.types';
+import { ALL_LEVELS } from '../types/teacher.types';
 
 export interface TeacherToolbarProps {
   filters: TeacherFilters;
@@ -92,13 +93,11 @@ export const TeacherToolbar: React.FC<TeacherToolbarProps> = ({
           aria-label="Lọc theo cấp HSK giảng dạy"
         >
           <option value="ALL">Tất cả cấp HSK</option>
-          <option value="HSK 1">HSK 1</option>
-          <option value="HSK 2">HSK 2</option>
-          <option value="HSK 3">HSK 3</option>
-          <option value="HSK 4">HSK 4</option>
-          <option value="HSK 5">HSK 5</option>
-          <option value="HSK 6">HSK 6</option>
-          <option value="HSK 7–9">HSK 7–9</option>
+          {ALL_LEVELS.map((lvl) => (
+            <option key={lvl} value={lvl}>
+              {lvl}
+            </option>
+          ))}
         </select>
 
         {/* Specialization Filter */}

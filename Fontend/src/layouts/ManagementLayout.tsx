@@ -11,11 +11,15 @@ import type { UserRole } from '../types';
 export const ManagementLayout: React.FC = () => {
   const location = useLocation();
 
-  // Determine current role based on URL route
+  // Determine current role based on exact URL role segment (/management/:roleSegment/...)
   const currentRole: UserRole = useMemo(() => {
-    const path = location.pathname.toLowerCase();
-    if (path.includes('/teacher')) return 'TEACHER';
-    if (path.includes('/support')) return 'SUPPORT';
+    const segments = location.pathname.toLowerCase().split('/').filter(Boolean);
+    if (segments[0] === 'management' && segments[1]) {
+      const roleSegment = segments[1];
+      if (roleSegment === 'teacher') return 'TEACHER';
+      if (roleSegment === 'support') return 'SUPPORT';
+      if (roleSegment === 'admin') return 'ADMIN';
+    }
     return 'ADMIN';
   }, [location.pathname]);
 

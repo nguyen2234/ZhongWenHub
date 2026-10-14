@@ -3,24 +3,32 @@ export type { PaginatedResponse } from '../../../shared/types';
 export type TeacherAccountStatus = 'ACTIVE' | 'PENDING' | 'LOCKED' | 'INACTIVE';
 export type TeacherTeachingStatus = 'ACTIVE' | 'ON_LEAVE' | 'INACTIVE';
 
-export type TeachingLevel =
-  | 'HSK 1'
-  | 'HSK 2'
-  | 'HSK 3'
-  | 'HSK 4'
-  | 'HSK 5'
-  | 'HSK 6'
-  | 'HSK 7–9';
+export const TEACHING_LEVELS = [
+  'HSK 1',
+  'HSK 2',
+  'HSK 3',
+  'HSK 4',
+  'HSK 5',
+  'HSK 6',
+  'HSK 7–9',
+] as const;
 
-export type TeacherSpecialization =
-  | 'GRAMMAR'
-  | 'VOCABULARY'
-  | 'PRONUNCIATION'
-  | 'CONVERSATION'
-  | 'LISTENING'
-  | 'WRITING'
-  | 'HSKK'
-  | 'HSK_EXAM';
+export type TeachingLevel = (typeof TEACHING_LEVELS)[number];
+export const ALL_LEVELS = TEACHING_LEVELS;
+
+export const TEACHER_SPECIALIZATIONS = [
+  'GRAMMAR',
+  'VOCABULARY',
+  'PRONUNCIATION',
+  'CONVERSATION',
+  'LISTENING',
+  'WRITING',
+  'HSKK',
+  'HSK_EXAM',
+] as const;
+
+export type TeacherSpecialization = (typeof TEACHER_SPECIALIZATIONS)[number];
+export const ALL_SPECIALIZATIONS = TEACHER_SPECIALIZATIONS;
 
 export const SPECIALIZATION_META: Record<TeacherSpecialization, { label: string; shortLabel: string }> = {
   GRAMMAR: { label: 'Ngữ pháp', shortLabel: 'Ngữ pháp' },

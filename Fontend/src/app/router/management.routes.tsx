@@ -7,6 +7,11 @@ import { SupportDashboardPage } from '../../management/support/pages/SupportDash
 
 import { AdminUsersPage } from '../../management/admin/users/pages/AdminUsersPage';
 import { AdminTeachersPage } from '../../management/admin/teachers/pages/AdminTeachersPage';
+import { AdminSupportStaffPage } from '../../management/admin/support-staff/pages/AdminSupportStaffPage';
+import { AdminRolesPage } from '../../management/admin/roles/pages/AdminRolesPage';
+import { AdminHskRepositoryPage } from '../../management/admin/content/pages/AdminHskRepositoryPage';
+import { AdminCurriculumPage } from '../../management/admin/content/pages/AdminCurriculumPage';
+import { AdminLessonEditorPage } from '../../management/admin/content/pages/AdminLessonEditorPage';
 
 export const managementRoutes: RouteObject[] = [
   {
@@ -35,6 +40,26 @@ export const managementRoutes: RouteObject[] = [
           {
             path: 'teachers',
             element: <AdminTeachersPage />,
+          },
+          {
+            path: 'support-staff',
+            element: <AdminSupportStaffPage />,
+          },
+          {
+            path: 'roles',
+            element: <AdminRolesPage />,
+          },
+          {
+            path: 'hsk-repository',
+            element: <AdminHskRepositoryPage />,
+          },
+          {
+            path: 'curriculum',
+            element: <AdminCurriculumPage />,
+          },
+          {
+            path: 'curriculum/lessons/:lessonId/edit',
+            element: <AdminLessonEditorPage />,
           },
           {
             path: '*',

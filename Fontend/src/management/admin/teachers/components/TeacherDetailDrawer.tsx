@@ -19,7 +19,12 @@ import type {
   TeachingLevel,
   UpdateTeacherDTO,
 } from '../types/teacher.types';
-import { SPECIALIZATION_META } from '../types/teacher.types';
+import {
+  ALL_LEVELS,
+  ALL_SPECIALIZATIONS,
+  SPECIALIZATION_META,
+} from '../types/teacher.types';
+import { adminTeacherService } from '../services/teacher.service';
 
 export interface TeacherDetailDrawerProps {
   isOpen: boolean;
@@ -30,27 +35,6 @@ export interface TeacherDetailDrawerProps {
   onToggleLockAccount: (teacher: TeacherDetail) => void;
 }
 
-const ALL_LEVELS: TeachingLevel[] = [
-  'HSK 1',
-  'HSK 2',
-  'HSK 3',
-  'HSK 4',
-  'HSK 5',
-  'HSK 6',
-  'HSK 7–9',
-];
-
-const ALL_SPECIALIZATIONS: TeacherSpecialization[] = [
-  'GRAMMAR',
-  'VOCABULARY',
-  'PRONUNCIATION',
-  'CONVERSATION',
-  'LISTENING',
-  'WRITING',
-  'HSKK',
-  'HSK_EXAM',
-];
-
 export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
   isOpen,
   teacher,
@@ -60,7 +44,7 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
   onToggleLockAccount,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [prevTeacherId, setPrevTeacherId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [editForm, setEditForm] = useState<UpdateTeacherDTO>({
     name: '',
     email: '',
@@ -73,10 +57,10 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
     bio: '',
   });
 
-  if (teacher && teacher.id !== prevTeacherId) {
-    setPrevTeacherId(teacher.id);
+  useEffect(() => {
     setIsEditing(false);
-  }
+    setErrors({});
+  }, [teacher?.id]);
 
   const handleStartEdit = () => {
     if (!teacher) return;
@@ -92,7 +76,13 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
       accountStatus: teacher.accountStatus,
       bio: teacher.profile.bio || '',
     });
+    setErrors({});
     setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setErrors({});
   };
 
   // Handle ESC key press
@@ -101,6 +91,7 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
       if (e.key === 'Escape') {
         if (isEditing) {
           setIsEditing(false);
+          setErrors({});
         } else {
           onClose();
         }
@@ -143,9 +134,30 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
     });
   };
 
+  const validateForm = (): boolean => {
+    if (!teacher) return false;
+    const errs: Record<string, string> = {};
+
+    if (!editForm.name.trim()) {
+      errs.name = 'Vui lòng nhập họ và tên giáo viên.';
+    }
+
+    const trimmedEmail = editForm.email.trim();
+    if (!trimmedEmail) {
+      errs.email = 'Vui lòng nhập email.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errs.email = 'Email không hợp lệ.';
+    } else if (adminTeacherService.isEmailTaken(trimmedEmail, teacher.id)) {
+      errs.email = 'Email này đã tồn tại trong hệ thống.';
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSaveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editForm.name.trim() || !editForm.email.trim()) return;
+    if (!validateForm()) return;
     onSaveEdit(teacher.id, editForm);
     setIsEditing(false);
   };
@@ -218,7 +230,7 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
         <div className="teacher-drawer-body">
           {isEditing ? (
             /* ================= EDIT MODE ================= */
-            <form id="teacher-edit-form" onSubmit={handleSaveSubmit} className="teacher-drawer-edit-form">
+            <form id="teacher-edit-form" onSubmit={handleSaveSubmit} className="teacher-drawer-edit-form" noValidate>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--foreground)' }}>
                   Chỉnh sửa hồ sơ giáo viên
@@ -228,26 +240,40 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
 
               {/* Name & Email */}
               <div className="drawer-edit-field">
-                <label className="drawer-edit-label">Họ và tên *</label>
+                <label className="drawer-edit-label">
+                  Họ và tên <span style={{ color: 'var(--danger)' }}>*</span>
+                </label>
                 <input
                   type="text"
                   className="drawer-edit-input"
-                  required
                   value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  onChange={(e) => {
+                    setEditForm({ ...editForm, name: e.target.value });
+                    if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+                  }}
                 />
+                {errors.name && (
+                  <span style={{ fontSize: '11px', color: 'var(--danger)' }}>{errors.name}</span>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
                 <div className="drawer-edit-field">
-                  <label className="drawer-edit-label">Email *</label>
+                  <label className="drawer-edit-label">
+                    Email <span style={{ color: 'var(--danger)' }}>*</span>
+                  </label>
                   <input
                     type="email"
                     className="drawer-edit-input"
-                    required
                     value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    onChange={(e) => {
+                      setEditForm({ ...editForm, email: e.target.value });
+                      if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                    }}
                   />
+                  {errors.email && (
+                    <span style={{ fontSize: '11px', color: 'var(--danger)' }}>{errors.email}</span>
+                  )}
                 </div>
 
                 <div className="drawer-edit-field">
@@ -568,7 +594,7 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setIsEditing(false)}
+                onClick={handleCancelEdit}
               >
                 <RotateCcw size={13} style={{ display: 'inline', marginRight: 4 }} />
                 Hủy chỉnh sửa

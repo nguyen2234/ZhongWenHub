@@ -7,7 +7,11 @@ import type {
   TeacherTeachingStatus,
   TeachingLevel,
 } from '../types/teacher.types';
-import { SPECIALIZATION_META } from '../types/teacher.types';
+import {
+  ALL_LEVELS,
+  ALL_SPECIALIZATIONS,
+  SPECIALIZATION_META,
+} from '../types/teacher.types';
 import { adminTeacherService } from '../services/teacher.service';
 
 export interface CreateTeacherModalProps {
@@ -15,27 +19,6 @@ export interface CreateTeacherModalProps {
   onClose: () => void;
   onSubmit: (dto: CreateTeacherDTO) => void;
 }
-
-const ALL_LEVELS: TeachingLevel[] = [
-  'HSK 1',
-  'HSK 2',
-  'HSK 3',
-  'HSK 4',
-  'HSK 5',
-  'HSK 6',
-  'HSK 7–9',
-];
-
-const ALL_SPECIALIZATIONS: TeacherSpecialization[] = [
-  'GRAMMAR',
-  'VOCABULARY',
-  'PRONUNCIATION',
-  'CONVERSATION',
-  'LISTENING',
-  'WRITING',
-  'HSKK',
-  'HSK_EXAM',
-];
 
 export const CreateTeacherModal: React.FC<CreateTeacherModalProps> = ({
   isOpen,

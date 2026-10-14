@@ -1,5 +1,7 @@
 export * from './types';
 export * from './data/lesson8';
+export * from './adapters/lesson-player.adapter';
+export * from './services';
 export * from './LessonExperience';
 export * from './components/LessonHeader';
 export * from './components/LessonProgress';

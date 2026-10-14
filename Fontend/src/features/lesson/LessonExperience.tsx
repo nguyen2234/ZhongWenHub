@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { LessonData, StepMetadata } from './types';
-import { lesson8Data } from './data/lesson8';
+import type { LessonProgressDTO } from './types/lesson-progress.types';
+import type { UserLearningSummaryDTO } from './types/user-learning-summary.types';
 import { LessonHeader } from './components/LessonHeader';
 import { LessonActionBar } from './components/LessonActionBar';
 import { IntroStep } from './steps/IntroStep';
@@ -13,10 +14,15 @@ import { QuizStep } from './steps/QuizStep';
 import { LessonComplete } from './steps/LessonComplete';
 import { useAITutor, ContextBuilder } from '../ai-tutor';
 
-interface LessonExperienceProps {
-  lessonData?: LessonData;
+export interface LessonExperienceProps {
+  lessonData: LessonData;
+  initialProgress?: LessonProgressDTO;
+  learningSummary?: UserLearningSummaryDTO;
   onBackToLearningPath: () => void;
   onNextLesson?: () => void;
+  onStepChange?: (stepIndex: number, maxUnlocked: number) => void;
+  onLessonComplete?: (quizScore: number, totalQuestions: number, xpEarned: number) => void;
+  onRestartLesson?: () => void;
 }
 
 const STEP_METADATA_LIST: StepMetadata[] = [
@@ -30,20 +36,39 @@ const STEP_METADATA_LIST: StepMetadata[] = [
 ];
 
 export const LessonExperience: React.FC<LessonExperienceProps> = ({
-  lessonData = lesson8Data,
+  lessonData,
+  initialProgress,
+  learningSummary,
   onBackToLearningPath,
   onNextLesson,
+  onStepChange,
+  onLessonComplete,
+  onRestartLesson,
 }) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [maxUnlockedStepIndex, setMaxUnlockedStepIndex] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
+  // Initialize progress state from LessonProgressDTO
+  const [currentStepIndex, setCurrentStepIndex] = useState(
+    initialProgress?.currentStepIndex ?? 0
+  );
+  const [maxUnlockedStepIndex, setMaxUnlockedStepIndex] = useState(
+    initialProgress?.maxUnlockedStepIndex ?? 0
+  );
+  const [isCompleted, setIsCompleted] = useState(
+    initialProgress?.status === 'COMPLETED'
+  );
 
   // Quiz Score tracking
-  const [quizScore, setQuizScore] = useState(4); // default demonstration or updated on quiz finish
+  const [quizScore, setQuizScore] = useState(
+    initialProgress?.quizScore ?? 4
+  );
   const totalQuizQuestions = lessonData.quiz.length;
 
+  // Global user learning state (streakDays separated from lesson progress)
+  const streakDays = learningSummary?.streakDays ?? lessonData.streakDays ?? 8;
+
   const { setContext } = useAITutor();
-  const [currentVocabHanzi, setCurrentVocabHanzi] = useState<string>(lessonData.vocabulary[0].hanzi);
+  const [currentVocabHanzi, setCurrentVocabHanzi] = useState<string>(
+    lessonData.vocabulary[0]?.hanzi || '喝'
+  );
 
   // Update contextual AI state whenever current step changes
   useEffect(() => {
@@ -54,7 +79,10 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
       lessonTitle: `${lessonData.hanziTitle} (${lessonData.pinyinTitle})`,
       currentStep: currentStep.label,
       grammarPoints: [lessonData.grammar.patternFormula],
-      vocabularyWord: currentStepIndex === 1 ? { hanzi: currentVocabHanzi, pinyin: 'hē', meaning: 'uống' } : undefined,
+      vocabularyWord:
+        currentStepIndex === 1
+          ? { hanzi: currentVocabHanzi, pinyin: 'hē', meaning: 'uống' }
+          : undefined,
     });
     setContext(ctx);
 
@@ -66,6 +94,7 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
     if (index <= maxUnlockedStepIndex) {
       setCurrentStepIndex(index);
       setIsCompleted(false);
+      onStepChange?.(index, maxUnlockedStepIndex);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -74,14 +103,17 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
   const handleNextStep = () => {
     if (currentStepIndex < STEP_METADATA_LIST.length - 1) {
       const nextIndex = currentStepIndex + 1;
+      const nextMaxUnlocked = Math.max(maxUnlockedStepIndex, nextIndex);
       setCurrentStepIndex(nextIndex);
       if (nextIndex > maxUnlockedStepIndex) {
         setMaxUnlockedStepIndex(nextIndex);
       }
+      onStepChange?.(nextIndex, nextMaxUnlocked);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Completed last step (Quiz) -> show Complete Screen
       setIsCompleted(true);
+      onLessonComplete?.(quizScore, totalQuizQuestions, lessonData.xpReward);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -89,8 +121,10 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
   // Previous step handler
   const handlePrevStep = () => {
     if (currentStepIndex > 0) {
-      setCurrentStepIndex((prev) => prev - 1);
+      const prevIndex = currentStepIndex - 1;
+      setCurrentStepIndex(prevIndex);
       setIsCompleted(false);
+      onStepChange?.(prevIndex, maxUnlockedStepIndex);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -99,14 +133,22 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
   const handleCompleteQuiz = (score: number) => {
     setQuizScore(score);
     setIsCompleted(true);
+    onLessonComplete?.(score, totalQuizQuestions, lessonData.xpReward);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Restart lesson
-  const handleRestartLesson = () => {
+  const handleRestart = () => {
     setCurrentStepIndex(0);
     setIsCompleted(false);
+    onRestartLesson?.();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Composed lesson model for LessonComplete (streakDays composed from UserLearningSummaryDTO)
+  const completeLessonViewModel: LessonData = {
+    ...lessonData,
+    streakDays,
   };
 
   return (
@@ -127,7 +169,7 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
         pinyinTitle={lessonData.pinyinTitle}
         currentStepIndex={currentStepIndex}
         totalSteps={STEP_METADATA_LIST.length}
-        streakDays={lessonData.streakDays}
+        streakDays={streakDays}
         xpReward={lessonData.xpReward}
         steps={STEP_METADATA_LIST}
         maxUnlockedStepIndex={maxUnlockedStepIndex}
@@ -150,10 +192,10 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
       >
         {isCompleted ? (
           <LessonComplete
-            lesson={lessonData}
+            lesson={completeLessonViewModel}
             quizScore={quizScore}
             totalQuizQuestions={totalQuizQuestions}
-            onRestartLesson={handleRestartLesson}
+            onRestartLesson={handleRestart}
             onBackToLearningPath={onBackToLearningPath}
             onNextLesson={onNextLesson}
           />

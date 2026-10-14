@@ -1,5 +1,10 @@
 import { type LessonData } from '../types';
 
+/**
+ * @deprecated Legacy monolithic mock data for Lesson 8.
+ * Phase 3 migrated Student Player to use `lessonContentService` and `LessonDetailDTO`.
+ * Retained temporarily as fallback and parity reference.
+ */
 export const lesson8Data: LessonData = {
   id: 8,
   hskLevel: 2,

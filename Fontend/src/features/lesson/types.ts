@@ -153,3 +153,6 @@ export interface LessonData {
   exercises: ExerciseItem[];
   quiz: QuizQuestionItem[];
 }
+
+// Re-export normalized DTO contracts (Phase 3)
+export * from './types/index';

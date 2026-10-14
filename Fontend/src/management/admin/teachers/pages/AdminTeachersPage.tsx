@@ -49,12 +49,12 @@ export const AdminTeachersPage: React.FC = () => {
   const [dataVersion, setDataVersion] = useState(0);
 
   const paginatedData = useMemo(() => {
-    if (dataVersion < 0) return adminTeacherService.getTeachers(filters, pagination, sort);
+    void dataVersion;
     return adminTeacherService.getTeachers(filters, pagination, sort);
   }, [filters, pagination, sort, dataVersion]);
 
   const kpis = useMemo(() => {
-    if (dataVersion < 0) return adminTeacherService.getKPIs();
+    void dataVersion;
     return adminTeacherService.getKPIs();
   }, [dataVersion]);
 
