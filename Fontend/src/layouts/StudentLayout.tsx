@@ -7,6 +7,8 @@ import {
   X,
   ShieldCheck,
   Languages,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
@@ -20,6 +22,17 @@ export const StudentLayout: React.FC = () => {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isPinyinActive, setIsPinyinActive] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('zwh_sidebar_collapsed') === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('zwh_sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   // Keyboard shortcut Cmd+K or Ctrl+K for search palette
   useEffect(() => {
@@ -35,9 +48,22 @@ export const StudentLayout: React.FC = () => {
 
   const getPageTitle = () => {
     if (pathname.startsWith('/ai-tutor')) return 'Không gian AI Tutor Chuyên nghiệp';
-    if (pathname.startsWith('/ai-learning')) return 'Không gian Trí tuệ Nhân tạo AI';
+    if (pathname.startsWith('/ai-live')) return 'Luyện giao tiếp AI Live';
+    if (pathname.startsWith('/ai-grading')) return 'AI Chấm điểm & Sửa văn';
+    if (pathname.startsWith('/ai-analytics')) return 'Phân tích Năng lực AI';
     if (pathname.startsWith('/homework')) return 'Bài tập & Bài kiểm tra';
     if (pathname.startsWith('/vocabulary')) return 'Kho từ vựng & Spaced Repetition';
+    if (pathname.startsWith('/grammar')) return 'Ngữ pháp tiếng Trung HSK';
+    if (pathname.startsWith('/skills')) return 'Luyện 4 Kỹ năng Nghe - Nói - Đọc - Viết';
+    if (pathname.startsWith('/mock-exams')) return 'Thi thử HSK Chuẩn hóa';
+    if (pathname.startsWith('/games')) return 'Trò chơi Học tiếng Trung';
+    if (pathname.startsWith('/classes')) return 'Lớp học của tôi';
+    if (pathname.startsWith('/learning-results')) return 'Kết quả & Đánh giá Học tập';
+    if (pathname.startsWith('/progress')) return 'Tiến độ & Thống kê Học tập';
+    if (pathname.startsWith('/leaderboard')) return 'Bảng xếp hạng Học viên';
+    if (pathname.startsWith('/achievements')) return 'Thành tựu & Huy hiệu';
+    if (pathname.startsWith('/profile')) return 'Hồ sơ Học viên';
+    if (pathname.startsWith('/settings')) return 'Cài đặt Hệ thống';
     if (pathname.startsWith('/learning-path')) return 'Lộ trình HSK';
     if (pathname.startsWith('/practice')) return 'Trung tâm Luyện tập';
     if (pathname.startsWith('/design-system')) return 'Design System Showcase';
@@ -62,18 +88,20 @@ export const StudentLayout: React.FC = () => {
           width: '100%',
         }}
       >
-        {/* Left section: Aligning with the 256px Sidebar */}
+        {/* Left section: Aligned with the Sidebar width (256px or 72px) */}
         <div
           style={{
             display: 'flex',
             height: '100%',
             alignItems: 'center',
+            justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
             gap: '10px',
-            padding: '0 16px',
-            width: '256px',
+            padding: isSidebarCollapsed ? '0 10px' : '0 16px',
+            width: isSidebarCollapsed ? '72px' : '256px',
             borderRight: '1.5px solid #f1f5f9',
             flexShrink: 0,
             boxSizing: 'border-box',
+            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           className="header-brand-box"
         >
@@ -104,6 +132,7 @@ export const StudentLayout: React.FC = () => {
           <div
             style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}
             onClick={() => navigate('/dashboard')}
+            title="Về Trang chủ ZhongWenHub"
           >
             <div
               style={{
@@ -124,19 +153,72 @@ export const StudentLayout: React.FC = () => {
             >
               华
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
-                ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
-              </span>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
-                Học tiếng Trung dễ dàng
-              </span>
-            </div>
+            {!isSidebarCollapsed && (
+              <div style={{ display: 'flex', flexDirection: 'column' }} className="header-brand-title">
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
+                  ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                  Học tiếng Trung dễ dàng
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Desktop Sidebar Toggle icon */}
+          {!isSidebarCollapsed && (
+            <button
+              type="button"
+              onClick={toggleSidebarCollapse}
+              aria-label="Thu gọn thanh điều hướng"
+              className="desktop-sidebar-toggle-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: 'transparent',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+              title="Thu gọn sidebar"
+            >
+              <PanelLeftClose size={16} />
+            </button>
+          )}
         </div>
 
         {/* Center / Search Input Trigger */}
-        <div style={{ flex: 1, padding: '0 20px', display: 'flex', alignItems: 'center' }}>
+        <div style={{ flex: 1, padding: '0 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Quick Expand button when sidebar is collapsed */}
+          {isSidebarCollapsed && (
+            <button
+              type="button"
+              onClick={toggleSidebarCollapse}
+              aria-label="Mở rộng thanh điều hướng"
+              className="desktop-sidebar-expand-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                color: '#64748b',
+                cursor: 'pointer',
+              }}
+              title="Mở rộng sidebar"
+            >
+              <PanelLeftOpen size={16} />
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsSearchModalOpen(true)}
@@ -146,7 +228,7 @@ export const StudentLayout: React.FC = () => {
               gap: '10px',
               height: '38px',
               width: '100%',
-              maxWidth: '320px',
+              maxWidth: '340px',
               padding: '0 14px',
               borderRadius: 'var(--radius-full)',
               backgroundColor: '#f1f5f9',
@@ -162,7 +244,7 @@ export const StudentLayout: React.FC = () => {
           >
             <Search size={15} style={{ color: '#94a3b8', flexShrink: 0 }} />
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Tìm kiếm tính năng...
+              Tìm kiếm nhanh tính năng, bài học...
             </span>
             <kbd
               style={{
@@ -241,7 +323,7 @@ export const StudentLayout: React.FC = () => {
 
           <XPIndicator amount={2180} variant="pill" />
 
-          {/* User Avatar */}
+          {/* User Avatar with direct link to Profile */}
           <div
             style={{
               width: '34px',
@@ -257,8 +339,8 @@ export const StudentLayout: React.FC = () => {
               fontWeight: 700,
               cursor: 'pointer',
             }}
-            title="Minh Anh (Học viên HSK 2)"
-            onClick={() => navigate('/login')}
+            title="Minh Anh (Hồ sơ học viên)"
+            onClick={() => navigate('/profile')}
           >
             MA
           </div>
@@ -301,7 +383,10 @@ export const StudentLayout: React.FC = () => {
               height: 'calc(100vh - 64px)',
             }}
           >
-            <StudentSidebar />
+            <StudentSidebar
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={toggleSidebarCollapse}
+            />
           </div>
         </div>
 
@@ -368,7 +453,10 @@ export const StudentLayout: React.FC = () => {
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto' }}>
-                <StudentSidebar onNavigate={() => setIsMobileDrawerOpen(false)} />
+                <StudentSidebar
+                  isCollapsed={false}
+                  onNavigate={() => setIsMobileDrawerOpen(false)}
+                />
               </div>
             </div>
           </div>
@@ -388,7 +476,7 @@ export const StudentLayout: React.FC = () => {
             <Outlet />
           </main>
 
-          {/* Simple Clean Footer */}
+          {/* Clean Responsive Footer */}
           <footer
             style={{
               borderTop: '1px solid #e2e8f0',
@@ -409,7 +497,7 @@ export const StudentLayout: React.FC = () => {
               }}
             >
               <div>
-                © 2026 ZhongWenHub • Nền tảng tự học tiếng Trung theo lộ trình HSK dành cho người Việt
+                © 2026 ZhongWenHub • Nền tảng tự học tiếng Trung theo lộ trình HSK chuẩn quốc tế
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <span>
@@ -420,7 +508,7 @@ export const StudentLayout: React.FC = () => {
                   Lộ trình HSK 1–9
                 </Link>
                 <span>•</span>
-                <Link to="/ai-tutor" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+                <Link to="/ai-live" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
                   AI Tutor Live
                 </Link>
               </div>
@@ -446,6 +534,12 @@ export const StudentLayout: React.FC = () => {
             border-right: none !important;
           }
           .header-admin-text {
+            display: none !important;
+          }
+          .desktop-sidebar-toggle-btn {
+            display: none !important;
+          }
+          .desktop-sidebar-expand-btn {
             display: none !important;
           }
         }

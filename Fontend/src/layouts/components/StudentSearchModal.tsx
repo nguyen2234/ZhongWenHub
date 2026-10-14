@@ -7,13 +7,25 @@ import {
   GraduationCap,
   ClipboardList,
   Languages,
+  BookText,
+  Headphones,
+  Mic,
+  FileText,
+  PenTool,
   Dumbbell,
-  RotateCcw,
+  GraduationCap as ExamIcon,
+  Gamepad2,
+  Users,
+  CheckCircle2,
   Sparkles,
   Radio,
+  FileCheck,
   BrainCircuit,
-  Layers,
-  ShieldCheck,
+  TrendingUp,
+  Trophy,
+  Award,
+  User,
+  Settings,
   X,
   ArrowRight,
 } from 'lucide-react';
@@ -33,18 +45,30 @@ interface SearchItem {
 }
 
 const SEARCH_ITEMS: SearchItem[] = [
-  { id: '1', title: 'Dashboard Học tập', category: 'Trang chính', path: '/dashboard', icon: LayoutDashboard },
-  { id: '2', title: 'Lộ trình HSK 1 → HSK 7–9', category: 'Trang chính', path: '/learning-path', icon: BookOpen },
-  { id: '3', title: 'Bài 8: 你想喝什么？(Bạn muốn uống gì?)', category: 'Khóa học', path: '/lesson', icon: GraduationCap, badge: 'Đang học' },
-  { id: '4', title: 'Bài tập về nhà & Kiểm tra', category: 'Học tập', path: '/homework', icon: ClipboardList },
-  { id: '5', title: 'Kho từ vựng & Spaced Repetition', category: 'Từ vựng', path: '/vocabulary', icon: Languages, badge: '18 từ đến hạn' },
-  { id: '6', title: 'Trung tâm Luyện tập trắc nghiệm', category: 'Học tập', path: '/practice', icon: Dumbbell },
-  { id: '7', title: 'Phiên ôn Flashcard SRS', category: 'Từ vựng', path: '/srs-review', icon: RotateCcw },
-  { id: '8', title: 'AI Tutor Trò chuyện thông minh', category: 'Trợ lý AI', path: '/ai-tutor?mode=chat', icon: Sparkles, badge: 'AI' },
-  { id: '9', title: 'Luyện nói AI Live (Kippy UX)', category: 'Trợ lý AI', path: '/ai-tutor?mode=live', icon: Radio, badge: 'Live' },
-  { id: '10', title: 'Không gian Trí tuệ Nhân tạo AI', category: 'Trợ lý AI', path: '/ai-learning', icon: BrainCircuit },
-  { id: '11', title: 'Design System Showcase', category: 'Hệ thống', path: '/design-system', icon: Layers },
-  { id: '12', title: 'Cổng Quản trị viên & Giáo viên', category: 'Hệ thống', path: '/management/admin/dashboard', icon: ShieldCheck },
+  { id: '1', title: 'Dashboard Học tập', category: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
+  { id: '2', title: 'Lộ trình HSK 1 → HSK 7–9', category: 'Tổng quan', path: '/learning-path', icon: BookOpen },
+  { id: '3', title: 'Bài 8: 你想喝什么？(Bạn muốn uống gì?)', category: 'Học tập', path: '/lesson', icon: GraduationCap, badge: 'Đang học' },
+  { id: '4', title: 'Kho từ vựng & Spaced Repetition', category: 'Học tập', path: '/vocabulary', icon: Languages, badge: '18 từ đến hạn' },
+  { id: '5', title: 'Ngữ pháp HSK cấu trúc & ví dụ', category: 'Học tập', path: '/grammar', icon: BookText },
+  { id: '6', title: 'Luyện kỹ năng Nghe (Listening)', category: 'Kỹ năng', path: '/skills/listening', icon: Headphones },
+  { id: '7', title: 'Luyện kỹ năng Nói (Speaking)', category: 'Kỹ năng', path: '/skills/speaking', icon: Mic },
+  { id: '8', title: 'Luyện kỹ năng Đọc (Reading)', category: 'Kỹ năng', path: '/skills/reading', icon: FileText },
+  { id: '9', title: 'Luyện kỹ năng Viết (Writing)', category: 'Kỹ năng', path: '/skills/writing', icon: PenTool },
+  { id: '10', title: 'Trung tâm Luyện tập trắc nghiệm', category: 'Luyện tập', path: '/practice', icon: Dumbbell },
+  { id: '11', title: 'Thi thử HSK Chuẩn hóa có bấm giờ', category: 'Luyện tập', path: '/mock-exams', icon: ExamIcon, badge: 'HSK 1-6' },
+  { id: '12', title: 'Trò chơi Học tiếng Trung (Ghép từ, Lật thẻ)', category: 'Luyện tập', path: '/games', icon: Gamepad2, badge: 'Game' },
+  { id: '13', title: 'Lớp học của tôi & Giảng viên', category: 'Lớp học', path: '/classes', icon: Users },
+  { id: '14', title: 'Bài tập về nhà được giao', category: 'Lớp học', path: '/homework', icon: ClipboardList, badge: '2 mới' },
+  { id: '15', title: 'Kết quả học tập & Nhận xét', category: 'Lớp học', path: '/learning-results', icon: CheckCircle2 },
+  { id: '16', title: 'AI Tutor Trò chuyện thông minh', category: 'Trợ lý AI', path: '/ai-tutor', icon: Sparkles, badge: 'AI' },
+  { id: '17', title: 'Luyện nói AI Live (Kippy giọng Bắc Kinh)', category: 'Trợ lý AI', path: '/ai-live', icon: Radio, badge: 'Live' },
+  { id: '18', title: 'AI Chấm điểm bài viết & Sửa ngữ pháp', category: 'Trợ lý AI', path: '/ai-grading', icon: FileCheck },
+  { id: '19', title: 'Phân tích Năng lực AI & Radar kỹ năng', category: 'Trợ lý AI', path: '/ai-analytics', icon: BrainCircuit },
+  { id: '20', title: 'Tiến độ học tập & Thời gian học', category: 'Thành tích', path: '/progress', icon: TrendingUp },
+  { id: '21', title: 'Bảng xếp hạng Học viên tuần này', category: 'Thành tích', path: '/leaderboard', icon: Trophy },
+  { id: '22', title: 'Thành tựu & Bộ sưu tập Huy hiệu', category: 'Thành tích', path: '/achievements', icon: Award },
+  { id: '23', title: 'Hồ sơ học viên & Mục tiêu HSK', category: 'Cá nhân', path: '/profile', icon: User },
+  { id: '24', title: 'Cài đặt hệ thống & Giao diện', category: 'Cá nhân', path: '/settings', icon: Settings },
 ];
 
 export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, onClose }) => {
@@ -85,7 +109,7 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: '80px var(--space-4) var(--space-4) var(--space-4)',
+        padding: '80px 16px 16px 16px',
       }}
       onClick={onClose}
     >
@@ -94,12 +118,13 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
           width: '100%',
           maxWidth: '560px',
           backgroundColor: '#ffffff',
-          borderRadius: 'var(--radius-2xl)',
+          borderRadius: '16px',
           border: '1.5px solid #e2e8f0',
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          maxHeight: '80vh',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -108,44 +133,55 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
           style={{
             display: 'flex',
             alignItems: 'center',
+            padding: '12px 16px',
+            borderBottom: '1px solid #f1f5f9',
             gap: '12px',
-            padding: '14px 18px',
-            borderBottom: '1.5px solid #f1f5f9',
           }}
         >
-          <Search size={18} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+          <Search size={18} style={{ color: '#4338ca', flexShrink: 0 }} />
           <input
             type="text"
-            placeholder="Tìm kiếm tính năng, bài học, AI Tutor... (Nhấn Esc để đóng)"
+            placeholder="Tìm kiếm tính năng, bài học, ngữ pháp (⌘K)..."
             value={query}
-            autoFocus
             onChange={(e) => setQuery(e.target.value)}
+            autoFocus
             style={{
               flex: 1,
               border: 'none',
               outline: 'none',
-              fontSize: 'var(--text-sm)',
+              fontSize: '14px',
               fontWeight: 500,
-              color: 'var(--foreground)',
+              color: '#0f172a',
               backgroundColor: 'transparent',
             }}
           />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
-            >
-              <X size={16} />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Results List */}
-        <div style={{ maxHeight: '360px', overflowY: 'auto', padding: '8px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: 'var(--text-xs)' }}>
-              Không tìm thấy tính năng nào phù hợp với &quot;{query}&quot;
+            <div
+              style={{
+                padding: '32px 16px',
+                textAlign: 'center',
+                color: '#64748b',
+                fontSize: '13px',
+              }}
+            >
+              Không tìm thấy tính năng nào khớp với "{query}"
             </div>
           ) : (
             filtered.map((item) => {
@@ -158,11 +194,13 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-xl)',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    gap: '12px',
                   }}
+                  className="search-item-hover"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#f1f5f9';
                   }}
@@ -170,43 +208,51 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                     <div
                       style={{
-                        width: '34px',
-                        height: '34px',
-                        borderRadius: 'var(--radius-lg)',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
                         backgroundColor: '#eef2ff',
-                        color: 'var(--primary)',
+                        color: '#4338ca',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
                       }}
                     >
-                      <Icon size={17} />
+                      <Icon size={16} />
                     </div>
-                    <div>
-                      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--foreground)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                      <span
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: '#0f172a',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {item.title}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>
-                        {item.category}
-                      </div>
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        {item.category} • {item.path}
+                      </span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     {item.badge && (
                       <span
                         style={{
                           fontSize: '10px',
-                          padding: '2px 8px',
-                          borderRadius: 'var(--radius-full)',
-                          backgroundColor: '#f5f3ff',
-                          color: 'var(--ai)',
-                          border: '1px solid #ede9fe',
                           fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#e0e7ff',
+                          color: '#4338ca',
                         }}
                       >
                         {item.badge}
@@ -220,10 +266,10 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
           )}
         </div>
 
-        {/* Footer Shortcut Helper */}
+        {/* Footer shortcuts info */}
         <div
           style={{
-            padding: '10px 18px',
+            padding: '8px 16px',
             backgroundColor: '#f8fafc',
             borderTop: '1px solid #f1f5f9',
             display: 'flex',
@@ -233,13 +279,8 @@ export const StudentSearchModal: React.FC<StudentSearchModalProps> = ({ isOpen, 
             color: '#64748b',
           }}
         >
-          <span>Điều hướng nhanh với bàn phím</span>
-          <span>
-            <kbd style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}>
-              ESC
-            </kbd>{' '}
-            để thoát
-          </span>
+          <span>Nhấn <kbd style={{ padding: '1px 5px', borderRadius: '4px', background: '#e2e8f0', color: '#334155', fontWeight: 600 }}>Esc</kbd> để đóng</span>
+          <span>Chọn để chuyển hướng ngay lập tức</span>
         </div>
       </div>
     </div>
