@@ -1,0 +1,144 @@
+/* ==========================================================================
+   HANBEEGO-INSPIRED DASHBOARD & LAYOUT STYLES
+   Visual layout, 3D tactile cards, and responsive sidebar container
+   ========================================================================== */
+
+/* 3D Tactile Card */
+.card-3d {
+  background-color: var(--surface);
+  border: 1.5px solid #e2e8f0;
+  border-bottom: 3.5px solid #cbd5e1;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-3d:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.card-3d-interactive {
+  cursor: pointer;
+}
+
+.card-3d-interactive:hover {
+  transform: translateY(-2px);
+  border-bottom-width: 4.5px;
+}
+
+.card-3d-interactive:active {
+  transform: translateY(1px);
+  border-bottom-width: 2px;
+}
+
+/* 3D Tactile Button */
+.btn-3d-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 0 0 #312e81;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.75rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.btn-3d-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-3d-primary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 #312e81;
+}
+
+/* Dashboard Hero Banner */
+.dashboard-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(135deg, #eef2ff 0%, #fdf2f8 60%, #fff1f2 100%);
+  border: 1.5px solid #e0e7ff;
+  border-bottom: 4px solid #c7d2fe;
+}
+
+/* Hanzi Typography Display */
+.hanzi-hero {
+  font-family: var(--font-hanzi);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--foreground);
+}
+
+.pinyin-hero {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Week Day Dot Item */
+.streak-day-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.streak-day-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  transition: all 0.15s ease;
+}
+
+.streak-day-circle.active {
+  border-color: var(--streak);
+  background-color: var(--streak-bg);
+  color: var(--streak);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
+
+.streak-day-circle.completed {
+  border-color: var(--success);
+  background-color: var(--success);
+  color: #ffffff;
+}
+
+/* Metric Tile in Thống kê học tập */
+.stat-metric-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+
+/* Responsive grid rules */
+@media (max-width: 1280px) {
+  .hanbeego-content-wrapper {
+    flex-direction: column !important;
+  }
+  .hanbeego-sidebar-column {
+    width: 100% !important;
+  }
+}
