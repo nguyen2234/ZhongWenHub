@@ -14,6 +14,7 @@ import {
   StudentHomeworkResultPage,
 } from '../../features/homework';
 import { StudentAIWorkspacePage } from '../../features/ai';
+import { AITutorWorkspacePage } from '../../features/ai-tutor';
 
 export const studentRoutes: RouteObject[] = [
   // Focus Mode 1: Pure Learning Mode for Lesson (no dashboard header/footer distraction)
@@ -59,6 +60,10 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'ai-learning',
         element: <StudentAIWorkspacePage />,
+      },
+      {
+        path: 'ai-tutor',
+        element: <AITutorWorkspacePage />,
       },
       {
         path: 'practice',

@@ -13,12 +13,12 @@ import {
   Clock,
   CheckCircle2,
   Calendar,
-  Send,
   PenTool,
   Brain,
   MessageCircle,
   FileCheck,
   ChevronRight,
+  Radio,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -36,14 +36,17 @@ export interface DashboardProps {
   onStartReviewSession?: () => void;
   onOpenVocabulary?: () => void;
   onOpenLesson?: (lessonId?: number) => void;
+  onOpenAITutor?: (mode?: 'chat' | 'live') => void;
 }
 
 export const DashboardPage: React.FC<DashboardProps> = ({
   onStartReviewSession,
   onOpenVocabulary,
   onOpenLesson,
+  onOpenAITutor,
 }) => {
   const navigate = useNavigate();
+
   const handleStartReview = () => {
     if (onStartReviewSession) {
       onStartReviewSession();
@@ -51,6 +54,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
       navigate('/srs-review');
     }
   };
+
   const handleOpenLesson = (lessonId?: number) => {
     if (onOpenLesson) {
       onOpenLesson(lessonId);
@@ -58,11 +62,20 @@ export const DashboardPage: React.FC<DashboardProps> = ({
       navigate('/lesson');
     }
   };
+
   const handleOpenVocabulary = () => {
     if (onOpenVocabulary) {
       onOpenVocabulary();
     } else {
       navigate('/vocabulary');
+    }
+  };
+
+  const handleOpenTutor = (mode: 'chat' | 'live' = 'chat') => {
+    if (onOpenAITutor) {
+      onOpenAITutor(mode);
+    } else {
+      navigate(`/ai-tutor?mode=${mode}&source=dashboard`);
     }
   };
 
@@ -110,14 +123,6 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     },
   ];
 
-  // AI Tutor Interactive State
-  const [aiMessage, setAiMessage] = useState<string>(
-    'Ni hao Minh Anh! Trong bài 8 "你想喝什么？", cấu trúc "想" (xiǎng - muốn) diễn tả nguyện vọng lịch sự. Bạn có thắc mắc gì về ngữ pháp bài này không?'
-  );
-  const [aiActiveAction, setAiActiveAction] = useState<string>('');
-  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
-  const [customAiQuery, setCustomAiQuery] = useState<string>('');
-
   // Daily Challenge State
   const [challenges, setChallenges] = useState([
     { id: 1, title: 'Học 10 từ mới trong Bài 8', xp: 30, completed: true },
@@ -131,51 +136,24 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     );
   };
 
-  const handleAiAction = (action: string) => {
-    setAiActiveAction(action);
-    setIsAiLoading(true);
-    setTimeout(() => {
-      setIsAiLoading(false);
-      if (action === 'grammar') {
-        setAiMessage(
-          '💡 Giải thích ngữ pháp "想 + Động từ":\n• Dùng để bày tỏ ý định, mong muốn một cách lịch sự.\n• Ví dụ: 我想买水果 (Tôi muốn mua hoa quả).\n• Phủ định dùng: 不想 (bù xiǎng) chứ không dùng 没想.'
-        );
-      } else if (action === 'dialogue') {
-        setAiMessage(
-          '🗣️ Luyện hội thoại tại quán cà phê:\nPhục vụ: 你好，你想喝点什么？\nBạn hãy trả lời: 我想要一杯冰美式咖啡，谢谢！(Tôi muốn một ly cà phê Americano đá, cảm ơn!).'
-        );
-      } else if (action === 'check') {
-        setAiMessage(
-          '✍️ Kiểm tra câu:\nHãy gửi câu tiếng Trung bạn tự đặt vào ô bên dưới, mình sẽ chấm điểm ngữ pháp, trật tự từ và cách dùng lượng từ cho bạn ngay!'
-        );
-      } else {
-        setAiMessage(
-          '📖 Giải thích từ vựng "多少" (duōshǎo):\n• Gồm hai chữ 多 (nhiều) + 少 (ít).\n• Dùng hỏi số lượng từ 10 trở lên hoặc hỏi giá: 这个多少钱？(Cái này bao nhiêu tiền?).'
-        );
-      }
-    }, 500);
-  };
-
-  const handleSendCustomQuery = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customAiQuery.trim()) return;
-    const query = customAiQuery;
-    setCustomAiQuery('');
-    setIsAiLoading(true);
-    setTimeout(() => {
-      setIsAiLoading(false);
-      setAiMessage(`🤖 Nhận xét câu "${query}": Câu của bạn rất tự nhiên! Trật tự ngữ pháp chuẩn xác. Bạn có thể thay bằng "您想喝点什么？" để thêm phần kính trọng hơn nữa nhé.`);
-    }, 600);
-  };
-
   const completedChallenges = challenges.filter((c) => c.completed).length;
-  const currentEarnedXp = challenges.filter((c) => c.completed).reduce((acc, cur) => acc + cur.xp, 0);
+  const currentEarnedXp = challenges
+    .filter((c) => c.completed)
+    .reduce((acc, cur) => acc + cur.xp, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-6)',
+        width: '100%',
+        maxWidth: '1480px',
+        margin: '0 auto',
+      }}
+    >
       {/* =====================================================================
-          1. HEADER / WELCOME
+          1. HEADER / WELCOME BANNER (Spacious & Balanced)
           ===================================================================== */}
       <section
         style={{
@@ -188,9 +166,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           backgroundColor: 'var(--surface)',
           borderRadius: 'var(--radius-xl)',
           border: '1px solid var(--border)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div>
+        <div style={{ flex: 1, minWidth: '280px' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-1)' }}>
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, margin: 0, color: 'var(--foreground)' }}>
               Chào buổi sáng, Minh Anh! 👋
@@ -198,12 +177,12 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <HSKLevel level={2} showFullLabel />
             <Badge variant="streak" icon={<Flame size={14} />}>Chuỗi 8 ngày</Badge>
           </div>
-          <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--muted)' }}>
+          <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--muted)', lineHeight: 1.5 }}>
             Hôm nay bạn có <strong>1 bài học đang dở</strong> và <strong>14 từ vựng cần ôn tập</strong> để duy trì trí nhớ dài hạn.
           </p>
         </div>
 
-        {/* Quick Top Stats */}
+        {/* Quick Top Stats Bar */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' }}>
           <div
             style={{
@@ -242,18 +221,22 @@ export const DashboardPage: React.FC<DashboardProps> = ({
       </section>
 
       {/* =====================================================================
-          PHƯƠNG ÁN A: HAI CỘT DUAL-FOCUS
-          Cột chính (65%): Continue Learning ➔ Spaced Review ➔ Learning Path ➔ Skills
-          Cột phụ (35%): Daily Goal ➔ AI Tutor ➔ Daily Challenge ➔ Achievements
+          2. DUAL COLUMN DESKTOP GRID (~66% Main / ~34% Sidebar)
           ===================================================================== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-6)', alignItems: 'start' }}>
-        
+      <div
+        className="student-dashboard-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 2fr) minmax(340px, 1fr)',
+          gap: 'var(--space-6)',
+          alignItems: 'start',
+        }}
+      >
         {/* ===================================================================
-            CỘT CHÍNH (65%): DÒNG CHẢY HỌC TẬP & ÔN TẬP
+            CỘT CHÍNH (65–68%): DÒNG CHẢY HỌC TẬP & ÔN TẬP
             =================================================================== */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', gridColumn: 'span 2' }}>
-          
-          {/* [2] CONTINUE LEARNING (HERO CARD - QUAN TRỌNG NHẤT) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          {/* [2] CONTINUE LEARNING (HERO CARD) */}
           <div
             style={{
               padding: 'var(--space-5) var(--space-6)',
@@ -265,8 +248,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               overflow: 'hidden',
             }}
           >
-            {/* Header dải thông tin nhỏ */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
+            {/* Header info badge */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 <span
                   style={{
@@ -294,7 +277,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             {/* Tiêu đề Chữ Hán lớn + Pinyin + Dịch nghĩa */}
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <div style={{ flex: 1, minWidth: '240px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-3)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
                   <h2
                     style={{
                       fontFamily: 'var(--font-hanzi)',
@@ -311,12 +294,12 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     Nǐ xiǎng hē shénme?
                   </span>
                 </div>
-                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginTop: '6px', fontStyle: 'italic', lineHeight: 1.4 }}>
                   &quot;Bạn muốn uống gì?&quot; • Học cách gọi đồ uống, sử dụng lượng từ 杯 và hỏi giá với 多少.
                 </div>
               </div>
 
-              {/* Nút Tiếp Tục Học - Nổi bật nhất trang */}
+              {/* Nút Tiếp Tục Học */}
               <Button
                 variant="primary"
                 icon={<Play size={18} fill="currentColor" />}
@@ -349,7 +332,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* [5] REVIEW: KHU VỰC ÔN TẬP SPACED REPETITION */}
+          {/* [3] REVIEW: KHU VỰC ÔN TẬP SPACED REPETITION */}
           <div
             style={{
               padding: 'var(--space-5)',
@@ -397,7 +380,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               </Button>
             </div>
 
-            {/* Dải từ vựng sắp quên preview */}
+            {/* Dải từ vựng xem trước */}
             <div>
               <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)', marginBottom: 'var(--space-2)' }}>
                 Từ vựng cần ôn theo thuật toán trí nhớ:
@@ -441,7 +424,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     padding: '6px 10px',
                     borderRadius: 'var(--radius-lg)',
                     fontSize: 'var(--text-xs)',
-                    color: 'var(--muted)',
+                    color: 'var(--primary)',
+                    fontWeight: 600,
                     cursor: 'pointer',
                   }}
                 >
@@ -451,19 +435,25 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* [4] LEARNING PATH (LỘ TRÌNH TIẾN TRÌNH HSK 1 → HSK 6) */}
+          {/* [4] LEARNING PATH (LỘ TRÌNH HSK 1 → HSK 7–9 TOÀN DIỆN) */}
           <Card
-            title="Lộ trình chinh phục HSK 1 → HSK 6"
+            title="Lộ trình chinh phục HSK 1 → HSK 7–9"
             icon={<BookOpen size={18} />}
             action={
-              <Button variant="ghost" icon={<ChevronRight size={14} />} onClick={() => alert('Xem chi tiết giáo trình HSK 1-6')}>
+              <Button variant="ghost" icon={<ChevronRight size={14} />} onClick={() => navigate('/learning-path')}>
                 Chi tiết lộ trình
               </Button>
             }
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              {/* Stepper trực quan 6 chặng HSK */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--space-2)' }}>
+              {/* Stepper trực quan 7 chặng HSK (HSK 1 đến HSK 7-9) */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: 'var(--space-2)',
+                }}
+              >
                 {/* HSK 1: Đã hoàn thành */}
                 <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-border)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -485,7 +475,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* HSK 3: Chưa mở */}
-                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.7, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.75, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>HSK 3</span>
                     <Lock size={12} style={{ color: 'var(--muted)' }} />
@@ -495,7 +485,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* HSK 4 */}
-                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.7, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>HSK 4</span>
                     <Lock size={12} style={{ color: 'var(--muted)' }} />
@@ -505,7 +495,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* HSK 5 */}
-                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.5, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.65, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>HSK 5</span>
                     <Lock size={12} style={{ color: 'var(--muted)' }} />
@@ -515,21 +505,31 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 </div>
 
                 {/* HSK 6 */}
-                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.5, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--background)', border: '1px solid var(--border)', opacity: 0.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>HSK 6</span>
                     <Lock size={12} style={{ color: 'var(--muted)' }} />
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Chưa mở khóa</div>
-                  <div style={{ fontSize: '10px', color: 'var(--muted)' }}>5.000+ từ vựng</div>
+                  <div style={{ fontSize: '10px', color: 'var(--muted)' }}>5.000 từ vựng</div>
+                </div>
+
+                {/* HSK 7-9: Hạng mục cao cấp mới */}
+                <div style={{ padding: 'var(--space-3)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--hsk7-9-bg)', border: '1px dashed var(--hsk7-9-border)', opacity: 0.85, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--hsk7-9)' }}>HSK 7–9</span>
+                    <Sparkles size={12} style={{ color: 'var(--hsk7-9)' }} />
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--hsk7-9)', fontWeight: 600 }}>Cấp độ Cao cấp</div>
+                  <div style={{ fontSize: '10px', color: 'var(--muted)' }}>11.000+ từ vựng</div>
                 </div>
               </div>
             </div>
           </Card>
 
-          {/* [7] SKILLS PROGRESS: TIẾN ĐỘ 6 KỸ NĂNG NGÔN NGỮ */}
+          {/* [5] SKILLS PROGRESS: TIẾN ĐỘ 6 KỸ NĂNG NGÔN NGỮ */}
           <Card title="Tiến độ 6 Kỹ năng tiếng Trung (Skills Progress)">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-4)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>
                   <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -565,7 +565,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Mic size={13} style={{ color: 'var(--streak)' }} /> Luyện phát âm (Pronunciation)
                   </span>
-                  <span style={{ color: 'var(--muted)' }}>88% độ chuẩn xác Pinyin</span>
+                  <span style={{ color: 'var(--muted)' }}>88% độ chuẩn xác</span>
                 </div>
                 <ProgressBar value={88} variant="streak" showPercentage={false} />
               </div>
@@ -594,11 +594,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         </div>
 
         {/* ===================================================================
-            CỘT PHẢI (35%): DAILY GOAL, AI TUTOR, CHALLENGES, ACHIEVEMENTS
+            CỘT PHẢI (32–35%): DAILY GOAL, AI TUTOR ENTRY, CHALLENGES
             =================================================================== */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-          
-          {/* [3] DAILY GOAL & STREAK FLAME */}
+          {/* [6] DAILY GOAL & STREAK FLAME */}
           <Card title="Mục tiêu hôm nay (Daily Goal)" icon={<Calendar size={18} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               <div>
@@ -623,7 +622,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
           </Card>
 
-          {/* [8] AI TUTOR CARD (NỔI BẬT NHƯNG GỌN GÀNG) */}
+          {/* [7] AI TUTOR QUICK ACCESS ENTRY CARD (REFINED) */}
           <div
             style={{
               padding: 'var(--space-5)',
@@ -641,8 +640,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                 <div
                   style={{
-                    width: '34px',
-                    height: '34px',
+                    width: '36px',
+                    height: '36px',
                     borderRadius: 'var(--radius-full)',
                     backgroundColor: 'var(--ai)',
                     color: '#ffffff',
@@ -651,24 +650,34 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     justifyContent: 'center',
                   }}
                 >
-                  <Sparkles size={16} />
+                  <Sparkles size={17} />
                 </div>
                 <div>
                   <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--ai)' }}>
-                    有什么不懂的吗？
+                    Trợ giảng AI Thông minh
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                    Có gì chưa hiểu? Hỏi AI Tutor
+                    有什么不懂的吗？
                   </div>
                 </div>
               </div>
 
-              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: 'var(--radius-full)', backgroundColor: '#fff', color: 'var(--ai)', border: '1px solid var(--ai-border)', fontWeight: 600 }}>
+              <span
+                style={{
+                  fontSize: '10px',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: '#ffffff',
+                  color: 'var(--ai)',
+                  border: '1px solid var(--ai-border)',
+                  fontWeight: 700,
+                }}
+              >
                 Trực tuyến
               </span>
             </div>
 
-            {/* AI Response Bubble */}
+            {/* Contextual Greeting */}
             <div
               style={{
                 backgroundColor: '#ffffff',
@@ -678,28 +687,20 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 fontSize: 'var(--text-xs)',
                 lineHeight: 1.5,
                 color: 'var(--foreground)',
-                minHeight: '75px',
               }}
             >
-              {isAiLoading ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--muted)' }}>
-                  <RotateCcw size={12} className="animate-spin" />
-                  <span>AI đang giải thích...</span>
-                </div>
-              ) : (
-                <div style={{ whiteSpace: 'pre-line' }}>{aiMessage}</div>
-              )}
+              Bạn có câu hỏi gì về bài học <strong>Bài 8 &quot;你想喝什么？&quot;</strong>, ngữ pháp hay phát âm chữ Hán hôm nay không? Trợ giảng AI luôn sẵn sàng đồng hành!
             </div>
 
-            {/* Quick Actions 1-chạm */}
+            {/* Suggested Question Chips */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-1-5)' }}>
               <button
                 type="button"
-                onClick={() => handleAiAction('grammar')}
+                onClick={() => handleOpenTutor('chat')}
                 style={{
                   padding: '6px 8px',
                   borderRadius: 'var(--radius-md)',
-                  border: aiActiveAction === 'grammar' ? '1.5px solid var(--ai)' : '1px solid var(--ai-border)',
+                  border: '1px solid var(--ai-border)',
                   backgroundColor: '#ffffff',
                   color: 'var(--ai)',
                   fontSize: '11px',
@@ -708,16 +709,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   textAlign: 'left',
                 }}
               >
-                📖 Ngữ pháp bài 8
+                📖 Ngữ pháp Bài 8
               </button>
 
               <button
                 type="button"
-                onClick={() => handleAiAction('dialogue')}
+                onClick={() => handleOpenTutor('live')}
                 style={{
                   padding: '6px 8px',
                   borderRadius: 'var(--radius-md)',
-                  border: aiActiveAction === 'dialogue' ? '1.5px solid var(--ai)' : '1px solid var(--ai-border)',
+                  border: '1px solid var(--ai-border)',
                   backgroundColor: '#ffffff',
                   color: 'var(--ai)',
                   fontSize: '11px',
@@ -726,16 +727,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   textAlign: 'left',
                 }}
               >
-                🗣️ Luyện hội thoại
+                🗣️ Luyện nói gọi món
               </button>
 
               <button
                 type="button"
-                onClick={() => handleAiAction('check')}
+                onClick={() => handleOpenTutor('chat')}
                 style={{
                   padding: '6px 8px',
                   borderRadius: 'var(--radius-md)',
-                  border: aiActiveAction === 'check' ? '1.5px solid var(--ai)' : '1px solid var(--ai-border)',
+                  border: '1px solid var(--ai-border)',
                   backgroundColor: '#ffffff',
                   color: 'var(--ai)',
                   fontSize: '11px',
@@ -744,16 +745,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   textAlign: 'left',
                 }}
               >
-                ✍️ Kiểm tra câu
+                ✍️ Sửa câu tiếng Trung
               </button>
 
               <button
                 type="button"
-                onClick={() => handleAiAction('vocab')}
+                onClick={() => handleOpenTutor('chat')}
                 style={{
                   padding: '6px 8px',
                   borderRadius: 'var(--radius-md)',
-                  border: aiActiveAction === 'vocab' ? '1.5px solid var(--ai)' : '1px solid var(--ai-border)',
+                  border: '1px solid var(--ai-border)',
                   backgroundColor: '#ffffff',
                   color: 'var(--ai)',
                   fontSize: '11px',
@@ -762,39 +763,46 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   textAlign: 'left',
                 }}
               >
-                🔍 Giải nghĩa từ vựng
+                🔍 Giải nghĩa từ 多少
               </button>
             </div>
 
-            {/* Ô gõ hỏi AI */}
-            <form onSubmit={handleSendCustomQuery} style={{ display: 'flex', gap: 'var(--space-1-5)' }}>
-              <input
-                type="text"
-                placeholder="Gõ câu tiếng Trung cần sửa..."
-                value={customAiQuery}
-                onChange={(e) => setCustomAiQuery(e.target.value)}
+            {/* Two Action Buttons: Chat Mode & Live Mode */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-2)', marginTop: '4px' }}>
+              <Button
+                variant="secondary"
+                icon={<MessageCircle size={15} />}
+                onClick={() => handleOpenTutor('chat')}
                 style={{
-                  flex: 1,
-                  height: '34px',
-                  padding: '0 var(--space-3)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--ai-border)',
                   fontSize: 'var(--text-xs)',
-                  outline: 'none',
+                  fontWeight: 700,
+                  backgroundColor: '#ffffff',
+                  borderColor: 'var(--ai-border)',
+                  color: 'var(--ai)',
+                  justifyContent: 'center',
                 }}
-              />
+              >
+                Chat với AI
+              </Button>
+
               <Button
                 variant="primary"
-                type="submit"
-                isIconOnly
-                icon={<Send size={13} />}
-                style={{ minHeight: '34px', width: '34px', backgroundColor: 'var(--ai)', borderColor: 'var(--ai)' }}
-                aria-label="Gửi"
-              />
-            </form>
+                icon={<Radio size={15} />}
+                onClick={() => handleOpenTutor('live')}
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  backgroundColor: 'var(--ai)',
+                  borderColor: 'var(--ai)',
+                  justifyContent: 'center',
+                }}
+              >
+                Luyện nói Live
+              </Button>
+            </div>
           </div>
 
-          {/* [6] DAILY CHALLENGE (THỬ THÁCH NGÀY NHẬN XP) */}
+          {/* [8] DAILY CHALLENGES (THỬ THÁCH NGÀY NHẬN XP) */}
           <Card
             title="Thử thách hôm nay (Challenges)"
             icon={<CheckCircle2 size={18} />}
@@ -964,6 +972,15 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           />
         </div>
       </Modal>
+
+      {/* Responsive media query styles */}
+      <style>{`
+        @media (max-width: 1024px) {
+          .student-dashboard-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
