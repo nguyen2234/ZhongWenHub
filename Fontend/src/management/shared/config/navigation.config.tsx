@@ -20,6 +20,7 @@ import {
   MessageSquare,
   AlertCircle,
   BookMarked,
+  Bot,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 
@@ -158,6 +159,20 @@ export const TEACHER_NAV_GROUPS: ManagementNavGroup[] = [
         label: 'Dashboard',
         path: '/management/teacher/dashboard',
         icon: <LayoutDashboard size={17} />,
+        roles: ['TEACHER'],
+      },
+    ],
+  },
+  {
+    id: 'teacher-ai',
+    title: 'TRỢ LÝ AI',
+    items: [
+      {
+        id: 'teacher-ai-workspace',
+        label: 'Không gian AI',
+        path: '/management/teacher/ai-workspace',
+        icon: <Bot size={17} />,
+        badge: 'Mới',
         roles: ['TEACHER'],
       },
     ],

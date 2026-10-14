@@ -7,6 +7,13 @@ import { PracticePage } from '../../features/practice';
 import { VocabularyPage, ReviewSessionPage } from '../../features/vocabulary';
 import { LessonPage } from '../../features/lesson';
 import { DesignSystemShowcasePage } from '../../design-system';
+import {
+  StudentHomeworkListPage,
+  StudentHomeworkDetailPage,
+  StudentAssignmentRunnerPage,
+  StudentHomeworkResultPage,
+} from '../../features/homework';
+import { StudentAIWorkspacePage } from '../../features/ai';
 
 export const studentRoutes: RouteObject[] = [
   // Focus Mode 1: Pure Learning Mode for Lesson (no dashboard header/footer distraction)
@@ -18,6 +25,11 @@ export const studentRoutes: RouteObject[] = [
   {
     path: '/srs-review',
     element: <ReviewSessionPage />,
+  },
+  // Focus Mode 3: Student Homework / Assignment Runner (zero distraction, no navbar, no footer)
+  {
+    path: '/homework/:assignmentId/run',
+    element: <StudentAssignmentRunnerPage />,
   },
   // Standard Student Shell Routes (Header + Content + Footer)
   {
@@ -31,6 +43,22 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: 'homework',
+        element: <StudentHomeworkListPage />,
+      },
+      {
+        path: 'homework/:assignmentId',
+        element: <StudentHomeworkDetailPage />,
+      },
+      {
+        path: 'homework/:assignmentId/result/:attemptId',
+        element: <StudentHomeworkResultPage />,
+      },
+      {
+        path: 'ai-learning',
+        element: <StudentAIWorkspacePage />,
       },
       {
         path: 'practice',

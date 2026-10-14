@@ -20,6 +20,9 @@ import type {
  * 4. Remove this simulation layer.
  */
 
+import { MOCK_STUDENTS_STORE } from '../../../management/teacher/data/mockTeacherPortalData';
+import { setDevStudentIdentity, DEFAULT_DEMO_STUDENT_ID } from './student-identity.adapter';
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const authService = {
@@ -40,9 +43,20 @@ export const authService = {
       throw new Error('Mật khẩu không hợp lệ.');
     }
 
+    // Map to known mock student if email matches or fallback to demo student
+    const matchedStudent = MOCK_STUDENTS_STORE.find(
+      (s) => s.email.toLowerCase() === emailTrimmed
+    );
+
+    const studentId = matchedStudent ? matchedStudent.id : DEFAULT_DEMO_STUDENT_ID;
+    const fullName = matchedStudent ? matchedStudent.name : emailTrimmed.split('@')[0].toUpperCase();
+
+    // Sync dev student identity
+    setDevStudentIdentity(studentId);
+
     const mockUser: AuthUser = {
-      id: 'usr_' + Math.random().toString(36).substring(2, 9),
-      fullName: emailTrimmed.split('@')[0].toUpperCase(),
+      id: studentId,
+      fullName,
       email: emailTrimmed,
       currentHskLevel: 2,
       streakDays: 8,

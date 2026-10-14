@@ -10,6 +10,8 @@ import {
   Dumbbell,
   LogIn,
   ShieldCheck,
+  ClipboardList,
+  BrainCircuit,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 
@@ -26,6 +28,8 @@ export const StudentLayout: React.FC = () => {
   };
 
   const getPageTitle = () => {
+    if (pathname.startsWith('/ai-learning')) return 'Không gian Trí tuệ Nhân tạo AI';
+    if (pathname.startsWith('/homework')) return 'Bài tập & Bài kiểm tra';
     if (pathname.startsWith('/vocabulary')) return 'Kho từ vựng & Spaced Repetition';
     if (pathname.startsWith('/learning-path')) return 'Lộ trình HSK';
     if (pathname.startsWith('/practice')) return 'Trung tâm Luyện tập';
@@ -191,6 +195,62 @@ export const StudentLayout: React.FC = () => {
               >
                 <BookOpen size={16} />
                 Lộ trình HSK
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/homework')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-1-5)',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  backgroundColor: isTabActive('/homework') ? 'var(--primary-light)' : 'transparent',
+                  color: isTabActive('/homework') ? 'var(--primary)' : 'var(--muted)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ClipboardList size={16} />
+                <span>Bài tập</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/ai-learning')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-1-5)',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  backgroundColor: isTabActive('/ai-learning') ? 'var(--primary-light)' : 'transparent',
+                  color: isTabActive('/ai-learning') ? 'var(--primary)' : 'var(--muted)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <BrainCircuit size={16} />
+                <span>AI Học tập</span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    padding: '1px 6px',
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'rgba(67, 56, 202, 0.12)',
+                    color: 'var(--primary)',
+                    fontWeight: 700,
+                  }}
+                >
+                  AI
+                </span>
               </button>
 
               <button
@@ -416,6 +476,22 @@ export const StudentLayout: React.FC = () => {
                 }}
               >
                 Lộ trình HSK
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => navigate('/homework')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: isTabActive('/homework') ? 'var(--primary)' : 'var(--muted)',
+                  fontWeight: 600,
+                  fontSize: 'var(--text-xs)',
+                  cursor: 'pointer',
+                  textDecoration: isTabActive('/homework') ? 'underline' : 'none',
+                }}
+              >
+                Bài tập
               </button>
               <span>•</span>
               <button

@@ -1,47 +1,140 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { curriculumService } from '../../admin/content/services/curriculum.service';
+import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
+import type { Course, HskLevel } from '../../admin/content/types';
 import { PageHeader } from '../../shared/components';
+import {
+  ActiveClassesSnapshot,
+  ClassFormDrawer,
+  PendingSubmissionsQueue,
+  RecentActivityList,
+  TeacherQuickActions,
+  TeacherStatGrid,
+  UpcomingSessionsCard,
+} from '../components';
+import { teacherPortalService } from '../services';
+import type { CreateTeachingClassDTO, UpdateTeachingClassDTO } from '../types';
+import type { TeacherDashboardDTO } from '../types/dashboard.types';
 
 export const TeacherDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  // State
+  const [dashboardData, setDashboardData] = useState<TeacherDashboardDTO | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [hskLevels, setHskLevels] = useState<HskLevel[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  // Load dashboard data from service abstraction
+  const loadDashboardData = useCallback(() => {
+    try {
+      setLoading(true);
+      const data = teacherPortalService.getDashboard();
+      const levels = hskRepositoryService.getLevels();
+      const courseList = curriculumService.getCourses();
+
+      setDashboardData(data);
+      setHskLevels(levels);
+      setCourses(courseList);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  // Handle Create Class
+  const handleCreateClass = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
+    teacherPortalService.createClass(dto as CreateTeachingClassDTO);
+    loadDashboardData();
+  };
+
+  if (loading || !dashboardData) {
+    return (
+      <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--muted)' }}>
+        Đang tải dữ liệu Teacher Dashboard...
+      </div>
+    );
+  }
+
   return (
     <div>
+      {/* Page Header */}
       <PageHeader
-        title="Dashboard"
-        subtitle="Tổng quan giảng dạy, lớp học và tiến độ học viên."
+        title="Dashboard Giảng Dạy"
+        subtitle={`Xin chào, ${dashboardData.teacherName} (${dashboardData.teacherId}) • Quản lý lớp học và lịch trình giảng dạy.`}
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <button
+              type="button"
+              onClick={loadDashboardData}
+              className="ds-btn ds-btn-outline ds-btn-sm"
+              title="Làm mới dữ liệu"
+            >
+              <RefreshCw size={14} /> Làm mới
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCreateDrawerOpen(true)}
+              className="ds-btn ds-btn-primary ds-btn-sm"
+              style={{ gap: '6px' }}
+            >
+              <Plus size={16} /> Tạo Lớp Mới
+            </button>
+          </div>
+        }
       />
 
-      <div
-        style={{
-          backgroundColor: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-12) var(--space-6)',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: 'var(--radius-lg)',
-            backgroundColor: 'var(--primary-light)',
-            color: 'var(--primary)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '20px',
-            fontWeight: 700,
-            marginBottom: 'var(--space-3)',
-          }}
-        >
-          师
+      {/* 4 Thẻ KPI Metrics */}
+      <TeacherStatGrid
+        metrics={dashboardData.metrics}
+        onActiveClassesClick={() => navigate('/management/teacher/classes')}
+        onPendingSubmissionsClick={() => navigate('/management/teacher/classes')}
+      />
+
+      {/* Cấu trúc chia 7:5 theo Option A (Command Deck & Split Workspace) */}
+      <div className="teacher-dashboard-split">
+        {/* CỘT TRÁI (7 PHẦN): LỊCH DẠY & LỚP ĐANG HOẠT ĐỘNG */}
+        <div>
+          {/* Buổi dạy sắp diễn ra */}
+          <UpcomingSessionsCard
+            sessions={dashboardData.upcomingSessions}
+            onViewAllClasses={() => navigate('/management/teacher/classes')}
+          />
+
+          {/* Lớp học đang hoạt động */}
+          <ActiveClassesSnapshot classes={dashboardData.activeClasses} />
         </div>
-        <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--foreground)', marginBottom: '8px' }}>
-          Teacher Dashboard
-        </h3>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', maxWidth: '480px', margin: '0 auto' }}>
-          Nội dung Dashboard sẽ được xây dựng ở bước tiếp theo.
-        </p>
+
+        {/* CỘT PHẢI (5 PHẦN): HÀNG ĐỢI BÀI TẬP, PHÍM TẮT & NHẬT KÝ */}
+        <div>
+          {/* Hàng đợi bài nộp cần chấm (Demo-Only) */}
+          <PendingSubmissionsQueue submissions={dashboardData.pendingSubmissions} />
+
+          {/* Phím tắt thao tác nhanh */}
+          <TeacherQuickActions
+            actions={dashboardData.quickActions}
+            onCreateClassClick={() => setIsCreateDrawerOpen(true)}
+          />
+
+          {/* Nhật ký hoạt động gần đây */}
+          <RecentActivityList activities={dashboardData.recentActivities} />
+        </div>
       </div>
+
+      {/* Drawer Tạo Lớp Học Mới */}
+      <ClassFormDrawer
+        isOpen={isCreateDrawerOpen}
+        onClose={() => setIsCreateDrawerOpen(false)}
+        onSubmit={handleCreateClass}
+        hskLevels={hskLevels}
+        courses={courses}
+      />
     </div>
   );
 };

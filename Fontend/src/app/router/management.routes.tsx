@@ -2,7 +2,13 @@ import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';
-import { TeacherDashboardPage } from '../../management/teacher/pages/TeacherDashboardPage';
+import {
+  TeacherDashboardPage,
+  TeacherClassesPage,
+  TeacherClassDetailPage,
+  TeacherAssignmentsPage,
+} from '../../management/teacher';
+import { TeacherAIWorkspacePage } from '../../features/ai';
 import { SupportDashboardPage } from '../../management/support/pages/SupportDashboardPage';
 
 import { AdminUsersPage } from '../../management/admin/users/pages/AdminUsersPage';
@@ -77,6 +83,22 @@ export const managementRoutes: RouteObject[] = [
           {
             path: 'dashboard',
             element: <TeacherDashboardPage />,
+          },
+          {
+            path: 'classes',
+            element: <TeacherClassesPage />,
+          },
+          {
+            path: 'classes/:classId',
+            element: <TeacherClassDetailPage />,
+          },
+          {
+            path: 'assignments',
+            element: <TeacherAssignmentsPage />,
+          },
+          {
+            path: 'ai-workspace',
+            element: <TeacherAIWorkspacePage />,
           },
           {
             path: '*',

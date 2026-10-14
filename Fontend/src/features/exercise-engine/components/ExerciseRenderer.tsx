@@ -1,12 +1,25 @@
 import React, { useState } from 'react';
-import { Volume2, RotateCcw } from 'lucide-react';
+import { Volume2, RotateCcw, AlertCircle, Bookmark } from 'lucide-react';
 import type { SharedExerciseItem, AIExplanationContext } from '../types';
 import { AnswerFeedback } from './AnswerFeedback';
+import { isExerciseTypeSupported } from '../utils/exercise-capability';
+
+export type ExerciseRendererMode = 'practice' | 'exam';
 
 export interface ExerciseRendererProps {
   exercise: SharedExerciseItem;
-  hasChecked: boolean;
-  isCorrect: boolean;
+  hasChecked?: boolean;
+  isCorrect?: boolean;
+  mode?: ExerciseRendererMode; // Default: 'practice'
+
+  // Question review flag for exam mode
+  isFlagged?: boolean;
+  onToggleFlag?: () => void;
+
+  // Free-text answer input (for fill-blank or translation without predefined options)
+  textAnswer?: string;
+  onTextAnswerChange?: (val: string) => void;
+
   onAnswerChange?: (isReady: boolean, currentAnswer: string | number | string[]) => void;
   onAskAI?: (context: AIExplanationContext) => void;
   selectedOption: number | null;
@@ -24,8 +37,13 @@ export interface ExerciseRendererProps {
 
 export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
   exercise,
-  hasChecked,
-  isCorrect,
+  hasChecked = false,
+  isCorrect = false,
+  mode = 'practice',
+  isFlagged,
+  onToggleFlag,
+  textAnswer = '',
+  onTextAnswerChange,
   onAskAI,
   selectedOption,
   onSelectOption,
@@ -40,6 +58,11 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
   onRightClick,
 }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  const isExam = mode === 'exam';
+  // In exam mode, immediate answer checking and explanation revelation are STRICTLY disabled
+  const showCheckedFeedback = !isExam && Boolean(hasChecked);
+  const capability = isExerciseTypeSupported(exercise.type);
 
   const handlePlayAudio = () => {
     setIsPlayingAudio(true);
@@ -57,7 +80,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
     }
   };
 
-  // Prepare AI Context
+  // Prepare AI Context (practice mode only)
   let userAnswerStr = '';
   let correctAnswerStr = exercise.correctSentence || '';
   if (exercise.options && selectedOption !== null) {
@@ -67,31 +90,92 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
     }
   } else if (exercise.type === 'sentence-order') {
     userAnswerStr = orderedTokens.join('');
+  } else if (textAnswer) {
+    userAnswerStr = textAnswer;
   }
 
   const aiContext: AIExplanationContext = {
     exerciseId: exercise.id,
     question: exercise.title + ' - ' + (exercise.promptHanzi || exercise.instruction),
     userAnswer: userAnswerStr,
-    correctAnswer: correctAnswerStr,
-    explanation: exercise.explanation,
+    correctAnswer: isExam ? '' : correctAnswerStr,
+    explanation: isExam ? '' : exercise.explanation,
     grammarPoint: exercise.grammarPoint,
     vocabularyIds: exercise.vocabularyIds,
     hskLevel: exercise.hskLevel,
     lessonId: exercise.lessonId,
   };
 
+  const isFreeTextType =
+    (!exercise.options || exercise.options.length === 0) &&
+    (exercise.type === 'fill-blank' ||
+      exercise.type === 'chinese-to-vietnamese' ||
+      exercise.type === 'vietnamese-to-chinese');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%' }}>
-      {/* Title & Instruction */}
-      <div>
-        <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--foreground)', margin: '0 0 4px 0' }}>
-          {exercise.title}
-        </h2>
-        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-          {exercise.instruction}
+      {/* Title, Instruction & Optional Exam Review Flag */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+        <div>
+          <h2 style={{ fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--foreground)', margin: '0 0 4px 0' }}>
+            {exercise.title}
+          </h2>
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+            {exercise.instruction}
+          </div>
         </div>
+
+        {onToggleFlag && (
+          <button
+            type="button"
+            onClick={onToggleFlag}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-full)',
+              border: isFlagged ? '1.5px solid #d97706' : '1px solid var(--border)',
+              backgroundColor: isFlagged ? 'rgba(245, 158, 11, 0.12)' : 'var(--surface)',
+              color: isFlagged ? '#d97706' : 'var(--muted)',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'all 0.15s ease',
+            }}
+            title={isFlagged ? 'Bỏ gắn cờ' : 'Đánh dấu câu này để xem lại trước khi nộp'}
+          >
+            <Bookmark size={13} fill={isFlagged ? 'currentColor' : 'none'} />
+            <span>{isFlagged ? 'Đã gắn cờ' : 'Gắn cờ'}</span>
+          </button>
+        )}
       </div>
+
+      {/* 0. Fallback Banner for Unsupported Exercise Types */}
+      {!capability.supported && (
+        <div
+          style={{
+            padding: 'var(--space-4)',
+            borderRadius: 'var(--radius-xl)',
+            backgroundColor: 'rgba(245, 158, 11, 0.08)',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 'var(--space-3)',
+          }}
+        >
+          <AlertCircle size={20} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--foreground)' }}>
+            <div style={{ fontWeight: 700, marginBottom: '2px', color: '#b45309' }}>
+              Dạng bài tập cần thiết bị thu âm / vẽ nét chuyên dụng ({exercise.type})
+            </div>
+            <div style={{ color: 'var(--muted)', fontSize: 'var(--text-xs)', lineHeight: 1.5 }}>
+              {capability.reason || 'Dạng câu hỏi này sẽ được cập nhật bộ thu âm / nét viết ở Phase 3.'} Câu hỏi được bảo lưu nguyên vẹn trong bài thi và sẽ được giảng viên đánh giá thủ công hoặc chấm điểm bổ sung.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 1. Audio Focus Mode for 'listen-choice' */}
       {exercise.type === 'listen-choice' && (
@@ -134,8 +218,8 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
             <span>Chạm để nghe lại phát âm mẫu</span>
           </div>
 
-          {/* Transcript only revealed after checked */}
-          {hasChecked && exercise.promptHanzi && (
+          {/* Transcript only revealed after checked (Practice Mode Only) */}
+          {showCheckedFeedback && exercise.promptHanzi && (
             <div style={{ textAlign: 'center', marginTop: 'var(--space-2)', animation: 'fadeIn 0.2s ease' }}>
               <div style={{ fontFamily: 'var(--font-hanzi)', fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--foreground)' }}>
                 {exercise.promptHanzi}
@@ -194,8 +278,8 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
         </div>
       )}
 
-      {/* 3. Options Grid (Multiple Choice, Fill in blank, Listen & Choose, Translation) */}
-      {exercise.options && (
+      {/* 3. Options Grid (Multiple Choice, Fill in blank with options, Listen & Choose, Translation with options) */}
+      {exercise.options && exercise.options.length > 0 && (
         <div
           style={{
             display: 'grid',
@@ -208,7 +292,8 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
             let border = isSelected ? '2px solid var(--primary)' : '1px solid var(--border)';
             let bg = isSelected ? 'var(--primary-light)' : 'var(--surface)';
 
-            if (hasChecked) {
+            // In exam mode, never reveal correct/incorrect colors
+            if (showCheckedFeedback) {
               if (idx === exercise.correctOptionIndex) {
                 border = '2px solid var(--success-border)';
                 bg = 'var(--success-bg)';
@@ -222,7 +307,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
               <button
                 key={idx}
                 type="button"
-                disabled={hasChecked}
+                disabled={showCheckedFeedback}
                 onClick={() => onSelectOption(idx)}
                 style={{
                   padding: 'var(--space-3) var(--space-4)',
@@ -236,7 +321,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
                   fontSize: exercise.type === 'fill-blank' ? 'var(--text-lg)' : 'var(--text-sm)',
                   fontFamily: exercise.type === 'fill-blank' ? 'var(--font-hanzi)' : 'inherit',
                   fontWeight: 600,
-                  cursor: hasChecked ? 'default' : 'pointer',
+                  cursor: showCheckedFeedback ? 'default' : 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
@@ -266,6 +351,42 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
         </div>
       )}
 
+      {/* 3B. Free-Text Input (for fill-blank / translations WITHOUT predefined options) */}
+      {isFreeTextType && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <textarea
+            value={textAnswer}
+            disabled={showCheckedFeedback}
+            onChange={(e) => onTextAnswerChange?.(e.target.value)}
+            placeholder={
+              exercise.type === 'fill-blank'
+                ? 'Nhập từ hoặc cụm từ thích hợp vào đây...'
+                : 'Nhập bản dịch của bạn vào đây...'
+            }
+            rows={3}
+            style={{
+              width: '100%',
+              padding: 'var(--space-3) var(--space-4)',
+              borderRadius: 'var(--radius-xl)',
+              border: textAnswer.trim() ? '2px solid var(--primary)' : '1px solid var(--border)',
+              backgroundColor: 'var(--surface)',
+              color: 'var(--foreground)',
+              fontSize: 'var(--text-base)',
+              fontFamily: exercise.type === 'vietnamese-to-chinese' ? 'var(--font-hanzi)' : 'inherit',
+              resize: 'vertical',
+              outline: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+              transition: 'border-color 0.15s ease',
+            }}
+          />
+          {textAnswer.trim() && (
+            <div style={{ fontSize: '11px', color: 'var(--muted)', textAlign: 'right' }}>
+              {textAnswer.length} ký tự
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 4. Sentence Order Tokens Builder */}
       {exercise.type === 'sentence-order' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -292,7 +413,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
                 <button
                   key={i}
                   type="button"
-                  disabled={hasChecked}
+                  disabled={showCheckedFeedback}
                   onClick={() => onRemoveToken(tok, i)}
                   style={{
                     padding: '8px 16px',
@@ -303,7 +424,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
                     fontFamily: 'var(--font-hanzi)',
                     fontSize: 'var(--text-lg)',
                     fontWeight: 700,
-                    cursor: hasChecked ? 'default' : 'pointer',
+                    cursor: showCheckedFeedback ? 'default' : 'pointer',
                     boxShadow: '0 2px 6px rgba(67, 56, 202, 0.25)',
                   }}
                 >
@@ -319,7 +440,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
               <button
                 key={i}
                 type="button"
-                disabled={hasChecked}
+                disabled={showCheckedFeedback}
                 onClick={() => onSelectToken(tok, i)}
                 style={{
                   padding: '8px 16px',
@@ -330,7 +451,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
                   fontFamily: 'var(--font-hanzi)',
                   fontSize: 'var(--text-lg)',
                   fontWeight: 700,
-                  cursor: hasChecked ? 'default' : 'pointer',
+                  cursor: showCheckedFeedback ? 'default' : 'pointer',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
                 }}
               >
@@ -349,34 +470,45 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
             {exercise.matchingPairs.map((pair) => {
               const isMatched = matchedPairs.includes(pair.id);
               const isSelected = selectedLeft === pair.id;
+
+              let border = isSelected ? '2px solid var(--primary)' : '1px solid var(--border)';
+              let bg = isSelected ? 'var(--primary-light)' : 'var(--surface)';
+              let textColor = 'var(--foreground)';
+
+              if (isMatched) {
+                if (showCheckedFeedback) {
+                  border = '1.5px solid var(--success-border)';
+                  bg = 'var(--success-bg)';
+                  textColor = 'var(--success)';
+                } else {
+                  // In exam mode, paired items show active indicator without green feedback
+                  border = '1.5px solid var(--primary)';
+                  bg = 'var(--primary-light)';
+                  textColor = 'var(--primary)';
+                }
+              }
+
               return (
                 <button
                   key={pair.id}
                   type="button"
-                  disabled={isMatched}
+                  disabled={showCheckedFeedback || (isMatched && !isExam)}
                   onClick={() => onLeftClick(pair.id)}
                   style={{
                     padding: 'var(--space-3)',
                     borderRadius: 'var(--radius-lg)',
-                    border: isMatched
-                      ? '1.5px solid var(--success-border)'
-                      : isSelected
-                      ? '2px solid var(--primary)'
-                      : '1px solid var(--border)',
-                    backgroundColor: isMatched
-                      ? 'var(--success-bg)'
-                      : isSelected
-                      ? 'var(--primary-light)'
-                      : 'var(--surface)',
-                    color: isMatched ? 'var(--success)' : 'var(--foreground)',
+                    border,
+                    backgroundColor: bg,
+                    color: textColor,
                     fontFamily: 'var(--font-hanzi)',
                     fontSize: 'var(--text-lg)',
                     fontWeight: 700,
-                    cursor: isMatched ? 'default' : 'pointer',
-                    opacity: isMatched ? 0.8 : 1,
+                    cursor: showCheckedFeedback ? 'default' : 'pointer',
+                    opacity: isMatched && !isExam ? 0.8 : 1,
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {pair.hanzi} {isMatched && '✓'}
+                  {pair.hanzi} {isMatched && showCheckedFeedback && '✓'}
                 </button>
               );
             })}
@@ -387,33 +519,43 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
             {exercise.matchingPairs.map((pair) => {
               const isMatched = matchedPairs.includes(pair.id);
               const isSelected = selectedRight === pair.id;
+
+              let border = isSelected ? '2px solid var(--primary)' : '1px solid var(--border)';
+              let bg = isSelected ? 'var(--primary-light)' : 'var(--surface)';
+              let textColor = 'var(--foreground)';
+
+              if (isMatched) {
+                if (showCheckedFeedback) {
+                  border = '1.5px solid var(--success-border)';
+                  bg = 'var(--success-bg)';
+                  textColor = 'var(--success)';
+                } else {
+                  border = '1.5px solid var(--primary)';
+                  bg = 'var(--primary-light)';
+                  textColor = 'var(--primary)';
+                }
+              }
+
               return (
                 <button
                   key={pair.id}
                   type="button"
-                  disabled={isMatched}
+                  disabled={showCheckedFeedback || (isMatched && !isExam)}
                   onClick={() => onRightClick(pair.id)}
                   style={{
                     padding: 'var(--space-3)',
                     borderRadius: 'var(--radius-lg)',
-                    border: isMatched
-                      ? '1.5px solid var(--success-border)'
-                      : isSelected
-                      ? '2px solid var(--primary)'
-                      : '1px solid var(--border)',
-                    backgroundColor: isMatched
-                      ? 'var(--success-bg)'
-                      : isSelected
-                      ? 'var(--primary-light)'
-                      : 'var(--surface)',
-                    color: isMatched ? 'var(--success)' : 'var(--foreground)',
+                    border,
+                    backgroundColor: bg,
+                    color: textColor,
                     fontSize: 'var(--text-sm)',
                     fontWeight: 600,
-                    cursor: isMatched ? 'default' : 'pointer',
-                    opacity: isMatched ? 0.8 : 1,
+                    cursor: showCheckedFeedback ? 'default' : 'pointer',
+                    opacity: isMatched && !isExam ? 0.8 : 1,
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  {pair.meaning} {isMatched && '✓'}
+                  {pair.meaning} {isMatched && showCheckedFeedback && '✓'}
                 </button>
               );
             })}
@@ -421,8 +563,8 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
         </div>
       )}
 
-      {/* 6. Unified Answer Feedback Component with AI Hook */}
-      {hasChecked && (
+      {/* 6. Unified Answer Feedback Component with AI Hook (Practice Mode Only) */}
+      {showCheckedFeedback && (
         <AnswerFeedback
           isCorrect={isCorrect}
           explanation={exercise.explanation}

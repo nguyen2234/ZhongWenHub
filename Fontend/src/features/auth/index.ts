@@ -3,6 +3,7 @@ export * from './types/auth.types';
 
 // Services
 export * from './services/authService';
+export * from './services/student-identity.adapter';
 
 // Hooks
 export * from './hooks/useAuth';
