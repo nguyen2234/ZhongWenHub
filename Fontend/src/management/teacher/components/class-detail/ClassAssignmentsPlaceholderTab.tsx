@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { CheckSquare, Sparkles } from 'lucide-react';
 import { EmptyState } from '../../../shared/components';
 
@@ -10,14 +11,14 @@ export const ClassAssignmentsPlaceholderTab: React.FC = () => {
         description="Trong Phase 2, giảng viên sẽ có thể giao bài tập trực tiếp từ ngân hàng câu hỏi HSK chuẩn, thiết lập hạn nộp theo từng bài học và xem bài làm của học viên."
         icon={<CheckSquare size={36} style={{ color: 'var(--primary)', opacity: 0.8 }} />}
         action={
-          <a
-            href="/management/teacher/assignments"
+          <Link
+            to="/management/teacher/assignments"
             className="tp-btn tp-btn--primary"
             style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <CheckSquare size={16} />
             <span>Mở trang Quản lý bài tập</span>
-          </a>
+          </Link>
         }
       />
 

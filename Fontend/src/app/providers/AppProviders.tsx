@@ -9,7 +9,7 @@ export interface AppProvidersProps {
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AITutorProvider>
         <VocabularyReviewProvider>
           {children}
