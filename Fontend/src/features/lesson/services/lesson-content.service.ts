@@ -14,14 +14,30 @@ class LessonContentService {
    * with fallback to legacy lesson8Data if needed.
    */
   async getLessonDetail(lessonId: string = 'les-8'): Promise<LessonDetailDTO> {
-    // In mock mode, resolve Lesson 8 draft or fallback
+    // In mock mode, resolve Lesson 8 draft or customize based on curriculum metadata
     try {
-      if (lessonId === 'les-8' || lessonId === '8' || !lessonId) {
-        return adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
+      const detail = adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
+      if (lessonId && lessonId !== 'les-8' && lessonId !== '8') {
+        const { findLessonMetadata } = await import('../../learning/data/curriculumData');
+        const lessonMeta = findLessonMetadata(lessonId);
+        if (lessonMeta) {
+          detail.id = lessonMeta.id;
+          detail.lessonNumber = lessonMeta.lessonNumber;
+          detail.intro.titleZh = lessonMeta.hanzi;
+          detail.intro.pinyinTitle = lessonMeta.pinyin;
+          detail.intro.titleVi = lessonMeta.meaning;
+          detail.intro.summary = lessonMeta.summary;
+          detail.intro.xpReward = lessonMeta.xpReward;
+          detail.hskLevel = {
+            id: `level-hsk-${lessonMeta.hskLevel}`,
+            code: `HSK${lessonMeta.hskLevel}`,
+            name: `HSK ${lessonMeta.hskLevel}`,
+            standardCode: 'HSK_3_0',
+            standardVersion: '3.0',
+          };
+        }
       }
-
-      // If other ID requested, return Lesson 8 as default demonstration content
-      return adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
+      return detail;
     } catch (error) {
       console.warn('[LessonContentService] Error resolving draft, falling back to legacy bridge:', error);
       return this.legacyFallbackBridge(lesson8Data);

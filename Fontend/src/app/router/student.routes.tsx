@@ -41,6 +41,10 @@ export const studentRoutes: RouteObject[] = [
     path: '/lesson',
     element: <LessonPage />,
   },
+  {
+    path: '/lesson/:lessonId',
+    element: <LessonPage />,
+  },
   // Focus Mode 2: SRS Flashcard Review Session (zero distraction, no navbar, no footer)
   {
     path: '/srs-review',

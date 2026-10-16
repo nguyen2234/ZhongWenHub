@@ -5,6 +5,7 @@ import { ExerciseRenderer } from '../exercise-engine';
 import type { PracticeSessionResult, PracticeMode } from './types';
 import { PracticeResult } from './components/PracticeResult';
 import { useAITutor, ContextBuilder } from '../ai-tutor';
+import { useLearningState } from '../learning';
 
 interface PracticeSessionProps {
   mode: PracticeMode;
@@ -28,6 +29,7 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   onReviewMistakes,
 }) => {
   const { openAITutor } = useAITutor();
+  const { recordPracticeAttempt, recordPracticeSession, state: learningState } = useLearningState();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Exercise interaction states
@@ -145,6 +147,20 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     setIsCurrentCorrect(right);
     setHasChecked(true);
 
+    // Record meaningful attempt to shared learning state
+    recordPracticeAttempt({
+      id: `att-${Date.now()}-${currentExercise.id}`,
+      studentId: learningState.studentId,
+      exerciseId: String(currentExercise.id),
+      knowledgePointId: currentExercise.grammarPoint || currentExercise.title || `ex-${currentExercise.id}`,
+      topicTitle: currentExercise.grammarPoint || currentExercise.title,
+      category: (currentExercise.skill as any) || 'grammar',
+      hskLevel: currentExercise.hskLevel || hskLevel,
+      userAnswer: String(givenAnswer),
+      isCorrect: right,
+      attemptedAt: new Date().toISOString(),
+    });
+
     if (right) {
       setCorrectCount((prev) => prev + 1);
     } else {
@@ -190,6 +206,7 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
 
       setCompletedResult(finalResult);
       setSessionCompleted(true);
+      recordPracticeSession(finalResult);
     }
   };
 

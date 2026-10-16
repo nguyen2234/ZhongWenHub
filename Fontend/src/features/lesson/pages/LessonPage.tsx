@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { LessonExperience } from '../LessonExperience';
-import {
-  lessonContentService,
-  lessonProgressService,
-  userLearningService,
-} from '../services';
+import { lessonContentService } from '../services';
 import { LessonPlayerAdapter } from '../adapters/lesson-player.adapter';
 import type { LessonDetailDTO } from '../types/lesson-content.types';
 import type { LessonProgressDTO } from '../types/lesson-progress.types';
-import type { UserLearningSummaryDTO } from '../types/user-learning-summary.types';
 import { Button } from '../../../design-system';
+import { useLearningState } from '../../learning';
+import { findNextLessonId } from '../../learning/data/curriculumData';
 
 export interface LessonPageProps {
   onBackToLearningPath?: () => void;
@@ -23,16 +20,26 @@ export const LessonPage: React.FC<LessonPageProps> = ({
   onNextLesson,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { lessonId } = useParams<{ lessonId?: string }>();
-  const activeLessonId = lessonId || 'les-8';
+  const searchParams = new URLSearchParams(location.search);
+  const queryId = searchParams.get('id');
+
+  const {
+    state: learningState,
+    updateLessonStep: updateLearningStep,
+    completeLesson: completeLearningLesson,
+    restartLesson: restartLearningLesson,
+    startLesson: initLearningLesson,
+  } = useLearningState();
+
+  const activeLessonId = lessonId || queryId || learningState.currentLessonId || 'les-8';
 
   const [lessonDetail, setLessonDetail] = useState<LessonDetailDTO | null>(null);
-  const [progress, setProgress] = useState<LessonProgressDTO | null>(null);
-  const [learningSummary, setLearningSummary] = useState<UserLearningSummaryDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Load lesson content, user lesson progress, and account learning summary
+  // Load lesson content and ensure lesson initialized in learning state
   useEffect(() => {
     let isCancelled = false;
 
@@ -40,16 +47,11 @@ export const LessonPage: React.FC<LessonPageProps> = ({
       setIsLoading(true);
       setErrorMessage(null);
       try {
-        const [detailData, progressData, summaryData] = await Promise.all([
-          lessonContentService.getLessonDetail(activeLessonId),
-          lessonProgressService.getLessonProgress(activeLessonId),
-          userLearningService.getUserLearningSummary(),
-        ]);
+        const detailData = await lessonContentService.getLessonDetail(activeLessonId);
 
         if (!isCancelled) {
           setLessonDetail(detailData);
-          setProgress(progressData);
-          setLearningSummary(summaryData);
+          initLearningLesson(activeLessonId);
           setIsLoading(false);
         }
       } catch (err) {
@@ -66,70 +68,84 @@ export const LessonPage: React.FC<LessonPageProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [activeLessonId]);
+  }, [activeLessonId, initLearningLesson]);
 
-  // Handle step progression with LessonProgressService
+  // Read current lesson progress from reactive learning state
+  const progress: LessonProgressDTO = useMemo(() => {
+    const existing = learningState.lessonProgress[activeLessonId];
+    if (existing) return existing;
+
+    return {
+      lessonId: activeLessonId,
+      userId: learningState.studentId,
+      status: 'IN_PROGRESS',
+      currentStepIndex: 0,
+      maxUnlockedStepIndex: 0,
+      quizScore: 0,
+      totalQuizQuestions: 5,
+      xpEarned: 0,
+      updatedAt: new Date().toISOString(),
+    };
+  }, [learningState.lessonProgress, activeLessonId, learningState.studentId]);
+
+  // Handle step progression with shared LearningStateService
   const handleStepChange = useCallback(
-    async (stepIndex: number, maxUnlocked: number) => {
+    (stepIndex: number, maxUnlocked: number) => {
       if (!lessonDetail) return;
-      try {
-        const updatedProgress = await lessonProgressService.updateStepProgress({
-          lessonId: lessonDetail.id,
-          currentStepIndex: stepIndex,
-          maxUnlockedStepIndex: maxUnlocked,
-        });
-        setProgress(updatedProgress);
-      } catch (err) {
-        console.error('[LessonPage] Error updating step progress:', err);
-      }
+      updateLearningStep({
+        lessonId: lessonDetail.id,
+        currentStepIndex: stepIndex,
+        maxUnlockedStepIndex: maxUnlocked,
+      });
     },
-    [lessonDetail]
+    [lessonDetail, updateLearningStep]
   );
 
-  // Handle lesson completion with LessonProgressService & UserLearningService
+  // Handle lesson completion with shared LearningStateService (awards XP once idempotently)
   const handleLessonComplete = useCallback(
-    async (score: number, totalQuestions: number, xpReward: number) => {
+    (score: number, totalQuestions: number, xpReward: number) => {
       if (!lessonDetail) return;
-      try {
-        const updatedProgress = await lessonProgressService.completeLesson({
-          lessonId: lessonDetail.id,
-          quizScore: score,
-          totalQuizQuestions: totalQuestions,
-          xpEarned: xpReward,
-        });
-        setProgress(updatedProgress);
-
-        const updatedSummary = await userLearningService.recordActivity(xpReward);
-        setLearningSummary(updatedSummary);
-      } catch (err) {
-        console.error('[LessonPage] Error completing lesson:', err);
-      }
+      completeLearningLesson({
+        lessonId: lessonDetail.id,
+        quizScore: score,
+        totalQuizQuestions: totalQuestions,
+        xpEarned: xpReward,
+      });
     },
-    [lessonDetail]
+    [lessonDetail, completeLearningLesson]
   );
 
   // Handle lesson restart
-  const handleRestartLesson = useCallback(async () => {
+  const handleRestartLesson = useCallback(() => {
     if (!lessonDetail) return;
-    try {
-      const reset = await lessonProgressService.resetLessonProgress(lessonDetail.id);
-      setProgress(reset);
-    } catch (err) {
-      console.error('[LessonPage] Error resetting lesson progress:', err);
-    }
-  }, [lessonDetail]);
+    restartLearningLesson(lessonDetail.id);
+  }, [lessonDetail, restartLearningLesson]);
 
   const handleBack = onBackToLearningPath ?? (() => navigate('/learning-path'));
   const handleNext =
-    onNextLesson ?? (() => alert('Chuyển sang bài tiếp theo: Bài 9 (HSK 2)'));
+    onNextLesson ??
+    (() => {
+      const nextId = findNextLessonId(activeLessonId);
+      if (nextId) {
+        initLearningLesson(nextId);
+        navigate(`/lesson?id=${nextId}`);
+      } else {
+        navigate('/learning-path');
+      }
+    });
 
   // Transform normalized LessonDetailDTO into student presentation model
-  // Injects streakDays from UserLearningSummaryDTO
   const playerLessonData = useMemo(() => {
     if (!lessonDetail) return null;
-    const streak = learningSummary?.streakDays ?? 8;
-    return LessonPlayerAdapter.adaptLessonDetail(lessonDetail, streak);
-  }, [lessonDetail, learningSummary]);
+    return LessonPlayerAdapter.adaptLessonDetail(lessonDetail, learningState.streakDays);
+  }, [lessonDetail, learningState.streakDays]);
+
+  const learningSummary = useMemo(() => ({
+    xpTotal: learningState.xpTotal,
+    streakDays: learningState.streakDays,
+    dailyGoalProgress: 3,
+    dailyGoalTarget: 5,
+  }), [learningState.xpTotal, learningState.streakDays]);
 
   // 1. Loading State
   if (isLoading) {

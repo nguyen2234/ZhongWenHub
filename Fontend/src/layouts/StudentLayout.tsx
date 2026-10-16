@@ -13,11 +13,13 @@ import {
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
 import { StudentSearchModal } from './components/StudentSearchModal';
+import { useLearningState } from '../features/learning';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
+  const { currentHskLevel, streakDays, xpTotal } = useLearningState();
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -298,7 +300,7 @@ export const StudentLayout: React.FC = () => {
             <span>pīn</span>
           </button>
 
-          <HSKLevel level={2} />
+          <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
 
           {/* Streak Flame Pill */}
           <div
@@ -315,13 +317,13 @@ export const StudentLayout: React.FC = () => {
               fontWeight: 700,
               whiteSpace: 'nowrap',
             }}
-            title="Chuỗi 8 ngày học liên tiếp"
+            title={`Chuỗi ${streakDays} ngày học liên tiếp`}
           >
             <Flame size={14} />
-            <span>8 Ngày</span>
+            <span>{streakDays} Ngày</span>
           </div>
 
-          <XPIndicator amount={2180} variant="pill" />
+          <XPIndicator amount={xpTotal} variant="pill" />
 
           {/* User Avatar with direct link to Profile */}
           <div

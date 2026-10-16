@@ -13,10 +13,45 @@ import { SkillPracticeCard } from './components/SkillPracticeCard';
 import { HSKFilterSection } from './components/HSKFilterSection';
 import { PracticeSession } from './PracticeSession';
 import type { SharedExerciseItem, SkillCategory } from '../exercise-engine';
+import { useLearningState } from '../learning';
 
 export const PracticeCenter: React.FC = () => {
-  const [recommendation] = useState<PracticeRecommendation | null>(MOCK_RECOMMENDATION);
-  const [mistakes] = useState<MistakeRecord[]>(MOCK_MISTAKE_RECORDS);
+  const { weakKnowledge } = useLearningState();
+
+  const recommendation: PracticeRecommendation = React.useMemo(() => {
+    const topWeak = weakKnowledge[0];
+    if (topWeak) {
+      return {
+        id: `rec-${topWeak.knowledgePointId}`,
+        type: 'grammar-focus',
+        skill: topWeak.category as any,
+        hskLevel: topWeak.hskLevel,
+        title: topWeak.topicTitle,
+        subtitle: `${topWeak.category === 'grammar' ? 'Ngữ pháp' : 'Từ vựng'} · HSK ${topWeak.hskLevel}`,
+        reason: topWeak.evidence,
+        exerciseIds: topWeak.suggestedPractice.exerciseIds.length > 0
+          ? topWeak.suggestedPractice.exerciseIds
+          : ['ex-p1', 'ex-p2', 'ex-p3'],
+        estimatedMinutes: 5,
+        xpReward: 20,
+      };
+    }
+    return MOCK_RECOMMENDATION;
+  }, [weakKnowledge]);
+
+  const mistakes: MistakeRecord[] = React.useMemo(() => {
+    if (weakKnowledge.length > 0) {
+      return weakKnowledge.map((w) => ({
+        exerciseId: w.suggestedPractice.exerciseIds[0] || 'ex-p1',
+        mistakeCount: w.incorrectAttempts,
+        lastMistakeAt: w.lastEvaluatedAt ? w.lastEvaluatedAt.slice(0, 10) : '2026-10-16',
+        masteryState: w.masteryLevel === 'WEAK' ? 'critical' : 'recovering',
+        skill: w.category as any,
+        title: `${w.topicTitle} (${w.evidence})`,
+      }));
+    }
+    return MOCK_MISTAKE_RECORDS;
+  }, [weakKnowledge]);
 
   // Active session state (null when in browse hub)
   const [activeSession, setActiveSession] = useState<{

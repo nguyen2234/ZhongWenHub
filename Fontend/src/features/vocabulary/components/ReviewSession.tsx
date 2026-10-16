@@ -10,12 +10,14 @@ interface ReviewSessionProps {
   queue: ReviewQueueItem[];
   onExit: () => void;
   onFinishSession?: (updatedStates: Record<string, any>) => void;
+  onRateCard?: (vocabId: string, rating: SRSRating) => void;
 }
 
 export const ReviewSession: React.FC<ReviewSessionProps> = ({
   queue: initialQueue,
   onExit,
   onFinishSession,
+  onRateCard,
 }) => {
   const [queue, setQueue] = useState<ReviewQueueItem[]>(initialQueue);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,7 +55,7 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
 
       // Calculate next SRS state via decoupled SRS engine
       calculateNextSRSState(currentItem.srsState, rating);
-      // Can be sent to backend or saved in user state
+      onRateCard?.(currentItem.vocabulary.id, rating);
 
       // Move to next card or finish
       if (currentIndex < queue.length - 1) {
@@ -61,10 +63,10 @@ export const ReviewSession: React.FC<ReviewSessionProps> = ({
         setIsRevealed(false);
       } else {
         setIsFinished(true);
-        onFinishSession?.({});
+        onFinishSession?.({ count: queue.length, xp: 30 });
       }
     },
-    [isRevealed, currentItem, currentIndex, queue.length, onFinishSession]
+    [isRevealed, currentItem, currentIndex, queue.length, onFinishSession, onRateCard]
   );
 
   // Desktop Keyboard Shortcuts: Space = Reveal, 1 = Again, 2 = Hard, 3 = Good, 4 = Easy

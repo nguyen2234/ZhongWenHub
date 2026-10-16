@@ -1,13 +1,13 @@
-import React, { createContext, useState, useMemo } from 'react';
+import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  getDueReviewQueue,
-  INITIAL_USER_VOCAB_STATES,
-  INITIAL_SRS_STATES,
+  INITIAL_VOCABULARY_LIST,
   predictIntervalLabels,
   type ReviewQueueItem,
   type VocabularyItem,
+  type SRSRating,
 } from '..';
+import { useLearningState } from '../../learning';
 
 export interface VocabularyReviewContextType {
   reviewQueue: ReviewQueueItem[];
@@ -15,21 +15,66 @@ export interface VocabularyReviewContextType {
   reviewSingleWord: (word: VocabularyItem) => void;
   exitReviewSession: () => void;
   setReviewQueue: React.Dispatch<React.SetStateAction<ReviewQueueItem[]>>;
+  onRateWord: (vocabId: string, rating: SRSRating) => void;
+  onFinishSession: (stats?: { count?: number; xp?: number }) => void;
 }
 
 const VocabularyReviewContext = createContext<VocabularyReviewContextType | null>(null);
 
+/**
+ * Builds due review queue by cross-referencing INITIAL_VOCABULARY_LIST with user's SRS states
+ */
+function buildDueReviewQueue(
+  userVocabStates: Record<string, any>,
+  userSrsStates: Record<string, any>
+): ReviewQueueItem[] {
+  const queue: ReviewQueueItem[] = [];
+
+  for (const vocab of INITIAL_VOCABULARY_LIST) {
+    const userState = userVocabStates[vocab.id];
+    if (userState && userState.isDueToday) {
+      const srsState = userSrsStates[vocab.id] || {
+        vocabularyId: vocab.id,
+        stability: 1.0,
+        difficulty: 4.0,
+        interval: 1,
+        repetitions: 1,
+        easeFactor: 2.5,
+      };
+
+      queue.push({
+        vocabulary: vocab,
+        userState,
+        srsState,
+        predictedIntervals: predictIntervalLabels(srsState),
+      });
+    }
+  }
+
+  return queue;
+}
+
 export const VocabularyReviewProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
-  const [reviewQueue, setReviewQueue] = useState<ReviewQueueItem[]>(() => getDueReviewQueue());
+  const { state, recordSrsReview, completeSrsSession } = useLearningState();
 
-  const startReviewSession = React.useCallback(() => {
-    setReviewQueue(getDueReviewQueue());
+  const [reviewQueue, setReviewQueue] = useState<ReviewQueueItem[]>(() =>
+    buildDueReviewQueue(state.userVocabStates, state.userSrsStates)
+  );
+
+  // Synchronize queue when state changes
+  useEffect(() => {
+    setReviewQueue(buildDueReviewQueue(state.userVocabStates, state.userSrsStates));
+  }, [state.userVocabStates, state.userSrsStates]);
+
+  const startReviewSession = useCallback(() => {
+    const freshQueue = buildDueReviewQueue(state.userVocabStates, state.userSrsStates);
+    setReviewQueue(freshQueue);
     navigate('/srs-review');
-  }, [navigate]);
+  }, [navigate, state.userVocabStates, state.userSrsStates]);
 
-  const reviewSingleWord = React.useCallback((word: VocabularyItem) => {
-    const userState = INITIAL_USER_VOCAB_STATES[word.id] || {
+  const reviewSingleWord = useCallback((word: VocabularyItem) => {
+    const userState = state.userVocabStates[word.id] || {
       vocabularyId: word.id,
       status: 'learning',
       firstLearnedAt: '2026-10-01',
@@ -39,7 +84,7 @@ export const VocabularyReviewProvider: React.FC<{ children: React.ReactNode }> =
       correctCount: 1,
       isDueToday: true,
     };
-    const srsState = INITIAL_SRS_STATES[word.id] || {
+    const srsState = state.userSrsStates[word.id] || {
       vocabularyId: word.id,
       stability: 1.2,
       difficulty: 4.5,
@@ -57,11 +102,19 @@ export const VocabularyReviewProvider: React.FC<{ children: React.ReactNode }> =
       },
     ]);
     navigate('/srs-review');
-  }, [navigate]);
+  }, [navigate, state.userVocabStates, state.userSrsStates]);
 
-  const exitReviewSession = React.useCallback(() => {
+  const exitReviewSession = useCallback(() => {
     navigate('/vocabulary');
   }, [navigate]);
+
+  const onRateWord = useCallback((vocabId: string, rating: SRSRating) => {
+    recordSrsReview(vocabId, rating);
+  }, [recordSrsReview]);
+
+  const onFinishSession = useCallback((stats?: { count?: number; xp?: number }) => {
+    completeSrsSession(stats?.xp ?? 30, stats?.count ?? reviewQueue.length);
+  }, [completeSrsSession, reviewQueue.length]);
 
   const value = useMemo(
     () => ({
@@ -70,8 +123,17 @@ export const VocabularyReviewProvider: React.FC<{ children: React.ReactNode }> =
       reviewSingleWord,
       exitReviewSession,
       setReviewQueue,
+      onRateWord,
+      onFinishSession,
     }),
-    [reviewQueue, startReviewSession, reviewSingleWord, exitReviewSession]
+    [
+      reviewQueue,
+      startReviewSession,
+      reviewSingleWord,
+      exitReviewSession,
+      onRateWord,
+      onFinishSession,
+    ]
   );
 
   return (
@@ -83,4 +145,3 @@ export const VocabularyReviewProvider: React.FC<{ children: React.ReactNode }> =
 
 export { VocabularyReviewContext };
 export { useVocabularyReview } from '../hooks/useVocabularyReview';
-

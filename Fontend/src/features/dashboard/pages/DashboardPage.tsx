@@ -33,11 +33,12 @@ import {
   ProgressBar,
 } from '../../../design-system';
 import '../dashboard.css';
+import { useLearningState } from '../../learning';
 
 export interface DashboardProps {
   onStartReviewSession?: () => void;
   onOpenVocabulary?: () => void;
-  onOpenLesson?: (lessonId?: number) => void;
+  onOpenLesson?: (lessonId?: string | number) => void;
   onOpenAITutor?: (mode?: 'chat' | 'live') => void;
 }
 
@@ -48,6 +49,20 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   onOpenAITutor,
 }) => {
   const navigate = useNavigate();
+  const {
+    currentHskLevel,
+    currentLesson,
+    completedLessonIds,
+    xpTotal,
+    streakDays,
+    dueVocabCount,
+    learnedVocabCount,
+    masteredVocabCount,
+    dailyGoal,
+    recommendations,
+    startLesson,
+    state: learningState,
+  } = useLearningState();
 
   const handleStartReview = () => {
     if (onStartReviewSession) {
@@ -57,11 +72,13 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }
   };
 
-  const handleOpenLesson = (lessonId?: number) => {
+  const handleOpenLesson = (lessonId?: string | number) => {
+    const targetId = lessonId ? String(lessonId) : (currentLesson?.id || 'les-8');
+    startLesson(targetId);
     if (onOpenLesson) {
-      onOpenLesson(lessonId);
+      onOpenLesson(targetId);
     } else {
-      navigate('/lesson');
+      navigate(`/lesson?id=${targetId}`);
     }
   };
 
@@ -203,7 +220,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               >
                 Học tiếng Trung mỗi ngày
               </span>
-              <HSKLevel level={2} />
+              <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
             </div>
 
             <h1
@@ -232,13 +249,13 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </p>
 
             <p style={{ margin: '0 0 20px 0', fontSize: 'var(--text-sm)', color: '#475569', lineHeight: 1.5 }}>
-              Chào buổi sáng, <strong>Minh Anh!</strong> Hôm nay bạn có <strong>1 bài học đang dở</strong> và <strong>14 từ vựng cần ôn tập</strong> để duy trì trí nhớ dài hạn.
+              Chào buổi sáng, <strong>Minh Anh!</strong> Hôm nay bạn có <strong>1 bài học đang dở</strong> và <strong>{dueVocabCount} từ vựng cần ôn tập</strong> để duy trì trí nhớ dài hạn.
             </p>
 
             <button
               type="button"
               className="btn-3d-primary"
-              onClick={() => handleOpenLesson(8)}
+              onClick={() => handleOpenLesson(currentLesson?.id || 'les-8')}
               style={{ padding: '12px 24px', fontSize: '14px' }}
             >
               <span>Bắt đầu học ngay</span>
@@ -307,24 +324,29 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     flexShrink: 0,
                   }}
                 >
-                  喝
+                  {currentLesson?.hanzi?.slice(0, 1) || '喝'}
                 </div>
 
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--foreground)' }}>
-                      Bài 8: 你想喝什么？
+                      Bài {currentLesson?.lessonNumber || 8}: {currentLesson?.hanzi || '你想喝什么？'}
                     </span>
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                    Giáo trình HSK 2 • 18 từ mới
+                    Giáo trình HSK {currentLesson?.hskLevel || 2} • {currentLesson?.meaning || 'Bạn muốn uống gì?'}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', fontSize: '11px', fontWeight: 700 }}>
                     <span style={{ color: 'var(--muted)' }}>Tiến độ bài học</span>
-                    <span style={{ color: 'var(--primary)' }}>65%</span>
+                    <span style={{ color: 'var(--primary)' }}>
+                      {Math.min(100, Math.round(((learningState.lessonProgress[currentLesson?.id || 'les-8']?.currentStepIndex ?? 3) + 1) / 6 * 100))}%
+                    </span>
                   </div>
                   <div style={{ marginTop: '4px' }}>
-                    <ProgressBar value={65} showPercentage={false} />
+                    <ProgressBar
+                      value={Math.min(100, Math.round(((learningState.lessonProgress[currentLesson?.id || 'les-8']?.currentStepIndex ?? 3) + 1) / 6 * 100))}
+                      showPercentage={false}
+                    />
                   </div>
                 </div>
               </div>
@@ -334,9 +356,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               variant="primary"
               icon={<Play size={16} fill="currentColor" />}
               style={{ width: '100%', justifyContent: 'center', fontWeight: 800 }}
-              onClick={() => handleOpenLesson(8)}
+              onClick={() => handleOpenLesson(currentLesson?.id || 'les-8')}
             >
-              TIẾP TỤC BÀI 8 ➜
+              TIẾP TỤC BÀI {currentLesson?.lessonNumber || 8} ➜
             </Button>
           </section>
 
@@ -384,7 +406,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     <BookOpenCheck size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>8</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                      {completedLessonIds.length}
+                    </div>
                     <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginTop: '2px' }}>
                       Bài học hoàn tất
                     </div>
@@ -407,7 +431,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     <BookOpen size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>135</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                      {learnedVocabCount}
+                    </div>
                     <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginTop: '2px' }}>
                       Từ vựng đã học
                     </div>
@@ -430,9 +456,11 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     <Zap size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>420</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                      {xpTotal}
+                    </div>
                     <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginTop: '2px' }}>
-                      XP tuần này
+                      Tổng điểm XP
                     </div>
                   </div>
                 </div>
@@ -453,7 +481,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     <Award size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>96</div>
+                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                      {masteredVocabCount}
+                    </div>
                     <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginTop: '2px' }}>
                       Từ thành thạo
                     </div>
@@ -499,7 +529,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 gap: '4px',
               }}
             >
-              <span>Ôn 18 từ đến hạn ngay</span>
+              <span>Ôn {dueVocabCount} từ đến hạn ngay</span>
               <ChevronRight size={14} />
             </button>
           </div>
@@ -659,8 +689,12 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#0d9488' }}>HSK 2</span>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0d9488' }} />
               </div>
-              <div style={{ fontSize: '11px', color: '#0d9488', fontWeight: 800, marginTop: '2px' }}>Đang học (45%)</div>
-              <div style={{ fontSize: '10px', color: '#64748b' }}>135/300 từ vựng</div>
+              <div style={{ fontSize: '11px', color: '#0d9488', fontWeight: 800, marginTop: '2px' }}>
+                Đang học ({Math.min(100, Math.round((completedLessonIds.filter(id => id.startsWith('les-')).length / 18) * 100))}%)
+              </div>
+              <div style={{ fontSize: '10px', color: '#64748b' }}>
+                {completedLessonIds.filter(id => id.startsWith('les-')).length}/18 bài học
+              </div>
             </div>
 
             {/* HSK 3 */}
@@ -714,6 +748,83 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
           </div>
         </section>
+
+        {/* [ADAPTIVE RECOMMENDATIONS & WEAK KNOWLEDGE] */}
+        {recommendations.length > 0 && (
+          <section
+            className="card-3d"
+            style={{
+              padding: '20px 24px',
+              backgroundColor: '#faf5ff',
+              border: '1.5px solid #d8b4fe',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={18} style={{ color: '#7c3aed' }} />
+                <h2 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 800, color: '#581c87' }}>
+                  Gợi ý học tập thích ứng cá nhân
+                </h2>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', backgroundColor: '#f3e8ff', color: '#7c3aed' }}>
+                Hệ thống đề xuất thông minh
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {recommendations.slice(0, 2).map((rec) => (
+                <div
+                  key={rec.id}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderRadius: '14px',
+                    padding: '14px 16px',
+                    border: '1px solid #e9d5ff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', backgroundColor: '#7c3aed', color: '#ffffff' }}>
+                        Ưu tiên #{rec.priority}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e1b4b' }}>
+                        {rec.title}
+                      </span>
+                    </div>
+                    <p style={{ margin: '4px 0 12px 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                      {rec.reason}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(rec.destinationRoute)}
+                    style={{
+                      backgroundColor: '#7c3aed',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span>{rec.actionLabel}</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* [5] BÀI HỌC & CHỦ ĐỀ ĐỀ XUẤT CHO BẠN (4 CARDS GRID MATCHING HANBEEGO) */}
         <section>
@@ -980,7 +1091,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                <span style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>8</span>
+                <span style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', lineHeight: 1 }}>
+                  {streakDays}
+                </span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>ngày liên tiếp</span>
               </div>
               <p style={{ margin: '4px 0 0 0', fontSize: '12px', fontWeight: 700, color: 'var(--streak)' }}>
@@ -994,9 +1107,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             {[
               { day: 'T2', completed: true },
               { day: 'T3', completed: true },
-              { day: 'T4', completed: true, active: true },
-              { day: 'T5', completed: false },
-              { day: 'T6', completed: false },
+              { day: 'T4', completed: true },
+              { day: 'T5', completed: true },
+              { day: 'T6', completed: true, active: true },
               { day: 'T7', completed: false },
               { day: 'CN', completed: false },
             ].map((d, i) => (
@@ -1024,8 +1137,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               fontSize: '12px',
               borderRadius: 'var(--radius-lg)',
             }}
+            onClick={() => handleStartReview()}
           >
-            <span>Điểm danh hôm nay · +5 XP</span>
+            <span>Ôn tập Spaced Repetition · +30 XP</span>
           </button>
         </section>
 
@@ -1040,9 +1154,11 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', marginBottom: '4px' }}>
                 <span style={{ color: '#64748b' }}>Tiến độ tích lũy XP ngày:</span>
-                <span style={{ fontWeight: 800, color: 'var(--xp)' }}>65 / 100 XP (65%)</span>
+                <span style={{ fontWeight: 800, color: 'var(--xp)' }}>
+                  {dailyGoal.currentXp} / {dailyGoal.targetXp} XP ({dailyGoal.xpPercent}%)
+                </span>
               </div>
-              <ProgressBar value={65} variant="xp" showPercentage={false} />
+              <ProgressBar value={dailyGoal.xpPercent} variant="xp" showPercentage={false} />
             </div>
 
             <div
@@ -1060,7 +1176,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Clock size={14} /> Thời gian học:
               </span>
-              <span style={{ fontWeight: 700, color: 'var(--foreground)' }}>18 / 30 phút</span>
+              <span style={{ fontWeight: 700, color: 'var(--foreground)' }}>
+                {dailyGoal.currentMinutes} / {dailyGoal.targetMinutes} phút
+              </span>
             </div>
           </div>
         </section>
