@@ -789,14 +789,14 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Stable Practice Introduction Card (fixed layout, no height shifts) */}
+            {/* Stable Practice Introduction Card (3 clean rows, centered CTA) */}
             <div className="hsk-practice-intro-card">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Row 1 — Thông tin luyện tập */}
+              <div className="hsk-practice-card-header">
+                <div className="hsk-practice-card-title-group">
                   <span
+                    className="hsk-practice-card-status-badge"
                     style={{
-                      padding: '3px 8px',
-                      borderRadius: '6px',
                       backgroundColor:
                         practiceStatus === 'COMPLETED'
                           ? '#ecfdf5'
@@ -809,10 +809,6 @@ export const HskTextbookLessonPage: React.FC = () => {
                           : practiceStatus === 'IN_PROGRESS'
                           ? '#d97706'
                           : '#475569',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
                     }}
                   >
                     {practiceStatus === 'COMPLETED'
@@ -821,70 +817,49 @@ export const HskTextbookLessonPage: React.FC = () => {
                       ? `Đang học · Bước ${currentPracticeStepIndex + 1}/7`
                       : 'Chưa bắt đầu'}
                   </span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  <h3 className="hsk-practice-card-title">
                     7 hoạt động củng cố bài {textbookData.lessonNumber}
-                  </span>
+                  </h3>
                 </div>
 
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
+                <div className="hsk-practice-card-xp-badge">
                   +{textbookData.xpReward} XP thưởng
-                </span>
+                </div>
               </div>
 
+              {/* Row 2 — Các nhóm hoạt động */}
               <div className="hsk-practice-steps-preview">
                 <div className="hsk-practice-step-item">
-                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" style={{ flexShrink: 0 }} />
                   <span>Luyện phát âm & từ vựng</span>
                 </div>
                 <div className="hsk-practice-step-item">
-                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" style={{ flexShrink: 0 }} />
                   <span>Bài tập ngữ pháp & sắp xếp câu</span>
                 </div>
                 <div className="hsk-practice-step-item">
-                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" style={{ flexShrink: 0 }} />
                   <span>Mini Quiz đánh giá ({textbookData.playerLessonData.quiz?.length || 5} câu)</span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
+              {/* Row 3 — Hành động (Single centered CTA) */}
+              <div className="hsk-practice-action-row">
                 <button
                   ref={practiceTriggerRef}
                   type="button"
-                  onClick={() => {
-                    setIsPracticeModalOpen(true);
-                  }}
-                  style={{
-                    padding: '0 24px',
-                    height: '42px',
-                    fontSize: '14px',
-                    borderRadius: '10px',
-                    backgroundColor: 'var(--primary, #E60012)',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 2px 8px rgba(230, 0, 18, 0.25)',
-                    transition: 'all 0.15s ease',
-                  }}
+                  className="hsk-practice-cta-btn"
+                  onClick={() => setIsPracticeModalOpen(true)}
                 >
                   <Dumbbell size={16} />
-                  {practiceStatus === 'COMPLETED'
-                    ? 'Luyện tập lại bài học'
-                    : practiceStatus === 'IN_PROGRESS'
-                    ? `Tiếp tục luyện tập (Bước ${currentPracticeStepIndex + 1})`
-                    : 'Bắt đầu luyện tập ngay'}
+                  <span>
+                    {practiceStatus === 'COMPLETED'
+                      ? 'Luyện tập lại bài học'
+                      : practiceStatus === 'IN_PROGRESS'
+                      ? `Tiếp tục luyện tập (Bước ${currentPracticeStepIndex + 1})`
+                      : 'Bắt đầu luyện tập ngay'}
+                  </span>
                 </button>
-
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/lesson/focus?id=${activeLessonId}`)}
-                >
-                  <Maximize2 size={15} />
-                  Mở Chế độ tập trung (Focus Mode)
-                </Button>
               </div>
             </div>
           </section>

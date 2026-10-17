@@ -482,23 +482,70 @@
 /* 5. PRACTICE SECTION */
 .hsk-practice-intro-card {
   background-color: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 28px 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
 }
 
+/* Row 1 - Header info: title, status badge & XP reward */
+.hsk-practice-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hsk-practice-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hsk-practice-card-status-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hsk-practice-card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.hsk-practice-card-xp-badge {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary, #E60012);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Row 2 - 3 Activity Groups */
 .hsk-practice-steps-preview {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
 .hsk-practice-step-item {
   background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -507,6 +554,46 @@
   font-size: 13px;
   font-weight: 600;
   color: #334155;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+/* Row 3 - Centered Single Action Button */
+.hsk-practice-action-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.hsk-practice-cta-btn {
+  width: 240px;
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  background-color: var(--primary, #E60012);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.22);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.hsk-practice-cta-btn:hover {
+  background-color: #cc0010;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.32);
+  transform: translateY(-1px);
+}
+
+.hsk-practice-cta-btn:active {
+  transform: translateY(0);
 }
 
 /* 6. COMPLETE SECTION */
@@ -542,6 +629,22 @@
 
   .hsk-vocab-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hsk-practice-intro-card {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+
+  .hsk-practice-steps-preview {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .hsk-practice-cta-btn {
+    width: 100%;
   }
 }
 
