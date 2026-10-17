@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -20,10 +20,12 @@ import {
   Headphones,
   Mic,
   Bookmark,
+  VideoOff,
 } from 'lucide-react';
 import { useLearningState, HSK_CURRICULUM } from '../../learning';
 import { HSKLevel, ProgressBar } from '../../../design-system';
 import { DEMO_VIDEOS } from '../../videos';
+import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import '../dashboard.css';
 
 export interface DashboardProps {
@@ -39,6 +41,9 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   onOpenLesson,
 }) => {
   const navigate = useNavigate();
+  const currentStudent = useCurrentStudent();
+  const studentName = currentStudent?.studentName || currentStudent?.student?.fullName || 'Học viên';
+
   const {
     currentHskLevel,
     currentLesson,
@@ -93,7 +98,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }
   };
 
-  // Lesson step progress
+  // Lesson step progress from real state
   const lessonProgressRecord = currentLesson
     ? learningState.lessonProgress[currentLesson.id]
     : learningState.lessonProgress['les-8'];
@@ -105,16 +110,52 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     ? 100
     : Math.min(100, Math.round(((currentStep + 1) / totalSteps) * 100));
 
-  // Weekdays mapping for streak
-  const weekdays = [
-    { label: 'T2', active: true, isToday: false },
-    { label: 'T3', active: true, isToday: false },
-    { label: 'T4', active: true, isToday: false },
-    { label: 'T5', active: true, isToday: false },
-    { label: 'T6', active: true, isToday: true },
-    { label: 'T7', active: false, isToday: false },
-    { label: 'CN', active: false, isToday: false },
-  ];
+  // REAL Weekdays status computed from dailyActivityHistory
+  const weekdays = useMemo(() => {
+    const now = new Date();
+    const currentDayOfWeek = now.getDay(); // 0 is Sun, 1 is Mon...
+    const dayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1; // 0 for Mon, 6 for Sun
+
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayIndex);
+
+    const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    return labels.map((label, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dateStr = d.toISOString().split('T')[0];
+      const act = learningState.dailyActivityHistory[dateStr];
+      const hasAct = Boolean(
+        act && (act.minutes > 0 || act.xpEarned > 0 || act.exercisesCompleted > 0 || act.reviewsCompleted > 0)
+      );
+      return {
+        label,
+        date: dateStr,
+        active: hasAct,
+        isToday: i === dayIndex,
+      };
+    });
+  }, [learningState.dailyActivityHistory]);
+
+  // Real HSK progress computed from curriculum and lessonProgress
+  const hskProgressMap = useMemo(() => {
+    const map: Record<number, { completedCount: number; totalCount: number; percent: number }> = {};
+    [1, 2, 3, 4, 5, 6].forEach((lvl) => {
+      const curLevel = HSK_CURRICULUM[lvl];
+      if (!curLevel) {
+        map[lvl] = { completedCount: 0, totalCount: 0, percent: 0 };
+        return;
+      }
+      const lessons = curLevel.units.flatMap((u) => u.lessons);
+      const completedCount = lessons.filter(
+        (l) => learningState.lessonProgress[l.id]?.status === 'COMPLETED'
+      ).length;
+      const totalCount = curLevel.totalLessons || lessons.length;
+      const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+      map[lvl] = { completedCount, totalCount, percent };
+    });
+    return map;
+  }, [learningState.lessonProgress]);
 
   // Featured word for today
   const todayVocab = {
@@ -122,7 +163,6 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     pinyin: 'jiānchí',
     meaning: 'Kiên trì, bền bỉ',
     example: '只要坚持学习，就一定能学好中文。',
-    examplePinyin: 'Zhǐyào jiānchí xuéxí, jiù yídìng néng xué hǎo Zhōngwén.',
     exampleMeaning: 'Chỉ cần kiên trì học tập, nhất định sẽ học giỏi tiếng Trung.',
   };
 
@@ -148,7 +188,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               <span className="hero-banner-highlight">Tiến bộ không ngừng!</span>
             </h1>
             <p className="hero-banner-desc">
-              Chào Minh Anh 👋 Hãy duy trì chuỗi học tập {streakDays} ngày để bứt phá kỹ năng tiếng Trung HSK {currentHskLevel} hôm nay.
+              Chào {studentName} 👋 Hãy duy trì chuỗi học tập {streakDays} ngày để bứt phá kỹ năng tiếng Trung HSK {currentHskLevel} hôm nay.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <button
@@ -341,7 +381,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
         </section>
 
-        {/* SECTION 3: KHÓA HỌC HSK (Curriculum Data Cards) */}
+        {/* SECTION 3: KHÓA HỌC HSK (Real Curriculum Data & Progress) */}
         <section aria-label="Khóa học HSK">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div>
@@ -376,6 +416,14 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             {[1, 2, 3, 4, 5, 6].map((lvl) => {
               const curLevel = HSK_CURRICULUM[lvl];
               const isCurrent = lvl === currentHskLevel;
+              const lvlProgress = hskProgressMap[lvl] || { completedCount: 0, totalCount: 0, percent: 0 };
+              const progressLabel =
+                lvlProgress.completedCount > 0
+                  ? `Tiến độ: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`
+                  : isCurrent
+                  ? `Đang học • 0/${lvlProgress.totalCount} bài`
+                  : `Chưa học • 0/${lvlProgress.totalCount} bài`;
+
               return (
                 <div
                   key={lvl}
@@ -384,6 +432,14 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   style={{
                     borderColor: isCurrent ? '#fed7da' : '#e2e8f0',
                     boxShadow: isCurrent ? '0 4px 12px rgba(230, 0, 18, 0.08)' : undefined,
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/learning-path?level=${lvl}`);
+                    }
                   }}
                 >
                   <div>
@@ -416,7 +472,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                     <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
-                      {lvl === 1 ? 'Tiến độ: 65%' : lvl === 2 ? 'Đã mở khóa' : 'Sẵn sàng học'}
+                      {progressLabel}
                     </span>
                     <span
                       style={{
@@ -438,7 +494,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
         </section>
 
-        {/* SECTION 4: HỌC QUA VIDEO (Video Learning Foundation) */}
+        {/* SECTION 4: HỌC QUA VIDEO (Video Learning with Clear Status) */}
         <section aria-label="Học qua video">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -459,7 +515,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       textTransform: 'uppercase',
                     }}
                   >
-                    Demo Foundation
+                    Demo Dataset
                   </span>
                 </div>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
@@ -489,98 +545,109 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
 
           <div className="video-discovery-grid">
-            {DEMO_VIDEOS.slice(0, 3).map((video) => (
-              <div
-                key={video.id}
-                className="video-thumb-card"
-                onClick={() => navigate(`/videos/${video.id}`)}
-              >
-                <div style={{ position: 'relative', width: '100%', height: '140px', backgroundColor: '#0f172a' }}>
-                  <img
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      right: '8px',
-                      backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    {video.durationLabel}
-                  </div>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      left: '8px',
-                      backgroundColor: 'rgba(230, 0, 18, 0.9)',
-                      color: '#ffffff',
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    HSK {video.hskLevel}
-                  </div>
-                </div>
-
-                <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <h3
+            {DEMO_VIDEOS.slice(0, 3).map((video) => {
+              const isPlayable = Boolean(video.hasPlayableVideo && video.videoUrl);
+              return (
+                <div
+                  key={video.id}
+                  className="video-thumb-card"
+                  onClick={() => navigate(`/videos/${video.id}`)}
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/videos/${video.id}`);
+                    }
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', height: '140px', backgroundColor: '#0f172a' }}>
+                    <img
+                      src={video.thumbnailUrl}
+                      alt={video.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isPlayable ? 0.9 : 0.75 }}
+                    />
+                    <div
                       style={{
-                        fontSize: '14px',
+                        position: 'absolute',
+                        bottom: '8px',
+                        right: '8px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                        color: '#ffffff',
+                        fontSize: '11px',
                         fontWeight: 700,
-                        color: '#172033',
-                        margin: '0 0 4px 0',
-                        lineHeight: 1.35,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
                       }}
                     >
-                      {video.title}
-                    </h3>
-                    <p
+                      {video.durationLabel}
+                    </div>
+                    <div
                       style={{
-                        fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
-                        fontSize: '12px',
-                        color: 'var(--primary, #E60012)',
-                        margin: '0 0 8px 0',
-                        fontWeight: 600,
+                        position: 'absolute',
+                        top: '8px',
+                        left: '8px',
+                        backgroundColor: isPlayable ? 'rgba(22, 163, 74, 0.95)' : 'rgba(230, 0, 18, 0.9)',
+                        color: '#ffffff',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        textTransform: 'uppercase',
                       }}
                     >
-                      {video.chineseTitle}
-                    </p>
+                      {isPlayable ? `HSK ${video.hskLevel} • Có video` : `HSK ${video.hskLevel} • Demo phụ đề`}
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      {video.viewCount} lượt xem
-                    </span>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: 'var(--primary, #E60012)',
-                      }}
-                    >
-                      <Play size={12} fill="currentColor" />
-                      <span>Xem video</span>
-                    </span>
+                  <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <h3
+                        style={{
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          color: '#172033',
+                          margin: '0 0 4px 0',
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {video.title}
+                      </h3>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
+                          fontSize: '12px',
+                          color: 'var(--primary, #E60012)',
+                          margin: '0 0 8px 0',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {video.chineseTitle}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        {video.viewCount} lượt xem (Demo)
+                      </span>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: isPlayable ? 'var(--primary, #E60012)' : '#64748b',
+                        }}
+                      >
+                        {isPlayable ? <Play size={12} fill="currentColor" /> : <VideoOff size={12} />}
+                        <span>{isPlayable ? 'Xem video' : 'Xem phụ đề'}</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -597,7 +664,18 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
           <div className="recommendations-grid">
             {/* Card 1: Ôn từ vựng SRS */}
-            <div className="rec-card" onClick={handleStartReview}>
+            <div
+              className="rec-card"
+              onClick={handleStartReview}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleStartReview();
+                }
+              }}
+            >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div
@@ -644,6 +722,14 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <div
               className="rec-card"
               onClick={() => navigate('/practice')}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/practice');
+                }
+              }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -691,6 +777,14 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <div
               className="rec-card"
               onClick={() => navigate('/skills/listening')}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/skills/listening');
+                }
+              }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -738,6 +832,14 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <div
               className="rec-card"
               onClick={() => navigate('/ai-tutor')}
+              tabIndex={0}
+              role="button"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate('/ai-tutor');
+                }
+              }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -805,7 +907,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   borderRadius: '9999px',
                 }}
               >
-                {dailyGoal.isGoalMet ? '3/3 Hoàn thành 🎉' : '1/3 Hoàn thành'}
+                {dailyGoal.isGoalMet ? '3/3 Hoàn thành 🎉' : 'Đang thực hiện'}
               </span>
             </div>
 
@@ -921,7 +1023,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           ===================================================================== */}
       <aside className="dashboard-right-column" aria-label="Thông tin học tập cá nhân">
 
-        {/* WIDGET 1: STREAK CARD */}
+        {/* WIDGET 1: REAL STREAK CARD */}
         <div className="dashboard-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -960,10 +1062,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </span>
           </div>
 
-          {/* Weekday dots */}
+          {/* Weekday dots computed from daily activity */}
           <div className="weekday-dots-row">
             {weekdays.map((day) => (
-              <div key={day.label} className="weekday-dot-item">
+              <div key={day.label} className="weekday-dot-item" title={`${day.date}: ${day.active ? 'Có học' : 'Chưa học'}`}>
                 <div
                   className={`weekday-circle ${day.active ? 'active' : ''} ${day.isToday ? 'today' : ''}`}
                 >
@@ -1028,6 +1130,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 padding: '4px',
               }}
               title="Nghe phát âm chuẩn Bắc Kinh"
+              aria-label="Nghe phát âm từ vựng"
             >
               <Volume2 size={16} />
             </button>
@@ -1095,33 +1198,35 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </button>
         </div>
 
-        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN */}
+        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN (Clearly Badged as Demo) */}
         <div className="dashboard-card" style={{ padding: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Trophy size={16} style={{ color: '#d97706' }} />
               <span style={{ fontSize: '13px', fontWeight: 800, color: '#172033' }}>
                 Bảng xếp hạng tuần
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/progress')}
+            <span
               style={{
-                background: 'none',
-                border: 'none',
+                fontSize: '10px',
+                fontWeight: 800,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                backgroundColor: 'var(--primary-light, #FFF0F1)',
                 color: 'var(--primary, #E60012)',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
               }}
             >
-              Chi tiết
-            </button>
+              MÔ PHỎNG (DEMO)
+            </span>
           </div>
 
+          <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#94a3b8' }}>
+            Dữ liệu mô phỏng trước khi mở tính năng kết nối mạng xã hội
+          </p>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* Rank 1: You */}
+            {/* Rank 1: Current Real User */}
             <div
               style={{
                 display: 'flex',
@@ -1138,7 +1243,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   1
                 </span>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>
-                  Minh Anh (Bạn)
+                  {studentName} (Bạn)
                 </span>
               </div>
               <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
@@ -1146,7 +1251,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               </span>
             </div>
 
-            {/* Rank 2 */}
+            {/* Rank 2 (Demo) */}
             <div
               style={{
                 display: 'flex',
@@ -1171,7 +1276,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               </span>
             </div>
 
-            {/* Rank 3 */}
+            {/* Rank 3 (Demo) */}
             <div
               style={{
                 display: 'flex',

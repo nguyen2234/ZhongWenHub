@@ -15,6 +15,7 @@ import { learningStateService } from '../services/learning-state.service';
 import { findLessonMetadata, type CurriculumLesson } from '../data/curriculumData';
 import { getLocalDateString } from '../services/learning-storage.service';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import type { AddVocabularyPayload, AddVocabularyResult } from '../services/learning-srs.service';
 
 export interface LearningStateContextType {
   state: StudentLearningState;
@@ -47,6 +48,8 @@ export interface LearningStateContextType {
   recordPracticeSession: (result: PracticeSessionResult) => void;
   recordSrsReview: (vocabId: string, rating: SRSRating) => void;
   completeSrsSession: (sessionXp?: number, count?: number) => void;
+  addVocabularyWord: (payload: AddVocabularyPayload) => AddVocabularyResult;
+  isVocabularySaved: (vocabularyIdOrHanzi: string) => boolean;
   resetDemoProgress: () => void;
   switchStudent: (studentId: string) => void;
 }
@@ -106,6 +109,19 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
   const completeSrsSession = useCallback((sessionXp: number = 30, count: number = 0) => {
     learningStateService.completeSrsSession(sessionXp, count);
   }, []);
+
+  const addVocabularyWord = useCallback((payload: AddVocabularyPayload) => {
+    return learningStateService.addVocabularyWord(payload);
+  }, []);
+
+  const isVocabularySaved = useCallback((vocabularyIdOrHanzi: string) => {
+    const trimmed = vocabularyIdOrHanzi.trim();
+    const customId = `vocab-custom-${encodeURIComponent(trimmed)}`;
+    return Boolean(
+      state.userVocabStates[trimmed] ||
+      state.userVocabStates[customId]
+    );
+  }, [state.userVocabStates]);
 
   const resetDemoProgress = useCallback(() => {
     learningStateService.resetDemoProgress();
@@ -195,6 +211,8 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       recordPracticeSession,
       recordSrsReview,
       completeSrsSession,
+      addVocabularyWord,
+      isVocabularySaved,
       resetDemoProgress,
       switchStudent,
     }),
@@ -216,6 +234,8 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       recordPracticeSession,
       recordSrsReview,
       completeSrsSession,
+      addVocabularyWord,
+      isVocabularySaved,
       resetDemoProgress,
       switchStudent,
     ]

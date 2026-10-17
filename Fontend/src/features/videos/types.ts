@@ -24,13 +24,15 @@ export interface VideoLessonItem {
   durationSeconds: number;
   durationLabel: string;
   thumbnailUrl: string;
-  videoUrl?: string; // YouTube or MP4 url (sample video)
+  videoUrl?: string; // Valid playable MP4/WebM URL
   description: string;
   viewCount: number;
-  isDemo: true;
-  source: 'DEMO_DATASET';
+  isDemo: boolean;
+  source: 'DEMO_DATASET' | 'OFFICIAL_CURRICULUM';
+  videoStatus?: 'ready' | 'processing' | 'preview_only';
+  hasPlayableVideo?: boolean;
   subtitles: VideoSubtitleLine[];
 }
 
 export type VideoFilterLevel = 'all' | 1 | 2 | 3 | 4 | 5 | 6;
-export type VideoTopicFilter = 'all' | 'daily' | 'travel' | 'food' | 'hsk-exam' | 'culture';
+export type VideoTopicFilter = 'all' | 'daily' | 'travel' | 'food' | 'grammar' | 'hsk-exam' | 'culture';

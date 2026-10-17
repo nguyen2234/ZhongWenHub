@@ -15,7 +15,14 @@ import { learningStorageService, getLocalDateString } from './learning-storage.s
 import { analyzeWeakKnowledge } from './weak-knowledge.service';
 import { generateRecommendations } from './recommendation.service';
 import { awardIdempotentXp, updateLearningStreak, recordStudyTime } from './learning-activity.service';
-import { recordWordReview, completeSrsSession, introduceLessonVocabulary } from './learning-srs.service';
+import {
+  recordWordReview,
+  completeSrsSession,
+  introduceLessonVocabulary,
+  addVocabularyToSrs,
+  type AddVocabularyPayload,
+  type AddVocabularyResult,
+} from './learning-srs.service';
 import { findLessonMetadata, findNextLessonId } from '../data/curriculumData';
 
 export class LearningStateService {
@@ -382,6 +389,18 @@ export class LearningStateService {
     updated = completeSrsSession(updated, sessionXp, count);
     this.commitState(updated);
     return updated;
+  }
+
+  /**
+   * Add a new vocabulary item into the student's learned/SRS state without fake reviews.
+   * Persists to storage and prevents duplicates.
+   */
+  public addVocabularyWord(payload: AddVocabularyPayload): AddVocabularyResult {
+    const result = addVocabularyToSrs(this.activeState, payload);
+    if (result.isNew) {
+      this.commitState(result.updatedState);
+    }
+    return result;
   }
 
   /**

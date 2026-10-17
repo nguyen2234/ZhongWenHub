@@ -18,6 +18,9 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 1420,
     isDemo: true,
     source: 'DEMO_DATASET',
+    hasPlayableVideo: true,
+    videoStatus: 'ready',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     subtitles: [
       {
         id: 'sub-1-1',
@@ -86,6 +89,8 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 980,
     isDemo: true,
     source: 'DEMO_DATASET',
+    hasPlayableVideo: false,
+    videoStatus: 'preview_only',
     subtitles: [
       {
         id: 'sub-2-1',
@@ -127,6 +132,8 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 2150,
     isDemo: true,
     source: 'DEMO_DATASET',
+    hasPlayableVideo: false,
+    videoStatus: 'processing',
     subtitles: [
       {
         id: 'sub-3-1',
@@ -167,6 +174,8 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 1680,
     isDemo: true,
     source: 'DEMO_DATASET',
+    hasPlayableVideo: false,
+    videoStatus: 'preview_only',
     subtitles: [
       {
         id: 'sub-4-1',

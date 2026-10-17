@@ -165,3 +165,82 @@ export function introduceLessonVocabulary(
     userSrsStates: newUserSrsStates,
   };
 }
+
+export interface AddVocabularyPayload {
+  vocabularyId?: string;
+  hanzi: string;
+  pinyin: string;
+  meaning: string;
+  hskLevel?: number;
+  source?: string;
+}
+
+export interface AddVocabularyResult {
+  updatedState: StudentLearningState;
+  isNew: boolean;
+  vocabularyId: string;
+}
+
+/**
+ * Add a new vocabulary item into the student's learned/SRS state without fake reviews.
+ * Safely guards against duplicates (by ID or matching custom Hanzi).
+ */
+export function addVocabularyToSrs(
+  state: StudentLearningState,
+  payload: AddVocabularyPayload
+): AddVocabularyResult {
+  const vId = payload.vocabularyId || `vocab-custom-${encodeURIComponent(payload.hanzi.trim())}`;
+
+  // Check duplicate: check exact ID or existing custom ID for the same Hanzi
+  const isAlreadySaved = Boolean(
+    state.userVocabStates[vId] ||
+    state.userVocabStates[`vocab-custom-${encodeURIComponent(payload.hanzi.trim())}`]
+  );
+
+  if (isAlreadySaved) {
+    return {
+      updatedState: state,
+      isNew: false,
+      vocabularyId: vId,
+    };
+  }
+
+  const todayStr = getLocalDateString();
+  const newVocabState: UserVocabularyState = {
+    vocabularyId: vId,
+    status: 'learning',
+    firstLearnedAt: todayStr,
+    lastReviewedAt: todayStr,
+    nextReviewAt: todayStr,
+    reviewCount: 0,
+    correctCount: 0,
+    isDueToday: true,
+  };
+
+  const newSrsState: SRSState = {
+    vocabularyId: vId,
+    stability: 1.0,
+    difficulty: 4.0,
+    interval: 1,
+    repetitions: 0, // 0 repetitions: fresh word waiting for first review
+    easeFactor: 2.5,
+  };
+
+  const updatedState: StudentLearningState = {
+    ...state,
+    userVocabStates: {
+      ...state.userVocabStates,
+      [vId]: newVocabState,
+    },
+    userSrsStates: {
+      ...state.userSrsStates,
+      [vId]: newSrsState,
+    },
+  };
+
+  return {
+    updatedState,
+    isNew: true,
+    vocabularyId: vId,
+  };
+}

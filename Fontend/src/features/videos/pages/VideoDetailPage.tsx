@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -9,52 +9,112 @@ import {
   Sparkles,
   BookOpen,
   BookmarkCheck,
-  Check,
   Film,
   Layers,
+  VideoOff,
+  Info,
 } from 'lucide-react';
 import { DEMO_VIDEOS } from '../data/demoVideos';
 import { HSKLevel } from '../../../design-system';
+import { useLearningState } from '../../learning';
+
 export const VideoDetailPage: React.FC = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
+  const { addVocabularyWord, isVocabularySaved } = useLearningState();
 
   const video = DEMO_VIDEOS.find((v) => v.id === videoId) || DEMO_VIDEOS[0];
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(video.durationSeconds);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeTab, setActiveTab] = useState<'subtitles' | 'vocab'>('subtitles');
-  const [savedVocabIds, setSavedVocabIds] = useState<Record<string, boolean>>({});
-  const [savedAlert, setSavedAlert] = useState<string | null>(null);
+  const [localSavedIds, setLocalSavedIds] = useState<Record<string, boolean>>({});
+  const [savedAlert, setSavedAlert] = useState<{ type: 'success' | 'info'; message: string } | null>(null);
 
-  // Playback timer simulation
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime((prev) => {
-          if (prev >= video.durationSeconds) {
-            setIsPlaying(false);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
+  const hasPlayableSource = Boolean(video.videoUrl && video.hasPlayableVideo);
+
+  // Play / Pause handler
+  const handleTogglePlay = useCallback(() => {
+    if (!hasPlayableSource || !videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, video.durationSeconds]);
+  }, [hasPlayableSource]);
 
-  const handleSeek = (time: number) => {
-    setCurrentTime(time);
+  // Seek handler - jumps HTML5 video and state
+  const handleSeek = useCallback((time: number) => {
+    if (hasPlayableSource && videoRef.current) {
+      videoRef.current.currentTime = time;
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => {});
+      }
+    } else {
+      // In preview-only mode, only update selected time for reading
+      setCurrentTime(time);
+    }
+  }, [hasPlayableSource]);
+
+  // Restart handler
+  const handleRestart = useCallback(() => {
+    handleSeek(0);
+  }, [handleSeek]);
+
+  // Real SRS Vocabulary persistence
+  const handleSaveToSRS = useCallback((hanzi: string, pinyin: string, meaning: string) => {
+    const alreadySaved = isVocabularySaved(hanzi) || localSavedIds[hanzi];
+    if (alreadySaved) {
+      setSavedAlert({
+        type: 'info',
+        message: `Từ "${hanzi} (${pinyin})" đã có trong sổ từ của bạn.`,
+      });
+      setTimeout(() => setSavedAlert(null), 3000);
+      return;
+    }
+
+    const result = addVocabularyWord({
+      hanzi,
+      pinyin,
+      meaning,
+      hskLevel: video.hskLevel,
+      source: `Video: ${video.title}`,
+    });
+
+    setLocalSavedIds((prev) => ({ ...prev, [hanzi]: true }));
+
+    if (result.isNew) {
+      setSavedAlert({
+        type: 'success',
+        message: `Đã thêm từ "${hanzi} (${pinyin})" vào danh sách ôn tập Spaced Repetition!`,
+      });
+    } else {
+      setSavedAlert({
+        type: 'info',
+        message: `Từ "${hanzi}" đã tồn tại trong sổ từ.`,
+      });
+    }
+    setTimeout(() => setSavedAlert(null), 3500);
+  }, [addVocabularyWord, isVocabularySaved, localSavedIds, video.hskLevel, video.title]);
+
+  // Pronunciation handler
+  const handleSpeak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        // Ignore audio playback errors
+      }
+    }
   };
 
-  const handleSaveToSRS = (hanzi: string, pinyin: string, _meaning: string) => {
-    setSavedVocabIds((prev) => ({ ...prev, [hanzi]: true }));
-    setSavedAlert(`Đã thêm từ "${hanzi} (${pinyin})" vào danh sách ôn tập Spaced Repetition!`);
-    setTimeout(() => setSavedAlert(null), 3000);
-  };
-
-  // Find active subtitle
+  // Find active subtitle line based on currentTime
   const activeSubtitleIndex = video.subtitles.findIndex(
     (s) => currentTime >= s.startTime && currentTime <= s.endTime
   );
@@ -85,7 +145,7 @@ export const VideoDetailPage: React.FC = () => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '6px 12px',
+            padding: '7px 14px',
             borderRadius: '8px',
             border: '1px solid #e2e8f0',
             backgroundColor: '#ffffff',
@@ -100,30 +160,41 @@ export const VideoDetailPage: React.FC = () => {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <HSKLevel level={video.hskLevel as 1 | 2 | 3} />
-          <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', backgroundColor: '#FFF0F1', color: '#E60012' }}>
-            DEMO VIDEO
+          <HSKLevel level={(video.hskLevel >= 7 ? '7-9' : video.hskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: '4px',
+              backgroundColor: hasPlayableSource ? '#f0fdf4' : '#FFF0F1',
+              color: hasPlayableSource ? '#16a34a' : '#E60012',
+            }}
+          >
+            {hasPlayableSource ? 'VIDEO KHẢ DỤNG' : 'BẢN XEM TRƯỚC PHỤ ĐỀ (DEMO)'}
           </span>
         </div>
       </div>
 
+      {/* Alert Banner */}
       {savedAlert && (
         <div
           style={{
             padding: '10px 16px',
             borderRadius: '10px',
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            color: '#15803d',
-            fontSize: '12px',
+            backgroundColor: savedAlert.type === 'success' ? '#f0fdf4' : '#eff6ff',
+            border: savedAlert.type === 'success' ? '1px solid #bbf7d0' : '1px solid #bfdbfe',
+            color: savedAlert.type === 'success' ? '#15803d' : '#1d4ed8',
+            fontSize: '13px',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
           }}
+          role="status"
         >
-          <Check size={16} />
-          <span>{savedAlert}</span>
+          {savedAlert.type === 'success' ? <BookmarkCheck size={16} /> : <Info size={16} />}
+          <span>{savedAlert.message}</span>
         </div>
       )}
 
@@ -138,7 +209,7 @@ export const VideoDetailPage: React.FC = () => {
       >
         {/* Left: Video Player Area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Player Screen */}
+          {/* Player Container */}
           <div
             style={{
               position: 'relative',
@@ -153,19 +224,80 @@ export const VideoDetailPage: React.FC = () => {
               boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
             }}
           >
-            {/* Background Thumbnail Image */}
-            <img
-              src={video.thumbnailUrl}
-              alt={video.title}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: 0.85,
-              }}
-            />
+            {hasPlayableSource ? (
+              /* REAL HTML5 VIDEO PLAYER */
+              <video
+                ref={videoRef}
+                src={video.videoUrl}
+                poster={video.thumbnailUrl}
+                playsInline
+                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onEnded={() => setIsPlaying(false)}
+                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || video.durationSeconds)}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              /* CLEAN NON-PLAYABLE STATE - NO FAKE TIMER */
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  padding: '24px',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(230, 0, 18, 0.15)',
+                    color: '#E60012',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <VideoOff size={28} />
+                </div>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 6px 0' }}>
+                  Chưa có video để phát
+                </h3>
+                <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 14px 0', maxWidth: '380px', lineHeight: 1.45 }}>
+                  Nguồn video thực tế cho bài học này đang được chuẩn bị và đồng bộ API. Bạn có thể theo dõi kịch bản hội thoại và lưu từ vựng vào SRS ngay bên dưới.
+                </p>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#1e293b',
+                    color: '#cbd5e1',
+                    border: '1px solid #334155',
+                  }}
+                >
+                  Bản xem trước kịch bản phụ đề (Demo Preview)
+                </span>
+              </div>
+            )}
 
             {/* Top Bar Overlay */}
             <div
@@ -191,9 +323,9 @@ export const VideoDetailPage: React.FC = () => {
               style={{
                 position: 'relative',
                 zIndex: 2,
-                padding: '16px',
+                padding: '14px 16px',
                 textAlign: 'center',
-                backgroundColor: 'rgba(0,0,0,0.65)',
+                backgroundColor: 'rgba(0,0,0,0.7)',
                 margin: '0 16px 12px 16px',
                 borderRadius: '12px',
                 backdropFilter: 'blur(4px)',
@@ -221,86 +353,94 @@ export const VideoDetailPage: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                  Bấm Phát để theo dõi phụ đề trực tiếp chữ Hán, Pinyin và tiếng Việt
+                  {hasPlayableSource
+                    ? 'Bấm Phát hoặc chọn câu phụ đề để theo dõi'
+                    : 'Bấm vào từng câu phụ đề bên phải để xem chi tiết'}
                 </div>
               )}
             </div>
 
-            {/* Custom Control Bar */}
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 2,
-                padding: '10px 16px',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              {/* Progress Slider */}
-              <input
-                type="range"
-                min={0}
-                max={video.durationSeconds}
-                value={currentTime}
-                onChange={(e) => handleSeek(Number(e.target.value))}
+            {/* Controls Bar (Only for playable video or active timeline) */}
+            {hasPlayableSource ? (
+              <div
                 style={{
-                  width: '100%',
-                  accentColor: '#E60012',
-                  cursor: 'pointer',
+                  position: 'relative',
+                  zIndex: 2,
+                  padding: '10px 16px',
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
                 }}
-              />
+              >
+                {/* Progress Slider */}
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || video.durationSeconds}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={(e) => handleSeek(Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    accentColor: '#E60012',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Thanh thời gian video"
+                />
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#ffffff' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: '#E60012',
-                      color: '#ffffff',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                    }}
-                    title={isPlaying ? 'Tạm dừng' : 'Phát'}
-                  >
-                    {isPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
-                  </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#ffffff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={handleTogglePlay}
+                      style={{
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '50%',
+                        backgroundColor: '#E60012',
+                        color: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'transform 0.15s ease',
+                      }}
+                      title={isPlaying ? 'Tạm dừng' : 'Phát'}
+                      aria-label={isPlaying ? 'Tạm dừng video' : 'Phát video'}
+                    >
+                      {isPlaying ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSeek(0)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#cbd5e1',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                    title="Phát lại từ đầu"
-                  >
-                    <RotateCcw size={15} />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleRestart}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#cbd5e1',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Phát lại từ đầu"
+                    >
+                      <RotateCcw size={15} />
+                    </button>
 
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>
-                    {formatTime(currentTime)} / {formatTime(video.durationSeconds)}
-                  </span>
-                </div>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </span>
+                  </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94a3b8' }}>
-                  <Volume2 size={15} />
-                  <span>Âm lượng chuẩn</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#94a3b8' }}>
+                    <Volume2 size={15} />
+                    <span>Âm lượng chuẩn</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : null}
           </div>
 
           {/* Video Metadata Card */}
@@ -312,12 +452,31 @@ export const VideoDetailPage: React.FC = () => {
               border: '1px solid #e2e8f0',
             }}
           >
-            <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: '0 0 6px 0' }}>
-              {video.title}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
+                {video.title}
+              </h1>
+              {!hasPlayableSource && (
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#fff7ed',
+                    color: '#ea580c',
+                    border: '1px solid #ffedd5',
+                  }}
+                >
+                  Chưa có nguồn phát
+                </span>
+              )}
+            </div>
+
             <div style={{ fontFamily: 'var(--font-hanzi)', fontSize: '14px', color: '#E60012', fontWeight: 700, marginBottom: '12px' }}>
               {video.chineseTitle}
             </div>
+
             <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
               {video.description}
             </p>
@@ -391,7 +550,9 @@ export const VideoDetailPage: React.FC = () => {
               </button>
             </div>
 
-            <span style={{ fontSize: '11px', color: '#94a3b8' }}>Bấm câu để tua</span>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+              {hasPlayableSource ? 'Bấm câu để tua' : 'Bấm để đọc'}
+            </span>
           </div>
 
           {/* Subtitle List */}
@@ -419,6 +580,14 @@ export const VideoDetailPage: React.FC = () => {
                       backgroundColor: isActive ? '#FFF0F1' : '#ffffff',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSeek(sub.startTime);
+                      }
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -471,7 +640,7 @@ export const VideoDetailPage: React.FC = () => {
                     {sub.tokens && sub.tokens.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #e2e8f0' }}>
                         {sub.tokens.map((tok) => {
-                          const isSaved = savedVocabIds[tok.hanzi];
+                          const isSaved = isVocabularySaved(tok.hanzi) || localSavedIds[tok.hanzi];
                           return (
                             <button
                               key={tok.hanzi}
@@ -493,7 +662,7 @@ export const VideoDetailPage: React.FC = () => {
                                 fontWeight: 600,
                                 cursor: 'pointer',
                               }}
-                              title={`Lưu "${tok.hanzi}" (${tok.meaning}) vào SRS`}
+                              title={isSaved ? `"${tok.hanzi}" đã được lưu vào SRS` : `Lưu "${tok.hanzi}" vào SRS`}
                             >
                               {isSaved ? <BookmarkCheck size={12} /> : <BookOpen size={12} />}
                               <span>{tok.hanzi} ({tok.meaning})</span>
@@ -515,7 +684,7 @@ export const VideoDetailPage: React.FC = () => {
               {video.subtitles
                 .flatMap((s) => s.tokens || [])
                 .map((token, idx) => {
-                  const isSaved = savedVocabIds[token.hanzi];
+                  const isSaved = isVocabularySaved(token.hanzi) || localSavedIds[token.hanzi];
                   return (
                     <div
                       key={idx}
@@ -537,6 +706,21 @@ export const VideoDetailPage: React.FC = () => {
                           <span style={{ fontSize: '12px', color: '#E60012', fontWeight: 600 }}>
                             {token.pinyin}
                           </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSpeak(token.hanzi)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: '2px',
+                              cursor: 'pointer',
+                              color: '#64748b',
+                              display: 'inline-flex',
+                            }}
+                            title={`Nghe phát âm "${token.hanzi}"`}
+                          >
+                            <Volume2 size={13} />
+                          </button>
                         </div>
                         <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
                           {token.meaning}
@@ -561,7 +745,7 @@ export const VideoDetailPage: React.FC = () => {
                         }}
                       >
                         {isSaved ? <BookmarkCheck size={13} /> : <Sparkles size={13} />}
-                        <span>{isSaved ? 'Đã lưu' : 'Lưu SRS'}</span>
+                        <span>{isSaved ? 'Đã lưu SRS' : 'Lưu SRS'}</span>
                       </button>
                     </div>
                   );
