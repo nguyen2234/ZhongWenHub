@@ -5,6 +5,8 @@ import { Button } from '../../../design-system';
 import { useAITutor } from '../context/AITutorContext';
 import { AITutorChatView } from '../components/chat/AITutorChatView';
 import { AITutorLiveView } from '../components/live/AITutorLiveView';
+import { StudentSecondaryNav } from '../../../layouts/components/StudentSecondaryNav';
+import { STUDENT_MAIN_NAV_ITEMS } from '../../../config/student-navigation.config';
 
 export const AITutorWorkspacePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,6 +45,12 @@ export const AITutorWorkspacePage: React.FC = () => {
         margin: '0 auto',
       }}
     >
+      {/* Secondary Sub-navigation for AI Tutor */}
+      <StudentSecondaryNav
+        title="AI Tutor"
+        items={STUDENT_MAIN_NAV_ITEMS.find((i) => i.id === 'ai-tutor')?.secondaryFeatures || []}
+      />
+
       {/* Top Workspace Bar */}
       <div
         style={{

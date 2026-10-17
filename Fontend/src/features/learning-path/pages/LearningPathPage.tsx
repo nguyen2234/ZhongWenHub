@@ -25,6 +25,8 @@ import {
   findLessonMetadata,
   type CurriculumLesson,
 } from '../../learning/data/curriculumData';
+import { StudentSecondaryNav } from '../../../layouts/components/StudentSecondaryNav';
+import { STUDENT_MAIN_NAV_ITEMS } from '../../../config/student-navigation.config';
 
 export interface LearningPathProps {
   onOpenLesson?: (lessonId?: string | number) => void;
@@ -159,6 +161,12 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      {/* Secondary Sub-navigation for Học HSK */}
+      <StudentSecondaryNav
+        title="Học HSK"
+        items={STUDENT_MAIN_NAV_ITEMS.find((i) => i.id === 'learning-path')?.secondaryFeatures || []}
+      />
+
       {/* =====================================================================
           1. HSK 1 → HSK 7-9 PROGRESSION STEPPER (Thanh tiến trình liên hoàn)
           ===================================================================== */}

@@ -1,144 +1,137 @@
 /* ==========================================================================
-   HANBEEGO-INSPIRED DASHBOARD & LAYOUT STYLES
-   Visual layout, 3D tactile cards, and responsive sidebar container
+   MINIMAL STUDENT DASHBOARD STYLES (Phase FE-4 HanbeeGo-inspired UX)
+   Clean, modern EdTech, soft neutral backgrounds, subtle borders, rounded cards.
    ========================================================================== */
 
-/* 3D Tactile Card */
-.card-3d {
-  background-color: var(--surface);
-  border: 1.5px solid #e2e8f0;
-  border-bottom: 3.5px solid #cbd5e1;
-  border-radius: var(--radius-xl);
+.student-dashboard-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+/* Minimal Card Base */
+.minimal-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.card-3d:hover {
+.minimal-card:hover {
   border-color: #cbd5e1;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
-.card-3d-interactive {
+.minimal-card-interactive {
   cursor: pointer;
 }
 
-.card-3d-interactive:hover {
+.minimal-card-interactive:hover {
   transform: translateY(-2px);
-  border-bottom-width: 4.5px;
+  border-color: #c7d2fe;
 }
 
-.card-3d-interactive:active {
-  transform: translateY(1px);
-  border-bottom-width: 2px;
+.minimal-card-interactive:active {
+  transform: translateY(0);
 }
 
-/* 3D Tactile Button */
-.btn-3d-primary {
-  background-color: var(--primary);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-xl);
-  box-shadow: 0 4px 0 0 #312e81;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  padding: 0.75rem 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.1s ease;
-}
-
-.btn-3d-primary:hover {
-  background-color: var(--primary-hover);
-}
-
-.btn-3d-primary:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 0 #312e81;
-}
-
-/* Dashboard Hero Banner */
-.dashboard-hero-banner {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-2xl);
-  background: linear-gradient(135deg, #eef2ff 0%, #fdf2f8 60%, #fff1f2 100%);
+/* Continue Learning Hero Card (The Focal Point) */
+.continue-learning-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);
   border: 1.5px solid #e0e7ff;
-  border-bottom: 4px solid #c7d2fe;
-}
-
-/* Hanzi Typography Display */
-.hanzi-hero {
-  font-family: var(--font-hanzi);
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--foreground);
-}
-
-.pinyin-hero {
-  font-family: var(--font-sans);
-  font-weight: 600;
-  color: var(--primary);
-}
-
-/* Week Day Dot Item */
-.streak-day-item {
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.05);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  gap: 18px;
+  transition: all 0.2s ease;
 }
 
-.streak-day-circle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid #e2e8f0;
-  background-color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #64748b;
-  transition: all 0.15s ease;
+.continue-learning-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.08);
 }
 
-.streak-day-circle.active {
-  border-color: var(--streak);
-  background-color: var(--streak-bg);
-  color: var(--streak);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
-}
-
-.streak-day-circle.completed {
-  border-color: var(--success);
-  background-color: var(--success);
+/* Primary Continue Button */
+.btn-continue-learning {
+  background-color: var(--primary, #4338ca);
   color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justifyContent: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+  white-space: nowrap;
 }
 
-/* Metric Tile in Thống kê học tập */
-.stat-metric-tile {
+.btn-continue-learning:hover {
+  background-color: #3730a3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35);
+}
+
+.btn-continue-learning:active {
+  transform: translateY(1px);
+}
+
+/* Quick Action Cards Grid */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+  .student-dashboard-container {
+    padding: 16px 14px 36px;
+    gap: 18px;
+  }
+  .continue-learning-card {
+    padding: 18px 16px;
+  }
+}
+
+/* Daily Goals Row */
+.daily-goals-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.daily-goal-tile {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background-color: #f8fafc;
-  border: 1px solid #f1f5f9;
+  gap: 14px;
 }
 
-/* Responsive grid rules */
-@media (max-width: 1280px) {
-  .hanbeego-content-wrapper {
-    flex-direction: column !important;
-  }
-  .hanbeego-sidebar-column {
-    width: 100% !important;
-  }
+.goal-tile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justifyContent: center;
+  flex-shrink: 0;
 }

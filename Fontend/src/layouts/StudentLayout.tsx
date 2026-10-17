@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Flame,
@@ -9,11 +9,13 @@ import {
   Languages,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronDown,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
 import { StudentSearchModal } from './components/StudentSearchModal';
 import { useLearningState } from '../features/learning';
+import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +25,9 @@ export const StudentLayout: React.FC = () => {
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isPinyinActive, setIsPinyinActive] = useState(true);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('zwh_sidebar_collapsed') === 'true';
   });
@@ -35,6 +39,28 @@ export const StudentLayout: React.FC = () => {
       return next;
     });
   };
+
+  // Close account menu on click outside or escape key
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    if (isAccountMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAccountMenuOpen]);
 
   // Keyboard shortcut Cmd+K or Ctrl+K for search palette
   useEffect(() => {
@@ -325,26 +351,160 @@ export const StudentLayout: React.FC = () => {
 
           <XPIndicator amount={xpTotal} variant="pill" />
 
-          {/* User Avatar with direct link to Profile */}
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: '#e2e8f0',
-              border: '1.5px solid #cbd5e1',
-              color: '#0f172a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-            title="Minh Anh (Hồ sơ học viên)"
-            onClick={() => navigate('/profile')}
-          >
-            MA
+          {/* User Account Dropdown Trigger & Popover */}
+          <div ref={accountMenuRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setIsAccountMenuOpen((prev) => !prev)}
+              aria-expanded={isAccountMenuOpen}
+              aria-haspopup="true"
+              aria-label="Tài khoản học viên Minh Anh"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '2px 6px 2px 2px',
+                borderRadius: '9999px',
+                border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
+                backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title="Menu tài khoản (Hồ sơ, Cài đặt)"
+            >
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                }}
+              >
+                MA
+              </div>
+              <ChevronDown
+                size={14}
+                style={{
+                  color: '#64748b',
+                  transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s ease',
+                }}
+              />
+            </button>
+
+            {/* Account Popover Menu */}
+            {isAccountMenuOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 'calc(100% + 8px)',
+                  width: '240px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '14px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                  zIndex: 50,
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                {/* User Identity Header */}
+                <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>Minh Anh</div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>student@zhongwenhub.edu.vn</div>
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      marginTop: '6px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      backgroundColor: '#e0e7ff',
+                      color: '#4338ca',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    Học viên HSK 2
+                  </div>
+                </div>
+
+                {/* Primary Account Items: Profile, Settings, Classes */}
+                {ACCOUNT_MENU_ITEMS.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        navigate(item.path);
+                        setIsAccountMenuOpen(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        color: '#334155',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'background-color 0.1s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <ItemIcon size={16} style={{ color: '#64748b' }} />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+
+                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+
+                {/* Management Portal Shortcut */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/management/admin/dashboard');
+                    setIsAccountMenuOpen(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#4338ca',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <ShieldCheck size={16} style={{ color: '#4338ca' }} />
+                  <span>Cổng Quản trị hệ thống</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Quick Management Switch */}

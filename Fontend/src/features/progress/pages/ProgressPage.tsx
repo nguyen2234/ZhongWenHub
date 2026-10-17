@@ -19,6 +19,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLearningState } from '../../learning';
 import { HSK_CURRICULUM, type CurriculumHskLevel } from '../../learning/data/curriculumData';
 import type { DailyActivityRecord, PracticeAttemptRecord, WeakKnowledgeRecord } from '../../learning/types/learning-state.types';
+import { StudentSecondaryNav } from '../../../layouts/components/StudentSecondaryNav';
+import { STUDENT_MAIN_NAV_ITEMS } from '../../../config/student-navigation.config';
 
 export const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
@@ -148,6 +150,14 @@ export const ProgressPage: React.FC = () => {
           <span>Đã đặt lại toàn bộ tiến độ học tập Demo thành công!</span>
         </div>
       )}
+
+      {/* Secondary Sub-navigation for Tiến độ */}
+      <div style={{ marginBottom: '20px' }}>
+        <StudentSecondaryNav
+          title="Tiến độ"
+          items={STUDENT_MAIN_NAV_ITEMS.find((i) => i.id === 'progress')?.secondaryFeatures || []}
+        />
+      </div>
 
       {/* Banner */}
       <div

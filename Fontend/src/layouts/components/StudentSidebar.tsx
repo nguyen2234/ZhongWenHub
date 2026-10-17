@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  ChevronRight,
-  ChevronDown,
   Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronRight,
 } from 'lucide-react';
 import {
-  STUDENT_NAV_GROUPS,
+  STUDENT_MAIN_NAV_ITEMS,
   type StudentNavItem,
 } from '../../config/student-navigation.config';
 
@@ -29,43 +28,22 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Manage open/closed state for items with children (e.g. skills)
-  const [expandedSubmenus, setExpandedSubmenus] = useState<Record<string, boolean>>({
-    skills: true, // Default open for easy discoverability
-  });
-
-  const toggleSubmenu = (itemId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedSubmenus((prev) => ({
-      ...prev,
-      [itemId]: !prev[itemId],
-    }));
-  };
-
   const isItemActive = (item: StudentNavItem): boolean => {
     if (item.path === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/';
     }
-    if (item.children && item.children.length > 0) {
-      return item.children.some((child) => pathname.startsWith(child.path));
+    if (item.activeMatchPaths && item.activeMatchPaths.length > 0) {
+      return item.activeMatchPaths.some((prefix) => {
+        if (prefix === '/dashboard' || prefix === '/') {
+          return pathname === '/dashboard' || pathname === '/';
+        }
+        return pathname === prefix || pathname.startsWith(prefix);
+      });
     }
     return pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path));
   };
 
   const handleItemClick = (item: StudentNavItem) => {
-    if (item.children && item.children.length > 0) {
-      if (isCollapsed && onToggleCollapse) {
-        onToggleCollapse();
-      }
-      setExpandedSubmenus((prev) => ({
-        ...prev,
-        [item.id]: !prev[item.id],
-      }));
-      // Navigate to first child
-      navigate(item.children[0].path);
-      if (onNavigate) onNavigate();
-      return;
-    }
     navigate(item.path);
     if (onNavigate) onNavigate();
   };
@@ -91,7 +69,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
       {onToggleCollapse && (
         <div
           style={{
-            padding: isCollapsed ? '12px 0' : '10px 16px',
+            padding: isCollapsed ? '12px 0' : '12px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
@@ -99,8 +77,16 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           }}
         >
           {!isCollapsed && (
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Menu học tập
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#94a3b8',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+              }}
+            >
+              Học tập
             </span>
           )}
           <button
@@ -111,8 +97,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
-              height: '32px',
+              width: '30px',
+              height: '30px',
               borderRadius: '8px',
               border: '1px solid #e2e8f0',
               backgroundColor: '#f8fafc',
@@ -122,265 +108,154 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             }}
             title={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
           >
-            {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
           </button>
         </div>
       )}
 
-      {/* Main Navigation Scroll Area */}
+      {/* Main 6 Navigation Items */}
       <div
         style={{
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? '12px 6px' : '12px 12px',
+          padding: isCollapsed ? '14px 8px' : '14px 12px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: '6px',
         }}
       >
-        {STUDENT_NAV_GROUPS.map((group) => {
-          return (
-            <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {/* Group Heading (only in expanded mode) */}
-              {!isCollapsed && (
-                <div
-                  style={{
-                    padding: '6px 10px 4px 10px',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    color: '#94a3b8',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {group.groupTitle}
-                </div>
-              )}
+        {STUDENT_MAIN_NAV_ITEMS.map((item) => {
+          const active = isItemActive(item);
+          const Icon = item.icon;
 
-              {/* In collapsed mode, render a subtle separator line */}
-              {isCollapsed && (
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => handleItemClick(item)}
+              style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                gap: isCollapsed ? 0 : '12px',
+                width: '100%',
+                padding: isCollapsed ? '12px 0' : '10px 14px',
+                borderRadius: '10px',
+                border: active ? '1px solid #c7d2fe' : '1px solid transparent',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease',
+                backgroundColor: active ? '#eef2ff' : 'transparent',
+                color: active ? '#4338ca' : '#475569',
+                fontWeight: active ? 700 : 500,
+                fontSize: '13px',
+              }}
+              title={isCollapsed ? `${item.label}${item.badge ? ` (${item.badge})` : ''}` : undefined}
+              aria-current={active ? 'page' : undefined}
+            >
+              {/* Active Indicator Bar on the left */}
+              {active && (
                 <div
                   style={{
-                    height: '1px',
-                    backgroundColor: '#f1f5f9',
-                    margin: '4px 8px',
+                    position: 'absolute',
+                    left: 0,
+                    top: '20%',
+                    bottom: '20%',
+                    width: '3.5px',
+                    borderRadius: '0 4px 4px 0',
+                    backgroundColor: '#4338ca',
                   }}
                 />
               )}
 
-              {/* Group Items */}
-              {group.items.map((item) => {
-                const active = isItemActive(item);
-                const Icon = item.icon;
-                const hasChildren = Boolean(item.children && item.children.length > 0);
-                const isSubmenuOpen = expandedSubmenus[item.id] ?? false;
+              {/* Icon */}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px',
+                  height: '20px',
+                  color: active ? '#4338ca' : '#64748b',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={19} strokeWidth={active ? 2.3 : 1.8} />
+              </span>
 
-                return (
-                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column' }}>
-                    <button
-                      type="button"
-                      onClick={() => handleItemClick(item)}
+              {/* Label & Badge in expanded mode */}
+              {!isCollapsed && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '-0.1px',
+                    }}
+                  >
+                    {item.label}
+                  </span>
+
+                  {item.badge && (
+                    <span
                       style={{
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: isCollapsed ? 'center' : 'flex-start',
-                        gap: isCollapsed ? 0 : '10px',
-                        width: '100%',
-                        padding: isCollapsed ? '10px 0' : '9px 12px',
-                        borderRadius: '10px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease',
-                        backgroundColor: active ? '#eef2ff' : 'transparent',
-                        color: active ? '#4338ca' : '#475569',
-                        fontWeight: active ? 700 : 500,
-                        fontSize: '13px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: '9999px',
+                        whiteSpace: 'nowrap',
+                        backgroundColor:
+                          item.badgeType === 'danger'
+                            ? '#fee2e2'
+                            : item.badgeType === 'streak'
+                            ? '#ffedd5'
+                            : item.badgeType === 'ai'
+                            ? '#e0e7ff'
+                            : item.badgeType === 'success'
+                            ? '#dcfce7'
+                            : '#f1f5f9',
+                        color:
+                          item.badgeType === 'danger'
+                            ? '#dc2626'
+                            : item.badgeType === 'streak'
+                            ? '#ea580c'
+                            : item.badgeType === 'ai'
+                            ? '#4338ca'
+                            : item.badgeType === 'success'
+                            ? '#16a34a'
+                            : '#475569',
                       }}
-                      title={isCollapsed ? `${item.label}${item.badge ? ` (${item.badge})` : ''}` : undefined}
-                      aria-current={active ? 'page' : undefined}
                     >
-                      {/* Active Indicator Bar on the left */}
-                      {active && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            left: 0,
-                            top: '18%',
-                            bottom: '18%',
-                            width: '3.5px',
-                            borderRadius: '0 4px 4px 0',
-                            backgroundColor: '#4338ca',
-                          }}
-                        />
-                      )}
-
-                      {/* Icon */}
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '20px',
-                          height: '20px',
-                          color: active ? '#4338ca' : '#64748b',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
-                      </span>
-
-                      {/* Label & Badges in expanded mode */}
-                      {!isCollapsed && (
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flex: 1,
-                            minWidth: 0,
-                          }}
-                        >
-                          <span
-                            style={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              letterSpacing: '-0.1px',
-                            }}
-                          >
-                            {item.label}
-                          </span>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                            {item.badge && (
-                              <span
-                                style={{
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  padding: '2px 7px',
-                                  borderRadius: '9999px',
-                                  whiteSpace: 'nowrap',
-                                  backgroundColor:
-                                    item.badgeType === 'danger'
-                                      ? '#fee2e2'
-                                      : item.badgeType === 'streak'
-                                      ? '#ffedd5'
-                                      : item.badgeType === 'ai'
-                                      ? '#e0e7ff'
-                                      : item.badgeType === 'success'
-                                      ? '#dcfce7'
-                                      : '#f1f5f9',
-                                  color:
-                                    item.badgeType === 'danger'
-                                      ? '#dc2626'
-                                      : item.badgeType === 'streak'
-                                      ? '#ea580c'
-                                      : item.badgeType === 'ai'
-                                      ? '#4338ca'
-                                      : item.badgeType === 'success'
-                                      ? '#16a34a'
-                                      : '#475569',
-                                }}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-
-                            {hasChildren && (
-                              <button
-                                type="button"
-                                onClick={(e) => toggleSubmenu(item.id, e)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  border: 'none',
-                                  background: 'transparent',
-                                  color: '#94a3b8',
-                                  cursor: 'pointer',
-                                  padding: '2px',
-                                }}
-                                aria-label="Mở rộng danh mục con"
-                              >
-                                {isSubmenuOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </button>
-
-                    {/* Submenu for items with children (Expanded mode only) */}
-                    {!isCollapsed && hasChildren && isSubmenuOpen && item.children && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          marginLeft: '26px',
-                          paddingLeft: '10px',
-                          borderLeft: '1.5px solid #e2e8f0',
-                          gap: '2px',
-                          marginTop: '3px',
-                          marginBottom: '3px',
-                        }}
-                      >
-                        {item.children.map((child) => {
-                          const childActive = pathname === child.path;
-                          const ChildIcon = child.icon;
-
-                          return (
-                            <button
-                              key={child.id}
-                              type="button"
-                              onClick={() => {
-                                navigate(child.path);
-                                if (onNavigate) onNavigate();
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '7px 10px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                background: childActive ? '#f1f5f9' : 'transparent',
-                                color: childActive ? '#4338ca' : '#64748b',
-                                fontWeight: childActive ? 700 : 500,
-                                fontSize: '12px',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              <ChildIcon size={14} />
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {child.label}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              )}
+            </button>
           );
         })}
       </div>
 
-      {/* Bottom AI Tutor Quick Card (HanbeeGo inspiration) */}
+      {/* Bottom AI Tutor Quick Card (Compact, HanbeeGo inspiration) */}
       {!isCollapsed ? (
         <div
           style={{
             margin: '12px',
-            padding: '14px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #eef2ff 0%, #fae8ff 100%)',
-            border: '1.5px solid #c7d2fe',
+            padding: '12px 14px',
+            borderRadius: '12px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -390,26 +265,23 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
-                width: '28px',
-                height: '28px',
+                width: '26px',
+                height: '26px',
                 borderRadius: '8px',
-                backgroundColor: '#4338ca',
-                color: '#ffffff',
+                backgroundColor: '#e0e7ff',
+                color: '#4338ca',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Sparkles size={15} />
+              <Sparkles size={14} />
             </div>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#1e1b4b' }}>Trợ lý Kippy AI</div>
-              <div style={{ fontSize: '10px', color: '#6366f1', fontWeight: 600 }}>Sẵn sàng luyện nói 24/7</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#1e1b4b' }}>Trợ lý AI Kippy</div>
+              <div style={{ fontSize: '10px', color: '#64748b' }}>Luyện nói phản xạ 24/7</div>
             </div>
           </div>
-          <p style={{ margin: 0, fontSize: '11px', color: '#475569', lineHeight: 1.35 }}>
-            Luyện giao tiếp phản xạ tiếng Trung với giọng phát âm chuẩn Bắc Kinh.
-          </p>
           <button
             type="button"
             onClick={() => {
@@ -419,20 +291,19 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              border: 'none',
-              backgroundColor: '#4338ca',
-              color: '#ffffff',
+              justifyContent: 'space-between',
+              padding: '6px 10px',
+              borderRadius: '7px',
+              border: '1px solid #c7d2fe',
+              backgroundColor: '#eef2ff',
+              color: '#4338ca',
               fontSize: '11px',
               fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(67, 56, 202, 0.25)',
+              transition: 'all 0.15s ease',
             }}
           >
-            <span>Trò chuyện ngay</span>
+            <span>Luyện giao tiếp ngay</span>
             <ChevronRight size={13} />
           </button>
         </div>
@@ -453,11 +324,11 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               if (onNavigate) onNavigate();
             }}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '38px',
+              height: '38px',
               borderRadius: '10px',
               backgroundColor: '#eef2ff',
-              border: '1.5px solid #c7d2fe',
+              border: '1px solid #c7d2fe',
               color: '#4338ca',
               display: 'flex',
               alignItems: 'center',
@@ -466,7 +337,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             }}
             title="Luyện nói AI Live Kippy"
           >
-            <Sparkles size={18} />
+            <Sparkles size={16} />
           </button>
         </div>
       )}
