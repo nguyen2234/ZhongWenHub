@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bot, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { StickerIllustration } from './StickerIllustration';
 
 export interface AITutorSnippetProps {
   tutorName?: string;
@@ -16,8 +17,8 @@ export const AITutorSnippet: React.FC<AITutorSnippetProps> = ({
 }) => {
   return (
     <div className="ds-ai-card">
-      <div className="ds-ai-avatar">
-        <Bot size={20} />
+      <div className="ds-ai-avatar" style={{ padding: 0, overflow: 'hidden', background: 'transparent' }}>
+        <StickerIllustration name="aiTutor" size="sm" decorative />
       </div>
 
       <div className="ds-ai-content">

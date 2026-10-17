@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { StickerIllustration } from '../../../design-system';
 
 interface AITutorFloatingButtonProps {
   onClick: () => void;
@@ -22,7 +22,7 @@ export const AITutorFloatingButton: React.FC<AITutorFloatingButtonProps> = ({
         display: 'inline-flex',
         alignItems: 'center',
         gap: '8px',
-        padding: '12px 20px',
+        padding: '8px 18px 8px 12px',
         borderRadius: 'var(--radius-full)',
         backgroundColor: 'var(--primary)',
         color: '#ffffff',
@@ -43,7 +43,7 @@ export const AITutorFloatingButton: React.FC<AITutorFloatingButtonProps> = ({
       }}
       title="Mở Trợ giảng AI ZhongWen"
     >
-      <Sparkles size={18} />
+      <StickerIllustration name="aiTutor" size="xs" decorative />
       <span>Hỏi AI</span>
       {hasContext && (
         <span

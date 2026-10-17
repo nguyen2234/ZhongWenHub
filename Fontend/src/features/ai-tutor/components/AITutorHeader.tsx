@@ -1,7 +1,8 @@
 import React from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { AITutorContext } from '../types';
 import { ContextBuilder } from '../services/ContextBuilder';
+import { StickerIllustration } from '../../../design-system';
 
 interface AITutorHeaderProps {
   context: AITutorContext | null;
@@ -32,21 +33,19 @@ export const AITutorHeader: React.FC<AITutorHeaderProps> = ({
     >
       {/* Top Row: AI Brand, Close & Clear Context */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '28px',
-              height: '28px',
+              width: '40px',
+              height: '40px',
               borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'var(--primary)',
-              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(67, 56, 202, 0.3)',
+              flexShrink: 0,
             }}
           >
-            <Sparkles size={16} />
+            <StickerIllustration name="aiTutor" size="sm" decorative />
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--foreground)' }}>

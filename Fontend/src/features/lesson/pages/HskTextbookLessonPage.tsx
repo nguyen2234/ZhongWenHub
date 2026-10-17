@@ -31,7 +31,7 @@ import { LessonTableOfContents } from '../components/LessonTableOfContents';
 import { LessonPracticeModal } from '../components/LessonPracticeModal';
 import { useLearningState } from '../../learning';
 import { findNextLessonId } from '../../learning/data/curriculumData';
-import { Button } from '../../../design-system';
+import { Button, StickerIllustration } from '../../../design-system';
 import './HskTextbookLessonPage.css';
 
 // Text-to-Speech Audio Helper
@@ -356,55 +356,61 @@ export const HskTextbookLessonPage: React.FC = () => {
                 <span style={{ color: '#0f172a', fontWeight: 700 }}>Bài {textbookData.lessonNumber}</span>
               </nav>
 
-              {/* Titles */}
-              <div className="hsk-overview-titles">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: '#FFF0F1',
-                        color: 'var(--primary, #E60012)',
-                        fontSize: '12px',
-                        fontWeight: 800,
-                      }}
-                    >
-                      HSK {textbookData.hskLevel} • BÀI {textbookData.lessonNumber}
-                    </span>
-                    {isLessonCompleted && (
+              {/* Titles + Mascot Sticker */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                <div className="hsk-overview-titles" style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span
                         style={{
                           padding: '4px 10px',
                           borderRadius: '6px',
-                          backgroundColor: '#ecfdf5',
-                          color: '#16a34a',
+                          backgroundColor: '#FFF0F1',
+                          color: 'var(--primary, #E60012)',
                           fontSize: '12px',
-                          fontWeight: 700,
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
+                          fontWeight: 800,
                         }}
                       >
-                        <Check size={13} />
-                        Đã hoàn thành
+                        HSK {textbookData.hskLevel} • BÀI {textbookData.lessonNumber}
                       </span>
-                    )}
+                      {isLessonCompleted && (
+                        <span
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            backgroundColor: '#ecfdf5',
+                            color: '#16a34a',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Check size={13} />
+                          Đã hoàn thành
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => playChineseTTS(textbookData.titleZh)}
+                      className="hsk-icon-action-btn"
+                      title="Phát âm tiêu đề tiếng Trung"
+                    >
+                      <Volume2 size={16} />
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => playChineseTTS(textbookData.titleZh)}
-                    className="hsk-icon-action-btn"
-                    title="Phát âm tiêu đề tiếng Trung"
-                  >
-                    <Volume2 size={16} />
-                  </button>
+                  <div className="hsk-overview-hanzi-title">{textbookData.titleZh}</div>
+                  <div className="hsk-overview-pinyin-title">{textbookData.pinyin}</div>
+                  <div className="hsk-overview-vi-title">{textbookData.titleVi}</div>
                 </div>
 
-                <div className="hsk-overview-hanzi-title">{textbookData.titleZh}</div>
-                <div className="hsk-overview-pinyin-title">{textbookData.pinyin}</div>
-                <div className="hsk-overview-vi-title">{textbookData.titleVi}</div>
+                <div className="hsk-overview-sticker-wrap" aria-hidden="true">
+                  <StickerIllustration name="learning" size="lg" decorative />
+                </div>
               </div>
 
               {/* Objectives List */}
@@ -794,32 +800,42 @@ export const HskTextbookLessonPage: React.FC = () => {
               {/* Row 1 — Thông tin luyện tập */}
               <div className="hsk-practice-card-header">
                 <div className="hsk-practice-card-title-group">
-                  <span
-                    className="hsk-practice-card-status-badge"
-                    style={{
-                      backgroundColor:
-                        practiceStatus === 'COMPLETED'
-                          ? '#ecfdf5'
+                  <StickerIllustration
+                    name="cheering"
+                    size="sm"
+                    decorative
+                    className="hsk-practice-card-sticker"
+                  />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <span
+                        className="hsk-practice-card-status-badge"
+                        style={{
+                          backgroundColor:
+                            practiceStatus === 'COMPLETED'
+                              ? '#ecfdf5'
+                              : practiceStatus === 'IN_PROGRESS'
+                              ? '#fef3c7'
+                              : '#f1f5f9',
+                          color:
+                            practiceStatus === 'COMPLETED'
+                              ? '#16a34a'
+                              : practiceStatus === 'IN_PROGRESS'
+                              ? '#d97706'
+                              : '#475569',
+                        }}
+                      >
+                        {practiceStatus === 'COMPLETED'
+                          ? 'Hoàn thành'
                           : practiceStatus === 'IN_PROGRESS'
-                          ? '#fef3c7'
-                          : '#f1f5f9',
-                      color:
-                        practiceStatus === 'COMPLETED'
-                          ? '#16a34a'
-                          : practiceStatus === 'IN_PROGRESS'
-                          ? '#d97706'
-                          : '#475569',
-                    }}
-                  >
-                    {practiceStatus === 'COMPLETED'
-                      ? 'Hoàn thành'
-                      : practiceStatus === 'IN_PROGRESS'
-                      ? `Đang học · Bước ${currentPracticeStepIndex + 1}/7`
-                      : 'Chưa bắt đầu'}
-                  </span>
-                  <h3 className="hsk-practice-card-title">
-                    7 hoạt động củng cố bài {textbookData.lessonNumber}
-                  </h3>
+                          ? `Đang học · Bước ${currentPracticeStepIndex + 1}/7`
+                          : 'Chưa bắt đầu'}
+                      </span>
+                    </div>
+                    <h3 className="hsk-practice-card-title">
+                      7 hoạt động củng cố bài {textbookData.lessonNumber}
+                    </h3>
+                  </div>
                 </div>
 
                 <div className="hsk-practice-card-xp-badge">
@@ -867,8 +883,12 @@ export const HskTextbookLessonPage: React.FC = () => {
           {/* SECTION 6: KẾT QUẢ & HOÀN THÀNH (#complete) */}
           <section id="complete" className="hsk-textbook-section" aria-label="Kết quả bài học">
             <div className="hsk-complete-card">
-              <div className="hsk-complete-icon-badge">
-                <CheckCircle2 size={36} />
+              <div className="hsk-complete-sticker-wrap" aria-hidden="true" style={{ display: 'flex', justifyContent: 'center' }}>
+                <StickerIllustration
+                  name={isLessonCompleted ? 'trophy' : 'completion'}
+                  size="lg"
+                  decorative
+                />
               </div>
 
               <div>

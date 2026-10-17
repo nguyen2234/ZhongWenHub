@@ -23,7 +23,7 @@ import {
   VideoOff,
 } from 'lucide-react';
 import { useLearningState, HSK_CURRICULUM } from '../../learning';
-import { HSKLevel, ProgressBar } from '../../../design-system';
+import { HSKLevel, ProgressBar, StickerIllustration } from '../../../design-system';
 import { DEMO_VIDEOS } from '../../videos';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import '../dashboard.css';
@@ -227,43 +227,12 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
 
           <div className="hero-banner-illustration" aria-hidden="true">
-            <div
-              style={{
-                width: '130px',
-                height: '130px',
-                borderRadius: '24px',
-                background: 'linear-gradient(135deg, #FFF0F1 0%, #fee2e2 100%)',
-                border: '2px solid #fed7da',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(230, 0, 18, 0.12)',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
-                  fontSize: '54px',
-                  fontWeight: 900,
-                  color: 'var(--primary, #E60012)',
-                  lineHeight: 1,
-                }}
-              >
-                学
-              </span>
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: '#991b1b',
-                  marginTop: '4px',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                xué • Học tập
-              </span>
-            </div>
+            <StickerIllustration
+              name="welcome"
+              size="xl"
+              decorative
+              className="hero-welcome-chibi-sticker"
+            />
           </div>
         </section>
 

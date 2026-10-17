@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import type { StudentLearningState } from '../../learning/types/learning-state.types';
 import { findLessonMetadata } from '../../learning/data/curriculumData';
+import { StickerIllustration, type StickerName } from '../../../design-system';
 import './BeginnerRoadmap.css';
 
 export type StepStatus = 'not_started' | 'in_progress' | 'completed';
@@ -35,6 +36,7 @@ export interface BeginnerStepDefinition {
   practiceTitle: string;
   completionCriteria: string;
   icon: React.ElementType;
+  stickerName?: StickerName;
 }
 
 export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
@@ -60,6 +62,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Bảng tương tác Pinyin & Luyện âm',
     completionCriteria: 'Hoàn thành bài học HSK 1 đầu tiên hoặc luyện tập phát âm Pinyin.',
     icon: VolumeIconWrapper,
+    stickerName: 'speaking',
   },
   {
     stepNumber: 2,
@@ -83,6 +86,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Luyện nói & AI chấm điểm âm điệu',
     completionCriteria: 'Hoàn thành ít nhất 2 bài học HSK 1 hoặc đạt điểm phát âm thanh điệu.',
     icon: Mic,
+    stickerName: 'listening',
   },
   {
     stepNumber: 3,
@@ -106,6 +110,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Phòng luyện viết tương tác từng nét',
     completionCriteria: 'Hoàn thành Bài 3 hoặc hoàn tất bài thực hành viết chữ Hán cơ bản.',
     icon: PenTool,
+    stickerName: 'writing',
   },
   {
     stepNumber: 4,
@@ -129,6 +134,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Kho từ vựng & Ôn Flashcard SRS',
     completionCriteria: 'Đã học tối thiểu 30 từ vựng HSK 1 hoặc hoàn thành Bài 4.',
     icon: BookOpen,
+    stickerName: 'vocabulary',
   },
   {
     stepNumber: 5,
@@ -152,6 +158,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Thư viện điểm ngữ pháp & Trắc nghiệm',
     completionCriteria: 'Hoàn thành Bài 5 hoặc hoàn tất bài thực hành ngữ pháp HSK 1.',
     icon: BookText,
+    stickerName: 'thinking',
   },
   {
     stepNumber: 6,
@@ -175,6 +182,7 @@ export const BEGINNER_STEPS: BeginnerStepDefinition[] = [
     practiceTitle: 'Phòng luyện nghe tương tác & Đàm thoại AI',
     completionCriteria: 'Hoàn thành Bài 6 hoặc hoàn tất bài kiểm tra nghe/nói tổng hợp.',
     icon: Headphones,
+    stickerName: 'cheering',
   },
 ];
 
@@ -381,41 +389,51 @@ export const BeginnerRoadmap: React.FC<BeginnerRoadmapProps> = ({
                 aria-label={`Bước ${step.stepNumber}: ${step.title}`}
               >
                 <div>
-                  {/* Step Hanzi & Pinyin Badge */}
+                  {/* Step Sticker + Hanzi & Pinyin Badge */}
                   <div
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '12px 8px',
+                      padding: '10px 8px 8px',
                       backgroundColor: '#FFF0F1',
                       borderRadius: '12px',
                       marginBottom: '12px',
+                      minHeight: '84px',
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: '"Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif',
-                        fontSize: '34px',
-                        fontWeight: 900,
-                        color: 'var(--primary, #E60012)',
-                        lineHeight: 1,
-                      }}
-                    >
-                      {step.hanzi}
-                    </span>
+                    {step.stickerName ? (
+                      <StickerIllustration
+                        name={step.stickerName}
+                        size="sm"
+                        decorative
+                        className="beginner-step-sticker"
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          fontFamily: '"Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif',
+                          fontSize: '32px',
+                          fontWeight: 900,
+                          color: 'var(--primary, #E60012)',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {step.hanzi}
+                      </span>
+                    )}
                     <span
                       style={{
                         fontSize: '11px',
-                        fontWeight: 700,
-                        color: '#94a3b8',
+                        fontWeight: 800,
+                        color: 'var(--primary, #E60012)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                         marginTop: '4px',
                       }}
                     >
-                      {step.pinyin}
+                      {step.hanzi} • {step.pinyin}
                     </span>
                   </div>
 
@@ -533,7 +551,11 @@ export const BeginnerRoadmap: React.FC<BeginnerRoadmapProps> = ({
                     flexShrink: 0,
                   }}
                 >
-                  {selectedStep.hanzi}
+                  {selectedStep.stickerName ? (
+                    <StickerIllustration name={selectedStep.stickerName} size="sm" decorative />
+                  ) : (
+                    selectedStep.hanzi
+                  )}
                 </div>
                 <div>
                   <div

@@ -648,6 +648,13 @@
   }
 }
 
+.hsk-overview-sticker-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 640px) {
   .hsk-overview-card {
     padding: 20px 18px;
@@ -655,6 +662,10 @@
 
   .hsk-overview-hanzi-title {
     font-size: 26px;
+  }
+
+  .hsk-overview-sticker-wrap {
+    display: none;
   }
 
   .hsk-chat-row {

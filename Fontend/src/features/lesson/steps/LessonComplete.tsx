@@ -1,7 +1,7 @@
 import React from 'react';
 import { Award, Flame, BookOpen, RotateCcw, ArrowRight, ArrowLeft } from 'lucide-react';
 import { type LessonData } from '../types';
-import { Button } from '../../../design-system';
+import { Button, StickerIllustration } from '../../../design-system';
 
 interface LessonCompleteProps {
   lesson: LessonData;
@@ -36,23 +36,16 @@ export const LessonComplete: React.FC<LessonCompleteProps> = ({
         padding: 'var(--space-6) var(--space-4)',
       }}
     >
-      {/* Celebration Icon */}
+      {/* Celebration Mascot Sticker */}
       <div
         style={{
-          width: '76px',
-          height: '76px',
-          borderRadius: 'var(--radius-full)',
-          backgroundColor: 'var(--xp-bg)',
-          border: '2px solid var(--xp-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '36px',
-          boxShadow: '0 8px 24px rgba(245, 158, 11, 0.25)',
           animation: 'bounce 0.6s ease',
         }}
       >
-        🎉
+        <StickerIllustration name="trophy" size="md" decorative />
       </div>
 
       {/* Header */}

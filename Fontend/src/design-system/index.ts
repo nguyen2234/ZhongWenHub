@@ -5,6 +5,7 @@ export * from './components/Card';
 export * from './components/ListRow';
 export * from './components/Modal';
 export * from './components/EmptyState';
+export * from './components/StickerIllustration';
 export * from './components/ProgressBar';
 export * from './components/StreakTracker';
 export * from './components/AITutorSnippet';

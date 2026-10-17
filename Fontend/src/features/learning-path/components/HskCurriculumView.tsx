@@ -27,6 +27,7 @@ import {
   type CurriculumLesson,
   type CurriculumUnit,
 } from '../../learning/data/curriculumData';
+import { StickerIllustration } from '../../../design-system';
 import './HskCurriculumView.css';
 
 export interface HskCurriculumViewProps {
@@ -269,6 +270,11 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             Chương trình đào tạo chuẩn khung HSK 3.0 với {currentLevelData.totalWords} từ vựng cốt lõi,
             các điểm ngữ pháp trọng tâm và hội thoại giao tiếp tình huống thực tế theo từng chủ đề đời sống.
           </p>
+        </div>
+
+        {/* Mascot Sticker Illustration */}
+        <div className="hsk-course-header-sticker" aria-hidden="true">
+          <StickerIllustration name="learning" size="md" decorative />
         </div>
 
         {/* Right Side: Course Progress Card */}
