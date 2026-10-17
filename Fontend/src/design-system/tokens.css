@@ -31,10 +31,10 @@
 
   /* ===== 2. BRAND & ACCENT COLOR PALETTE ===== */
   /* Bản sắc riêng: Sắc xanh Chàm hiện đại (Modern Indigo) kết hợp Chu Sa Đông Phương (Crimson Seal) */
-  --primary: #4338ca;            /* Indigo 700 - Đĩnh đạc, hiện đại, uy tín cho giáo dục */
-  --primary-hover: #3730a3;      /* Indigo 800 */
+  --primary: #e60012;            /* Indigo 700 - Đĩnh đạc, hiện đại, uy tín cho giáo dục */
+  --primary-hover: #bb0010;      /* Indigo 800 */
   --primary-foreground: #ffffff;
-  --primary-light: #eef2ff;      /* Indigo 50 */
+  --primary-light: #fff0f1;      /* Indigo 50 */
 
   /* Sắc đỏ Chu Sa (Crimson Seal) - bản sắc Hán tự tinh tế, không lạm dụng */
   --seal: #be123c;               /* Rose 700 - Con dấu, điểm nhấn văn hóa tinh tế */
@@ -73,7 +73,7 @@
 
   /* Focus rings (I13) */
   --border-focus: var(--primary);
-  --ring-focus: rgba(67, 56, 202, 0.15);
+  --ring-focus: rgba(230, 0, 18, 0.15);
 
   /* Nút phụ & outline */
   --secondary: #f1f5f9;
