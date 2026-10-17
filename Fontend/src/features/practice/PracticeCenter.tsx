@@ -178,12 +178,10 @@ export const PracticeCenter: React.FC = () => {
   return (
     <div
       style={{
-        maxWidth: '1080px',
-        margin: '0 auto',
-        padding: 'var(--space-6) var(--space-4) 80px var(--space-4)',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--space-6)',
+        gap: '24px',
       }}
     >
       {/* 1. Header (Clean, inspiring, no dashboard stats clutter) */}

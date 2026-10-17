@@ -614,7 +614,7 @@ export const StudentLayout: React.FC = () => {
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div style={{ flex: 1, overflowY: 'auto' }} className="student-sidebar-scroll">
                 <StudentSidebar
                   isCollapsed={false}
                   onNavigate={() => setIsMobileDrawerOpen(false)}

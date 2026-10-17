@@ -8,7 +8,7 @@ export const VocabularyPage: React.FC = () => {
   const { startReviewSession, reviewSingleWord } = useVocabularyReview();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
+    <div className="student-content-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Secondary Sub-navigation for Từ vựng */}
       <StudentSecondaryNav
         title="Từ vựng"

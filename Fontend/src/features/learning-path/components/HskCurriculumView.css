@@ -3,7 +3,7 @@
 .hsk-curriculum-root {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
   width: 100%;
 }
 
@@ -72,7 +72,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 18px 22px;
+  padding: 20px 24px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
@@ -87,14 +87,14 @@
 .hsk-two-columns {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 18px;
+  gap: 20px;
   align-items: start;
 }
 
 @media (min-width: 1024px) {
   .hsk-two-columns {
     grid-template-columns: minmax(240px, 26%) minmax(0, 74%);
-    gap: 18px;
+    gap: 20px;
   }
 }
 
@@ -365,8 +365,8 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 14px;
-  padding: 18px 22px;
+  gap: 16px;
+  padding: 20px 24px;
   border-radius: 16px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
@@ -377,7 +377,7 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 20px 22px;
+  padding: 22px 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 

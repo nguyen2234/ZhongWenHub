@@ -44,10 +44,8 @@ export const VideoLibraryPage: React.FC = () => {
 
   return (
     <div
+      className="student-content-container"
       style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '24px 20px 48px',
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',

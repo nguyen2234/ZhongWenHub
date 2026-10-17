@@ -125,7 +125,7 @@ export const ProgressPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
+    <div className="student-content-container">
       {/* Toast Notification */}
       {resetSuccess && (
         <div

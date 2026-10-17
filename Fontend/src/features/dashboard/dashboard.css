@@ -6,9 +6,10 @@
 
 /* Main 2-Column Responsive Layout */
 .hanbeego-dashboard-layout {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding: 24px 28px 48px;
   display: flex;
   flex-direction: row;
   gap: 24px;

@@ -41,6 +41,43 @@ textarea {
 }
 
 /* ==========================================================================
+   STUDENT LAYOUT & CONTAINER SYSTEM (FE-5.6 Centered Layout & Consistent Spacing)
+   ========================================================================== */
+.student-content-container {
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding: 24px 28px 48px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .student-content-container {
+    padding: 20px 20px 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .student-content-container {
+    padding: 16px 14px 28px;
+  }
+}
+
+/* Sidebar Invisible Scrollbar: Smooth scrolling without ugly gray track */
+.student-sidebar-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge Legacy */
+}
+
+.student-sidebar-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari, Opera */
+  width: 0;
+  height: 0;
+}
+
+/* ==========================================================================
    BUTTONS (I1, Button.md)
    4 dạng chuẩn: outline (mặc định), primary, secondary, ghost + danger
    ========================================================================== */

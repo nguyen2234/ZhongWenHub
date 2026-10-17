@@ -30,7 +30,7 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    <div className="student-content-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Secondary Sub-navigation for Học HSK */}
       <StudentSecondaryNav
         title="Học HSK"

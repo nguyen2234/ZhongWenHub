@@ -137,16 +137,17 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         </div>
       )}
 
-      {/* Main Collapsible Groups List */}
+      {/* Main Collapsible Groups List with Invisible Scrollbar */}
       <div
+        className="student-sidebar-scroll"
         style={{
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? '12px 6px' : '12px 10px',
+          padding: isCollapsed ? '12px 6px' : '12px 12px',
           display: 'flex',
           flexDirection: 'column',
-          gap: isCollapsed ? '12px' : '16px',
+          gap: isCollapsed ? '12px' : '18px',
         }}
       >
         {HANBEEGO_STUDENT_NAV_GROUPS.map((group) => {
@@ -222,7 +223,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                           justifyContent: isCollapsed ? 'center' : 'flex-start',
                           gap: isCollapsed ? 0 : '10px',
                           width: '100%',
-                          padding: isCollapsed ? '10px 0' : '8px 12px',
+                          padding: isCollapsed ? '10px 0' : '9px 12px',
                           borderRadius: '10px',
                           border: active ? '1px solid #fed7da' : '1px solid transparent',
                           cursor: 'pointer',
@@ -242,8 +243,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                             style={{
                               position: 'absolute',
                               left: 0,
-                              top: '18%',
-                              bottom: '18%',
+                              top: '16%',
+                              bottom: '16%',
                               width: '3.5px',
                               borderRadius: '0 4px 4px 0',
                               backgroundColor: 'var(--primary, #E60012)',
@@ -293,11 +294,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                                 style={{
                                   fontSize: '10px',
                                   fontWeight: 700,
-                                  padding: '1px 6px',
+                                  padding: '2px 7px',
                                   borderRadius: '9999px',
                                   whiteSpace: 'nowrap',
                                   backgroundColor: active ? '#E60012' : '#FFF0F1',
                                   color: active ? '#ffffff' : '#E60012',
+                                  letterSpacing: '0.02em',
                                 }}
                               >
                                 {item.badge}
@@ -320,13 +322,13 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         <div
           style={{
             margin: '10px 12px 14px',
-            padding: '12px',
-            borderRadius: '12px',
+            padding: '12px 14px',
+            borderRadius: '14px',
             backgroundColor: '#FFF0F1',
             border: '1px solid #fed7da',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
+            gap: '10px',
             flexShrink: 0,
           }}
         >
