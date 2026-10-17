@@ -1,0 +1,560 @@
+/* HskTextbookLessonPage.css - FE-6 HSK Digital Textbook Vertical Layout */
+
+.hsk-textbook-page-root {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Two-column container: Main reading column (950-1050px) + Right sticky TOC */
+.hsk-textbook-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.hsk-textbook-content {
+  flex: 1;
+  min-width: 0;
+  max-width: 1050px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Section Common Standards with scroll-margin-top for sticky header */
+.hsk-textbook-section {
+  scroll-margin-top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.hsk-section-header-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.hsk-section-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hsk-section-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background-color: #FFF0F1;
+  color: var(--primary, #E60012);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hsk-section-main-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.hsk-section-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+/* 1. OVERVIEW HERO CARD */
+.hsk-overview-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hsk-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.hsk-breadcrumb-link {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.hsk-breadcrumb-link:hover {
+  color: var(--primary, #E60012);
+}
+
+.hsk-overview-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hsk-overview-hanzi-title {
+  font-family: var(--font-hanzi);
+  font-size: 34px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.hsk-overview-pinyin-title {
+  font-family: var(--font-pinyin);
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.hsk-overview-vi-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.hsk-meta-chips-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 0 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.hsk-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* 2. VOCABULARY GRID & CARDS */
+.hsk-vocab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+.hsk-vocab-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.hsk-vocab-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.hsk-vocab-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hsk-vocab-main-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hsk-vocab-index-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hsk-vocab-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.hsk-vocab-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.hsk-vocab-meaning {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 6px;
+}
+
+.hsk-vocab-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hsk-icon-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.hsk-icon-action-btn:hover {
+  background-color: #FFF0F1;
+  color: var(--primary, #E60012);
+  border-color: #fed7da;
+}
+
+.hsk-vocab-example-box {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hsk-vocab-example-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.hsk-vocab-example-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.hsk-vocab-example-vi {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: #475569;
+  margin-top: 2px;
+}
+
+/* 3. GRAMMAR SECTION & CARDS */
+.hsk-grammar-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-grammar-formula-box {
+  background-color: #FFF0F1;
+  border-left: 4px solid var(--primary, #E60012);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hsk-grammar-formula-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary, #E60012);
+}
+
+.hsk-grammar-formula-text {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hsk-grammar-explanation {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #334155;
+}
+
+.hsk-grammar-examples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hsk-grammar-example-item {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 4. DIALOGUE CHAT SECTION */
+.hsk-dialogue-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-dialogue-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hsk-dialogue-chat-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hsk-chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 82%;
+}
+
+.hsk-chat-row.speaker-a {
+  align-self: flex-start;
+}
+
+.hsk-chat-row.speaker-b {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.hsk-chat-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.hsk-chat-row.speaker-b .hsk-chat-avatar {
+  background-color: #FFF0F1;
+  color: var(--primary, #E60012);
+}
+
+.hsk-chat-bubble {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.hsk-chat-row.speaker-b .hsk-chat-bubble {
+  background-color: #fff8f8;
+  border-color: #fed7da;
+}
+
+.hsk-chat-speaker-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.hsk-chat-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
+}
+
+.hsk-chat-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.hsk-chat-vi {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: #334155;
+  margin-top: 2px;
+}
+
+.hsk-chat-audio-btn {
+  align-self: flex-start;
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.hsk-chat-audio-btn:hover {
+  color: var(--primary, #E60012);
+}
+
+/* 5. PRACTICE SECTION */
+.hsk-practice-intro-card {
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-practice-steps-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.hsk-practice-step-item {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* 6. COMPLETE SECTION */
+.hsk-complete-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-complete-icon-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #ecfdf5;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .hsk-textbook-layout {
+    flex-direction: column;
+  }
+
+  .hsk-vocab-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hsk-overview-card {
+    padding: 20px 18px;
+  }
+
+  .hsk-overview-hanzi-title {
+    font-size: 26px;
+  }
+
+  .hsk-chat-row {
+    max-width: 95%;
+  }
+}

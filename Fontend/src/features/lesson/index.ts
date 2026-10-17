@@ -18,3 +18,6 @@ export * from './steps/ExerciseStep';
 export * from './steps/QuizStep';
 export * from './steps/LessonComplete';
 export * from './pages/LessonPage';
+export * from './pages/HskTextbookLessonPage';
+export * from './components/LessonTableOfContents';
+export * from './services/hsk-textbook.service';

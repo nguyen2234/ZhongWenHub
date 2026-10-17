@@ -5,7 +5,7 @@ import { DashboardPage } from '../../features/dashboard';
 import { LearningPathPage } from '../../features/learning-path';
 import { PracticePage } from '../../features/practice';
 import { VocabularyPage, ReviewSessionPage } from '../../features/vocabulary';
-import { LessonPage } from '../../features/lesson';
+import { LessonPage, HskTextbookLessonPage } from '../../features/lesson';
 import { DesignSystemShowcasePage } from '../../design-system';
 import {
   StudentHomeworkListPage,
@@ -37,13 +37,13 @@ import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { VideoLibraryPage, VideoDetailPage } from '../../features/videos';
 
 export const studentRoutes: RouteObject[] = [
-  // Focus Mode 1: Pure Learning Mode for Lesson (no dashboard header/footer distraction)
+  // Focus Mode 1: Pure Standalone Learning Mode for Lesson (no dashboard header/footer distraction)
   {
-    path: '/lesson',
+    path: '/lesson/focus',
     element: <LessonPage />,
   },
   {
-    path: '/lesson/:lessonId',
+    path: '/lesson/:lessonId/focus',
     element: <LessonPage />,
   },
   // Focus Mode 2: SRS Flashcard Review Session (zero distraction, no navbar, no footer)
@@ -73,6 +73,15 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'learning-path',
         element: <LearningPathPage />,
+      },
+      // FE-6: HSK Digital Textbook with Scroll-Spy & Embedded Practice
+      {
+        path: 'lesson',
+        element: <HskTextbookLessonPage />,
+      },
+      {
+        path: 'lesson/:lessonId',
+        element: <HskTextbookLessonPage />,
       },
 
       // B. HỌC TIẾNG TRUNG
