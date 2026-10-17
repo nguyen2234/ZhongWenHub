@@ -15,7 +15,19 @@ export type LearningEventType =
   | 'hint_requested'
   | 'pronunciation_played'
   | 'vocabulary_reviewed'
-  | 'quiz_submitted';
+  | 'quiz_submitted'
+  | 'video_session_started'
+  | 'video_played'
+  | 'video_paused'
+  | 'video_seeked'
+  | 'subtitle_selected'
+  | 'subtitle_repeated'
+  | 'pinyin_toggled'
+  | 'translation_toggled'
+  | 'speaking_practice_started'
+  | 'speaking_practice_completed'
+  | 'vocabulary_saved'
+  | 'video_session_completed';
 
 export interface LearningEvent {
   /** Unique identifier for this event */

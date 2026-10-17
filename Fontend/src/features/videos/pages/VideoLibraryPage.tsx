@@ -1,39 +1,73 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Search, Clock, Eye, Sparkles, Film, ArrowLeft, RotateCcw, VideoOff } from 'lucide-react';
+import {
+  Play,
+  Search,
+  ArrowLeft,
+  RotateCcw,
+  Sparkles,
+  Mic,
+  CheckCircle2,
+} from 'lucide-react';
 import { DEMO_VIDEOS } from '../data/demoVideos';
-import type { VideoFilterLevel, VideoTopicFilter } from '../types';
-import { HSKLevel } from '../../../design-system';
+import type { VideoFilterLevel, VideoTopicFilter, VideoSourceFilter } from '../types';
+import { HSKLevel, StickerIllustration } from '../../../design-system';
+import '../videos.css';
 
 export const VideoLibraryPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<VideoFilterLevel>('all');
   const [selectedTopic, setSelectedTopic] = useState<VideoTopicFilter>('all');
+  const [selectedSource, setSelectedSource] = useState<VideoSourceFilter>('all');
+  const [filterOnlyCaptions, setFilterOnlyCaptions] = useState(false);
+  const [filterOnlySpeaking, setFilterOnlySpeaking] = useState(false);
 
   const filteredVideos = useMemo(() => {
     return DEMO_VIDEOS.filter((video) => {
+      // HSK Level filter
       if (selectedLevel !== 'all' && video.hskLevel !== selectedLevel) return false;
+
+      // Topic filter
       if (selectedTopic !== 'all' && video.topic !== selectedTopic) return false;
+
+      // Source filter
+      if (selectedSource === 'playable' && !video.hasPlayableVideo) return false;
+      if (selectedSource === 'youtube' && video.videoSourceType !== 'youtube') return false;
+      if (selectedSource === 'html5' && video.videoSourceType !== 'html5') return false;
+
+      // Feature filters
+      if (filterOnlyCaptions && !video.hasCaptions) return false;
+      if (filterOnlySpeaking && !video.hasSpeakingPractice) return false;
+
+      // Search query in Vietnamese title, Chinese title, or description
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
         const matchTitle = video.title.toLowerCase().includes(q);
-        const matchChinese = video.chineseTitle.includes(q);
+        const matchChinese = video.chineseTitle.toLowerCase().includes(q);
         const matchDesc = video.description.toLowerCase().includes(q);
-        return matchTitle || matchChinese || matchDesc;
+        const matchSub = video.subtitles.some(
+          (s) => s.hanzi.toLowerCase().includes(q) || s.pinyin.toLowerCase().includes(q) || s.vietnamese.toLowerCase().includes(q)
+        );
+        return matchTitle || matchChinese || matchDesc || matchSub;
       }
+
       return true;
     });
-  }, [searchQuery, selectedLevel, selectedTopic]);
+  }, [searchQuery, selectedLevel, selectedTopic, selectedSource, filterOnlyCaptions, filterOnlySpeaking]);
 
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedLevel('all');
     setSelectedTopic('all');
+    setSelectedSource('all');
+    setFilterOnlyCaptions(false);
+    setFilterOnlySpeaking(false);
   };
 
   const topicOptions: { id: VideoTopicFilter; label: string }[] = [
     { id: 'all', label: 'Tất cả chủ đề' },
+    { id: 'podcast', label: 'Podcast & Đàm thoại' },
     { id: 'daily', label: 'Giao tiếp hàng ngày' },
     { id: 'food', label: 'Ẩm thực & Mua sắm' },
     { id: 'travel', label: 'Du lịch & Đời sống' },
@@ -43,14 +77,7 @@ export const VideoLibraryPage: React.FC = () => {
   ];
 
   return (
-    <div
-      className="student-content-container"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-      }}
-    >
+    <div className="video-library-root student-content-container">
       {/* Header Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -66,353 +93,311 @@ export const VideoLibraryPage: React.FC = () => {
               border: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
               color: '#475569',
-              fontSize: '12px',
-              fontWeight: 600,
+              fontSize: '12.5px',
+              fontWeight: 700,
               cursor: 'pointer',
             }}
           >
             <ArrowLeft size={14} />
             <span>Dashboard</span>
           </button>
+
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#172033', margin: 0 }}>
-              Học qua Video
-            </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-              Xem video ngữ cảnh thực tế, luyện nghe phản xạ và học từ vựng kèm phụ đề tương tác
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                Học qua Video
+              </h1>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: 'var(--primary, #E60012)',
+                  backgroundColor: '#FFF0F1',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  border: '1px solid #fed7da',
+                }}
+              >
+                Tương tác song ngữ
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#64748b' }}>
+              Xem video ngữ cảnh thực tế, luyện nghe tua theo câu, học từ vựng kèm phụ đề song ngữ và tự ghi âm luyện nói
             </p>
           </div>
         </div>
 
-        {/* Demo Tag Notice */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '5px 12px',
-            borderRadius: '9999px',
-            backgroundColor: '#FFF0F1',
-            color: '#E60012',
-            fontSize: '11px',
-            fontWeight: 700,
-            border: '1px solid #fed7da',
-          }}
-        >
-          <Sparkles size={13} />
-          <span>Dữ liệu Video Demo · Phân biệt rõ nguồn phát</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#334155',
+            }}
+          >
+            <Sparkles size={14} color="var(--primary, #E60012)" />
+            <span>{filteredVideos.length} video khả dụng</span>
+          </div>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter Toolbar Container */}
       <div
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          padding: '16px 20px',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
+          padding: '18px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
         }}
       >
-        {/* Top row: Search input & count */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+        {/* Top Row: Search Input & Topic Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <Search
+              size={16}
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+              }}
+            />
             <input
               type="text"
+              placeholder="Tìm theo tên bài, Hán tự, Pinyin hoặc nội dung phụ đề..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm theo chủ đề, tiêu đề tiếng Việt hoặc chữ Hán..."
               style={{
                 width: '100%',
-                padding: '8px 14px 8px 36px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                color: '#172033',
+                padding: '9px 12px 9px 36px',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                fontSize: '13.5px',
+                color: '#0f172a',
                 outline: 'none',
                 boxSizing: 'border-box',
               }}
             />
           </div>
 
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-            Hiển thị <strong>{filteredVideos.length}</strong> bài học video
-          </div>
+          {/* Topic Dropdown */}
+          <select
+            value={selectedTopic}
+            onChange={(e) => setSelectedTopic(e.target.value as VideoTopicFilter)}
+            style={{
+              padding: '9px 14px',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            {topicOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Source Dropdown */}
+          <select
+            value={selectedSource}
+            onChange={(e) => setSelectedSource(e.target.value as VideoSourceFilter)}
+            style={{
+              padding: '9px 14px',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#ffffff',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value="all">Tất cả nguồn phát</option>
+            <option value="playable">Phát được ngay</option>
+            <option value="youtube">YouTube Embed</option>
+            <option value="html5">HTML5 Video</option>
+          </select>
+
+          {(searchQuery || selectedLevel !== 'all' || selectedTopic !== 'all' || selectedSource !== 'all' || filterOnlyCaptions || filterOnlySpeaking) && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #fecdd3',
+                backgroundColor: '#fff1f2',
+                color: 'var(--primary, #E60012)',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <RotateCcw size={13} />
+              <span>Đặt lại bộ lọc</span>
+            </button>
+          )}
         </div>
 
-        {/* Bottom row: Filter pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          {/* HSK Level Pills */}
+        {/* Bottom Row: HSK Level Pills & Feature Checkboxes */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          {/* HSK Level Pill Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Cấp độ:</span>
-            {(['all', 1, 2, 3] as VideoFilterLevel[]).map((lvl) => {
-              const isSelected = selectedLevel === lvl;
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginRight: '4px' }}>
+              Cấp độ:
+            </span>
+            {(['all', 1, 2, 3, 4, 5, 6] as VideoFilterLevel[]).map((lvl) => {
+              const active = selectedLevel === lvl;
               return (
                 <button
                   key={String(lvl)}
                   type="button"
                   onClick={() => setSelectedLevel(lvl)}
                   style={{
-                    padding: '4px 12px',
-                    borderRadius: '9999px',
-                    border: isSelected ? '1px solid #E60012' : '1px solid #e2e8f0',
-                    backgroundColor: isSelected ? '#E60012' : '#ffffff',
-                    color: isSelected ? '#ffffff' : '#475569',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: active ? 'var(--primary, #E60012)' : '#e2e8f0',
+                    backgroundColor: active ? 'var(--primary, #E60012)' : '#ffffff',
+                    color: active ? '#ffffff' : '#475569',
                     fontSize: '12px',
-                    fontWeight: isSelected ? 700 : 500,
+                    fontWeight: 700,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {lvl === 'all' ? 'Tất cả HSK' : `HSK ${lvl}`}
+                  {lvl === 'all' ? 'Tất cả' : `HSK ${lvl}`}
                 </button>
               );
             })}
           </div>
 
-          {/* Topic Pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Chủ đề:</span>
-            {topicOptions.map((opt) => {
-              const isSelected = selectedTopic === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setSelectedTopic(opt.id)}
-                  style={{
-                    padding: '4px 11px',
-                    borderRadius: '9999px',
-                    border: isSelected ? '1px solid #E60012' : '1px solid #e2e8f0',
-                    backgroundColor: isSelected ? '#FFF0F1' : '#ffffff',
-                    color: isSelected ? '#E60012' : '#64748b',
-                    fontSize: '11px',
-                    fontWeight: isSelected ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
+          {/* Quick feature checkboxes */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={filterOnlyCaptions}
+                onChange={(e) => setFilterOnlyCaptions(e.target.checked)}
+                style={{ accentColor: 'var(--primary, #E60012)' }}
+              />
+              <span>Có phụ đề đồng bộ</span>
+            </label>
+
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={filterOnlySpeaking}
+                onChange={(e) => setFilterOnlySpeaking(e.target.checked)}
+                style={{ accentColor: 'var(--primary, #E60012)' }}
+              />
+              <span>Có bài luyện nói</span>
+            </label>
           </div>
         </div>
       </div>
 
-      {/* Video Cards Grid or Empty State */}
+      {/* Video Grid Section */}
       {filteredVideos.length > 0 ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <div className="video-grid-container">
           {filteredVideos.map((video) => {
-            const isPlayable = Boolean(video.hasPlayableVideo && video.videoUrl);
             return (
               <div
                 key={video.id}
+                className="video-card-item"
                 onClick={() => navigate(`/videos/${video.id}`)}
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.borderColor = '#e2e8f0';
-                  e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.03)';
-                }}
-                tabIndex={0}
-                role="button"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    navigate(`/videos/${video.id}`);
-                  }
-                }}
+                role="article"
+                aria-label={`Xem video: ${video.title}`}
               >
-                {/* Thumbnail Box */}
-                <div style={{ position: 'relative', width: '100%', height: '160px', backgroundColor: '#0f172a' }}>
+                {/* 16:9 Thumbnail with centered play overlay */}
+                <div className="video-thumbnail-wrap">
                   <img
                     src={video.thumbnailUrl}
                     alt={video.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isPlayable ? 0.9 : 0.75 }}
+                    className="video-thumbnail-img"
+                    loading="lazy"
                   />
 
-                  {/* Play Icon or Preview Tag Overlay */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'rgba(0,0,0,0.25)',
-                    }}
-                  >
-                    {isPlayable ? (
-                      <div
-                        style={{
-                          width: '42px',
-                          height: '42px',
-                          borderRadius: '50%',
-                          backgroundColor: 'rgba(230, 0, 18, 0.95)',
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                        }}
-                      >
-                        <Play size={18} fill="currentColor" style={{ marginLeft: '2px' }} />
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '9999px',
-                          backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                          color: '#e2e8f0',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          backdropFilter: 'blur(4px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <VideoOff size={13} style={{ color: '#f87171' }} />
-                        <span>Xem trước phụ đề</span>
-                      </div>
-                    )}
-                  </div>
+                  {/* Source indicator tag */}
+                  <span className={`video-source-badge ${video.videoSourceType}`}>
+                    {video.videoSourceType === 'youtube'
+                      ? 'YouTube'
+                      : video.videoSourceType === 'html5'
+                      ? 'HTML5'
+                      : 'Xem trước'}
+                  </span>
 
-                  {/* Duration Badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      bottom: '10px',
-                      backgroundColor: 'rgba(0,0,0,0.75)',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
+                  {/* Play Overlay Button */}
+                  <button
+                    type="button"
+                    className="video-play-overlay-btn"
+                    aria-label={`Phát video ${video.title}`}
                   >
-                    <Clock size={11} />
-                    <span>{video.durationLabel}</span>
-                  </div>
+                    <Play size={18} fill="currentColor" style={{ marginLeft: '2px' }} />
+                  </button>
 
-                  {/* Playable vs Preview Badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: '10px',
-                      top: '10px',
-                      backgroundColor: isPlayable ? 'rgba(22, 163, 74, 0.95)' : 'rgba(230, 0, 18, 0.9)',
-                      color: '#ffffff',
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {isPlayable ? 'Có video phát' : 'Demo phụ đề'}
-                  </div>
+                  {/* Duration Label */}
+                  <span className="video-duration-badge">{video.durationLabel}</span>
                 </div>
 
-                {/* Card Content */}
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
-                    <HSKLevel level={(video.hskLevel >= 7 ? '7-9' : video.hskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
-                    <span style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      <Eye size={12} />
-                      <span>{video.viewCount} lượt xem (Demo)</span>
-                    </span>
+                {/* Card Body */}
+                <div className="video-card-body">
+                  <div className="video-meta-row">
+                    <HSKLevel level={video.hskLevel as any} />
+                    <span className="video-topic-tag">{video.topic}</span>
                   </div>
 
-                  <h2
-                    style={{
-                      fontSize: '14px',
-                      fontWeight: 800,
-                      color: '#172033',
-                      margin: '0 0 4px 0',
-                      lineHeight: 1.35,
-                    }}
-                  >
+                  <h3 className="video-card-vi-title" title={video.title}>
                     {video.title}
-                  </h2>
+                  </h3>
 
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-hanzi)',
-                      fontSize: '13px',
-                      color: '#E60012',
-                      fontWeight: 600,
-                      marginBottom: '8px',
-                    }}
-                  >
+                  <div className="video-card-chinese-title" title={video.chineseTitle}>
                     {video.chineseTitle}
                   </div>
 
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '12px',
-                      color: '#64748b',
-                      lineHeight: 1.4,
-                      flex: 1,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {video.description}
-                  </p>
+                  <p className="video-card-desc">{video.description}</p>
 
-                  {/* Bottom CTA */}
-                  <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: isPlayable ? '#E60012' : '#475569',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      <Film size={13} />
-                      <span>{isPlayable ? 'Xem video phát ➜' : 'Xem phụ đề & Từ vựng ➜'}</span>
+                  <div className="video-card-footer">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {video.hasCaptions && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#16a34a' }} title="Có phụ đề song ngữ">
+                          <CheckCircle2 size={12} />
+                          <span>Phụ đề</span>
+                        </span>
+                      )}
+                      {video.hasSpeakingPractice && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: 'var(--primary, #E60012)' }} title="Có phòng luyện nói câu">
+                          <Mic size={12} />
+                          <span>Luyện nói</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <span style={{ color: video.hasPlayableVideo ? '#16a34a' : '#64748b' }}>
+                      {video.hasPlayableVideo ? 'Sẵn sàng' : 'Xem trước'}
                     </span>
-
-                    {!isPlayable && (
-                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>Chưa có nguồn</span>
-                    )}
                   </div>
                 </div>
               </div>
@@ -420,66 +405,46 @@ export const VideoLibraryPage: React.FC = () => {
           })}
         </div>
       ) : (
-        /* EMPTY STATE WHEN NO VIDEOS MATCH FILTERS */
+        /* Empty State with Chibi Mascot */
         <div
           style={{
-            padding: '48px 24px',
             backgroundColor: '#ffffff',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
+            padding: '48px 24px',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '12px',
           }}
         >
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              backgroundColor: '#FFF0F1',
-              color: '#E60012',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px',
-            }}
-          >
-            <Film size={32} />
-          </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: '0 0 6px 0' }}>
+          <StickerIllustration name="empty" size="lg" alt="Không tìm thấy video" />
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
             Không tìm thấy video phù hợp
           </h3>
-          <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 18px 0', maxWidth: '420px', lineHeight: 1.5 }}>
-            Không có bài học video nào khớp với bộ lọc cấp độ hoặc từ khóa tìm kiếm đã chọn. Hãy thử chọn cấp độ khác hoặc xóa bộ lọc.
+          <p style={{ fontSize: '13.5px', color: '#64748b', margin: 0, maxWidth: '420px' }}>
+            Không có video nào khớp với bộ lọc hoặc từ khóa tìm kiếm của bạn. Hãy thử thay đổi cấp độ hoặc từ khóa.
           </p>
           <button
             type="button"
             onClick={handleClearFilters}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
+              marginTop: '8px',
               padding: '9px 18px',
               borderRadius: '10px',
               border: 'none',
-              backgroundColor: '#E60012',
+              backgroundColor: 'var(--primary, #E60012)',
               color: '#ffffff',
               fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(230, 0, 18, 0.25)',
             }}
           >
-            <RotateCcw size={14} />
-            <span>Xóa bộ lọc tìm kiếm</span>
+            Xóa tất cả bộ lọc
           </button>
         </div>
       )}
     </div>
   );
 };
-
-export default VideoLibraryPage;

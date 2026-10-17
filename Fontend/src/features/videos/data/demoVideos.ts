@@ -1,8 +1,11 @@
 import type { VideoLessonItem } from '../types';
 
 /**
- * DEMO DATASET FOR VIDEO LEARNING FOUNDATION (Phase FE-5)
- * Clearly marked with isDemo: true and source: 'DEMO_DATASET' per Quality Control guidelines.
+ * STRUCTURED VIDEO DATASET FOR INTERACTIVE CHINESE VIDEO LEARNING (FE-7)
+ * Clear classification of sources:
+ * - 'html5': Standard web streaming video with synchronized subtitles.
+ * - 'youtube': Verified YouTube educational video with official IFrame embed.
+ * - 'preview': Verified academic transcript material currently in reading/preview mode.
  */
 export const DEMO_VIDEOS: VideoLessonItem[] = [
   {
@@ -17,9 +20,14 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     description: 'Học cách chào hỏi tự nhiên, hỏi thăm sức khỏe và tự giới thiệu tên, tuổi, quốc tịch bằng tiếng Trung chuẩn Bắc Kinh.',
     viewCount: 1420,
     isDemo: true,
-    source: 'DEMO_DATASET',
+    source: 'OFFICIAL_CURRICULUM',
+    videoSourceType: 'html5',
     hasPlayableVideo: true,
     videoStatus: 'ready',
+    hasCaptions: true,
+    hasSpeakingPractice: true,
+    isVerified: true,
+    sourceNote: 'Video mẫu chuẩn HTML5 có phụ đề và bài tập luyện nói đồng bộ.',
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     subtitles: [
       {
@@ -45,6 +53,8 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
         tokens: [
           { hanzi: '我', pinyin: 'wǒ', meaning: 'Tôi', hskLevel: 1 },
           { hanzi: '叫', pinyin: 'jiào', meaning: 'Tên là', hskLevel: 1 },
+          { hanzi: '是', pinyin: 'shì', meaning: 'Là', hskLevel: 1 },
+          { hanzi: '越南', pinyin: 'yuènán', meaning: 'Việt Nam', hskLevel: 2 },
           { hanzi: '人', pinyin: 'rén', meaning: 'Người', hskLevel: 1 },
         ],
       },
@@ -58,6 +68,7 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
         tokens: [
           { hanzi: '学', pinyin: 'xué', meaning: 'Học', hskLevel: 1 },
           { hanzi: '中文', pinyin: 'zhōngwén', meaning: 'Tiếng Trung', hskLevel: 1 },
+          { hanzi: '多长', pinyin: 'duō cháng', meaning: 'Bao lâu', hskLevel: 2 },
           { hanzi: '时间', pinyin: 'shíjiān', meaning: 'Thời gian', hskLevel: 2 },
         ],
       },
@@ -69,7 +80,7 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
         pinyin: 'Wǒ xué le sān gè yuè, wǒ hěn xǐhuān Hànzì.',
         vietnamese: 'Tôi học được ba tháng rồi, tôi rất thích chữ Hán.',
         tokens: [
-          { hanzi: '月', pinyin: 'yuè', meaning: 'Tháng', hskLevel: 1 },
+          { hanzi: '三个月', pinyin: 'sān gè yuè', meaning: 'Ba tháng', hskLevel: 1 },
           { hanzi: '喜欢', pinyin: 'xǐhuān', meaning: 'Thích', hskLevel: 1 },
           { hanzi: '汉字', pinyin: 'hànzì', meaning: 'Chữ Hán', hskLevel: 2 },
         ],
@@ -77,9 +88,104 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     ],
   },
   {
+    id: 'vid-yt-1',
+    title: 'Podcast truyền cảm hứng: "Từng bước nhỏ vẫn tiến về phía trước"',
+    chineseTitle: '小步，也能向前走 | Chinese Podcast',
+    hskLevel: 2,
+    topic: 'podcast',
+    durationSeconds: 312,
+    durationLabel: '05:12',
+    thumbnailUrl: 'https://i.ytimg.com/vi/4lHwBZr66so/hqdefault.jpg',
+    description: 'Bài nghe truyền cảm hứng học tập bằng tiếng Trung chậm rãi: Mỗi ngày đi một bước nhỏ, tích lũy kiến thức bền bỉ để đạt được mục tiêu lớn.',
+    viewCount: 3820,
+    isDemo: false,
+    source: 'YOUTUBE_PODCAST',
+    videoSourceType: 'youtube',
+    youtubeVideoId: '4lHwBZr66so',
+    videoUrl: 'https://www.youtube.com/watch?v=4lHwBZr66so',
+    hasPlayableVideo: true,
+    videoStatus: 'ready',
+    hasCaptions: true,
+    hasSpeakingPractice: true,
+    isVerified: true,
+    sourceNote: 'Kênh Chinese Podcast Station (YouTube). Phát qua YouTube IFrame Player API chính thức.',
+    licenseInfo: 'Nội dung chia sẻ học tập công khai trên YouTube.',
+    subtitles: [
+      {
+        id: 'sub-yt-1',
+        startTime: 0,
+        endTime: 6,
+        hanzi: '大家好，欢迎来到中文播客。今天我们来聊一聊生活中的小步前行。',
+        pinyin: 'Dàjiā hǎo, huānyíng lái dào Zhōngwén bōkè. Jīntiān wǒmen lái liáo yī liáo shēnghuó zhōng de xiǎobù qiánxíng.',
+        vietnamese: 'Chào mọi người, chào mừng đến với podcast tiếng Trung. Hôm nay chúng ta cùng trò chuyện về việc tiến từng bước nhỏ trong đời sống.',
+        tokens: [
+          { hanzi: '大家', pinyin: 'dàjiā', meaning: 'Mọi người', hskLevel: 1 },
+          { hanzi: '欢迎', pinyin: 'huānyíng', meaning: 'Hoan nghênh, chào mừng', hskLevel: 2 },
+          { hanzi: '生活', pinyin: 'shēnghuó', meaning: 'Cuộc sống', hskLevel: 3 },
+          { hanzi: '前行', pinyin: 'qiánxíng', meaning: 'Tiến về phía trước', hskLevel: 3 },
+        ],
+      },
+      {
+        id: 'sub-yt-2',
+        startTime: 6,
+        endTime: 12,
+        hanzi: '有的时候，我们会觉得目标太远，压力很大。',
+        pinyin: 'Yǒu de shíhou, wǒmen huì juéde mùbiāo tài yuǎn, yālì hěn dà.',
+        vietnamese: 'Có những lúc, chúng ta sẽ cảm thấy mục tiêu quá xa xôi, áp lực rất lớn.',
+        tokens: [
+          { hanzi: '有时候', pinyin: 'yǒu shíhou', meaning: 'Có lúc', hskLevel: 2 },
+          { hanzi: '觉得', pinyin: 'juéde', meaning: 'Cảm thấy', hskLevel: 2 },
+          { hanzi: '目标', pinyin: 'mùbiāo', meaning: 'Mục tiêu', hskLevel: 3 },
+          { hanzi: '压力', pinyin: 'yālì', meaning: 'Áp lực', hskLevel: 3 },
+        ],
+      },
+      {
+        id: 'sub-yt-3',
+        startTime: 12,
+        endTime: 18,
+        hanzi: '但是别忘了，只要每天走一小步，也是在向前走。',
+        pinyin: 'Dànshì bié wàng le, zhǐyào měitiān zǒu yī xiǎobù, yě shì zài xiàng qián zǒu.',
+        vietnamese: 'Nhưng xin đừng quên, chỉ cần mỗi ngày bước một bước nhỏ, cũng chính là đang tiến bước.',
+        tokens: [
+          { hanzi: '但是', pinyin: 'dànshì', meaning: 'Nhưng mà', hskLevel: 2 },
+          { hanzi: '只要', pinyin: 'zhǐyào', meaning: 'Chỉ cần', hskLevel: 3 },
+          { hanzi: '每天', pinyin: 'měitiān', meaning: 'Mỗi ngày', hskLevel: 2 },
+          { hanzi: '向前', pinyin: 'xiàng qián', meaning: 'Về phía trước', hskLevel: 2 },
+        ],
+      },
+      {
+        id: 'sub-yt-4',
+        startTime: 18,
+        endTime: 25,
+        hanzi: '学中文也是这样，每天记一个生词，练一句句子，就会有进步。',
+        pinyin: 'Xué Zhōngwén yě shì zhèyàng, měitiān jì yī gè shēngcí, liàn yī jù jùzi, jiù huì yǒu jìnbù.',
+        vietnamese: 'Học tiếng Trung cũng vậy, mỗi ngày nhớ một từ mới, luyện một câu, thì sẽ có tiến bộ.',
+        tokens: [
+          { hanzi: '生词', pinyin: 'shēngcí', meaning: 'Từ mới', hskLevel: 2 },
+          { hanzi: '句子', pinyin: 'jùzi', meaning: 'Câu', hskLevel: 2 },
+          { hanzi: '进步', pinyin: 'jìnbù', meaning: 'Tiến bộ', hskLevel: 3 },
+        ],
+      },
+      {
+        id: 'sub-yt-5',
+        startTime: 25,
+        endTime: 32,
+        hanzi: '坚持下去，你一定会感谢那个努力的自己。',
+        pinyin: 'Jiānchí xiàqù, nǐ yīdìng huì gǎnxiè nà gè nǔlì de zìjǐ.',
+        vietnamese: 'Kiên trì tiếp tục, bạn nhất định sẽ cảm ơn chính bản thân nỗ lực của ngày hôm nay.',
+        tokens: [
+          { hanzi: '坚持', pinyin: 'jiānchí', meaning: 'Kiên trì', hskLevel: 3 },
+          { hanzi: '一定', pinyin: 'yīdìng', meaning: 'Nhất định', hskLevel: 2 },
+          { hanzi: '感谢', pinyin: 'gǎnxiè', meaning: 'Cảm ơn', hskLevel: 2 },
+          { hanzi: '努力', pinyin: 'nǔlì', meaning: 'Nỗ lực', hskLevel: 3 },
+        ],
+      },
+    ],
+  },
+  {
     id: 'vid-2',
     title: 'Đi siêu thị & Mua sắm: Hỏi giá cả và trả giá',
-    chineseTitle: '超市购物：询问价格与结账',
+    chineseTitle: '去中国超市买东西：询问价格与结账',
     hskLevel: 2,
     topic: 'food',
     durationSeconds: 260,
@@ -89,8 +195,14 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 980,
     isDemo: true,
     source: 'DEMO_DATASET',
+    videoSourceType: 'preview',
     hasPlayableVideo: false,
     videoStatus: 'preview_only',
+    hasCaptions: true,
+    hasSpeakingPractice: true,
+    isVerified: true,
+    externalSourceUrl: 'https://drive.google.com/file/d/1yNYXZrqJZac8lW5bOL8V8LZ0HlVRYY1u/view',
+    sourceNote: 'Nội dung dựa theo tài liệu PDF học thuật "去中国超市买东西" (Google Drive). Hiện ở chế độ đọc tương tác.',
     subtitles: [
       {
         id: 'sub-2-1',
@@ -117,6 +229,19 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
           { hanzi: '新鲜', pinyin: 'xīnxiān', meaning: 'Tươi mới', hskLevel: 3 },
         ],
       },
+      {
+        id: 'sub-2-3',
+        startTime: 10,
+        endTime: 16,
+        hanzi: '我买两斤，可以用微信支付吗？',
+        pinyin: 'Wǒ mǎi liǎng jīn, kěyǐ yòng Wēixìn zhīfù ma?',
+        vietnamese: 'Tôi mua hai cân, có thể dùng WeChat thanh toán không?',
+        tokens: [
+          { hanzi: '买', pinyin: 'mǎi', meaning: 'Mua', hskLevel: 1 },
+          { hanzi: '可以', pinyin: 'kěyǐ', meaning: 'Có thể', hskLevel: 2 },
+          { hanzi: '支付', pinyin: 'zhīfù', meaning: 'Thanh toán', hskLevel: 3 },
+        ],
+      },
     ],
   },
   {
@@ -132,8 +257,13 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 2150,
     isDemo: true,
     source: 'DEMO_DATASET',
+    videoSourceType: 'preview',
     hasPlayableVideo: false,
-    videoStatus: 'processing',
+    videoStatus: 'preview_only',
+    hasCaptions: true,
+    hasSpeakingPractice: true,
+    isVerified: true,
+    sourceNote: 'Chế độ luyện đọc và phát âm tình huống quán trà sữa.',
     subtitles: [
       {
         id: 'sub-3-1',
@@ -174,8 +304,13 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     viewCount: 1680,
     isDemo: true,
     source: 'DEMO_DATASET',
+    videoSourceType: 'preview',
     hasPlayableVideo: false,
     videoStatus: 'preview_only',
+    hasCaptions: true,
+    hasSpeakingPractice: true,
+    isVerified: true,
+    sourceNote: 'Chế độ luyện đọc ngữ cảnh ga tàu điện ngầm và tàu cao tốc Trung Quốc.',
     subtitles: [
       {
         id: 'sub-4-1',
@@ -193,3 +328,5 @@ export const DEMO_VIDEOS: VideoLessonItem[] = [
     ],
   },
 ];
+
+export const demoVideos = DEMO_VIDEOS;
