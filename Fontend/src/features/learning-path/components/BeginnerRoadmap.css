@@ -1,0 +1,191 @@
+/* BeginnerRoadmap.css - FE-5.4 6-Step Roadmap on a single horizontal row */
+
+.beginner-roadmap-root {
+  position: relative;
+  width: 100%;
+}
+
+/* Track container holding curve line + 6 milestone circle nodes */
+.beginner-track-container {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+@media (min-width: 1280px) {
+  .beginner-track-row {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .beginner-curve-svg {
+    display: block;
+    position: absolute;
+    top: 17px;
+    left: 8%;
+    width: 84%;
+    height: 20px;
+    z-index: 1;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .beginner-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+  }
+
+  .beginner-scroll-hint {
+    display: none;
+  }
+}
+
+/* Tablet (768px to 1279px): Horizontal scrolling with indicators */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .beginner-scroll-wrapper {
+    overflow-x: auto;
+    padding-bottom: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .beginner-track-row {
+    display: flex;
+    gap: 14px;
+    min-width: 1100px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .beginner-curve-svg {
+    display: block;
+    position: absolute;
+    top: 17px;
+    left: 80px;
+    width: 940px;
+    height: 20px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .beginner-cards-grid {
+    display: flex;
+    gap: 14px;
+    min-width: 1100px;
+  }
+
+  .beginner-step-card {
+    flex: 1 0 170px;
+    min-width: 170px;
+  }
+
+  .beginner-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 10px;
+  }
+}
+
+/* Mobile (< 768px): Vertical timeline mode for touch readability */
+@media (max-width: 767px) {
+  .beginner-curve-svg {
+    display: none;
+  }
+
+  .beginner-track-row {
+    display: none;
+  }
+
+  .beginner-scroll-hint {
+    display: none;
+  }
+
+  .beginner-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    padding-left: 20px;
+    border-left: 2px dashed #fca5a5;
+    margin-left: 12px;
+  }
+
+  .beginner-step-card {
+    position: relative;
+    width: 100%;
+  }
+
+  .beginner-step-card::before {
+    content: attr(data-step);
+    position: absolute;
+    left: -33px;
+    top: 18px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 2px solid var(--primary, #E60012);
+    color: var(--primary, #E60012);
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(230, 0, 18, 0.2);
+  }
+}
+
+/* Card Styling */
+.beginner-step-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.beginner-step-card:hover {
+  transform: translateY(-3px);
+  border-color: #fca5a5;
+  box-shadow: 0 8px 20px -4px rgba(230, 0, 18, 0.1);
+}
+
+/* Card button "Tìm hiểu" */
+.beginner-btn-explore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #fed7da;
+  background-color: #fffafb;
+  color: var(--primary, #E60012);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.beginner-btn-explore:hover {
+  background-color: var(--primary, #E60012);
+  color: #ffffff;
+  border-color: var(--primary, #E60012);
+  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.25);
+}

@@ -64,12 +64,12 @@ describe('Phase FE-5.3: Beginner Learning Guidance & 6-Step Roadmap', () => {
       expect(BEGINNER_STEPS[3].pinyin).toBe('Cíhuì');
       expect(BEGINNER_STEPS[3].title).toContain('Từ vựng');
 
-      expect(BEGINNER_STEPS[4].hanzi).toBe('句');
-      expect(BEGINNER_STEPS[4].pinyin).toBe('Jùzi');
+      expect(BEGINNER_STEPS[4].hanzi).toBe('语');
+      expect(BEGINNER_STEPS[4].pinyin).toBe('Yǔfǎ');
       expect(BEGINNER_STEPS[4].title).toContain('Ngữ pháp');
 
-      expect(BEGINNER_STEPS[5].hanzi).toBe('话');
-      expect(BEGINNER_STEPS[5].pinyin).toBe('Duìhuà');
+      expect(BEGINNER_STEPS[5].hanzi).toBe('听');
+      expect(BEGINNER_STEPS[5].pinyin).toBe('Tīngshuō');
       expect(BEGINNER_STEPS[5].title).toContain('nghe và nói');
     });
 

@@ -1,0 +1,437 @@
+/* HskCurriculumView.css - FE-5.5 Compact HSK Curriculum (HanbeeGo Layout) */
+
+.hsk-curriculum-root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+/* 5.1 Compact Pill Tabs Row */
+.hsk-pill-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+}
+
+.hsk-pill-tabs-row::-webkit-scrollbar {
+  display: none;
+}
+
+.hsk-pill-tab {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 9999px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.hsk-pill-tab.active {
+  background-color: var(--primary, #E60012);
+  color: #ffffff;
+  border: 1px solid var(--primary, #E60012);
+  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.22);
+}
+
+.hsk-pill-tab.inactive {
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.hsk-pill-tab.inactive:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.hsk-pill-tab:focus-visible {
+  outline: 2px solid var(--primary, #E60012);
+  outline-offset: 2px;
+}
+
+/* 5.2 Compact Course Header Section */
+.hsk-course-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+@media (min-width: 900px) {
+  .hsk-course-header {
+    grid-template-columns: 1fr 320px;
+    align-items: center;
+  }
+}
+
+/* 5.3 Two Column Layout: Left Topics (25-28%) & Right Lessons (72-75%) */
+.hsk-two-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .hsk-two-columns {
+    grid-template-columns: minmax(240px, 26%) minmax(0, 74%);
+    gap: 18px;
+  }
+}
+
+/* Left column - Topic List */
+.hsk-topics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+@media (max-width: 1023px) {
+  .hsk-topics-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 10px;
+    scrollbar-width: thin;
+  }
+
+  .hsk-topic-item {
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+}
+
+.hsk-topic-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+.hsk-topic-item:hover {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.hsk-topic-item.active {
+  background-color: #FFF0F1;
+  border-color: #fca5a5;
+}
+
+.hsk-topic-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.5px;
+  background-color: var(--primary, #E60012);
+  border-radius: 0 3px 3px 0;
+}
+
+/* ==========================================================================
+   FE-5.5: MỘT KHUNG TRẮNG DUY NHẤT BAO NGOÀI DANH SÁCH BÀI HỌC (HANBEEGO STYLE)
+   ========================================================================== */
+.hsk-lessons-card-box {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header chủ đề ở đầu container */
+.hsk-topic-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Container chứa danh sách các hàng bài học xếp dọc */
+.hsk-lessons-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   FE-5.5: LESSON ROW COMPACT (64–76px desktop)
+   ========================================================================== */
+.hsk-lesson-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.hsk-lesson-row:last-child {
+  border-bottom: none;
+}
+
+.hsk-lesson-row:hover {
+  background-color: #f8fafc;
+}
+
+.hsk-lesson-row.in-progress {
+  background-color: #fffbfb;
+  border-left: 3.5px solid var(--primary, #E60012);
+}
+
+.hsk-lesson-row.in-progress:hover {
+  background-color: #fff5f6;
+}
+
+.hsk-lesson-row.completed {
+  background-color: #ffffff;
+}
+
+/* Circle index number or completion icon */
+.hsk-lesson-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.hsk-lesson-circle.completed {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.hsk-lesson-circle.in-progress {
+  background-color: #fff0f1;
+  color: var(--primary, #E60012);
+  border: 1.5px solid var(--primary, #E60012);
+}
+
+.hsk-lesson-circle.not-started {
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* Content block in lesson row */
+.hsk-lesson-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+.hsk-lesson-primary-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hsk-lesson-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.hsk-lesson-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary, #E60012);
+}
+
+.hsk-lesson-meaning {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.hsk-lesson-meta-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11.5px;
+  color: #64748b;
+  font-family: var(--font-sans);
+}
+
+/* Status & Action in row */
+.hsk-lesson-status-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.hsk-lesson-status-text {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hsk-lesson-status-text.completed {
+  color: #059669;
+  font-weight: 600;
+}
+
+.hsk-lesson-status-text.in-progress {
+  color: var(--primary, #E60012);
+  font-weight: 700;
+}
+
+.hsk-lesson-status-text.not-started {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.hsk-lesson-arrow-btn {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.hsk-lesson-row:hover .hsk-lesson-arrow-btn {
+  color: var(--primary, #E60012);
+  transform: translateX(2px);
+}
+
+/* Bottom Sections: Practice Card & FAQ */
+.hsk-practice-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-faq-container {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.hsk-faq-item {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hsk-faq-item:last-child {
+  border-bottom: none;
+}
+
+.hsk-faq-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.hsk-faq-trigger:hover {
+  color: var(--primary, #E60012);
+}
+
+.hsk-faq-content {
+  padding: 0 2px 14px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .hsk-lesson-row {
+    padding: 12px 14px;
+    align-items: flex-start;
+  }
+
+  .hsk-lesson-content {
+    margin-left: 10px;
+    margin-right: 8px;
+  }
+
+  .hsk-lesson-meta-line {
+    font-size: 11px;
+    gap: 8px;
+  }
+}

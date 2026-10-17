@@ -13,6 +13,31 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Form controls font inheritance */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+}
+
+/* Typography utilities */
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-hanzi {
+  font-family: var(--font-hanzi);
+}
+
+.font-pinyin {
+  font-family: var(--font-pinyin);
 }
 
 /* ==========================================================================

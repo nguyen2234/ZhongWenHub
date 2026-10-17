@@ -1,405 +1,46 @@
 import React from 'react';
 import {
-  Sparkles,
-  ArrowRight,
   Clock,
   Volume2,
-  Compass,
-  AlertCircle,
   Repeat,
+  ArrowRight,
+  BookOpen,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { StudentLearningState } from '../../learning/types/learning-state.types';
-import { findLessonMetadata } from '../../learning/data/curriculumData';
-import { BEGINNER_STEPS, computeStepStatus } from './BeginnerRoadmap';
 
 export interface BeginnerGuidanceSectionProps {
-  learningState: StudentLearningState;
+  learningState?: StudentLearningState;
   onOpenLesson?: (lessonId: string) => void;
 }
 
-export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = ({
-  learningState,
-  onOpenLesson,
-}) => {
+export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = () => {
   const navigate = useNavigate();
-
-  // 1. Calculate active progress & next recommended step
-  const completedLessons = learningState.completedLessonIds || [];
-  const totalCompleted = completedLessons.length;
-  const isNewStudent = totalCompleted === 0;
-
-  // Count due vocabulary for SRS
-  let srsDueCount = 0;
-  for (const vocab of Object.values(learningState.userVocabStates || {})) {
-    if (vocab.isDueToday) srsDueCount++;
-  }
-
-  // Find the first uncompleted beginner step
-  let currentStep = BEGINNER_STEPS[0];
-  for (const step of BEGINNER_STEPS) {
-    const status = computeStepStatus(step.stepNumber, learningState, step.linkedLessonId);
-    if (status !== 'completed') {
-      currentStep = step;
-      break;
-    }
-  }
-
-  // Find the active lesson to resume or begin
-  const activeLessonMeta = currentStep.linkedLessonId
-    ? findLessonMetadata(currentStep.linkedLessonId)
-    : null;
-
-  const handleLessonAction = (lessonId: string) => {
-    if (onOpenLesson) {
-      onOpenLesson(lessonId);
-    } else {
-      navigate(`/lesson?id=${lessonId}`);
-    }
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* =====================================================================
-          1. HÔM NAY BẠN NÊN BẮT ĐẦU TỪ ĐÂU? (DYNAMIC INTELLIGENT RECOMMENDATION)
+          4.1. BA ĐIỀU GIÚP BẠN HỌC NHANH HƠN (3 CARD NẰM NGANG)
           ===================================================================== */}
-      <section
-        aria-labelledby="today-start-heading"
-        style={{
-          borderRadius: '18px',
-          border: '1.5px solid #fed7da',
-          backgroundColor: '#fffafb',
-          padding: '24px',
-          boxShadow: '0 4px 16px -2px rgba(230, 0, 18, 0.06)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: '8px',
-              backgroundColor: '#FFF0F1',
-              color: 'var(--primary, #E60012)',
-            }}
-          >
-            <Compass size={17} />
-          </div>
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--primary, #E60012)',
-            }}
-          >
-            Đề xuất học tập hôm nay
-          </span>
-        </div>
-
-        <h3
-          id="today-start-heading"
-          style={{
-            fontSize: '20px',
-            fontWeight: 800,
-            color: '#0f172a',
-            margin: '0 0 8px',
-          }}
-        >
-          Hôm nay bạn nên bắt đầu từ đâu?
-        </h3>
-
-        {/* New Student guidance branch */}
-        {isNewStudent ? (
-          <div>
-            <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Chào mừng bạn đến với hành trình chinh phục tiếng Trung! Đối với người bắt đầu từ con số 0,
-              việc đầu tiên và quan trọng nhất là làm chủ <strong>Bước 1: Pinyin – Phiên âm Latin</strong>.
-              Học chắc bảng phát âm sẽ là chiếc chìa khóa giúp bạn đọc đúng mọi từ vựng mới mà không bị lệ thuộc vào phiên âm tiếng Việt bồi.
-            </p>
-
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px',
-                padding: '16px',
-                backgroundColor: '#ffffff',
-                borderRadius: '14px',
-                border: '1px solid #fed7da',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    backgroundColor: '#FFF0F1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                    fontWeight: 700,
-                    color: 'var(--primary, #E60012)',
-                  }}
-                >
-                  拼
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                    Bài 1: 你好！(Xin chào) • Khởi đầu với Pinyin
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    Thời lượng 10 phút • Nhận +20 XP sau khi hoàn thành
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => navigate('/skills/speaking?tab=pinyin')}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    backgroundColor: '#ffffff',
-                    color: '#475569',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Xem bảng âm Pinyin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleLessonAction('les-hsk1-1')}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: 'var(--primary, #E60012)',
-                    color: '#ffffff',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 4px 10px rgba(230, 0, 18, 0.2)',
-                  }}
-                >
-                  Bắt đầu học ngay <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Student with existing progress branch */
-          <div>
-            <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 16px' }}>
-              Bạn đang tiếp tục hành trình học tập tại{' '}
-              <strong style={{ color: 'var(--primary, #E60012)' }}>
-                Bước {currentStep.stepNumber}: {currentStep.title}
-              </strong>
-              . Bạn đã hoàn thành <strong>{totalCompleted} bài học</strong> trong giáo trình và không cần học lại nội dung đã hoàn tất.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Overdue SRS Alert if any */}
-              {srsDueCount > 0 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    padding: '12px 16px',
-                    backgroundColor: '#fffbeb',
-                    borderRadius: '12px',
-                    border: '1px solid #fde68a',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <AlertCircle size={18} color="#d97706" />
-                    <div>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#92400e' }}>
-                        Có {srsDueCount} từ vựng đến hạn ôn tập hôm nay
-                      </span>
-                      <div style={{ fontSize: '12px', color: '#b45309' }}>
-                        Ôn lại theo thuật toán ngắt quãng để củng cố trí nhớ dài hạn trước khi học từ mới.
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/srs-review')}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      backgroundColor: '#d97706',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Ôn tập Flashcard SRS ({srsDueCount} từ)
-                  </button>
-                </div>
-              )}
-
-              {/* Incomplete lesson recommendation */}
-              {activeLessonMeta ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    padding: '16px',
-                    backgroundColor: '#ffffff',
-                    borderRadius: '14px',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                      style={{
-                        width: '44px',
-                        height: '44px',
-                        borderRadius: '12px',
-                        backgroundColor: '#FFF0F1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '20px',
-                        fontWeight: 700,
-                        color: 'var(--primary, #E60012)',
-                      }}
-                    >
-                      {currentStep.hanzi}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                        Bài {activeLessonMeta.lessonNumber}: {activeLessonMeta.hanzi} ({activeLessonMeta.meaning})
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        Bước {currentStep.stepNumber} • {activeLessonMeta.durationMinutes} phút • Nhận +{activeLessonMeta.xpReward} XP
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(currentStep.practiceRoute)}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '8px',
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#ffffff',
-                        color: '#475569',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Thực hành kỹ năng
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleLessonAction(activeLessonMeta.id)}
-                      style={{
-                        padding: '8px 18px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: 'var(--primary, #E60012)',
-                        color: '#ffffff',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: '0 4px 10px rgba(230, 0, 18, 0.2)',
-                      }}
-                    >
-                      Học tiếp bài học <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    padding: '14px',
-                    borderRadius: '12px',
-                    backgroundColor: '#ffffff',
-                    border: '1px dashed #cbd5e1',
-                    fontSize: '13px',
-                    color: '#64748b',
-                  }}
-                >
-                  Chưa có bài học được liên kết cho bước tiếp theo.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* =====================================================================
-          2. 3 ĐIỀU GIÚP BẠN HỌC NHANH HƠN (THREE CRUCIAL HABIT CARDS)
-          ===================================================================== */}
-      <section aria-labelledby="three-tips-heading">
+      <section aria-labelledby="three-habits-title">
         <div style={{ marginBottom: '16px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 8px',
-              borderRadius: '6px',
-              backgroundColor: '#f1f5f9',
-              color: '#475569',
-              fontSize: '11px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: '4px',
-            }}
-          >
-            Bí quyết thành công
-          </div>
           <h3
-            id="three-tips-heading"
+            id="three-habits-title"
             style={{
               fontSize: '20px',
               fontWeight: 800,
               color: '#0f172a',
-              margin: 0,
+              margin: '0 0 6px',
             }}
           >
-            3 điều giúp bạn học nhanh hơn
+            Ba điều giúp bạn học nhanh hơn
           </h3>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
-            Những nguyên tắc vàng giúp rút ngắn 50% thời gian học mà vẫn nhớ chắc chắn.
+          <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+            Những thói quen và phương pháp học tập khoa học giúp bạn rút ngắn 50% thời gian chinh phục nền tảng.
           </p>
         </div>
 
+        {/* 3 Horizontal Cards */}
         <div
           style={{
             display: 'grid',
@@ -410,17 +51,24 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
           {/* Card 1: Học đều mỗi ngày */}
           <div
             style={{
-              padding: '20px',
+              padding: '22px',
               borderRadius: '16px',
               backgroundColor: '#ffffff',
               border: '1.5px solid #e2e8f0',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.06)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+            }}
           >
             <div>
               <div
@@ -428,7 +76,7 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: '#fee2e2',
+                  backgroundColor: '#FFF0F1',
                   color: 'var(--primary, #E60012)',
                   display: 'flex',
                   alignItems: 'center',
@@ -441,11 +89,12 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
                 Học đều mỗi ngày
               </h4>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, margin: 0 }}>
-                Dành <strong>15–20 phút mỗi ngày</strong> hiệu quả hơn nhiều so với việc dồn 3 tiếng vào cuối tuần.
-                Duy trì nhịp học đều đặn giúp não bộ kích hoạt liên tục và duy trì chuỗi Streak học tập.
+              <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                Gợi ý dành <strong>15–20 phút mỗi ngày</strong> thay vì dồn nhiều tiếng vào cuối tuần.
+                Duy trì thói quen học tập đều đặn giúp não bộ kích hoạt liên tục và củng cố phản xạ tự nhiên.
               </p>
             </div>
+
             <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
@@ -463,7 +112,7 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                   gap: '4px',
                 }}
               >
-                Xem mục tiêu học tập hôm nay <ArrowRight size={13} />
+                Xem mục tiêu học tập <ArrowRight size={13} />
               </button>
             </div>
           </div>
@@ -471,17 +120,24 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
           {/* Card 2: Ưu tiên thanh điệu */}
           <div
             style={{
-              padding: '20px',
+              padding: '22px',
               borderRadius: '16px',
               backgroundColor: '#ffffff',
               border: '1.5px solid #e2e8f0',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.06)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+            }}
           >
             <div>
               <div
@@ -489,8 +145,8 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: '#e0f2fe',
-                  color: '#0284c7',
+                  backgroundColor: '#FFF0F1',
+                  color: 'var(--primary, #E60012)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -502,11 +158,12 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
                 Ưu tiên thanh điệu
               </h4>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, margin: 0 }}>
-                Thanh điệu là linh hồn của tiếng Trung. Cùng một âm 'ma' nhưng đổi thanh điệu sẽ thành mẹ (mā), gai (má), ngựa (mǎ) hay mắng (mà).
-                Luyện chuẩn thanh điệu từ ngày đầu để tránh hình thành phản xạ sai khó sửa.
+              <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                Luyện phát âm ngay từ đầu. Nghe và so sánh các thanh điệu để nhận biết cao độ chuẩn xác.
+                Cùng một âm tiết nhưng thay đổi thanh điệu sẽ biểu đạt các ý nghĩa hoàn toàn khác biệt.
               </p>
             </div>
+
             <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
@@ -517,32 +174,39 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                   padding: 0,
                   fontSize: '12px',
                   fontWeight: 700,
-                  color: '#0284c7',
+                  color: 'var(--primary, #E60012)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
                 }}
               >
-                Luyện thanh điệu & phát âm <ArrowRight size={13} />
+                Luyện phát âm thanh điệu <ArrowRight size={13} />
               </button>
             </div>
           </div>
 
-          {/* Card 3: Lặp lại ngắt quãng (SRS) */}
+          {/* Card 3: Lặp lại ngắt quãng */}
           <div
             style={{
-              padding: '20px',
+              padding: '22px',
               borderRadius: '16px',
               backgroundColor: '#ffffff',
               border: '1.5px solid #e2e8f0',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.06)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+            }}
           >
             <div>
               <div
@@ -550,8 +214,8 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: '#fef3c7',
-                  color: '#d97706',
+                  backgroundColor: '#FFF0F1',
+                  color: 'var(--primary, #E60012)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -561,31 +225,32 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
                 <Repeat size={22} />
               </div>
               <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-                Lặp lại ngắt quãng (SRS)
+                Lặp lại ngắt quãng
               </h4>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, margin: 0 }}>
-                Đừng học nhồi nhét từ vựng theo cách truyền thống. Thuật toán Spaced Repetition (SRS)
-                sẽ tự động tính toán thời điểm vàng bạn sắp quên từ để nhắc ôn lại, đưa từ vựng vào trí nhớ vĩnh viễn.
+              <p style={{ fontSize: '13.5px', color: '#475569', lineHeight: 1.6, margin: 0 }}>
+                Giới thiệu Flashcard SRS: hệ thống ghi nhớ thông minh tự động tính thời điểm bạn sắp quên từ để nhắc ôn tập đúng thời điểm,
+                chuyển kiến thức vào trí nhớ dài hạn.
               </p>
             </div>
+
             <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
-                onClick={() => navigate('/srs-review')}
+                onClick={() => navigate('/vocabulary')}
                 style={{
                   background: 'none',
                   border: 'none',
                   padding: 0,
                   fontSize: '12px',
                   fontWeight: 700,
-                  color: '#d97706',
+                  color: 'var(--primary, #E60012)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
                 }}
               >
-                Ôn tập từ vựng Flashcard SRS <ArrowRight size={13} />
+                Khám phá Flashcard SRS <ArrowRight size={13} />
               </button>
             </div>
           </div>
@@ -593,10 +258,10 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
       </section>
 
       {/* =====================================================================
-          3. BÀI HƯỚNG DẪN: NGƯỜI MỚI BẮT ĐẦU NÊN HỌC GÌ? (EDTECH GUIDE ARTICLE)
+          4.2. NGƯỜI MỚI BẮT ĐẦU NÊN HỌC GÌ? (BÀI HƯỚNG DẪN DẠNG BÀI VIẾT)
           ===================================================================== */}
       <article
-        aria-labelledby="article-guide-title"
+        aria-labelledby="beginner-article-title"
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '18px',
@@ -622,10 +287,10 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
               marginBottom: '8px',
             }}
           >
-            Cẩm nang chuyên sâu
+            Hướng dẫn định hướng
           </div>
           <h3
-            id="article-guide-title"
+            id="beginner-article-title"
             style={{
               fontSize: '22px',
               fontWeight: 800,
@@ -639,7 +304,7 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
           <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <span>⏱ 4 phút đọc</span>
             <span>•</span>
-            <span>Phương pháp chuẩn khung đào tạo HSK 3.0</span>
+            <span>Phương pháp chuẩn hóa theo khung đào tạo HSK 3.0</span>
             <span>•</span>
             <span>Biên soạn bởi ZhongWenHub Academic Team</span>
           </div>
@@ -650,7 +315,7 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '24px',
+            gap: '22px',
             fontSize: '14.5px',
             lineHeight: 1.75,
             color: '#334155',
@@ -658,120 +323,123 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
         >
           {/* Section 1 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              1. Vì sao nên học Pinyin và Thanh điệu trước?
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              1. Học Pinyin trước để nắm cách đọc
             </h4>
             <p style={{ margin: 0 }}>
-              Tiếng Trung không sử dụng bảng chữ cái Latin mà là hệ thống chữ biểu ý (chữ tượng hình).
-              Nếu lao ngay vào viết chữ Hán mà chưa vững phát âm, bạn sẽ rơi vào tình trạng “nhìn chữ nhưng không biết đọc thế nào”
-              hoặc đọc theo kiểu phiên âm tiếng Việt lệch lạc. <strong>Pinyin</strong> đóng vai trò như chiếc giàn giáo giúp bạn
-              giải mã cách đọc của mọi ký tự. Khi đã làm chủ 21 thanh mẫu, 36 vận mẫu và 4 thanh điệu, bạn có thể tự tin tra từ điển
-              và phát âm chuẩn xác bất kỳ từ mới nào.
+              Tiếng Trung là chữ biểu ý (tượng hình) nên không thể nhìn mặt chữ mà đoán cách đọc như tiếng Việt.
+              <strong> Pinyin</strong> (hệ thống phiên âm Latin chuẩn quốc tế) đóng vai trò như chiếc giàn giáo đầu tiên giúp bạn phát âm chuẩn xác mọi từ vựng mới.
+              Nắm vững 21 thanh mẫu và 36 vận mẫu sẽ giúp bạn tự tin tra từ điển và đọc đúng mà không cần dựa vào phiên âm bồi.
             </p>
           </div>
 
           {/* Section 2 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              2. Khi nào bắt đầu học chữ Hán?
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              2. Luyện thanh điệu để phát âm rõ ràng
             </h4>
             <p style={{ margin: 0 }}>
-              Thời điểm lý tưởng để học chữ Hán là <strong>ngay sau khi bạn đã thông thạo cách đọc Pinyin cơ bản (khoảng tuần học thứ 2)</strong>.
-              Đừng cố học thuộc cả chữ Hán như một bức vẽ phức tạp! Hãy bắt đầu từ <strong>8 nét cơ bản</strong> và <strong>50 bộ thủ sơ cấp</strong>.
-              Chữ Hán thực chất được ghép từ các bộ thủ có ý nghĩa: ví dụ chữ <em>休 (nghỉ ngơi)</em> gồm bộ <em>Nhân 亻 (người)</em> đứng tựa vào <em>Cây 木 (mộc)</em>.
-              Học theo quy tắc bút thuận giúp nét chữ ngay ngắn, viết nhanh và nhớ lâu gấp nhiều lần.
+              Tiếng Trung có 4 thanh điệu chính và 1 thanh nhẹ. Độ cao và hướng đi của âm thanh sẽ quyết định toàn bộ ngữ nghĩa của từ.
+              Ví dụ âm &quot;ma&quot; tương ứng với <em>mā</em> (mẹ), <em>má</em> (cây gai), <em>mǎ</em> (con ngựa) và <em>mà</em> (mắng).
+              Tập trung luyện nghe và lặp lại theo âm mẫu chuẩn ngay từ đầu sẽ giúp bạn tránh phản xạ sai khó sửa về sau.
             </p>
           </div>
 
           {/* Section 3 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              3. Cách tích lũy từ vựng HSK 1 hiệu quả
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              3. Làm quen với nét chữ và bộ thủ
             </h4>
             <p style={{ margin: 0 }}>
-              Khung HSK 1 yêu cầu khoảng <strong>150 từ vựng cốt lõi</strong>. Thay vì học từ đơn lẻ theo danh sách A-Z, bạn nên học
-              theo các nhóm chủ đề sinh hoạt quen thuộc như: chào hỏi, bản thân, gia đình, thời gian, ăn uống và mua sắm.
-              Mỗi từ vựng nên được đặt trong câu văn cụ thể để vừa nhớ nghĩa, vừa hiểu cách dùng và vừa luyện được ngữ điệu.
+              Chữ Hán không phải là những bức vẽ ngẫu nhiên mà được cấu tạo từ <strong>8 nét cơ bản</strong> và các bộ thủ có ý nghĩa gợi ý nghĩa hoặc gợi âm.
+              Hiểu cấu tạo của các bộ thủ phổ biến (như bộ Nhân 亻, bộ Nữ 女, bộ Khẩu 口, bộ Thủy 氵) và tuân theo 7 quy tắc bút thuận
+              sẽ giúp bạn viết chữ cân đối, nhanh chóng và ghi nhớ bền lâu hơn gấp nhiều lần.
             </p>
           </div>
 
           {/* Section 4 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              4. Vai trò của ngữ pháp cơ bản
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              4. Tích lũy từ vựng theo cấp HSK
             </h4>
             <p style={{ margin: 0 }}>
-              Một tin rất vui cho người Việt học tiếng Trung: <strong>Tiếng Trung không chia động từ, không có thì (tense) phức tạp</strong> và cấu trúc câu
-              rất tương đồng với tiếng Việt (trật tự Chủ ngữ - Động từ - Tân ngữ: S + V + O).
-              Ở giai đoạn mới bắt đầu, bạn chỉ cần nắm vững 4 mẫu câu cơ bản: câu khẳng định, câu phủ định với <em>不/没</em>,
-              câu nghi vấn với <em>吗/什么/哪</em>, và cách nối sở hữu với trợ từ <em>的</em>.
+              Thay vì học dàn trải không mục tiêu, hãy bám sát lộ trình từ vựng của chuẩn HSK 3.0.
+              Cấp độ <strong>HSK 1</strong> yêu cầu 150 từ vựng căn bản xoay quanh các chủ đề sinh hoạt quen thuộc: chào hỏi, bản thân, gia đình, thời gian, con số và mua sắm.
+              Mỗi từ nên được học trong cụm từ và câu ví dụ để hiểu trọn vẹn ngữ cảnh sử dụng.
             </p>
           </div>
 
           {/* Section 5 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              5. Vì sao cần nghe và nói mỗi ngày?
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              5. Học cấu trúc ngữ pháp cơ bản
             </h4>
             <p style={{ margin: 0 }}>
-              Ngôn ngữ là phản xạ âm thanh trước khi là chữ viết. Dành ít nhất 10 phút mỗi ngày để nghe hội thoại ngắn
-              và nói to lặp lại theo phương pháp <strong>Shadowing (nhại giọng)</strong> sẽ giúp cơ miệng quen với các âm uốn lưỡi (zh, ch, sh, r)
-              và âm mặt lưỡi (j, q, x). Bạn sẽ không còn ngượng ngùng khi đối thoại thực tế.
+              Điểm thuận lợi lớn nhất đối với người Việt là trật tự câu tiếng Trung rất tương đồng với tiếng Việt (Chủ ngữ + Động từ + Tân ngữ: S + V + O).
+              Tiếng Trung không chia thì động từ phức tạp. Người mới bắt đầu chỉ cần làm chủ các mẫu câu hỏi cơ bản với <em>吗, 什么, 哪</em>,
+              câu phủ định với <em>不, 没</em> và trợ từ sở hữu <em>的</em> là đã có thể giao tiếp sinh hoạt lưu loát.
             </p>
           </div>
 
           {/* Section 6 */}
           <div>
-            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
-              6. Cách sử dụng Spaced Repetition (SRS) để nhớ lâu
+            <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              6. Luyện nghe, nói và ôn tập mỗi ngày
             </h4>
             <p style={{ margin: 0 }}>
-              Đường cong quên lãng của Ebbinghaus chứng minh rằng con người quên tới 70% kiến thức mới sau 24 giờ nếu không ôn tập.
-              Hệ thống <strong>Flashcard SRS của ZhongWenHub</strong> tự động sắp xếp lịch nhắc bạn ôn từ vựng vào ngày 1, ngày 3, ngày 7 và ngày 14.
-              Nhờ đó, bạn chỉ cần bỏ ra vài phút mỗi ngày mà lượng từ vựng vẫn được khắc sâu vào trí nhớ dài hạn.
+              Học ngoại ngữ là xây dựng phản xạ âm thanh và vận động cơ miệng. Dành ít nhất 10 phút nghe đàm thoại ngắn và nhại lại (Shadowing)
+              theo người bản xứ sẽ giúp ngữ điệu của bạn tự nhiên hơn. Kết hợp cùng việc ôn tập từ vựng ngắt quãng trên Flashcard SRS
+              sẽ bảo đảm kiến thức không bị hao hụt sau mỗi tuần.
             </p>
           </div>
         </div>
 
-        {/* Article Summary Box */}
+        {/* Article Summary Box with CTA Button */}
         <div
           style={{
-            marginTop: '24px',
-            padding: '16px 20px',
-            borderRadius: '12px',
-            backgroundColor: '#FFF0F1',
-            border: '1px solid #fed7da',
+            marginTop: '28px',
+            padding: '20px 24px',
+            borderRadius: '14px',
+            backgroundColor: '#FFFBFB',
+            border: '1.5px solid #fed7da',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '12px',
+            gap: '16px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sparkles size={18} color="var(--primary, #E60012)" />
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
-              Sẵn sàng bắt đầu hành trình? Lộ trình 6 bước ở trên đã chuẩn bị sẵn mọi bài học cho bạn!
-            </span>
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '2px' }}>
+              Sẵn sàng bắt đầu chinh phục mục tiêu HSK đầu tiên?
+            </div>
+            <div style={{ fontSize: '13px', color: '#64748b' }}>
+              Khám phá hệ thống bài giảng HSK 1 với đầy đủ từ vựng, ngữ pháp và đàm thoại theo chủ đề.
+            </div>
           </div>
 
           <button
             type="button"
-            onClick={() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={() => navigate('/learning-path?mode=hsk')}
             style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
+              padding: '11px 22px',
+              borderRadius: '10px',
               border: 'none',
               backgroundColor: 'var(--primary, #E60012)',
               color: '#ffffff',
-              fontSize: '12px',
-              fontWeight: 700,
+              fontSize: '14px',
+              fontWeight: 800,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 14px rgba(230, 0, 18, 0.22)',
+              transition: 'all 0.15s ease',
             }}
           >
-            Lên đầu trang lộ trình ↑
+            <BookOpen size={16} />
+            <span>Khám phá giáo trình HSK 1</span>
+            <ArrowRight size={15} />
           </button>
         </div>
       </article>
