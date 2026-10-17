@@ -48,6 +48,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     if (item.path === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/';
     }
+    // Specific check for Learning Path modes (Beginner vs HSK)
+    if (pathname === '/learning-path') {
+      const isHskMode = location.search.includes('mode=hsk');
+      if (item.id === 'beginner') return !isHskMode;
+      if (item.id === 'curriculum') return isHskMode;
+    }
     if (item.matchPrefixes && item.matchPrefixes.length > 0) {
       return item.matchPrefixes.some((prefix) => {
         if (prefix === '/dashboard' || prefix === '/') {

@@ -11,8 +11,11 @@ import {
   Target,
   Trophy,
   Sparkles,
+  Compass,
+  BookOpen,
+  ArrowRight,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -27,6 +30,8 @@ import {
 } from '../../learning/data/curriculumData';
 import { StudentSecondaryNav } from '../../../layouts/components/StudentSecondaryNav';
 import { STUDENT_MAIN_NAV_ITEMS } from '../../../config/student-navigation.config';
+import { BeginnerRoadmap } from '../components/BeginnerRoadmap';
+import { BeginnerGuidanceSection } from '../components/BeginnerGuidanceSection';
 
 export interface LearningPathProps {
   onOpenLesson?: (lessonId?: string | number) => void;
@@ -34,6 +39,16 @@ export interface LearningPathProps {
 
 export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: customOpenLesson }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentMode = searchParams.get('mode') === 'hsk' ? 'hsk' : 'beginner';
+
+  const handleModeChange = (mode: 'beginner' | 'hsk') => {
+    setSearchParams((prev) => {
+      const nextParams = new URLSearchParams(prev);
+      nextParams.set('mode', mode);
+      return nextParams;
+    });
+  };
   const {
     currentHskLevel,
     selectHskLevel,
@@ -154,6 +169,18 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
     };
   }, [currentLessonId, selectedHSK, currentLevelMeta, completedLessonIds]);
 
+  const beginnerTargetLesson = useMemo(() => {
+    const hsk1Lessons = HSK_CURRICULUM[1]?.units.flatMap((u) => u.lessons) || [];
+    const firstUncompleted = hsk1Lessons.find((l) => !completedLessonIds.includes(l.id));
+    return firstUncompleted || hsk1Lessons[0] || null;
+  }, [completedLessonIds]);
+
+  const handleBeginnerHeroAction = () => {
+    if (beginnerTargetLesson) {
+      handleLessonAction(beginnerTargetLesson.id);
+    }
+  };
+
   const heroLessonProgress = learningState.lessonProgress[heroLesson.id];
   const heroLessonPercent = heroLessonProgress
     ? Math.min(100, Math.round(((heroLessonProgress.currentStepIndex + 1) / 6) * 100))
@@ -167,6 +194,254 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
         items={STUDENT_MAIN_NAV_ITEMS.find((i) => i.id === 'learning-path')?.secondaryFeatures || []}
       />
 
+      {/* =====================================================================
+          MODE SWITCHER / SEGMENTED CONTROL: Người mới bắt đầu vs Lộ trình HSK
+          ===================================================================== */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '5px',
+          backgroundColor: '#f8fafc',
+          borderRadius: '14px',
+          border: '1.5px solid #e2e8f0',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: '280px' }}>
+          <button
+            type="button"
+            onClick={() => handleModeChange('beginner')}
+            style={{
+              flex: 1,
+              padding: '10px 18px',
+              borderRadius: '10px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: 700,
+              backgroundColor: currentMode === 'beginner' ? '#ffffff' : 'transparent',
+              color: currentMode === 'beginner' ? 'var(--primary, #E60012)' : '#64748b',
+              boxShadow: currentMode === 'beginner' ? '0 2px 8px rgba(0, 0, 0, 0.08)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Compass size={17} color={currentMode === 'beginner' ? 'var(--primary, #E60012)' : '#64748b'} />
+            <span>Người mới bắt đầu (Từ con số 0)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleModeChange('hsk')}
+            style={{
+              flex: 1,
+              padding: '10px 18px',
+              borderRadius: '10px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: 700,
+              backgroundColor: currentMode === 'hsk' ? '#ffffff' : 'transparent',
+              color: currentMode === 'hsk' ? 'var(--primary, #E60012)' : '#64748b',
+              boxShadow: currentMode === 'hsk' ? '0 2px 8px rgba(0, 0, 0, 0.08)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <BookOpen size={17} color={currentMode === 'hsk' ? 'var(--primary, #E60012)' : '#64748b'} />
+            <span>Lộ trình HSK (Theo cấp độ 1 → 6)</span>
+          </button>
+        </div>
+      </div>
+
+      {currentMode === 'beginner' ? (
+        <>
+          {/* =====================================================================
+              BEGINNER HERO BANNER: Bắt đầu học tiếng Trung từ con số 0
+              ===================================================================== */}
+          <section
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #E60012 0%, #B80010 100%)',
+              padding: '36px 32px',
+              color: '#ffffff',
+              boxShadow: '0 12px 32px -4px rgba(230, 0, 18, 0.25)',
+            }}
+          >
+            {/* Watermark Hanzi '学' */}
+            <div
+              style={{
+                position: 'absolute',
+                right: '30px',
+                bottom: '-45px',
+                fontFamily: '"Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif',
+                fontSize: '220px',
+                fontWeight: 900,
+                color: 'rgba(255, 255, 255, 0.12)',
+                userSelect: 'none',
+                pointerEvents: 'none',
+                lineHeight: 1,
+              }}
+              aria-hidden="true"
+            >
+              学
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 1, maxWidth: '680px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(4px)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  marginBottom: '14px',
+                }}
+              >
+                <Sparkles size={14} />
+                Lộ trình dành cho người mới bắt đầu
+              </div>
+
+              <h1
+                style={{
+                  fontSize: '32px',
+                  fontWeight: 900,
+                  lineHeight: 1.25,
+                  margin: '0 0 12px',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Bắt đầu học tiếng Trung từ con số 0
+              </h1>
+
+              <p
+                style={{
+                  fontSize: '15px',
+                  lineHeight: 1.6,
+                  color: 'rgba(255, 255, 255, 0.92)',
+                  margin: '0 0 24px',
+                }}
+              >
+                Hành trình 6 bước được thiết kế khoa học giúp bạn giải mã phát âm Pinyin, làm chủ 4 thanh điệu,
+                viết đúng nét chữ Hán và tự tin giao tiếp các tình huống sinh hoạt cơ bản.
+              </p>
+
+              {/* Badges */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  marginBottom: '26px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                }}
+              >
+                <span>✓ 6 bước bài bản</span>
+                <span>•</span>
+                <span>✓ 150 từ vựng HSK 1</span>
+                <span>•</span>
+                <span>✓ Flashcard SRS thông minh</span>
+                <span>•</span>
+                <span>✓ 100% miễn phí</span>
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                {beginnerTargetLesson ? (
+                  <button
+                    type="button"
+                    onClick={handleBeginnerHeroAction}
+                    style={{
+                      padding: '12px 24px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      backgroundColor: '#ffffff',
+                      color: 'var(--primary, #E60012)',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                    }}
+                  >
+                    <Play size={16} fill="var(--primary, #E60012)" />
+                    {completedLessonIds.length === 0
+                      ? 'Bắt đầu học'
+                      : `Tiếp tục học: Bài ${beginnerTargetLesson.lessonNumber} (${beginnerTargetLesson.hanzi})`}
+                  </button>
+                ) : (
+                  <div
+                    style={{
+                      padding: '12px 20px',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Chưa có bài học được liên kết
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('hsk')}
+                  style={{
+                    padding: '12px 20px',
+                    borderRadius: '12px',
+                    border: '1.5px solid rgba(255, 255, 255, 0.6)',
+                    backgroundColor: 'transparent',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  Xem lộ trình cấp độ HSK <ArrowRight size={15} />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Visual 6-Step Roadmap */}
+          <BeginnerRoadmap
+            learningState={learningState}
+            onOpenLesson={handleLessonAction}
+          />
+
+          {/* Guidance Section: Where to start today, 3 habits, EdTech guide */}
+          <BeginnerGuidanceSection
+            learningState={learningState}
+            onOpenLesson={handleLessonAction}
+          />
+        </>
+      ) : (
+        <>
       {/* =====================================================================
           1. HSK 1 → HSK 7-9 PROGRESSION STEPPER (Thanh tiến trình liên hoàn)
           ===================================================================== */}
@@ -1068,6 +1343,8 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
           </Card>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

@@ -97,18 +97,18 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
     items: [
       {
         id: 'beginner',
-        path: '/learning-path?level=1',
-        label: 'Người mới bắt đầu',
+        path: '/learning-path?mode=beginner',
+        label: 'Lộ trình học tập',
         icon: GraduationCap,
-        badge: 'HSK 1',
+        badge: 'Mới',
         badgeType: 'primary',
       },
       {
         id: 'curriculum',
-        path: '/learning-path',
+        path: '/learning-path?mode=hsk',
         label: 'Giáo trình HSK',
         icon: BookOpen,
-        matchPrefixes: ['/learning-path', '/lesson'],
+        matchPrefixes: ['/lesson'],
       },
       {
         id: 'practice',
