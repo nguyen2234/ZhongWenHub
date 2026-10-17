@@ -145,12 +145,17 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           }}
           title="Xem toàn bộ lộ trình HSK"
         >
-          <BookOpen size={14} style={{ color: '#4338ca' }} />
+          <BookOpen size={14} style={{ color: '#e60012' }} />
           <span>Lộ trình HSK 1–9</span>
           <ChevronRight size={13} />
         </button>
       </header>
 
+
+      <section className="hanbee-banner" aria-label="Bắt đầu học tiếng Trung">
+        <div className="hanbee-banner-copy"><h2>Nâng cao mỗi ngày<br/><span>Tiến bộ không ngừng!</span></h2><p>Học tiếng Trung mỗi ngày giúp bạn mở ra những cơ hội mới.</p><button type="button" onClick={() => navigate('/learning-path')}>BẮT ĐẦU HỌC NGAY <ArrowRight size={17}/></button></div>
+        <div className="hanbee-banner-art" aria-hidden="true"><span className="hanbee-art-sun">☀</span><span className="hanbee-art-hanzi">中文</span><span className="hanbee-art-book">你好</span><span className="hanbee-art-flower">✿</span></div>
+      </section>
       {/* =====================================================================
           SECTION B: CONTINUE LEARNING (Main Focal Point)
           ===================================================================== */}
@@ -173,7 +178,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: '#4338ca',
+                backgroundColor: '#e60012',
                 display: 'inline-block',
               }}
             />
@@ -181,7 +186,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                color: '#4338ca',
+                color: '#e60012',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
               }}
@@ -216,7 +221,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               width: '58px',
               height: '58px',
               borderRadius: '16px',
-              backgroundColor: '#4338ca',
+              backgroundColor: '#e60012',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
@@ -240,8 +245,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   fontWeight: 800,
                   padding: '2px 8px',
                   borderRadius: '6px',
-                  backgroundColor: '#eef2ff',
-                  color: '#4338ca',
+                  backgroundColor: '#fff0f1',
+                  color: '#e60012',
                 }}
               >
                 Bài {currentLesson?.lessonNumber || 8}
@@ -259,7 +264,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
 
             <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px', fontWeight: 500 }}>
-              <span style={{ color: '#4338ca', fontWeight: 600 }}>
+              <span style={{ color: '#e60012', fontWeight: 600 }}>
                 {currentLesson?.pinyin || 'Nǐ xiǎng hē shénme?'}
               </span>
               {' • '}
@@ -378,8 +383,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 width: '46px',
                 height: '46px',
                 borderRadius: '14px',
-                backgroundColor: '#eef2ff',
-                color: '#4338ca',
+                backgroundColor: '#fff0f1',
+                color: '#e60012',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -407,8 +412,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     fontWeight: 700,
                     padding: '2px 7px',
                     borderRadius: '9999px',
-                    backgroundColor: '#e0e7ff',
-                    color: '#4338ca',
+                    backgroundColor: '#ffe1e4',
+                    color: '#e60012',
                   }}
                 >
                   Thực hành
@@ -495,6 +500,13 @@ export const DashboardPage: React.FC<DashboardProps> = ({
         </div>
       </section>
 
+      <section className="hanbee-side-summary"><div><h2>🔥 Streak của bạn</h2><strong>{streakDays} ngày liên tiếp</strong><p>Giữ vững thói quen học mỗi ngày!</p></div><button type="button" onClick={() => navigate("/progress")}>Xem thống kê học tập <ChevronRight size={16}/></button></section>
+      <section className="hanbee-section" aria-label="Từ vựng hôm nay"><div className="hanbee-section-head"><h2>▦ Từ vựng hôm nay</h2><button type="button" onClick={() => navigate('/vocabulary')}>Xem chi tiết <ChevronRight size={16}/></button></div><div className="hanbee-word"><div><strong>学</strong><span>xué · học tập</span></div><div><b>学习中文</b><span>Xuéxí Zhōngwén</span><p>Học tiếng Trung mỗi ngày.</p><button type="button" onClick={() => { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance('学习中文'); u.lang = 'zh-CN'; window.speechSynthesis.speak(u); } }}>▶ Nghe phát âm</button></div></div></section>
+      <section className="hanbee-section" aria-label="Khám phá khóa học"><div className="hanbee-section-head"><h2>Khóa học HSK dành cho bạn</h2><button type="button" onClick={() => navigate('/learning-path')}>Tất cả khóa học <ChevronRight size={16}/></button></div><div className="hanbee-course-grid">{[1,2,3,4,5,6].map(level => <button key={level} type="button" className="hanbee-course" onClick={() => navigate('/learning-path')}><span className="hanbee-course-art">{['你','好','学','中','文','语'][level-1]}<small>HSK {level}</small></span><strong>Giáo trình HSK {level}</strong><span>{level === 1 ? 'Dành cho người mới bắt đầu' : level < 4 ? 'Kiến thức sơ cấp' : 'Nâng cao kỹ năng tiếng Trung'}</span><em>Khám phá →</em></button>)}</div></section>
+      <section className="hanbee-section" aria-label="Học qua video"><div className="hanbee-section-head"><h2>▶ Học qua video</h2><button type="button" onClick={() => navigate('/skills/listening')}>Xem tất cả <ChevronRight size={16}/></button></div><div className="hanbee-video-grid">{[{title:'Làm quen tiếng Trung',hanzi:'你好'},{title:'Một ngày của tôi',hanzi:'我的一天'},{title:'Hội thoại thường ngày',hanzi:'对话'},{title:'Luyện nghe HSK',hanzi:'听力'}].map(v=><button type="button" className="hanbee-video" key={v.title} onClick={() => navigate('/skills/listening')}><span className="hanbee-video-thumb"><b>{v.hanzi}</b><i>▶</i></span><strong>{v.title}</strong></button>)}</div></section>
+      <section className="hanbee-section" aria-label="Bài học đề xuất"><div className="hanbee-section-head"><h2>✧ Bài học đề xuất cho bạn</h2><button type="button" onClick={() => navigate('/practice')}>Xem tất cả <ChevronRight size={16}/></button></div><div className="hanbee-suggestions">{[{title:'Từ vựng theo chủ đề',sub:'Học theo nhóm nghĩa',route:'/vocabulary',hanzi:'词'},{title:'Cấu trúc câu HSK',sub:'Ngữ pháp trọng tâm',route:'/grammar',hanzi:'语'},{title:'Hội thoại thực tế',sub:'Luyện phản xạ nghe',route:'/skills/listening',hanzi:'听'},{title:'Phát âm chuẩn',sub:'Luyện kỹ năng nói',route:'/skills/speaking',hanzi:'说'}].map(item=><button type="button" key={item.title} className="hanbee-suggestion" onClick={() => navigate(item.route)}><span className="hanbee-suggestion-art">{item.hanzi}</span><strong>{item.title}</strong><small>{item.sub}</small></button>)}</div></section>
+      <section className="hanbee-section" aria-label="Thử thách hàng ngày"><div className="hanbee-section-head"><h2>Thử thách hằng ngày</h2><button type="button" onClick={() => navigate('/practice')}>Tham gia <ChevronRight size={16}/></button></div><div className="hanbee-challenges"><button type="button" onClick={handleStartReview}><span>Ôn từ vựng SRS</span><b>{dueVocabCount} từ cần ôn →</b></button><button type="button" onClick={handleOpenPractice}><span>Luyện tập và tích lũy XP</span><b>{dailyGoal.currentXp}/{dailyGoal.targetXp} XP →</b></button><button type="button" onClick={() => navigate('/leaderboard')}><span>Bảng xếp hạng</span><b>Xem thứ hạng →</b></button></div></section>
+
       {/* =====================================================================
           OPTIONAL: CONTEXTUAL RECOMMENDATION (Only when data exists)
           ===================================================================== */}
@@ -503,8 +515,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           style={{
             padding: '14px 18px',
             borderRadius: '14px',
-            backgroundColor: '#faf5ff',
-            border: '1px solid #e9d5ff',
+            backgroundColor: '#fff4f4',
+            border: '1px solid #ffd4d9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -519,7 +531,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                backgroundColor: '#7c3aed',
+                backgroundColor: '#e60012',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
@@ -531,10 +543,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, color: '#e60012', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Gợi ý cho bạn
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e1b4b' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#5b1018' }}>
                   {topRecommendation.title}
                 </span>
               </div>
@@ -554,7 +566,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               padding: '7px 14px',
               borderRadius: '8px',
               border: 'none',
-              backgroundColor: '#7c3aed',
+              backgroundColor: '#e60012',
               color: '#ffffff',
               fontSize: '11px',
               fontWeight: 700,
