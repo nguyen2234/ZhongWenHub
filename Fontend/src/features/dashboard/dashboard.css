@@ -35,7 +35,7 @@
 
 .minimal-card-interactive:hover {
   transform: translateY(-2px);
-  border-color: #c7d2fe;
+  border-color: #ffc0c6;
 }
 
 .minimal-card-interactive:active {
@@ -45,10 +45,10 @@
 /* Continue Learning Hero Card (The Focal Point) */
 .continue-learning-card {
   background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);
-  border: 1.5px solid #e0e7ff;
+  border: 1.5px solid #ffe1e4;
   border-radius: 18px;
   padding: 24px 28px;
-  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.05);
+  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.05);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -56,13 +56,13 @@
 }
 
 .continue-learning-card:hover {
-  border-color: #c7d2fe;
-  box-shadow: 0 6px 20px rgba(67, 56, 202, 0.08);
+  border-color: #ffc0c6;
+  box-shadow: 0 6px 20px rgba(230, 0, 18, 0.08);
 }
 
 /* Primary Continue Button */
 .btn-continue-learning {
-  background-color: var(--primary, #4338ca);
+  background-color: var(--primary, #e60012);
   color: #ffffff;
   border: none;
   border-radius: 12px;
@@ -75,14 +75,14 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(67, 56, 202, 0.25);
+  box-shadow: 0 2px 6px rgba(230, 0, 18, 0.25);
   white-space: nowrap;
 }
 
 .btn-continue-learning:hover {
-  background-color: #3730a3;
+  background-color: #bb0010;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.35);
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.35);
 }
 
 .btn-continue-learning:active {
@@ -135,3 +135,17 @@
   justifyContent: center;
   flex-shrink: 0;
 }
+
+/* HanbeeGo screenshot-based student dashboard adaptation */
+.student-dashboard-container{max-width:1440px;background:#f8f9fb}
+.hanbee-banner{min-height:255px;border-radius:24px;background:linear-gradient(100deg,#fff9f6 0%,#fff6f2 57%,#ffe8dc 100%);display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative;padding:30px 38px}
+.hanbee-banner-copy{z-index:1;max-width:55%}.hanbee-banner h2{font-size:32px;line-height:1.22;letter-spacing:-.7px;margin:0;color:#1f2937}.hanbee-banner h2 span{color:#c9151e}.hanbee-banner p{max-width:360px;font-size:16px;color:#475569;line-height:1.6}.hanbee-banner button{background:#c9151e;color:white;border:0;border-bottom:4px solid #93000c;padding:14px 25px;border-radius:18px;font-weight:800;display:flex;align-items:center;gap:12px;cursor:pointer}
+.hanbee-banner-art{position:absolute;right:3%;bottom:0;width:35%;height:95%;display:flex;align-items:center;justify-content:center;gap:14px;transform:rotate(-8deg)}.hanbee-art-hanzi,.hanbee-art-book{font-family:var(--font-hanzi,sans-serif);display:flex;align-items:center;justify-content:center;background:#be2228;color:#fff5e9;font-size:46px;font-weight:700;width:115px;height:160px;border-radius:9px 17px 17px 9px;box-shadow:12px 12px 0 #eebba4}.hanbee-art-book{background:#fffaf2;color:#b82b30;width:120px;height:120px;transform:rotate(18deg);box-shadow:5px 8px 0 #edc7a8}.hanbee-art-sun{position:absolute;right:20%;top:0;font-size:60px;color:#efb79e}.hanbee-art-flower{position:absolute;left:0;top:12%;font-size:90px;color:#eaa4a4}
+.hanbee-section,.hanbee-side-summary{background:white;border:1px solid #e2e8f0;border-radius:22px;padding:22px;box-shadow:0 3px 0 rgba(15,23,42,.07)}
+.hanbee-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.hanbee-section-head h2{font-size:17px;color:#172033;margin:0}.hanbee-section-head button{display:flex;align-items:center;gap:4px;border:0;background:none;color:#cf101c;font-weight:750;cursor:pointer}
+.hanbee-word{display:grid;grid-template-columns:1fr 1.5fr;gap:24px}.hanbee-word>div{display:flex;flex-direction:column;gap:6px}.hanbee-word>div:first-child{border-right:1px solid #e2e8f0}.hanbee-word strong{font-size:58px;font-family:var(--font-hanzi,sans-serif)}.hanbee-word b{font-size:19px}.hanbee-word span,.hanbee-word p{color:#64748b;margin:0}.hanbee-word button{align-self:flex-start;border:0;border-radius:12px;background:#fff0f1;color:#c9151e;padding:9px 12px;cursor:pointer}
+.hanbee-course-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.hanbee-course{display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid #e2e8f0;background:#fff;border-radius:15px;overflow:hidden;padding:0 0 13px;cursor:pointer}.hanbee-course>strong,.hanbee-course>span:not(.hanbee-course-art),.hanbee-course em{margin:0 13px}.hanbee-course>span:not(.hanbee-course-art){font-size:12px;color:#64748b}.hanbee-course em{font-size:12px;color:#c9151e;font-weight:800;font-style:normal}.hanbee-course-art{height:110px;background:linear-gradient(130deg,#fff0f1,#f9d8cf);display:flex;align-items:center;justify-content:center;position:relative;color:#c9151e;font-size:52px;font-family:var(--font-hanzi,sans-serif)}.hanbee-course-art small{position:absolute;top:10px;left:10px;background:white;border-radius:8px;padding:4px 8px;font:700 11px var(--font-sans,sans-serif)}
+.hanbee-video-grid,.hanbee-suggestions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hanbee-video,.hanbee-suggestion{border:1px solid #e2e8f0;background:#fff;border-radius:15px;overflow:hidden;padding:0 0 10px;text-align:left;cursor:pointer}.hanbee-video strong,.hanbee-suggestion strong,.hanbee-suggestion small{display:block;margin:9px 11px 0;font-size:12px;color:#1f2937}.hanbee-video-thumb{height:90px;background:linear-gradient(135deg,#e8a569,#ffe0b0);display:flex;align-items:center;justify-content:center;position:relative;color:#884222}.hanbee-video-thumb b{font-family:var(--font-hanzi,sans-serif);font-size:27px}.hanbee-video-thumb i{position:absolute;bottom:7px;right:8px;background:white;color:#099568;border-radius:50%;padding:6px;font-style:normal}.hanbee-suggestion-art{height:105px;background:linear-gradient(135deg,#fff4f4,#fce3dc);display:flex;align-items:center;justify-content:center;font-size:55px;color:#c9151e;font-family:var(--font-hanzi,sans-serif)}.hanbee-suggestion small{color:#64748b}
+.hanbee-challenges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hanbee-challenges button{display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid #f4c8cc;border-radius:14px;background:#fff8f8;padding:15px;cursor:pointer}.hanbee-challenges span{font-weight:750}.hanbee-challenges b{font-size:12px;color:#c9151e}.hanbee-side-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}.hanbee-side-summary h2{margin:0 0 6px;font-size:16px}.hanbee-side-summary strong{font-size:20px}.hanbee-side-summary p{font-size:12px;color:#64748b}.hanbee-side-summary button{border:1px solid #ffd1d5;border-radius:12px;background:#fff5f5;color:#c9151e;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:4px}
+@media(max-width:850px){.hanbee-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hanbee-video-grid,.hanbee-suggestions{grid-template-columns:repeat(2,minmax(0,1fr))}.hanbee-banner-copy{max-width:70%}.hanbee-banner-art{opacity:.35}}
+@media(max-width:540px){.hanbee-banner{padding:22px;min-height:225px}.hanbee-banner-copy{max-width:100%}.hanbee-banner h2{font-size:26px}.hanbee-banner-art{opacity:.15}.hanbee-course-grid,.hanbee-video-grid,.hanbee-suggestions,.hanbee-challenges{grid-template-columns:1fr 1fr}.hanbee-word{grid-template-columns:1fr}.hanbee-word>div:first-child{border-right:0;border-bottom:1px solid #e2e8f0;padding-bottom:12px}.hanbee-side-summary{flex-direction:column;align-items:flex-start}}
