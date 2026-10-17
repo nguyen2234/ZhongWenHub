@@ -7,3 +7,7 @@ export * from './services/recommendation.service';
 export * from './services/learning-activity.service';
 export * from './services/learning-srs.service';
 export * from './context/LearningStateContext';
+export * from './types/learning-event.types';
+export * from './services/learning-event-store.service';
+export * from './services/learning-event.service';
+export * from './hooks/useLearningTracking';

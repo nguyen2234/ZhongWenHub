@@ -12,14 +12,17 @@ import { ListeningStep } from './steps/ListeningStep';
 import { ExerciseStep } from './steps/ExerciseStep';
 import { QuizStep } from './steps/QuizStep';
 import { LessonComplete } from './steps/LessonComplete';
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 import { useAITutor, ContextBuilder } from '../ai-tutor';
+import './components/LessonPracticeModal.css';
 
 export interface LessonExperienceProps {
   lessonData: LessonData;
   initialProgress?: LessonProgressDTO;
   learningSummary?: UserLearningSummaryDTO;
-  mode?: 'standalone' | 'embedded';
+  mode?: 'standalone' | 'embedded' | 'modal';
   onBackToLearningPath: () => void;
+  onCloseModal?: () => void;
   onNextLesson?: () => void;
   onStepChange?: (stepIndex: number, maxUnlocked: number) => void;
   onLessonComplete?: (quizScore: number, totalQuestions: number, xpEarned: number) => void;
@@ -42,6 +45,7 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
   learningSummary,
   mode = 'standalone',
   onBackToLearningPath,
+  onCloseModal,
   onNextLesson,
   onStepChange,
   onLessonComplete,
@@ -168,10 +172,11 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
   return (
     <div
       style={{
-        minHeight: mode === 'embedded' ? 'auto' : '100vh',
+        height: mode === 'modal' ? '100%' : undefined,
+        minHeight: mode === 'embedded' ? 'auto' : mode === 'modal' ? '100%' : '100vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: mode === 'embedded' ? '#ffffff' : 'var(--background)',
+        backgroundColor: mode === 'embedded' ? '#ffffff' : mode === 'modal' ? '#ffffff' : 'var(--background)',
         borderRadius: mode === 'embedded' ? '16px' : '0',
         border: mode === 'embedded' ? '1.5px solid #e2e8f0' : 'none',
         overflow: 'hidden',
@@ -181,7 +186,71 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
       }}
     >
       {/* 1. LESSON HEADER */}
-      {mode === 'standalone' ? (
+      {mode === 'modal' ? (
+        <header className="zh-practice-modal-header">
+          <div className="zh-practice-modal-header-top">
+            <div className="zh-practice-modal-title-group">
+              <span className="zh-practice-modal-badge">
+                HSK {lessonData.hskLevel} · Bài {lessonData.lessonNumber}
+              </span>
+              <h2 id="lesson-practice-modal-title" className="zh-practice-modal-title">
+                {lessonData.hanziTitle} {lessonData.pinyinTitle ? `(${lessonData.pinyinTitle})` : ''}
+              </h2>
+              <span className="zh-practice-modal-step-badge">
+                Bước {currentStepIndex + 1}/{STEP_METADATA_LIST.length}: {STEP_METADATA_LIST[currentStepIndex]?.shortLabel}
+              </span>
+            </div>
+
+            <div className="zh-practice-modal-header-actions">
+              <div className="zh-practice-modal-step-pills">
+                {STEP_METADATA_LIST.map((step, idx) => {
+                  const isUnlocked = idx <= maxUnlockedStepIndex;
+                  const isActive = idx === currentStepIndex;
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      disabled={!isUnlocked}
+                      onClick={() => handleSelectStep(idx)}
+                      className="zh-practice-step-pill-btn"
+                      style={{
+                        backgroundColor: isActive
+                          ? 'var(--primary, #E60012)'
+                          : isUnlocked
+                          ? '#f1f5f9'
+                          : '#f8fafc',
+                        color: isActive ? '#ffffff' : isUnlocked ? '#475569' : '#cbd5e1',
+                      }}
+                      title={step.label}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                className="zh-practice-modal-close-btn"
+                onClick={onCloseModal || onBackToLearningPath}
+                title="Đóng bảng luyện tập"
+                aria-label="Đóng bảng luyện tập"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="zh-practice-modal-progress-track">
+            <div
+              className="zh-practice-modal-progress-bar"
+              style={{
+                width: `${Math.round(((currentStepIndex + 1) / STEP_METADATA_LIST.length) * 100)}%`,
+              }}
+            />
+          </div>
+        </header>
+      ) : mode === 'standalone' ? (
         <LessonHeader
           hskLevel={lessonData.hskLevel}
           unitNumber={lessonData.unitNumber}
@@ -269,64 +338,128 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
 
       {/* 2. MAIN LEARNING CANVAS */}
       <main
-        style={{
-          flex: 1,
-          width: '100%',
-          maxWidth: mode === 'embedded' ? '100%' : '850px',
-          margin: '0 auto',
-          padding: mode === 'embedded'
-            ? '20px 20px 28px'
-            : 'var(--space-6) var(--space-4) var(--space-8) var(--space-4)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          boxSizing: 'border-box',
-        }}
+        className={mode === 'modal' ? 'zh-practice-modal-body' : undefined}
+        style={
+          mode === 'modal'
+            ? undefined
+            : {
+                flex: 1,
+                width: '100%',
+                maxWidth: mode === 'embedded' ? '100%' : '850px',
+                margin: '0 auto',
+                padding: mode === 'embedded'
+                  ? '20px 20px 28px'
+                  : 'var(--space-6) var(--space-4) var(--space-8) var(--space-4)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                boxSizing: 'border-box',
+              }
+        }
       >
-        {isCompleted ? (
-          <LessonComplete
-            lesson={completeLessonViewModel}
-            quizScore={quizScore}
-            totalQuizQuestions={totalQuizQuestions}
-            onRestartLesson={handleRestart}
-            onBackToLearningPath={onBackToLearningPath}
-            onNextLesson={onNextLesson}
-          />
-        ) : (
-          <>
-            {currentStepIndex === 0 && <IntroStep lesson={lessonData} />}
-            {currentStepIndex === 1 && (
-              <VocabularyStep
-                vocabulary={lessonData.vocabulary}
-                onWordIndexChange={(word) => setCurrentVocabHanzi(word)}
-              />
-            )}
-            {currentStepIndex === 2 && <GrammarStep grammar={lessonData.grammar} />}
-            {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} />}
-            {currentStepIndex === 4 && <ListeningStep listening={lessonData.listening} />}
-            {currentStepIndex === 5 && (
-              <ExerciseStep
-                exercises={lessonData.exercises}
-                onCompleteAllExercises={handleNextStep}
-              />
-            )}
-            {currentStepIndex === 6 && (
-              <QuizStep quiz={lessonData.quiz} onCompleteQuiz={handleCompleteQuiz} />
-            )}
-          </>
-        )}
+        <div className={mode === 'modal' ? 'zh-practice-modal-content-inner' : undefined}>
+          {isCompleted ? (
+            <LessonComplete
+              lesson={completeLessonViewModel}
+              quizScore={quizScore}
+              totalQuizQuestions={totalQuizQuestions}
+              onRestartLesson={handleRestart}
+              onBackToLearningPath={onBackToLearningPath}
+              onNextLesson={onNextLesson}
+            />
+          ) : (
+            <>
+              {currentStepIndex === 0 && <IntroStep lesson={lessonData} />}
+              {currentStepIndex === 1 && (
+                <VocabularyStep
+                  vocabulary={lessonData.vocabulary}
+                  onWordIndexChange={(word) => setCurrentVocabHanzi(word)}
+                />
+              )}
+              {currentStepIndex === 2 && <GrammarStep grammar={lessonData.grammar} />}
+              {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} />}
+              {currentStepIndex === 4 && <ListeningStep listening={lessonData.listening} />}
+              {currentStepIndex === 5 && (
+                <ExerciseStep
+                  exercises={lessonData.exercises}
+                  onCompleteAllExercises={handleNextStep}
+                />
+              )}
+              {currentStepIndex === 6 && (
+                <QuizStep quiz={lessonData.quiz} onCompleteQuiz={handleCompleteQuiz} />
+              )}
+            </>
+          )}
+        </div>
       </main>
 
       {/* 3. BOTTOM ACTION BAR (Hidden when lesson is complete) */}
       {!isCompleted && (
-        <div style={{ position: 'relative', width: '100%' }}>
-          <LessonActionBar
-            canGoBack={currentStepIndex > 0}
-            onGoBack={handlePrevStep}
-            onNext={handleNextStep}
-            isCompleted={currentStepIndex === STEP_METADATA_LIST.length - 1}
-          />
-        </div>
+        mode === 'modal' ? (
+          <footer className="zh-practice-modal-footer">
+            <button
+              type="button"
+              disabled={currentStepIndex === 0}
+              onClick={handlePrevStep}
+              style={{
+                height: '38px',
+                padding: '0 18px',
+                borderRadius: '10px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: currentStepIndex === 0 ? '#f8fafc' : '#ffffff',
+                color: currentStepIndex === 0 ? '#94a3b8' : '#334155',
+                fontWeight: 600,
+                fontSize: '13.5px',
+                cursor: currentStepIndex === 0 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <ArrowLeft size={16} />
+              Quay lại
+            </button>
+
+            <div className="zh-practice-modal-footer-save-status">
+              <Check size={15} color="#16a34a" />
+              <span>Tiến độ được tự động lưu</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              style={{
+                height: '38px',
+                padding: '0 22px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: 'var(--primary, #E60012)',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '13.5px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 8px rgba(230, 0, 18, 0.25)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {currentStepIndex === STEP_METADATA_LIST.length - 1 ? 'Hoàn thành' : 'Tiếp tục'}
+              <ArrowRight size={16} />
+            </button>
+          </footer>
+        ) : (
+          <div style={{ position: 'relative', width: '100%' }}>
+            <LessonActionBar
+              canGoBack={currentStepIndex > 0}
+              onGoBack={handlePrevStep}
+              onNext={handleNextStep}
+              isCompleted={currentStepIndex === STEP_METADATA_LIST.length - 1}
+            />
+          </div>
+        )
       )}
     </div>
   );

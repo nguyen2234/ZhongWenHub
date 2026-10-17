@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import {
   Languages,
@@ -28,7 +28,7 @@ import {
   type TextbookVocabulary,
 } from '../services/hsk-textbook.service';
 import { LessonTableOfContents } from '../components/LessonTableOfContents';
-import { LessonExperience } from '../LessonExperience';
+import { LessonPracticeModal } from '../components/LessonPracticeModal';
 import { useLearningState } from '../../learning';
 import { findNextLessonId } from '../../learning/data/curriculumData';
 import { Button } from '../../../design-system';
@@ -85,7 +85,9 @@ export const HskTextbookLessonPage: React.FC = () => {
   // Section interactive states
   const [showPinyin, setShowPinyin] = useState<boolean>(true);
   const [showTranslation, setShowTranslation] = useState<boolean>(true);
-  const [isPracticeStarted, setIsPracticeStarted] = useState<boolean>(false);
+  const [isPracticeModalOpen, setIsPracticeModalOpen] = useState<boolean>(false);
+  const [currentPracticeStepIndex, setCurrentPracticeStepIndex] = useState<number>(0);
+  const practiceTriggerRef = useRef<HTMLButtonElement>(null);
   const [savedWordsState, setSavedWordsState] = useState<Record<string, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -123,6 +125,12 @@ export const HskTextbookLessonPage: React.FC = () => {
   const isLessonCompleted = useMemo(() => {
     return completedLessonIds.includes(activeLessonId);
   }, [completedLessonIds, activeLessonId]);
+
+  const practiceStatus = useMemo<'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'>(() => {
+    if (isLessonCompleted) return 'COMPLETED';
+    if (currentPracticeStepIndex > 0) return 'IN_PROGRESS';
+    return 'NOT_STARTED';
+  }, [isLessonCompleted, currentPracticeStepIndex]);
 
   // Show temporary toast message
   const triggerToast = (msg: string) => {
@@ -173,7 +181,7 @@ export const HskTextbookLessonPage: React.FC = () => {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isLoading, textbookData, isPracticeStarted]);
+  }, [isLoading, textbookData]);
 
   // Smooth scroll to a section on click
   const handleScrollToSection = (sectionId: string) => {
@@ -781,83 +789,104 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
             </div>
 
-            {/* If practice not started yet, display Introduction Card */}
-            {!isPracticeStarted ? (
-              <div className="hsk-practice-intro-card">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        backgroundColor: '#FFF0F1',
-                        color: 'var(--primary, #E60012)',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Hoạt động tương tác
-                    </span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-                      7 bước củng cố kiến thức bài {textbookData.lessonNumber}
-                    </span>
-                  </div>
-
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
-                    +{textbookData.xpReward} XP thưởng
+            {/* Stable Practice Introduction Card (fixed layout, no height shifts) */}
+            <div className="hsk-practice-intro-card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      backgroundColor:
+                        practiceStatus === 'COMPLETED'
+                          ? '#ecfdf5'
+                          : practiceStatus === 'IN_PROGRESS'
+                          ? '#fef3c7'
+                          : '#f1f5f9',
+                      color:
+                        practiceStatus === 'COMPLETED'
+                          ? '#16a34a'
+                          : practiceStatus === 'IN_PROGRESS'
+                          ? '#d97706'
+                          : '#475569',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {practiceStatus === 'COMPLETED'
+                      ? 'Hoàn thành'
+                      : practiceStatus === 'IN_PROGRESS'
+                      ? `Đang học · Bước ${currentPracticeStepIndex + 1}/7`
+                      : 'Chưa bắt đầu'}
+                  </span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                    7 hoạt động củng cố bài {textbookData.lessonNumber}
                   </span>
                 </div>
 
-                <div className="hsk-practice-steps-preview">
-                  <div className="hsk-practice-step-item">
-                    <CheckCircle2 size={16} color="var(--primary, #E60012)" />
-                    <span>Luyện nghe phát âm</span>
-                  </div>
-                  <div className="hsk-practice-step-item">
-                    <CheckCircle2 size={16} color="var(--primary, #E60012)" />
-                    <span>Bài tập điền từ & ghép câu</span>
-                  </div>
-                  <div className="hsk-practice-step-item">
-                    <CheckCircle2 size={16} color="var(--primary, #E60012)" />
-                    <span>Mini Quiz đánh giá (5 câu)</span>
-                  </div>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
+                  +{textbookData.xpReward} XP thưởng
+                </span>
+              </div>
+
+              <div className="hsk-practice-steps-preview">
+                <div className="hsk-practice-step-item">
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <span>Luyện phát âm & từ vựng</span>
                 </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setIsPracticeStarted(true);
-                      triggerToast('Đã mở phần luyện tập tương tác ngay trong trang!');
-                    }}
-                    style={{ padding: '0 24px', height: '42px', fontSize: '14px' }}
-                  >
-                    <Dumbbell size={16} />
-                    {isLessonCompleted ? 'Luyện tập lại bài học' : 'Bắt đầu luyện tập ngay'}
-                  </Button>
-
-                  <Button
-                    variant="secondary"
-                    onClick={() => navigate(`/lesson?id=${activeLessonId}`)}
-                  >
-                    <Maximize2 size={15} />
-                    Mở Chế độ tập trung (Focus Mode)
-                  </Button>
+                <div className="hsk-practice-step-item">
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <span>Bài tập ngữ pháp & sắp xếp câu</span>
+                </div>
+                <div className="hsk-practice-step-item">
+                  <CheckCircle2 size={16} color="var(--primary, #E60012)" />
+                  <span>Mini Quiz đánh giá ({textbookData.playerLessonData.quiz?.length || 5} câu)</span>
                 </div>
               </div>
-            ) : (
-              /* Embedded LessonExperience */
-              <div style={{ width: '100%', position: 'relative' }}>
-                <LessonExperience
-                  mode="embedded"
-                  lessonData={textbookData.playerLessonData}
-                  onBackToLearningPath={() => setIsPracticeStarted(false)}
-                  onNextLesson={handleNextLesson}
-                  onLessonComplete={handleEmbeddedComplete}
-                />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
+                <button
+                  ref={practiceTriggerRef}
+                  type="button"
+                  onClick={() => {
+                    setIsPracticeModalOpen(true);
+                  }}
+                  style={{
+                    padding: '0 24px',
+                    height: '42px',
+                    fontSize: '14px',
+                    borderRadius: '10px',
+                    backgroundColor: 'var(--primary, #E60012)',
+                    color: '#ffffff',
+                    border: 'none',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 8px rgba(230, 0, 18, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Dumbbell size={16} />
+                  {practiceStatus === 'COMPLETED'
+                    ? 'Luyện tập lại bài học'
+                    : practiceStatus === 'IN_PROGRESS'
+                    ? `Tiếp tục luyện tập (Bước ${currentPracticeStepIndex + 1})`
+                    : 'Bắt đầu luyện tập ngay'}
+                </button>
+
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate(`/lesson/focus?id=${activeLessonId}`)}
+                >
+                  <Maximize2 size={15} />
+                  Mở Chế độ tập trung (Focus Mode)
+                </Button>
               </div>
-            )}
+            </div>
           </section>
 
           {/* SECTION 6: KẾT QUẢ & HOÀN THÀNH (#complete) */}
@@ -907,7 +936,6 @@ export const HskTextbookLessonPage: React.FC = () => {
                   variant="secondary"
                   onClick={() => {
                     handleScrollToSection('overview');
-                    setIsPracticeStarted(false);
                   }}
                 >
                   <RotateCcw size={15} />
@@ -930,6 +958,21 @@ export const HskTextbookLessonPage: React.FC = () => {
           onSelectSection={handleScrollToSection}
         />
       </div>
+
+      {/* STABLE PRACTICE MODAL (Does not shift textbook layout) */}
+      <LessonPracticeModal
+        isOpen={isPracticeModalOpen}
+        onClose={() => setIsPracticeModalOpen(false)}
+        lessonData={textbookData.playerLessonData}
+        triggerRef={practiceTriggerRef}
+        onNextLesson={handleNextLesson}
+        onStepChange={(stepIdx) => {
+          setCurrentPracticeStepIndex(stepIdx);
+        }}
+        onLessonComplete={(score, total, xp) => {
+          handleEmbeddedComplete(score, total, xp);
+        }}
+      />
     </div>
   );
 };
