@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -11,9 +11,19 @@ import {
   Sparkles,
   ChevronRight,
   BookOpen,
+  Film,
+  Volume2,
+  CheckCircle2,
+  Circle,
+  GraduationCap,
+  Trophy,
+  Headphones,
+  Mic,
+  Bookmark,
 } from 'lucide-react';
-import { useLearningState } from '../../learning';
+import { useLearningState, HSK_CURRICULUM } from '../../learning';
 import { HSKLevel, ProgressBar } from '../../../design-system';
+import { DEMO_VIDEOS } from '../../videos';
 import '../dashboard.css';
 
 export interface DashboardProps {
@@ -36,10 +46,12 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     streakDays,
     dueVocabCount,
     dailyGoal,
-    recommendations,
+    weakKnowledge,
     startLesson,
     state: learningState,
   } = useLearningState();
+
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   // 1. Continue Learning Handler
   const handleContinueLesson = () => {
@@ -63,12 +75,25 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     }
   };
 
-  // 3. Practice Center Handler
-  const handleOpenPractice = () => {
-    navigate('/practice');
+  // 3. Pronounce Today's Word
+  const handlePlayVocabAudio = (text: string) => {
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.85;
+        utterance.onstart = () => setIsPlayingAudio(true);
+        utterance.onend = () => setIsPlayingAudio(false);
+        utterance.onerror = () => setIsPlayingAudio(false);
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        setIsPlayingAudio(false);
+      }
+    }
   };
 
-  // Compute lesson step progress from state
+  // Lesson step progress
   const lessonProgressRecord = currentLesson
     ? learningState.lessonProgress[currentLesson.id]
     : learningState.lessonProgress['les-8'];
@@ -80,506 +105,1184 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     ? 100
     : Math.min(100, Math.round(((currentStep + 1) / totalSteps) * 100));
 
-  // Top recommendation (if available)
-  const topRecommendation = recommendations && recommendations.length > 0 ? recommendations[0] : null;
+  // Weekdays mapping for streak
+  const weekdays = [
+    { label: 'T2', active: true, isToday: false },
+    { label: 'T3', active: true, isToday: false },
+    { label: 'T4', active: true, isToday: false },
+    { label: 'T5', active: true, isToday: false },
+    { label: 'T6', active: true, isToday: true },
+    { label: 'T7', active: false, isToday: false },
+    { label: 'CN', active: false, isToday: false },
+  ];
+
+  // Featured word for today
+  const todayVocab = {
+    hanzi: '坚持',
+    pinyin: 'jiānchí',
+    meaning: 'Kiên trì, bền bỉ',
+    example: '只要坚持学习，就一定能学好中文。',
+    examplePinyin: 'Zhǐyào jiānchí xuéxí, jiù yídìng néng xué hǎo Zhōngwén.',
+    exampleMeaning: 'Chỉ cần kiên trì học tập, nhất định sẽ học giỏi tiếng Trung.',
+  };
+
+  // Top weak grammar point if any
+  const weakGrammar = weakKnowledge.find((w) => w.category === 'grammar');
 
   return (
-    <div className="student-dashboard-container">
+    <div className="hanbeego-dashboard-layout">
       {/* =====================================================================
-          SECTION A: SHORT WELCOME (No large decorative hero banner)
+          MAIN COLUMN (Sections 1 to 6)
           ===================================================================== */}
-      <header
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          paddingBottom: '4px',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1
-              style={{
-                fontSize: '22px',
-                fontWeight: 800,
-                color: '#0f172a',
-                margin: 0,
-                letterSpacing: '-0.3px',
-              }}
-            >
-              Chào Minh Anh 👋
+      <div className="dashboard-main-column">
+
+        {/* SECTION 1: HERO BANNER (HanbeeGo Layout + Viettel Red Theme) */}
+        <section className="hero-banner-container" aria-label="Khẩu hiệu học tập">
+          <div className="hero-banner-content">
+            <div className="hero-banner-badge">
+              <Sparkles size={12} />
+              <span>ZhongWenHub x HanbeeGo</span>
+            </div>
+            <h1 className="hero-banner-title">
+              Nâng cao mỗi ngày -
+              <span className="hero-banner-highlight">Tiến bộ không ngừng!</span>
             </h1>
-            <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
-          </div>
-          <p
-            style={{
-              margin: '4px 0 0 0',
-              fontSize: '13px',
-              color: '#64748b',
-              fontWeight: 500,
-            }}
-          >
-            Sẵn sàng tiếp tục bài học hôm nay để đạt mục tiêu HSK {currentHskLevel}!
-          </p>
-        </div>
+            <p className="hero-banner-desc">
+              Chào Minh Anh 👋 Hãy duy trì chuỗi học tập {streakDays} ngày để bứt phá kỹ năng tiếng Trung HSK {currentHskLevel} hôm nay.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn-viettel-primary"
+                onClick={handleContinueLesson}
+                id="btn-hero-start-learning"
+              >
+                <Play size={16} fill="currentColor" />
+                <span>Bắt đầu học ngay</span>
+                <ArrowRight size={16} />
+              </button>
 
-        {/* Compact Path Shortcut */}
-        <button
-          type="button"
-          onClick={() => navigate('/learning-path')}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            borderRadius: '9999px',
-            border: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
-            color: '#475569',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          title="Xem toàn bộ lộ trình HSK"
-        >
-          <BookOpen size={14} style={{ color: '#e60012' }} />
-          <span>Lộ trình HSK 1–9</span>
-          <ChevronRight size={13} />
-        </button>
-      </header>
-
-
-      <section className="hanbee-banner" aria-label="Bắt đầu học tiếng Trung">
-        <div className="hanbee-banner-copy"><h2>Nâng cao mỗi ngày<br/><span>Tiến bộ không ngừng!</span></h2><p>Học tiếng Trung mỗi ngày giúp bạn mở ra những cơ hội mới.</p><button type="button" onClick={() => navigate('/learning-path')}>BẮT ĐẦU HỌC NGAY <ArrowRight size={17}/></button></div>
-        <div className="hanbee-banner-art" aria-hidden="true"><span className="hanbee-art-sun">☀</span><span className="hanbee-art-hanzi">中文</span><span className="hanbee-art-book">你好</span><span className="hanbee-art-flower">✿</span></div>
-      </section>
-      {/* =====================================================================
-          SECTION B: CONTINUE LEARNING (Main Focal Point)
-          ===================================================================== */}
-      <section
-        className="continue-learning-card"
-        aria-label="Tiếp tục học bài học gần nhất"
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid #f1f5f9',
-            paddingBottom: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#e60012',
-                display: 'inline-block',
-              }}
-            />
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#e60012',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Tiếp tục học
-            </span>
-          </div>
-
-          <span
-            style={{
-              fontSize: '12px',
-              fontWeight: 700,
-              color: '#64748b',
-            }}
-          >
-            Bước {isCompleted ? '6/6' : `${currentStep + 1}/6`} ({progressPercent}%)
-          </span>
-        </div>
-
-        {/* Lesson Details Row */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px',
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Hanzi Avatar Icon */}
-          <div
-            style={{
-              width: '58px',
-              height: '58px',
-              borderRadius: '16px',
-              backgroundColor: '#e60012',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
-              fontSize: '26px',
-              fontWeight: 700,
-              boxShadow: '0 4px 10px rgba(67, 56, 202, 0.25)',
-              flexShrink: 0,
-            }}
-          >
-            {currentLesson?.hanzi?.slice(0, 1) || '喝'}
-          </div>
-
-          {/* Lesson Title & Subtitles */}
-          <div style={{ flex: 1, minWidth: '220px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span
+              <button
+                type="button"
+                onClick={() => navigate('/learning-path')}
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  backgroundColor: '#fff0f1',
-                  color: '#e60012',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '11px 18px',
+                  borderRadius: '12px',
+                  border: '1px solid #fed7da',
+                  backgroundColor: '#ffffff',
+                  color: 'var(--primary, #E60012)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                Bài {currentLesson?.lessonNumber || 8}
-              </span>
+                <BookOpen size={15} />
+                <span>Lộ trình HSK</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="hero-banner-illustration" aria-hidden="true">
+            <div
+              style={{
+                width: '130px',
+                height: '130px',
+                borderRadius: '24px',
+                background: 'linear-gradient(135deg, #FFF0F1 0%, #fee2e2 100%)',
+                border: '2px solid #fed7da',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(230, 0, 18, 0.12)',
+              }}
+            >
               <span
                 style={{
                   fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
-                  fontSize: '17px',
-                  fontWeight: 800,
-                  color: '#0f172a',
+                  fontSize: '54px',
+                  fontWeight: 900,
+                  color: 'var(--primary, #E60012)',
+                  lineHeight: 1,
                 }}
               >
-                {currentLesson?.hanzi || '你想喝什么？'}
+                学
               </span>
-            </div>
-
-            <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px', fontWeight: 500 }}>
-              <span style={{ color: '#e60012', fontWeight: 600 }}>
-                {currentLesson?.pinyin || 'Nǐ xiǎng hē shénme?'}
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#991b1b',
+                  marginTop: '4px',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                xué • Học tập
               </span>
-              {' • '}
-              <span>{currentLesson?.meaning || 'Bạn muốn uống gì?'}</span>
-            </div>
-
-            {/* Progress bar */}
-            <div style={{ marginTop: '10px', maxWidth: '420px' }}>
-              <ProgressBar value={progressPercent} showPercentage={false} />
             </div>
           </div>
+        </section>
 
-          {/* Action Button */}
-          <div style={{ flexShrink: 0 }}>
+        {/* SECTION 2: TIẾP TỤC HỌC (Current Lesson with LearningStateContext) */}
+        <section aria-label="Tiếp tục học">
+          <div className="continue-card-wrapper">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary, #E60012)',
+                    display: 'inline-block',
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: 'var(--primary, #E60012)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  Bài học hiện tại • HSK {currentHskLevel}
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                Bước {isCompleted ? '6/6' : `${currentStep + 1}/6`} ({progressPercent}%)
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '18px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '16px',
+                  backgroundColor: 'var(--primary, #E60012)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
+                  fontSize: '26px',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 12px rgba(230, 0, 18, 0.25)',
+                  flexShrink: 0,
+                }}
+              >
+                {currentLesson?.hanzi?.slice(0, 1) || '喝'}
+              </div>
+
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      backgroundColor: 'var(--primary-light, #FFF0F1)',
+                      color: 'var(--primary, #E60012)',
+                    }}
+                  >
+                    Bài {currentLesson?.lessonNumber || 8}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      color: '#172033',
+                    }}
+                  >
+                    {currentLesson?.hanzi || '你想喝什么？'}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px', fontWeight: 500 }}>
+                  <span style={{ color: 'var(--primary, #E60012)', fontWeight: 600 }}>
+                    {currentLesson?.pinyin || 'Nǐ xiǎng hē shénme?'}
+                  </span>
+                  {' • '}
+                  <span>{currentLesson?.meaning || 'Bạn muốn uống gì?'}</span>
+                </div>
+
+                <div style={{ marginTop: '10px', maxWidth: '440px' }}>
+                  <ProgressBar value={progressPercent} showPercentage={false} />
+                </div>
+              </div>
+
+              <div style={{ flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="btn-viettel-primary"
+                  onClick={handleContinueLesson}
+                  id="btn-continue-lesson"
+                >
+                  <Play size={16} fill="currentColor" />
+                  <span>Tiếp tục Bài {currentLesson?.lessonNumber || 8}</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 3: KHÓA HỌC HSK (Curriculum Data Cards) */}
+        <section aria-label="Khóa học HSK">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
+                Giáo trình Chuẩn HSK 1 – 6
+              </h2>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
+                Chương trình học chuẩn hóa theo khung khảo thí năng lực Hán ngữ quốc tế.
+              </p>
+            </div>
             <button
               type="button"
-              className="btn-continue-learning"
-              onClick={handleContinueLesson}
-              title="Bắt đầu hoặc tiếp tục bài học"
+              onClick={() => navigate('/learning-path')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--primary, #E60012)',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
             >
-              <Play size={16} fill="currentColor" />
-              <span>Tiếp tục Bài {currentLesson?.lessonNumber || 8}</span>
-              <ArrowRight size={15} />
+              <span>Xem tất cả</span>
+              <ChevronRight size={16} />
             </button>
           </div>
-        </div>
-      </section>
+
+          <div className="courses-grid">
+            {[1, 2, 3, 4, 5, 6].map((lvl) => {
+              const curLevel = HSK_CURRICULUM[lvl];
+              const isCurrent = lvl === currentHskLevel;
+              return (
+                <div
+                  key={lvl}
+                  className="course-card"
+                  onClick={() => navigate(`/learning-path?level=${lvl}`)}
+                  style={{
+                    borderColor: isCurrent ? '#fed7da' : '#e2e8f0',
+                    boxShadow: isCurrent ? '0 4px 12px rgba(230, 0, 18, 0.08)' : undefined,
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <HSKLevel level={lvl as 1 | 2 | 3 | 4 | 5 | 6} />
+                      {isCurrent && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            backgroundColor: 'var(--primary-light, #FFF0F1)',
+                            color: 'var(--primary, #E60012)',
+                          }}
+                        >
+                          Đang học
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
+                      {curLevel ? curLevel.vietnameseName : `HSK ${lvl}`}
+                    </h3>
+
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                      {curLevel ? `${curLevel.totalLessons} bài học • ${curLevel.totalWords} từ vựng then chốt` : 'Đang tải thông tin...'}
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                      {lvl === 1 ? 'Tiến độ: 65%' : lvl === 2 ? 'Đã mở khóa' : 'Sẵn sàng học'}
+                    </span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '2px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: 'var(--primary, #E60012)',
+                      }}
+                    >
+                      <span>Vào học</span>
+                      <ChevronRight size={14} />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* SECTION 4: HỌC QUA VIDEO (Video Learning Foundation) */}
+        <section aria-label="Học qua video">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Film size={20} style={{ color: 'var(--primary, #E60012)' }} />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
+                    Học qua Video song ngữ
+                  </h2>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 6px',
+                      borderRadius: '6px',
+                      backgroundColor: 'var(--primary-light, #FFF0F1)',
+                      color: 'var(--primary, #E60012)',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Demo Foundation
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
+                  Xem clip bản xứ với phụ đề chữ Hán, Pinyin và giải nghĩa tiếng Việt tương tác.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate('/videos')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--primary, #E60012)',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <span>Kho video</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
+
+          <div className="video-discovery-grid">
+            {DEMO_VIDEOS.slice(0, 3).map((video) => (
+              <div
+                key={video.id}
+                className="video-thumb-card"
+                onClick={() => navigate(`/videos/${video.id}`)}
+              >
+                <div style={{ position: 'relative', width: '100%', height: '140px', backgroundColor: '#0f172a' }}>
+                  <img
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {video.durationLabel}
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      backgroundColor: 'rgba(230, 0, 18, 0.9)',
+                      color: '#ffffff',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    HSK {video.hskLevel}
+                  </div>
+                </div>
+
+                <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: '#172033',
+                        margin: '0 0 4px 0',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {video.title}
+                    </h3>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
+                        fontSize: '12px',
+                        color: 'var(--primary, #E60012)',
+                        margin: '0 0 8px 0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {video.chineseTitle}
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                      {video.viewCount} lượt xem
+                    </span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: 'var(--primary, #E60012)',
+                      }}
+                    >
+                      <Play size={12} fill="currentColor" />
+                      <span>Xem video</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 5: BÀI HỌC ĐỀ XUẤT (Recommendations & Weak Knowledge) */}
+        <section aria-label="Bài học đề xuất">
+          <div style={{ marginBottom: '14px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
+              Bài học đề xuất thông minh
+            </h2>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
+              Được cá nhân hóa dựa trên độ chính xác làm bài và thời gian ghi nhớ từ vựng của bạn.
+            </p>
+          </div>
+
+          <div className="recommendations-grid">
+            {/* Card 1: Ôn từ vựng SRS */}
+            <div className="rec-card" onClick={handleStartReview}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      backgroundColor: '#fff7ed',
+                      color: '#ea580c',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Languages size={18} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: dueVocabCount > 0 ? '#ffedd5' : '#f1f5f9',
+                      color: dueVocabCount > 0 ? '#ea580c' : '#64748b',
+                    }}
+                  >
+                    {dueVocabCount} thẻ
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
+                  Ôn từ vựng cần nhớ
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                  Thuật toán Spaced Repetition nhắc nhở các từ đến hạn ôn tập hôm nay.
+                </p>
+              </div>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#ea580c' }}>
+                <span>Bắt đầu ôn tập</span>
+                <ChevronRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 2: Điểm ngữ pháp cần củng cố */}
+            <div
+              className="rec-card"
+              onClick={() => navigate('/practice')}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      backgroundColor: '#eff6ff',
+                      color: '#2563eb',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <GraduationCap size={18} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#dbeafe',
+                      color: '#1d4ed8',
+                    }}
+                  >
+                    Ngữ pháp
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
+                  {weakGrammar ? weakGrammar.topicTitle : 'Cấu trúc câu chữ 是 / 的'}
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                  Rèn luyện phản xạ với bài tập trắc nghiệm chọn đáp án đúng theo ngữ cảnh.
+                </p>
+              </div>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
+                <span>Khắc phục lỗi</span>
+                <ChevronRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 3: Luyện nghe phản xạ */}
+            <div
+              className="rec-card"
+              onClick={() => navigate('/skills/listening')}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      backgroundColor: '#f5f3ff',
+                      color: '#7c3aed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Headphones size={18} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#ede9fe',
+                      color: '#6d28d9',
+                    }}
+                  >
+                    Kỹ năng
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
+                  Luyện nghe hiểu hội thoại
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                  Luyện nghe tốc độ tự nhiên kèm bài tập nối tranh và điền từ khuyết.
+                </p>
+              </div>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#7c3aed' }}>
+                <span>Vào luyện nghe</span>
+                <ChevronRight size={14} />
+              </div>
+            </div>
+
+            {/* Card 4: Luyện nói với AI Tutor */}
+            <div
+              className="rec-card"
+              onClick={() => navigate('/ai-tutor')}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      backgroundColor: 'var(--primary-light, #FFF0F1)',
+                      color: 'var(--primary, #E60012)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Mic size={18} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: 'var(--primary-light, #FFF0F1)',
+                      color: 'var(--primary, #E60012)',
+                    }}
+                  >
+                    AI Tutor
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
+                  Hội thoại giao tiếp AI
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                  Nói chuyện nhập vai với Kippy AI để chỉnh sửa phát âm thanh điệu tức thì.
+                </p>
+              </div>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
+                <span>Trò chuyện ngay</span>
+                <ChevronRight size={14} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 6: THỬ THÁCH HẰNG NGÀY (Daily Challenge Checklist) */}
+        <section aria-label="Thử thách hằng ngày">
+          <div className="dashboard-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div>
+                <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#172033', margin: 0 }}>
+                  Thử thách hằng ngày
+                </h2>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0 0' }}>
+                  Hoàn thành 3 mục tiêu để nhận trọn vẹn rương phần thưởng 50 XP.
+                </p>
+              </div>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: 'var(--primary, #E60012)',
+                  backgroundColor: 'var(--primary-light, #FFF0F1)',
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                }}
+              >
+                {dailyGoal.isGoalMet ? '3/3 Hoàn thành 🎉' : '1/3 Hoàn thành'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Task 1: Học đạt mục tiêu XP */}
+              <div className={`challenge-item-row ${dailyGoal.currentXp >= dailyGoal.targetXp ? 'completed' : ''}`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {dailyGoal.currentXp >= dailyGoal.targetXp ? (
+                    <CheckCircle2 size={20} style={{ color: '#16a34a', flexShrink: 0 }} />
+                  ) : (
+                    <Circle size={20} style={{ color: '#cbd5e1', flexShrink: 0 }} />
+                  )}
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#172033' }}>
+                      Đạt {dailyGoal.targetXp} XP kinh nghiệm hôm nay
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                      Đã đạt: {dailyGoal.currentXp} / {dailyGoal.targetXp} XP
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleContinueLesson}
+                  style={{
+                    background: 'none',
+                    border: '1px solid #e2e8f0',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#475569',
+                  }}
+                >
+                  Làm ngay
+                </button>
+              </div>
+
+              {/* Task 2: Ôn tập từ vựng SRS */}
+              <div className={`challenge-item-row ${dueVocabCount === 0 ? 'completed' : ''}`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {dueVocabCount === 0 ? (
+                    <CheckCircle2 size={20} style={{ color: '#16a34a', flexShrink: 0 }} />
+                  ) : (
+                    <Circle size={20} style={{ color: '#cbd5e1', flexShrink: 0 }} />
+                  )}
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#172033' }}>
+                      Ôn tập toàn bộ từ vựng đến hạn ghi nhớ
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                      {dueVocabCount > 0 ? `Còn ${dueVocabCount} từ cần ôn tập` : 'Tất cả thẻ đã được ôn tập'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartReview}
+                  style={{
+                    background: 'none',
+                    border: '1px solid #e2e8f0',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#475569',
+                  }}
+                >
+                  Ôn từ
+                </button>
+              </div>
+
+              {/* Task 3: Hoàn thành 1 bài luyện tập trắc nghiệm */}
+              <div className="challenge-item-row">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Circle size={20} style={{ color: '#cbd5e1', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#172033' }}>
+                      Hoàn thành 1 bài luyện tập trắc nghiệm hoặc ngữ pháp
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                      Nhận thêm 30 XP và phân tích điểm yếu
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/practice')}
+                  style={{
+                    background: 'none',
+                    border: '1px solid #e2e8f0',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: '#475569',
+                  }}
+                >
+                  Vào luyện
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
 
       {/* =====================================================================
-          SECTION C: QUICK ACTIONS (Only Ôn từ vựng & Luyện tập)
+          RIGHT SIDEBAR (Widget Column per HanbeeGo)
           ===================================================================== */}
-      <section aria-label="Thao tác nhanh">
-        <div className="quick-actions-grid">
-          {/* Card 1: Ôn từ vựng */}
+      <aside className="dashboard-right-column" aria-label="Thông tin học tập cá nhân">
+
+        {/* WIDGET 1: STREAK CARD */}
+        <div className="dashboard-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--primary-light, #FFF0F1)',
+                  color: 'var(--primary, #E60012)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Flame size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>
+                  Chuỗi học tập
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#172033' }}>
+                  {streakDays} ngày liên tiếp 🔥
+                </div>
+              </div>
+            </div>
+
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: 'var(--primary, #E60012)',
+              }}
+            >
+              Học đều đặn
+            </span>
+          </div>
+
+          {/* Weekday dots */}
+          <div className="weekday-dots-row">
+            {weekdays.map((day) => (
+              <div key={day.label} className="weekday-dot-item">
+                <div
+                  className={`weekday-circle ${day.active ? 'active' : ''} ${day.isToday ? 'today' : ''}`}
+                >
+                  {day.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* WIDGET 2: TIẾN ĐỘ MỤC TIÊU HÔM NAY */}
+        <div className="dashboard-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Clock size={16} style={{ color: '#16a34a' }} />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#172033' }}>
+                Mục tiêu hôm nay
+              </span>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>
+              {dailyGoal.currentMinutes} / {dailyGoal.targetMinutes} phút
+            </span>
+          </div>
+
+          <div style={{ marginBottom: '12px' }}>
+            <ProgressBar
+              value={dailyGoal.minutesPercent ?? Math.min(100, Math.round((dailyGoal.currentMinutes / (dailyGoal.targetMinutes || 30)) * 100))}
+              showPercentage={false}
+            />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={14} style={{ color: '#d97706' }} />
+              <span style={{ fontSize: '12px', color: '#475569' }}>Kinh nghiệm:</span>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>
+              {dailyGoal.currentXp} / {dailyGoal.targetXp} XP
+            </span>
+          </div>
+        </div>
+
+        {/* WIDGET 3: TỪ VỰNG HÔM NAY */}
+        <div className="dashboard-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Bookmark size={15} style={{ color: 'var(--primary, #E60012)' }} />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#172033' }}>
+                Từ vựng hôm nay
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handlePlayVocabAudio(todayVocab.hanzi)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: isPlayingAudio ? 'var(--primary, #E60012)' : '#64748b',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '4px',
+              }}
+              title="Nghe phát âm chuẩn Bắc Kinh"
+            >
+              <Volume2 size={16} />
+            </button>
+          </div>
+
           <div
-            className="minimal-card minimal-card-interactive"
-            onClick={handleStartReview}
             style={{
-              padding: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
+              padding: '12px',
+              borderRadius: '12px',
+              backgroundColor: 'var(--primary-light, #FFF0F1)',
+              border: '1px solid #fed7da',
+              textAlign: 'center',
             }}
-            title="Bắt đầu phiên ôn tập từ vựng Spaced Repetition"
           >
             <div
               style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '14px',
-                backgroundColor: '#fff7ed',
-                color: '#ea580c',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
+                fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
+                fontSize: '32px',
+                fontWeight: 800,
+                color: 'var(--primary, #E60012)',
+                lineHeight: 1.1,
               }}
             >
-              <Languages size={22} />
+              {todayVocab.hanzi}
             </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    margin: 0,
-                  }}
-                >
-                  Ôn từ vựng
-                </h2>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    padding: '2px 7px',
-                    borderRadius: '9999px',
-                    backgroundColor: dueVocabCount > 0 ? '#ffedd5' : '#f1f5f9',
-                    color: dueVocabCount > 0 ? '#ea580c' : '#64748b',
-                  }}
-                >
-                  {dueVocabCount} cần ôn
-                </span>
-              </div>
-              <p
-                style={{
-                  margin: '3px 0 0 0',
-                  fontSize: '12px',
-                  color: '#64748b',
-                  lineHeight: 1.35,
-                }}
-              >
-                Ôn thẻ ghi nhớ SRS lặp lại ngắt quãng để duy trì trí nhớ bền vững.
-              </p>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#991b1b', marginTop: '4px' }}>
+              {todayVocab.pinyin}
             </div>
-
-            <ChevronRight size={18} style={{ color: '#94a3b8', flexShrink: 0 }} />
-          </div>
-
-          {/* Card 2: Luyện tập */}
-          <div
-            className="minimal-card minimal-card-interactive"
-            onClick={handleOpenPractice}
-            style={{
-              padding: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-            }}
-            title="Vào trung tâm luyện tập câu hỏi và phản xạ"
-          >
-            <div
-              style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '14px',
-                backgroundColor: '#fff0f1',
-                color: '#e60012',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Dumbbell size={22} />
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2
-                  style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    margin: 0,
-                  }}
-                >
-                  Luyện tập
-                </h2>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    padding: '2px 7px',
-                    borderRadius: '9999px',
-                    backgroundColor: '#ffe1e4',
-                    color: '#e60012',
-                  }}
-                >
-                  Thực hành
-                </span>
-              </div>
-              <p
-                style={{
-                  margin: '3px 0 0 0',
-                  fontSize: '12px',
-                  color: '#64748b',
-                  lineHeight: 1.35,
-                }}
-              >
-                Rèn luyện ngữ pháp, làm bài tập trắc nghiệm và khắc phục các câu sai.
-              </p>
-            </div>
-
-            <ChevronRight size={18} style={{ color: '#94a3b8', flexShrink: 0 }} />
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================================
-          SECTION D: DAILY LEARNING GOAL (Compact Presentation)
-          ===================================================================== */}
-      <section aria-label="Mục tiêu học tập hàng ngày">
-        <div className="daily-goals-card">
-          {/* Metric 1: Today's progress */}
-          <div className="daily-goal-tile">
-            <div className="goal-tile-icon" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
-              <Clock size={20} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Tiến độ hôm nay
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>
-                {dailyGoal.currentMinutes} / {dailyGoal.targetMinutes} phút
-              </div>
-              <div style={{ marginTop: '4px', maxWidth: '160px' }}>
-                <ProgressBar
-                  value={dailyGoal.minutesPercent ?? Math.min(100, Math.round((dailyGoal.currentMinutes / (dailyGoal.targetMinutes || 30)) * 100))}
-                  showPercentage={false}
-                />
-              </div>
+            <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginTop: '2px' }}>
+              {todayVocab.meaning}
             </div>
           </div>
 
-          {/* Metric 2: XP */}
-          <div className="daily-goal-tile">
-            <div className="goal-tile-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
-              <Zap size={20} />
+          <div style={{ marginTop: '10px', fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
+            <div style={{ fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)', color: '#172033', fontWeight: 600 }}>
+              {todayVocab.example}
             </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Điểm kinh nghiệm
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>
-                {dailyGoal.currentXp} / {dailyGoal.targetXp} XP
-              </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                Tổng tích lũy: <strong>{xpTotal} XP</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Metric 3: Streak */}
-          <div className="daily-goal-tile">
-            <div className="goal-tile-icon" style={{ backgroundColor: '#ffedd5', color: '#ea580c' }}>
-              <Flame size={20} />
-            </div>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Chuỗi học tập
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>
-                {streakDays} ngày liên tiếp 🔥
-              </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                Học đều đặn mỗi ngày
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="hanbee-side-summary"><div><h2>🔥 Streak của bạn</h2><strong>{streakDays} ngày liên tiếp</strong><p>Giữ vững thói quen học mỗi ngày!</p></div><button type="button" onClick={() => navigate("/progress")}>Xem thống kê học tập <ChevronRight size={16}/></button></section>
-      <section className="hanbee-section" aria-label="Từ vựng hôm nay"><div className="hanbee-section-head"><h2>▦ Từ vựng hôm nay</h2><button type="button" onClick={() => navigate('/vocabulary')}>Xem chi tiết <ChevronRight size={16}/></button></div><div className="hanbee-word"><div><strong>学</strong><span>xué · học tập</span></div><div><b>学习中文</b><span>Xuéxí Zhōngwén</span><p>Học tiếng Trung mỗi ngày.</p><button type="button" onClick={() => { if ('speechSynthesis' in window) { const u = new SpeechSynthesisUtterance('学习中文'); u.lang = 'zh-CN'; window.speechSynthesis.speak(u); } }}>▶ Nghe phát âm</button></div></div></section>
-      <section className="hanbee-section" aria-label="Khám phá khóa học"><div className="hanbee-section-head"><h2>Khóa học HSK dành cho bạn</h2><button type="button" onClick={() => navigate('/learning-path')}>Tất cả khóa học <ChevronRight size={16}/></button></div><div className="hanbee-course-grid">{[1,2,3,4,5,6].map(level => <button key={level} type="button" className="hanbee-course" onClick={() => navigate('/learning-path')}><span className="hanbee-course-art">{['你','好','学','中','文','语'][level-1]}<small>HSK {level}</small></span><strong>Giáo trình HSK {level}</strong><span>{level === 1 ? 'Dành cho người mới bắt đầu' : level < 4 ? 'Kiến thức sơ cấp' : 'Nâng cao kỹ năng tiếng Trung'}</span><em>Khám phá →</em></button>)}</div></section>
-      <section className="hanbee-section" aria-label="Học qua video"><div className="hanbee-section-head"><h2>▶ Học qua video</h2><button type="button" onClick={() => navigate('/skills/listening')}>Xem tất cả <ChevronRight size={16}/></button></div><div className="hanbee-video-grid">{[{title:'Làm quen tiếng Trung',hanzi:'你好'},{title:'Một ngày của tôi',hanzi:'我的一天'},{title:'Hội thoại thường ngày',hanzi:'对话'},{title:'Luyện nghe HSK',hanzi:'听力'}].map(v=><button type="button" className="hanbee-video" key={v.title} onClick={() => navigate('/skills/listening')}><span className="hanbee-video-thumb"><b>{v.hanzi}</b><i>▶</i></span><strong>{v.title}</strong></button>)}</div></section>
-      <section className="hanbee-section" aria-label="Bài học đề xuất"><div className="hanbee-section-head"><h2>✧ Bài học đề xuất cho bạn</h2><button type="button" onClick={() => navigate('/practice')}>Xem tất cả <ChevronRight size={16}/></button></div><div className="hanbee-suggestions">{[{title:'Từ vựng theo chủ đề',sub:'Học theo nhóm nghĩa',route:'/vocabulary',hanzi:'词'},{title:'Cấu trúc câu HSK',sub:'Ngữ pháp trọng tâm',route:'/grammar',hanzi:'语'},{title:'Hội thoại thực tế',sub:'Luyện phản xạ nghe',route:'/skills/listening',hanzi:'听'},{title:'Phát âm chuẩn',sub:'Luyện kỹ năng nói',route:'/skills/speaking',hanzi:'说'}].map(item=><button type="button" key={item.title} className="hanbee-suggestion" onClick={() => navigate(item.route)}><span className="hanbee-suggestion-art">{item.hanzi}</span><strong>{item.title}</strong><small>{item.sub}</small></button>)}</div></section>
-      <section className="hanbee-section" aria-label="Thử thách hàng ngày"><div className="hanbee-section-head"><h2>Thử thách hằng ngày</h2><button type="button" onClick={() => navigate('/practice')}>Tham gia <ChevronRight size={16}/></button></div><div className="hanbee-challenges"><button type="button" onClick={handleStartReview}><span>Ôn từ vựng SRS</span><b>{dueVocabCount} từ cần ôn →</b></button><button type="button" onClick={handleOpenPractice}><span>Luyện tập và tích lũy XP</span><b>{dailyGoal.currentXp}/{dailyGoal.targetXp} XP →</b></button><button type="button" onClick={() => navigate('/leaderboard')}><span>Bảng xếp hạng</span><b>Xem thứ hạng →</b></button></div></section>
-
-      {/* =====================================================================
-          OPTIONAL: CONTEXTUAL RECOMMENDATION (Only when data exists)
-          ===================================================================== */}
-      {topRecommendation && (
-        <section
-          style={{
-            padding: '14px 18px',
-            borderRadius: '14px',
-            backgroundColor: '#fff4f4',
-            border: '1px solid #ffd4d9',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '14px',
-            flexWrap: 'wrap',
-          }}
-          aria-label="Gợi ý học tập thích ứng"
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '240px' }}>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: '#e60012',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Sparkles size={16} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, color: '#e60012', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Gợi ý cho bạn
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#5b1018' }}>
-                  {topRecommendation.title}
-                </span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
-                {topRecommendation.reason}
-              </div>
+            <div style={{ color: '#475569', marginTop: '2px' }}>
+              {todayVocab.exampleMeaning}
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => navigate(topRecommendation.destinationRoute)}
+            onClick={handleStartReview}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 14px',
+              width: '100%',
+              marginTop: '12px',
+              padding: '8px 12px',
               borderRadius: '8px',
-              border: 'none',
-              backgroundColor: '#e60012',
-              color: '#ffffff',
-              fontSize: '11px',
+              border: '1px solid #fed7da',
+              backgroundColor: '#ffffff',
+              color: 'var(--primary, #E60012)',
+              fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
             }}
           >
-            <span>{topRecommendation.actionLabel}</span>
-            <ArrowRight size={13} />
+            <Languages size={14} />
+            <span>Ôn {dueVocabCount} từ trong sổ từ</span>
           </button>
-        </section>
-      )}
+        </div>
+
+        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN */}
+        <div className="dashboard-card" style={{ padding: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Trophy size={16} style={{ color: '#d97706' }} />
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#172033' }}>
+                Bảng xếp hạng tuần
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/progress')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--primary, #E60012)',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Chi tiết
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Rank 1: You */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--primary-light, #FFF0F1)',
+                border: '1px solid #fed7da',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary, #E60012)', width: '16px' }}>
+                  1
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>
+                  Minh Anh (Bạn)
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
+                {xpTotal} XP
+              </span>
+            </div>
+
+            {/* Rank 2 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #f1f5f9',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
+                  2
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                  Trần Hoàng Nam
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                1,420 XP
+              </span>
+            </div>
+
+            {/* Rank 3 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #f1f5f9',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
+                  3
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                  Lê Phương Linh
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                1,180 XP
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* WIDGET 5: GỢI Ý ÔN TẬP NHANH */}
+        <div className="dashboard-card" style={{ padding: '18px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800, color: '#172033', marginBottom: '10px' }}>
+            Truy cập nhanh
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={handleStartReview}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Languages size={14} style={{ color: '#ea580c' }} />
+                <span>Ôn tập thẻ nhớ SRS</span>
+              </span>
+              <ChevronRight size={14} style={{ color: '#94a3b8' }} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/practice')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Dumbbell size={14} style={{ color: '#2563eb' }} />
+                <span>Luyện tập ngữ pháp & bài tập</span>
+              </span>
+              <ChevronRight size={14} style={{ color: '#94a3b8' }} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/ai-tutor')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '9px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#334155',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={14} style={{ color: 'var(--primary, #E60012)' }} />
+                <span>Trợ lý học tập Kippy AI</span>
+              </span>
+              <ChevronRight size={14} style={{ color: '#94a3b8' }} />
+            </button>
+          </div>
+        </div>
+
+      </aside>
     </div>
   );
 };

@@ -28,6 +28,7 @@ import {
   Settings,
   X,
   ArrowRight,
+  Film,
 } from 'lucide-react';
 
 export interface StudentSearchModalProps {
@@ -57,6 +58,7 @@ const SEARCH_ITEMS: SearchItem[] = [
   { id: '10', title: 'Trung tâm Luyện tập trắc nghiệm', category: 'Luyện tập', path: '/practice', icon: Dumbbell },
   { id: '11', title: 'Thi thử HSK Chuẩn hóa có bấm giờ', category: 'Luyện tập', path: '/mock-exams', icon: ExamIcon, badge: 'HSK 1-6' },
   { id: '12', title: 'Trò chơi Học tiếng Trung (Ghép từ, Lật thẻ)', category: 'Luyện tập', path: '/games', icon: Gamepad2, badge: 'Game' },
+  { id: '12b', title: 'Học qua Video song ngữ tương tác', category: 'Khóa học', path: '/videos', icon: Film, badge: 'Mới' },
   { id: '13', title: 'Lớp học của tôi & Giảng viên', category: 'Lớp học', path: '/classes', icon: Users },
   { id: '14', title: 'Bài tập về nhà được giao', category: 'Lớp học', path: '/homework', icon: ClipboardList, badge: '2 mới' },
   { id: '15', title: 'Kết quả học tập & Nhận xét', category: 'Lớp học', path: '/learning-results', icon: CheckCircle2 },

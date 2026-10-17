@@ -175,7 +175,7 @@ export const StudentLayout: React.FC = () => {
                 fontFamily: 'var(--font-hanzi)',
                 fontWeight: 700,
                 fontSize: '20px',
-                boxShadow: '0 3px 0 0 #312e81',
+                boxShadow: '0 3px 0 0 #B80010',
                 flexShrink: 0,
               }}
             >

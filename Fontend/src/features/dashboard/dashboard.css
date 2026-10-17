@@ -1,22 +1,40 @@
 /* ==========================================================================
-   MINIMAL STUDENT DASHBOARD STYLES (Phase FE-4 HanbeeGo-inspired UX)
-   Clean, modern EdTech, soft neutral backgrounds, subtle borders, rounded cards.
+   HANBEEGO-INSPIRED STUDENT DASHBOARD (Phase FE-5 Viettel Red Theme)
+   Modern EdTech, Clean, Friendly, Visual Learning Experience
+   Primary Color: Viettel Red #E60012
    ========================================================================== */
 
-.student-dashboard-container {
-  max-width: 1040px;
+/* Main 2-Column Responsive Layout */
+.hanbeego-dashboard-layout {
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px 20px 48px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 24px;
   box-sizing: border-box;
 }
 
-/* Minimal Card Base */
-.minimal-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+.dashboard-main-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-right-column {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Card Base Standards */
+.dashboard-card {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border-strong, #e2e8f0);
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -24,45 +42,88 @@
   overflow: hidden;
 }
 
-.minimal-card:hover {
+.dashboard-card:hover {
   border-color: #cbd5e1;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
-.minimal-card-interactive {
+.dashboard-card-interactive {
   cursor: pointer;
 }
 
-.minimal-card-interactive:hover {
+.dashboard-card-interactive:hover {
   transform: translateY(-2px);
-  border-color: #ffc0c6;
+  border-color: #fed7da;
+  box-shadow: 0 6px 16px rgba(230, 0, 18, 0.08);
 }
 
-.minimal-card-interactive:active {
-  transform: translateY(0);
-}
-
-/* Continue Learning Hero Card (The Focal Point) */
-.continue-learning-card {
-  background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);
-  border: 1.5px solid #ffe1e4;
-  border-radius: 18px;
-  padding: 24px 28px;
-  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.05);
+/* Section 1: Hero Banner (HanbeeGo Layout + Viettel Red) */
+.hero-banner-container {
+  background: linear-gradient(135deg, #FFF0F1 0%, #FFFFFF 55%, #FFF5F5 100%);
+  border: 1.5px solid #fed7da;
+  border-radius: 20px;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  gap: 18px;
-  transition: all 0.2s ease;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
-.continue-learning-card:hover {
-  border-color: #ffc0c6;
-  box-shadow: 0 6px 20px rgba(230, 0, 18, 0.08);
+.hero-banner-content {
+  flex: 1;
+  max-width: 580px;
+  z-index: 2;
 }
 
-/* Primary Continue Button */
-.btn-continue-learning {
-  background-color: var(--primary, #e60012);
+.hero-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: var(--primary, #E60012);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.hero-banner-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #172033;
+  line-height: 1.25;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.4px;
+}
+
+.hero-banner-highlight {
+  color: var(--primary, #E60012);
+  display: block;
+}
+
+.hero-banner-desc {
+  margin: 0 0 18px 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.hero-banner-illustration {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Primary Viettel Button */
+.btn-viettel-primary {
+  background-color: var(--primary, #E60012);
   color: #ffffff;
   border: none;
   border-radius: 12px;
@@ -71,132 +132,203 @@
   font-weight: 700;
   display: inline-flex;
   align-items: center;
-  justifyContent: center;
+  justify-content: center;
   gap: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(230, 0, 18, 0.25);
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.25);
   white-space: nowrap;
 }
 
-.btn-continue-learning:hover {
-  background-color: #bb0010;
+.btn-viettel-primary:hover {
+  background-color: var(--primary-hover, #B80010);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.35);
+  box-shadow: 0 6px 16px rgba(230, 0, 18, 0.35);
 }
 
-.btn-continue-learning:active {
+.btn-viettel-primary:active {
   transform: translateY(1px);
 }
 
-/* Quick Action Cards Grid */
-.quick-actions-grid {
+/* Section 2: Tiếp tục học Card */
+.continue-card-wrapper {
+  background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);
+  border: 1.5px solid #fed7da;
+  border-radius: 18px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.04);
+}
+
+/* Section 3: Course Cards Grid */
+.courses-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
 }
 
-@media (max-width: 640px) {
-  .quick-actions-grid {
-    grid-template-columns: 1fr;
-  }
-  .student-dashboard-container {
-    padding: 16px 14px 36px;
-    gap: 18px;
-  }
-  .continue-learning-card {
-    padding: 18px 16px;
-  }
-}
-
-/* Daily Goals Row */
-.daily-goals-card {
+.course-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px 24px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.daily-goal-tile {
+.course-card:hover {
+  transform: translateY(-2px);
+  border-color: #fed7da;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Section 4: Video Learning Cards Grid */
+.video-discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.video-thumb-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+}
+
+.video-thumb-card:hover {
+  transform: translateY(-2px);
+  border-color: #fed7da;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Section 5: Recommendations Grid */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 14px;
 }
 
-.goal-tile-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+.rec-card {
+  padding: 16px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   display: flex;
-  align-items: center;
-  justifyContent: center;
-  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* HanbeeGo screenshot-based student dashboard adaptation */
-.student-dashboard-container{max-width:1440px;background:#f8f9fb}
-.hanbee-banner{min-height:255px;border-radius:24px;background:linear-gradient(100deg,#fff9f6 0%,#fff6f2 57%,#ffe8dc 100%);display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative;padding:30px 38px}
-.hanbee-banner-copy{z-index:1;max-width:55%}.hanbee-banner h2{font-size:32px;line-height:1.22;letter-spacing:-.7px;margin:0;color:#1f2937}.hanbee-banner h2 span{color:#c9151e}.hanbee-banner p{max-width:360px;font-size:16px;color:#475569;line-height:1.6}.hanbee-banner button{background:#c9151e;color:white;border:0;border-bottom:4px solid #93000c;padding:14px 25px;border-radius:18px;font-weight:800;display:flex;align-items:center;gap:12px;cursor:pointer}
-.hanbee-banner-art{position:absolute;right:3%;bottom:0;width:35%;height:95%;display:flex;align-items:center;justify-content:center;gap:14px;transform:rotate(-8deg)}.hanbee-art-hanzi,.hanbee-art-book{font-family:var(--font-hanzi,sans-serif);display:flex;align-items:center;justify-content:center;background:#be2228;color:#fff5e9;font-size:46px;font-weight:700;width:115px;height:160px;border-radius:9px 17px 17px 9px;box-shadow:12px 12px 0 #eebba4}.hanbee-art-book{background:#fffaf2;color:#b82b30;width:120px;height:120px;transform:rotate(18deg);box-shadow:5px 8px 0 #edc7a8}.hanbee-art-sun{position:absolute;right:20%;top:0;font-size:60px;color:#efb79e}.hanbee-art-flower{position:absolute;left:0;top:12%;font-size:90px;color:#eaa4a4}
-.hanbee-section,.hanbee-side-summary{background:white;border:1px solid #e2e8f0;border-radius:22px;padding:22px;box-shadow:0 3px 0 rgba(15,23,42,.07)}
-.hanbee-section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:17px}.hanbee-section-head h2{font-size:17px;color:#172033;margin:0}.hanbee-section-head button{display:flex;align-items:center;gap:4px;border:0;background:none;color:#cf101c;font-weight:750;cursor:pointer}
-.hanbee-word{display:grid;grid-template-columns:1fr 1.5fr;gap:24px}.hanbee-word>div{display:flex;flex-direction:column;gap:6px}.hanbee-word>div:first-child{border-right:1px solid #e2e8f0}.hanbee-word strong{font-size:58px;font-family:var(--font-hanzi,sans-serif)}.hanbee-word b{font-size:19px}.hanbee-word span,.hanbee-word p{color:#64748b;margin:0}.hanbee-word button{align-self:flex-start;border:0;border-radius:12px;background:#fff0f1;color:#c9151e;padding:9px 12px;cursor:pointer}
-.hanbee-course-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.hanbee-course{display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid #e2e8f0;background:#fff;border-radius:15px;overflow:hidden;padding:0 0 13px;cursor:pointer}.hanbee-course>strong,.hanbee-course>span:not(.hanbee-course-art),.hanbee-course em{margin:0 13px}.hanbee-course>span:not(.hanbee-course-art){font-size:12px;color:#64748b}.hanbee-course em{font-size:12px;color:#c9151e;font-weight:800;font-style:normal}.hanbee-course-art{height:110px;background:linear-gradient(130deg,#fff0f1,#f9d8cf);display:flex;align-items:center;justify-content:center;position:relative;color:#c9151e;font-size:52px;font-family:var(--font-hanzi,sans-serif)}.hanbee-course-art small{position:absolute;top:10px;left:10px;background:white;border-radius:8px;padding:4px 8px;font:700 11px var(--font-sans,sans-serif)}
-.hanbee-video-grid,.hanbee-suggestions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.hanbee-video,.hanbee-suggestion{border:1px solid #e2e8f0;background:#fff;border-radius:15px;overflow:hidden;padding:0 0 10px;text-align:left;cursor:pointer}.hanbee-video strong,.hanbee-suggestion strong,.hanbee-suggestion small{display:block;margin:9px 11px 0;font-size:12px;color:#1f2937}.hanbee-video-thumb{height:90px;background:linear-gradient(135deg,#e8a569,#ffe0b0);display:flex;align-items:center;justify-content:center;position:relative;color:#884222}.hanbee-video-thumb b{font-family:var(--font-hanzi,sans-serif);font-size:27px}.hanbee-video-thumb i{position:absolute;bottom:7px;right:8px;background:white;color:#099568;border-radius:50%;padding:6px;font-style:normal}.hanbee-suggestion-art{height:105px;background:linear-gradient(135deg,#fff4f4,#fce3dc);display:flex;align-items:center;justify-content:center;font-size:55px;color:#c9151e;font-family:var(--font-hanzi,sans-serif)}.hanbee-suggestion small{color:#64748b}
-.hanbee-challenges{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.hanbee-challenges button{display:flex;flex-direction:column;gap:8px;text-align:left;border:1px solid #f4c8cc;border-radius:14px;background:#fff8f8;padding:15px;cursor:pointer}.hanbee-challenges span{font-weight:750}.hanbee-challenges b{font-size:12px;color:#c9151e}.hanbee-side-summary{display:flex;align-items:center;justify-content:space-between;gap:12px}.hanbee-side-summary h2{margin:0 0 6px;font-size:16px}.hanbee-side-summary strong{font-size:20px}.hanbee-side-summary p{font-size:12px;color:#64748b}.hanbee-side-summary button{border:1px solid #ffd1d5;border-radius:12px;background:#fff5f5;color:#c9151e;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:4px}
-@media(max-width:850px){.hanbee-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hanbee-video-grid,.hanbee-suggestions{grid-template-columns:repeat(2,minmax(0,1fr))}.hanbee-banner-copy{max-width:70%}.hanbee-banner-art{opacity:.35}}
-@media(max-width:540px){.hanbee-banner{padding:22px;min-height:225px}.hanbee-banner-copy{max-width:100%}.hanbee-banner h2{font-size:26px}.hanbee-banner-art{opacity:.15}.hanbee-course-grid,.hanbee-video-grid,.hanbee-suggestions,.hanbee-challenges{grid-template-columns:1fr 1fr}.hanbee-word{grid-template-columns:1fr}.hanbee-word>div:first-child{border-right:0;border-bottom:1px solid #e2e8f0;padding-bottom:12px}.hanbee-side-summary{flex-direction:column;align-items:flex-start}}
+.rec-card:hover {
+  transform: translateY(-2px);
+  border-color: #fed7da;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.06);
+}
 
+/* Section 6: Daily Challenge Checklist */
+.challenge-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  transition: all 0.15s ease;
+}
 
-/* FE-5: HanbeeGo screenshot-aligned two-column learning hub */
-.student-dashboard-container{max-width:1460px;width:100%;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:22px;align-items:start;padding:26px;box-sizing:border-box}
-.student-dashboard-container>header{grid-column:1 / -1;grid-row:1}
-.student-dashboard-container>.hanbee-banner{grid-column:1;grid-row:2}
-.student-dashboard-container>.hanbee-side-summary{grid-column:2;grid-row:2;align-self:stretch}
-.student-dashboard-container>.continue-learning-card{grid-column:1;grid-row:3}
-.student-dashboard-container>section[aria-label="Mục tiêu học tập hàng ngày"]{grid-column:2;grid-row:3}
-.student-dashboard-container>section[aria-label="Thao tác nhanh"]{grid-column:1;grid-row:4}
-.student-dashboard-container>.hanbee-section[aria-label="Thử thách hàng ngày"]{grid-column:2;grid-row:4 / span 2}
-.student-dashboard-container>.hanbee-section[aria-label="Từ vựng hôm nay"]{grid-column:1;grid-row:5}
-.student-dashboard-container>.hanbee-section[aria-label="Khám phá khóa học"]{grid-column:1;grid-row:6}
-.student-dashboard-container>.hanbee-section[aria-label="Học qua video"]{grid-column:1;grid-row:7}
-.student-dashboard-container>.hanbee-section[aria-label="Bài học đề xuất"]{grid-column:1;grid-row:8}
-.student-dashboard-container>section[aria-label="Gợi ý học tập thích ứng"]{grid-column:2;grid-row:6}
-.student-dashboard-container .daily-goals-card{display:flex;flex-direction:column;gap:15px;padding:18px}
-.student-dashboard-container .daily-goal-tile{min-width:0}
-.student-dashboard-container .hanbee-challenges{display:flex;flex-direction:column}
-.student-dashboard-container .hanbee-video-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-.student-dashboard-container .hanbee-course-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.student-dashboard-container .hanbee-suggestions{grid-template-columns:repeat(4,minmax(0,1fr))}
-.student-dashboard-container .hanbee-side-summary{flex-direction:column;align-items:stretch;justify-content:center}
-.student-dashboard-container .hanbee-side-summary button{justify-content:space-between}
-.hb-sidebar{width:256px;height:100%;display:flex;flex-direction:column;overflow:hidden;background:#fff;border-right:1px solid #edf0f3;box-sizing:border-box}
-.hb-sidebar-collapsed{width:72px}
-.hb-sidebar-scroll{flex:1;overflow-y:auto;padding:14px 12px}
-.hb-sidebar-top{display:flex;align-items:center;justify-content:space-between;padding:10px 10px;color:#94a3b8;font-size:11px;font-weight:800;letter-spacing:.07em}
-.hb-sidebar-top button{background:transparent;border:0;color:#94a3b8;cursor:pointer}
-.hb-sidebar-section{margin-top:13px}
-.hb-sidebar-item,.hb-sidebar-group-trigger,.hb-sidebar-subitem{font-family:inherit;width:100%;border:0;cursor:pointer;background:transparent;display:flex;align-items:center;text-align:left;color:#475569}
-.hb-sidebar-item{gap:12px;padding:11px 12px;border-radius:12px;font-size:13px;font-weight:650}
-.hb-sidebar-item.is-active{background:#fff0f1;color:#c9151e}
-.hb-sidebar-group-trigger{gap:11px;padding:11px 12px;font-size:13px;font-weight:750;border-radius:12px}
-.hb-sidebar-group-trigger svg:last-child{margin-left:auto}
-.hb-sidebar-subitems{display:flex;flex-direction:column;margin-left:25px}
-.hb-sidebar-subitem{gap:10px;padding:9px 8px;font-size:12px;line-height:1.25;border-radius:8px}
-.hb-sidebar-subitem.is-active{color:#c9151e;background:#fff5f5;font-weight:700}
-.hb-sidebar-dot{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:#cbd5e1}
-.hb-sidebar-subitem.is-active .hb-sidebar-dot{background:#c9151e}
-.hb-sidebar-item:hover,.hb-sidebar-subitem:hover,.hb-sidebar-group-trigger:hover{background:#fff5f5}
-.hb-sidebar-collapsed .hb-sidebar-item{justify-content:center;padding:12px 0}
-.hb-sidebar-collapsed .hb-sidebar-item span{display:none}
-.hb-sidebar-bottom{padding:12px;border-top:1px solid #f1f5f9}
-.hb-sidebar-bottom button{display:flex;align-items:center;gap:9px;text-align:left;border:1px solid #ffd4d9;border-radius:12px;background:#fff5f5;padding:12px;color:#c9151e;width:100%;cursor:pointer}
-.hb-sidebar-bottom span{display:flex;flex-direction:column;gap:3px}
-.hb-sidebar-bottom small{color:#64748b}
-.hb-sidebar-collapsed .hb-sidebar-bottom button{justify-content:center}
-@media(max-width:1200px){.student-dashboard-container{grid-template-columns:minmax(0,1fr) 270px;padding:18px;gap:16px}.student-dashboard-container .hanbee-video-grid,.student-dashboard-container .hanbee-suggestions{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:900px){.student-dashboard-container{display:flex;flex-direction:column;padding:16px}.student-dashboard-container>*{width:100%;box-sizing:border-box}.student-dashboard-container .hanbee-side-summary{order:3}.student-dashboard-container .hanbee-course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.student-dashboard-container .hanbee-challenges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.student-dashboard-container .hanbee-challenges{grid-template-columns:1fr}.student-dashboard-container .hanbee-video-grid,.student-dashboard-container .hanbee-suggestions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.challenge-item-row.completed {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Right Sidebar: Week Day Dots */
+.weekday-dots-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.weekday-dot-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.weekday-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.weekday-circle.active {
+  background-color: #E60012;
+  border-color: #E60012;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(230, 0, 18, 0.3);
+}
+
+.weekday-circle.today {
+  border-color: #E60012;
+  color: #E60012;
+  font-weight: 800;
+}
+
+/* Responsive Rules */
+@media (max-width: 1140px) {
+  .hanbeego-dashboard-layout {
+    flex-direction: column;
+  }
+  .dashboard-right-column {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hanbeego-dashboard-layout {
+    padding: 16px 12px 36px;
+    gap: 18px;
+  }
+  .hero-banner-container {
+    flex-direction: column;
+    padding: 20px 16px;
+  }
+  .hero-banner-illustration {
+    display: none;
+  }
+  .hero-banner-title {
+    font-size: 22px;
+  }
+  .courses-grid,
+  .video-discovery-grid,
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+}

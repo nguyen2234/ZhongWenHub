@@ -29,19 +29,23 @@
   --hanzi-display-md: 2.5rem;   /* 40px - chữ Hán trong thẻ học từ vựng */
   --hanzi-display-lg: 4rem;     /* 64px - chữ Hán lớn trong Flashcard lật */
 
-  /* ===== 2. BRAND & ACCENT COLOR PALETTE ===== */
-  /* Bản sắc riêng: Sắc xanh Chàm hiện đại (Modern Indigo) kết hợp Chu Sa Đông Phương (Crimson Seal) */
-  --primary: #e60012;            /* Indigo 700 - Đĩnh đạc, hiện đại, uy tín cho giáo dục */
-  --primary-hover: #bb0010;      /* Indigo 800 */
+  /* ===== 2. BRAND & ACCENT COLOR PALETTE (VIETTEL RED #E60012) ===== */
+  --primary: #E60012;            /* Viettel Red - Đỏ nhiệt huyết, năng động, thương hiệu */
+  --primary-hover: #B80010;      /* Viettel Red Dark Hover */
   --primary-foreground: #ffffff;
-  --primary-light: #fff0f1;      /* Indigo 50 */
+  --primary-light: #FFF0F1;      /* Viettel Red Ultra Light */
+
+  /* Viettel Brand Aliases */
+  --viettel-red: #E60012;
+  --viettel-red-hover: #B80010;
+  --viettel-red-light: #FFF0F1;
 
   /* Sắc đỏ Chu Sa (Crimson Seal) - bản sắc Hán tự tinh tế, không lạm dụng */
   --seal: #be123c;               /* Rose 700 - Con dấu, điểm nhấn văn hóa tinh tế */
   --seal-bg: #fff1f2;            /* Rose 50 */
   --seal-border: #fecdd3;        /* Rose 200 */
 
-  /* 3 màu nhấn gợi ý chuyển đổi */
+  /* Màu nhấn phụ trợ */
   --color-indigo: #4338ca;
   --color-indigo-hover: #3730a3;
   --color-indigo-light: #eef2ff;
@@ -54,26 +58,26 @@
   --color-teal-hover: #115e59;
   --color-teal-light: #f0fdfa;
 
-  /* Nền trang & bề mặt */
-  --background: #f8fafc;        /* Xám nhạt dịu mát (M1) */
+  /* Nền trang & bề mặt (FE-5: Background #F8FAFC, Surface #FFFFFF) */
+  --background: #f8fafc;        /* Xám nhạt dịu mắt */
   --surface: #ffffff;           /* Nền card, input, container */
   --surface-hover: #f1f5f9;     /* Hover trên bảng/danh sách (I10) */
   --surface-overlay: #ffffff;   /* Nền dropdown, modal, popover */
   --item-hover: #f1f5f9;        /* Nền hover mục danh sách, menu */
 
-  /* Chữ & biểu tượng */
-  --foreground: #0f172a;        /* Chữ chính (tỉ lệ tương phản > 14:1) */
-  --muted: #64748b;             /* Chữ phụ, placeholder, Pinyin phụ (> 4.5:1) */
+  /* Chữ & biểu tượng (FE-5: Text #172033) */
+  --foreground: #172033;        /* Chữ chính */
+  --muted: #64748b;             /* Chữ phụ, placeholder, Pinyin phụ */
   --pinyin: #475569;            /* Màu riêng cho phiên âm Pinyin rõ nét */
 
-  /* Đường viền chuẩn (M13, M14) */
-  --border: #f1f5f9;            /* Đường tóc 1px cho card, divider */
+  /* Đường viền chuẩn (FE-5: Border #E2E8F0) */
+  --border: #f1f5f9;            /* Đường viền 1px cho card, divider */
   --border-strong: #e2e8f0;     /* Viền input, viền nút outline, viền control */
   --grid-hanzi: #e2e8f0;        /* Viền ô lưới kẻ chữ Hán điền tự (Tian Zi Ge) */
 
   /* Focus rings (I13) */
   --border-focus: var(--primary);
-  --ring-focus: rgba(230, 0, 18, 0.15);
+  --ring-focus: rgba(230, 0, 18, 0.18);
 
   /* Nút phụ & outline */
   --secondary: #f1f5f9;

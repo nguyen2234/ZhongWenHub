@@ -12,18 +12,19 @@ import {
   Mic,
   FileText,
   PenTool,
-  GraduationCap as ExamIcon,
-  Gamepad2,
-  ClipboardList,
-  CheckCircle2,
-  Trophy,
+  Film,
   Award,
-  Radio,
-  FileCheck,
-  BrainCircuit,
+  Volume2,
   User,
   Settings,
   Users,
+  CheckCircle2,
+  Trophy,
+  Radio,
+  FileCheck,
+  BrainCircuit,
+  ClipboardList,
+  Gamepad2,
 } from 'lucide-react';
 
 export interface SecondaryFeatureItem {
@@ -47,17 +48,185 @@ export interface StudentNavItem {
   secondaryFeatures: SecondaryFeatureItem[];
 }
 
+export interface StudentNavGroupItem {
+  id: string;
+  path: string;
+  label: string;
+  icon: ElementType;
+  badge?: string;
+  badgeType?: 'primary' | 'streak' | 'danger' | 'ai' | 'success';
+  matchPrefixes?: string[];
+}
+
+export interface StudentNavCollapsibleGroup {
+  id: string;
+  groupTitle: string;
+  items: StudentNavGroupItem[];
+  defaultOpen?: boolean;
+}
+
 /**
- * 6 Main Student Navigation Items (per Phase FE-4 HanbeeGo-inspired UX simplification)
- * 1. Trang chủ
- * 2. Học HSK
- * 3. Từ vựng
- * 4. Luyện tập
- * 5. AI Tutor
- * 6. Tiến độ
+ * 4 Collapsible Navigation Groups (Phase FE-5 HanbeeGo Dashboard Alignment)
+ * A. Nhóm Tổng quan
+ * B. Nhóm Khóa học
+ * C. Nhóm Kỹ năng
+ * D. Nhóm Cá nhân hóa
+ */
+export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
+  // 1. Nhóm Tổng quan
+  {
+    id: 'overview',
+    groupTitle: 'TỔNG QUAN',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'dashboard',
+        path: '/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        matchPrefixes: ['/dashboard', '/'],
+      },
+    ],
+  },
+
+  // 2. Nhóm Khóa học
+  {
+    id: 'courses',
+    groupTitle: 'KHÓA HỌC',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'beginner',
+        path: '/learning-path?level=1',
+        label: 'Người mới bắt đầu',
+        icon: GraduationCap,
+        badge: 'HSK 1',
+        badgeType: 'primary',
+      },
+      {
+        id: 'curriculum',
+        path: '/learning-path',
+        label: 'Giáo trình HSK',
+        icon: BookOpen,
+        matchPrefixes: ['/learning-path', '/lesson'],
+      },
+      {
+        id: 'practice',
+        path: '/practice',
+        label: 'Bài tập',
+        icon: Dumbbell,
+        matchPrefixes: ['/practice', '/homework'],
+      },
+      {
+        id: 'grammar',
+        path: '/grammar',
+        label: 'Ngữ pháp',
+        icon: BookText,
+        matchPrefixes: ['/grammar'],
+      },
+      {
+        id: 'mock-exams',
+        path: '/mock-exams',
+        label: 'Luyện thi HSK',
+        icon: Award,
+        badge: 'Thi thử',
+        badgeType: 'streak',
+        matchPrefixes: ['/mock-exams'],
+      },
+      {
+        id: 'videos',
+        path: '/videos',
+        label: 'Học qua video',
+        icon: Film,
+        badge: 'Mới',
+        badgeType: 'ai',
+        matchPrefixes: ['/videos'],
+      },
+    ],
+  },
+
+  // 3. Nhóm Kỹ năng
+  {
+    id: 'skills',
+    groupTitle: 'KỸ NĂNG',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'listening',
+        path: '/skills/listening',
+        label: 'Luyện nghe',
+        icon: Headphones,
+        matchPrefixes: ['/skills/listening'],
+      },
+      {
+        id: 'speaking',
+        path: '/skills/speaking',
+        label: 'Luyện nói',
+        icon: Mic,
+        matchPrefixes: ['/skills/speaking'],
+      },
+      {
+        id: 'reading',
+        path: '/skills/reading',
+        label: 'Đọc hiểu',
+        icon: FileText,
+        matchPrefixes: ['/skills/reading'],
+      },
+      {
+        id: 'writing',
+        path: '/skills/writing',
+        label: 'Luyện viết',
+        icon: PenTool,
+        matchPrefixes: ['/skills/writing'],
+      },
+      {
+        id: 'pronunciation',
+        path: '/skills/speaking?tab=pinyin',
+        label: 'Phát âm',
+        icon: Volume2,
+      },
+    ],
+  },
+
+  // 4. Nhóm Cá nhân hóa
+  {
+    id: 'personal',
+    groupTitle: 'CÁ NHÂN HÓA',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'vocabulary',
+        path: '/vocabulary',
+        label: 'Từ vựng',
+        icon: Languages,
+        badge: 'SRS',
+        badgeType: 'streak',
+        matchPrefixes: ['/vocabulary', '/srs-review'],
+      },
+      {
+        id: 'ai-tutor',
+        path: '/ai-tutor',
+        label: 'AI Tutor',
+        icon: Sparkles,
+        badge: 'AI',
+        badgeType: 'ai',
+        matchPrefixes: ['/ai-tutor', '/ai-live', '/ai-grading', '/ai-analytics'],
+      },
+      {
+        id: 'progress',
+        path: '/progress',
+        label: 'Tiến độ học tập',
+        icon: TrendingUp,
+        matchPrefixes: ['/progress', '/learning-results', '/achievements', '/leaderboard'],
+      },
+    ],
+  },
+];
+
+/**
+ * 6 Primary Modules mapping for backward-compatible routing / secondary bar
  */
 export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
-  // 1. Trang chủ
   {
     id: 'dashboard',
     path: '/dashboard',
@@ -67,8 +236,6 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
     activeMatchPaths: ['/dashboard', '/'],
     secondaryFeatures: [],
   },
-
-  // 2. Học HSK
   {
     id: 'learning-path',
     path: '/learning-path',
@@ -86,8 +253,6 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
       { id: 'writing', path: '/skills/writing', label: 'Luyện viết', icon: PenTool },
     ],
   },
-
-  // 3. Từ vựng
   {
     id: 'vocabulary',
     path: '/vocabulary',
@@ -102,8 +267,6 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
       { id: 'srs-review', path: '/srs-review', label: 'Ôn tập SRS Flashcard', icon: Sparkles, badge: '18 từ' },
     ],
   },
-
-  // 4. Luyện tập
   {
     id: 'practice',
     path: '/practice',
@@ -113,14 +276,12 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
     activeMatchPaths: ['/practice', '/mock-exams', '/games', '/homework', '/classes'],
     secondaryFeatures: [
       { id: 'practice-center', path: '/practice', label: 'Trung tâm Luyện tập', icon: Dumbbell },
-      { id: 'mock-exams', path: '/mock-exams', label: 'Thi thử HSK', icon: ExamIcon, badge: 'HSK 1-6' },
+      { id: 'mock-exams', path: '/mock-exams', label: 'Thi thử HSK', icon: Award, badge: 'HSK 1-6' },
       { id: 'games', path: '/games', label: 'Trò chơi học tập', icon: Gamepad2 },
       { id: 'homework', path: '/homework', label: 'Bài tập được giao', icon: ClipboardList, badge: '2 mới' },
       { id: 'classes', path: '/classes', label: 'Lớp học của tôi', icon: Users },
     ],
   },
-
-  // 5. AI Tutor
   {
     id: 'ai-tutor',
     path: '/ai-tutor',
@@ -137,8 +298,6 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
       { id: 'ai-analytics', path: '/ai-analytics', label: 'Phân tích AI', icon: BrainCircuit },
     ],
   },
-
-  // 6. Tiến độ
   {
     id: 'progress',
     path: '/progress',
@@ -156,8 +315,7 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
 ];
 
 /**
- * Account Dropdown Menu Items
- * (Profile and Settings moved into user menu per Section 2)
+ * Account Menu Items
  */
 export const ACCOUNT_MENU_ITEMS = [
   {
@@ -183,7 +341,6 @@ export const ACCOUNT_MENU_ITEMS = [
   },
 ];
 
-// Backwards-compatible group mapping for existing components
 export interface StudentNavGroup {
   id: string;
   groupTitle: string;

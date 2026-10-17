@@ -34,6 +34,7 @@ import { LeaderboardPage } from '../../features/leaderboard/pages/LeaderboardPag
 import { AchievementsPage } from '../../features/achievements/pages/AchievementsPage';
 import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
+import { VideoLibraryPage, VideoDetailPage } from '../../features/videos';
 
 export const studentRoutes: RouteObject[] = [
   // Focus Mode 1: Pure Learning Mode for Lesson (no dashboard header/footer distraction)
@@ -112,6 +113,14 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'games',
         element: <LearningGamesPage />,
+      },
+      {
+        path: 'videos',
+        element: <VideoLibraryPage />,
+      },
+      {
+        path: 'videos/:videoId',
+        element: <VideoDetailPage />,
       },
 
       // D. LỚP HỌC
