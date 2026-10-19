@@ -6,7 +6,7 @@ export interface LearningActivityChartProps {
   rangeLabel: string;
 }
 
-type ActiveMetric = 'sessions' | 'completedLessons';
+type ActiveMetric = 'sessions' | 'completedLessons' | 'practiceSubmissions';
 
 export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
   data,
@@ -16,14 +16,32 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // Compute maximum value for scaling
-  const values = data.map((d) => d[activeMetric]);
+  const values = data.map((d) => d[activeMetric] || 0);
   const rawMax = Math.max(...values, 10);
   // Round up to nearest clean step
   const step = Math.ceil(rawMax / 4 / 50) * 50 || 10;
   const chartMax = step * 4;
 
-  const metricLabel = activeMetric === 'sessions' ? 'Lượt học / Phiên học' : 'Bài học hoàn thành';
-  const metricColor = activeMetric === 'sessions' ? '#4f46e5' : '#0ea5e9';
+  const metricLabel =
+    activeMetric === 'sessions'
+      ? 'Lượt học / Phiên học'
+      : activeMetric === 'completedLessons'
+        ? 'Bài học hoàn thành'
+        : 'Lượt nộp bài tập';
+
+  const metricColor =
+    activeMetric === 'sessions'
+      ? 'var(--primary, #E60012)'
+      : activeMetric === 'completedLessons'
+        ? '#0284c7'
+        : '#059669';
+
+  const metricHoverColor =
+    activeMetric === 'sessions'
+      ? 'var(--primary-hover, #B80010)'
+      : activeMetric === 'completedLessons'
+        ? '#0369a1'
+        : '#047857';
 
   // SVG dimensions
   const svgWidth = 640;
@@ -45,7 +63,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
       <div className="chart-header">
         <div className="chart-title-area">
           <h3>Hoạt động học tập ({rangeLabel})</h3>
-          <p>Tần suất học tập và tiến độ hoàn thành bài giảng</p>
+          <p>Tần suất tham gia học tập, tiến độ hoàn thành bài và nộp bài tập</p>
         </div>
 
         <div className="chart-metric-toggles" role="tablist" aria-label="Chọn chỉ số biểu đồ">
@@ -62,6 +80,13 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
             onClick={() => setActiveMetric('completedLessons')}
           >
             Bài hoàn thành
+          </button>
+          <button
+            type="button"
+            className={`chart-toggle-btn ${activeMetric === 'practiceSubmissions' ? 'active' : ''}`}
+            onClick={() => setActiveMetric('practiceSubmissions')}
+          >
+            Lượt làm bài tập
           </button>
         </div>
       </div>
@@ -85,7 +110,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                   y1={yVal}
                   x2={svgWidth - paddingRight}
                   y2={yVal}
-                  stroke="var(--border-subtle, #f1f5f9)"
+                  stroke="var(--border-strong, #e2e8f0)"
                   strokeWidth="1"
                   strokeDasharray={stepIdx === 0 ? 'none' : '3 3'}
                 />
@@ -94,7 +119,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                   y={yVal + 3.5}
                   textAnchor="end"
                   fontSize="10"
-                  fill="var(--muted, #94a3b8)"
+                  fill="var(--muted, #64748b)"
                   fontWeight="500"
                 >
                   {gridVal >= 1000 ? `${(gridVal / 1000).toFixed(1)}k` : gridVal}
@@ -105,7 +130,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
 
           {/* Bars */}
           {data.map((item, idx) => {
-            const val = item[activeMetric];
+            const val = item[activeMetric] || 0;
             const barHeight = Math.max(4, (val / chartMax) * plotHeight);
             const x = paddingLeft + idx * slotWidth + (slotWidth - barWidth) / 2;
             const y = paddingTop + plotHeight - barHeight;
@@ -124,8 +149,8 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                   y={paddingTop}
                   width={slotWidth}
                   height={plotHeight}
-                  fill={isHovered ? 'rgba(79, 70, 229, 0.04)' : 'transparent'}
-                  rx="4"
+                  fill={isHovered ? 'rgba(230, 0, 18, 0.04)' : 'transparent'}
+                  rx="6"
                 />
 
                 {/* Primary Bar */}
@@ -135,7 +160,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                   y={y}
                   width={barWidth}
                   height={barHeight}
-                  fill={isHovered ? '#3730a3' : metricColor}
+                  fill={isHovered ? metricHoverColor : metricColor}
                   rx="4"
                   ry="4"
                 />
@@ -146,7 +171,7 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                   y={svgHeight - 12}
                   textAnchor="middle"
                   fontSize="11"
-                  fill={isHovered ? 'var(--foreground, #0f172a)' : 'var(--muted, #64748b)'}
+                  fill={isHovered ? 'var(--foreground, #172033)' : 'var(--muted, #64748b)'}
                   fontWeight={isHovered ? '700' : '500'}
                 >
                   {item.date}
@@ -156,22 +181,22 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
                 {isHovered && (
                   <g pointerEvents="none">
                     <rect
-                      x={Math.max(10, Math.min(svgWidth - 110, x + barWidth / 2 - 50))}
+                      x={Math.max(10, Math.min(svgWidth - 120, x + barWidth / 2 - 55))}
                       y={Math.max(5, y - 34)}
-                      width="100"
+                      width="110"
                       height="26"
-                      rx="4"
+                      rx="6"
                       fill="#0f172a"
                     />
                     <text
-                      x={Math.max(10, Math.min(svgWidth - 110, x + barWidth / 2 - 50)) + 50}
+                      x={Math.max(10, Math.min(svgWidth - 120, x + barWidth / 2 - 55)) + 55}
                       y={Math.max(5, y - 34) + 16}
                       textAnchor="middle"
                       fontSize="10.5"
                       fill="#ffffff"
                       fontWeight="600"
                     >
-                      {val.toLocaleString()} {activeMetric === 'sessions' ? 'lượt' : 'bài'}
+                      {val.toLocaleString()} {activeMetric === 'sessions' ? 'lượt' : activeMetric === 'completedLessons' ? 'bài' : 'câu'}
                     </text>
                   </g>
                 )}
@@ -181,10 +206,21 @@ export const LearningActivityChart: React.FC<LearningActivityChartProps> = ({
         </svg>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-2)', fontSize: '11px', color: 'var(--muted)' }}>
-        <span>Đơn vị đo: {metricLabel}</span>
-        <span>Hover vào cột để xem chi tiết</span>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 'var(--space-2)',
+          fontSize: '11px',
+          color: 'var(--muted)',
+        }}
+      >
+        <span>Chỉ số: {metricLabel}</span>
+        <span>Rê chuột vào cột để xem số lượng chi tiết</span>
       </div>
     </div>
   );
 };
+
+export default LearningActivityChart;

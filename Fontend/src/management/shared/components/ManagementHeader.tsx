@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -11,6 +11,8 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
+  Info,
+  CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
 
@@ -53,40 +55,47 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Compute breadcrumb title based on pathname
-  const breadcrumb = React.useMemo(() => {
+  // Compute breadcrumb hierarchy matching the 5-group sitemap
+  const breadcrumb = useMemo(() => {
     const path = location.pathname;
-    if (path.includes('/users')) return { group: 'Quản lý người dùng', title: 'Danh sách Người dùng' };
-    if (path.includes('/teachers')) return { group: 'Quản lý người dùng', title: 'Giáo viên & Trợ giảng' };
-    if (path.includes('/support-staff')) return { group: 'Quản lý người dùng', title: 'Nhân viên hỗ trợ' };
-    if (path.includes('/roles')) return { group: 'Quản lý người dùng', title: 'Vai trò & Phân quyền' };
-    if (path.includes('/hsk-content')) return { group: 'Nội dung học tập', title: 'Cấp độ HSK' };
-    if (path.includes('/vocabulary')) return { group: 'Nội dung học tập', title: 'Kho từ vựng & SRS' };
-    if (path.includes('/grammar')) return { group: 'Nội dung học tập', title: 'Ngữ pháp & Cấu trúc' };
-    if (path.includes('/hanzi')) return { group: 'Nội dung học tập', title: 'Chữ Hán' };
-    if (path.includes('/courses')) return { group: 'Nội dung học tập', title: 'Khóa học & Giáo trình' };
-    if (path.includes('/lessons')) return { group: 'Nội dung học tập', title: 'Bài học số' };
-    if (path.includes('/question-bank')) return { group: 'Đánh giá', title: 'Ngân hàng câu hỏi' };
-    if (path.includes('/exercises')) return { group: 'Đánh giá', title: 'Ngân hàng bài tập' };
-    if (path.includes('/tests')) return { group: 'Đánh giá', title: 'Bài kiểm tra & Đề thi' };
-    if (path.includes('/classes')) return { group: 'Giảng dạy', title: 'Lớp học của tôi' };
-    if (path.includes('/students')) return { group: 'Giảng dạy', title: 'Học viên' };
-    if (path.includes('/lectures')) return { group: 'Giảng dạy', title: 'Bài giảng số' };
-    if (path.includes('/assignments')) return { group: 'Giảng dạy', title: 'Bài tập về nhà' };
-    if (path.includes('/submissions')) return { group: 'Đánh giá', title: 'Bài tập đã nộp' };
-    if (path.includes('/grading')) return { group: 'Đánh giá', title: 'Chấm điểm & Nhận xét' };
-    if (path.includes('/tickets')) return { group: 'Hỗ trợ', title: 'Tickets & Yêu cầu' };
-    if (path.includes('/reports')) return { group: 'Hệ thống', title: 'Báo cáo & Thống kê' };
-    if (path.includes('/settings')) return { group: 'Hệ thống', title: 'Cài đặt hệ thống' };
-    return { group: 'Tổng quan', title: 'Bảng điều khiển (Dashboard)' };
-  }, [location.pathname]);
+    // Group: Người dùng & Tổ chức
+    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
+    if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
+    if (path.includes('/support-staff')) return { group: 'Người dùng & Tổ chức', title: 'Nhân viên hỗ trợ', link: '/management/admin/support-staff' };
+    if (path.includes('/roles')) return { group: 'Người dùng & Tổ chức', title: 'Vai trò & Phân quyền', link: '/management/admin/roles' };
+
+    // Group: Học liệu & Nội dung
+    if (path.includes('/hsk-repository')) return { group: 'Học liệu & Nội dung', title: 'Kho chuẩn HSK', link: '/management/admin/hsk-repository' };
+    if (path.includes('/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Nội dung', title: 'Biên soạn bài học số', link: path };
+    if (path.includes('/curriculum')) return { group: 'Học liệu & Nội dung', title: 'Giáo trình & Bài học', link: '/management/admin/curriculum' };
+    if (path.includes('/grammar')) return { group: 'Học liệu & Nội dung', title: 'Ngữ pháp HSK (FE-9)', link: '/management/admin/grammar' };
+    if (path.includes('/exercises')) return { group: 'Học liệu & Nội dung', title: 'Ngân hàng bài tập (FE-9)', link: '/management/admin/exercises' };
+    if (path.includes('/videos')) return { group: 'Học liệu & Nội dung', title: 'Học liệu Video', link: '/management/admin/videos' };
+
+    // Group: Kiểm duyệt & AI
+    if (path.includes('/moderation')) return { group: 'Kiểm duyệt & AI', title: 'Duyệt nội dung học liệu', link: '/management/admin/moderation' };
+    if (path.includes('/ai-management')) return { group: 'Kiểm duyệt & AI', title: 'Trợ lý AI Tutor', link: '/management/admin/ai-management' };
+
+    // Group: Vận hành & Hệ thống
+    if (path.includes('/analytics')) return { group: 'Vận hành & Hệ thống', title: 'Báo cáo học tập', link: '/management/admin/analytics' };
+    if (path.includes('/support-requests')) return { group: 'Vận hành & Hệ thống', title: 'Yêu cầu hỗ trợ', link: '/management/admin/support-requests' };
+    if (path.includes('/settings')) return { group: 'Vận hành & Hệ thống', title: 'Cài đặt hệ thống', link: '/management/admin/settings' };
+
+    // Teacher routes
+    if (path.includes('/teacher/classes')) return { group: 'Giảng dạy', title: 'Lớp học của tôi', link: '/management/teacher/classes' };
+    if (path.includes('/teacher/assignments')) return { group: 'Giảng dạy', title: 'Bài tập giao lớp', link: '/management/teacher/assignments' };
+    if (path.includes('/teacher/ai-workspace')) return { group: 'Trợ lý AI', title: 'Không gian soạn bài AI', link: '/management/teacher/ai-workspace' };
+
+    // Default: Dashboard
+    return { group: 'Tổng quan', title: 'Dashboard V2', link: `/management/${currentRole.toLowerCase()}/dashboard` };
+  }, [location.pathname, currentRole]);
 
   return (
     <header
       style={{
-        height: '62px',
+        height: '64px',
         backgroundColor: 'var(--surface)',
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border-strong)',
         padding: '0 var(--space-6)',
         display: 'flex',
         alignItems: 'center',
@@ -94,11 +103,11 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.03)',
       }}
     >
       {/* =====================================================================
-          LEFT: SIDEBAR TOGGLE & BREADCRUMB
+          LEFT: SIDEBAR TOGGLE & BREADCRUMB HIERARCHY
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
         {/* Mobile Hamburger Trigger (< 1024px) */}
@@ -133,7 +142,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             width: '32px',
             height: '32px',
             background: 'none',
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border-strong)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--muted)',
             cursor: 'pointer',
@@ -144,16 +153,41 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         </button>
 
-        {/* Breadcrumb Hierarchy */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--text-xs)', minWidth: 0 }}>
-          <span style={{ color: 'var(--muted)', whiteSpace: 'nowrap' }} className="breadcrumb-prefix">
+        {/* Structured Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: 'var(--text-xs)',
+            minWidth: 0,
+          }}
+        >
+          <span
+            style={{
+              color: 'var(--muted)',
+              whiteSpace: 'nowrap',
+              fontWeight: 500,
+            }}
+            className="breadcrumb-prefix"
+          >
             Quản trị {currentRole}
           </span>
-          <span style={{ color: 'var(--border-strong)' }} className="breadcrumb-separator">/</span>
-          <span style={{ color: 'var(--muted)', whiteSpace: 'nowrap' }} className="breadcrumb-group">
+          <span style={{ color: 'var(--muted)', opacity: 0.5 }} className="breadcrumb-separator">
+            /
+          </span>
+          <span
+            style={{
+              color: 'var(--muted)',
+              whiteSpace: 'nowrap',
+              fontWeight: 500,
+            }}
+            className="breadcrumb-group"
+          >
             {breadcrumb.group}
           </span>
-          <span style={{ color: 'var(--border-strong)' }}>/</span>
+          <span style={{ color: 'var(--muted)', opacity: 0.5 }}>/</span>
           <span
             style={{
               fontWeight: 600,
@@ -165,14 +199,35 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           >
             {breadcrumb.title}
           </span>
-        </div>
+        </nav>
       </div>
 
       {/* =====================================================================
-          RIGHT: SEARCH SHORTCUT, NOTIFICATIONS, USER DROPDOWN
+          RIGHT: ENVIRONMENT BADGE, SEARCH, NOTIFICATIONS, USER MENU
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        {/* Quick Search Trigger (hidden on mobile) */}
+        {/* Environment / Demo Indicator Tag */}
+        <div
+          className="env-indicator-pill"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '3px 9px',
+            borderRadius: 'var(--radius-full)',
+            backgroundColor: 'var(--primary-light)',
+            border: '1px solid rgba(230, 0, 18, 0.2)',
+            color: 'var(--primary)',
+            fontSize: '11px',
+            fontWeight: 600,
+          }}
+          title="Dữ liệu hiển thị ở chế độ mô phỏng vận hành"
+        >
+          <Info size={12} />
+          <span>Mô phỏng Demo</span>
+        </div>
+
+        {/* Search Shortcut */}
         <div
           className="header-search-btn"
           style={{
@@ -181,7 +236,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             gap: '8px',
             padding: '5px 12px',
             backgroundColor: 'var(--background)',
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border-strong)',
             borderRadius: 'var(--radius-full)',
             color: 'var(--muted)',
             fontSize: '12px',
@@ -191,16 +246,16 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             const input = document.querySelector('input[placeholder*="Tìm nhanh"]') as HTMLInputElement;
             if (input) input.focus();
           }}
-          title="Tìm nhanh (Ctrl + K)"
+          title="Tìm nhanh trong console (Ctrl + K)"
         >
           <Search size={13} />
-          <span>Tìm kiếm...</span>
+          <span>Tìm nhanh...</span>
           <kbd
             style={{
               padding: '1px 5px',
               fontSize: '10px',
               backgroundColor: 'var(--surface)',
-              border: '1px solid var(--border)',
+              border: '1px solid var(--border-strong)',
               borderRadius: '4px',
               fontFamily: 'var(--font-mono)',
             }}
@@ -214,7 +269,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsNotifyOpen((prev) => !prev)}
-            aria-label="Thông báo hệ thống"
+            aria-label="Thông báo hệ thống (3 mới)"
             style={{
               position: 'relative',
               display: 'flex',
@@ -223,7 +278,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
               width: '36px',
               height: '36px',
               background: 'none',
-              border: '1px solid var(--border)',
+              border: '1px solid var(--border-strong)',
               borderRadius: 'var(--radius-full)',
               color: 'var(--foreground)',
               cursor: 'pointer',
@@ -239,8 +294,8 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 right: '-2px',
                 width: '16px',
                 height: '16px',
-                backgroundColor: 'var(--danger)',
-                color: '#fff',
+                backgroundColor: 'var(--primary)',
+                color: '#ffffff',
                 borderRadius: '50%',
                 fontSize: '9.5px',
                 fontWeight: 700,
@@ -259,62 +314,140 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
               style={{
                 position: 'absolute',
                 right: 0,
-                top: '44px',
+                top: '46px',
                 width: '320px',
                 backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-xl)',
+                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
                 padding: 'var(--space-3)',
                 zIndex: 60,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--foreground)' }}>Thông báo mới</span>
-                <span style={{ fontSize: '11px', color: 'var(--primary)', cursor: 'pointer' }}>Đánh dấu đã đọc</span>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '10px',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid var(--border)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--foreground)' }}>
+                    Thông báo hệ thống
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      backgroundColor: 'var(--primary-light)',
+                      color: 'var(--primary)',
+                      padding: '1px 6px',
+                      borderRadius: 'var(--radius-full)',
+                    }}
+                  >
+                    3 mới
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '11px',
+                    color: 'var(--primary)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: 0,
+                  }}
+                  onClick={() => setIsNotifyOpen(false)}
+                >
+                  <CheckCheck size={13} />
+                  <span>Đã đọc hết</span>
+                </button>
               </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
-                <div style={{ padding: '6px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--primary-light)' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--primary)' }}>3 Học viên mới đăng ký HSK 2</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)' }}>5 phút trước</div>
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--primary-light)',
+                    borderLeft: '3px solid var(--primary)',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                    14 Nội dung học liệu chờ kiểm duyệt
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                    8 bài giảng số + 6 bài tập mới từ giáo viên • 12 phút trước
+                  </div>
                 </div>
-                <div style={{ padding: '6px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--background)' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>14 Bài tập cần giáo viên chấm điểm</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)' }}>28 phút trước</div>
+
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--background)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                    3 Vé hỗ trợ vượt thời hạn phản hồi SLA
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                    Yêu cầu nạp khóa học HSK 3 & lỗi âm thanh • 35 phút trước
+                  </div>
                 </div>
-                <div style={{ padding: '6px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--background)' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>Báo cáo sao lưu dữ liệu tự động hoàn tất</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)' }}>2 giờ trước</div>
+
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--background)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                    Sao lưu cơ sở dữ liệu hoàn tất
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                    Bản sao lưu HSK Repository tự động • 2 giờ trước
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* User Profile Trigger & Dropdown */}
+        {/* User Account Menu */}
         <div style={{ position: 'relative' }} ref={userMenuRef}>
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((prev) => !prev)}
-            aria-label="Menu tài khoản"
+            aria-label="Menu tài khoản quản trị"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               padding: '4px 8px 4px 4px',
               background: 'none',
-              border: '1px solid var(--border)',
+              border: '1px solid var(--border-strong)',
               borderRadius: 'var(--radius-full)',
               cursor: 'pointer',
               transition: 'background-color 0.15s ease',
             }}
             className="user-profile-btn"
           >
-            {/* Avatar Pill */}
+            {/* Avatar Badge with Viettel Red */}
             <div
               style={{
-                width: '30px',
-                height: '30px',
+                width: '32px',
+                height: '32px',
                 borderRadius: 'var(--radius-full)',
                 backgroundColor: 'var(--primary)',
                 color: '#ffffff',
@@ -329,7 +462,15 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
               MA
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.1 }} className="user-profile-info">
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                lineHeight: 1.1,
+              }}
+              className="user-profile-info"
+            >
               <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--foreground)' }}>
                 {userName}
               </span>
@@ -341,55 +482,72 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             <ChevronDown size={14} style={{ color: 'var(--muted)' }} />
           </button>
 
-          {/* User Profile Dropdown Menu */}
+          {/* User Dropdown */}
           {isUserMenuOpen && (
             <div
               style={{
                 position: 'absolute',
                 right: 0,
-                top: '44px',
-                width: '230px',
+                top: '46px',
+                width: '240px',
                 backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: 'var(--radius-xl)',
+                boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
                 padding: 'var(--space-2)',
                 zIndex: 60,
               }}
             >
-              {/* User meta info */}
-              <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border)', marginBottom: '4px' }}>
-                <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)' }}>{userName}</div>
-                <div style={{ fontSize: '10.5px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userEmail}</div>
-                <div style={{ marginTop: '4px' }}>
+              {/* Account Meta */}
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderBottom: '1px solid var(--border)',
+                  marginBottom: '6px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--foreground)' }}>
+                  {userName}
+                </div>
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--muted)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {userEmail}
+                </div>
+                <div style={{ marginTop: '5px' }}>
                   <span
                     style={{
                       fontSize: '9.5px',
                       fontWeight: 700,
-                      padding: '1px 6px',
+                      padding: '2px 6px',
                       borderRadius: 'var(--radius-full)',
                       backgroundColor: 'var(--primary-light)',
                       color: 'var(--primary)',
                     }}
                   >
-                    VAI TRÒ: {currentRole}
+                    VAI TRÒ: QUẢN TRỊ VIÊN
                   </span>
                 </div>
               </div>
 
-              {/* Menu Actions */}
+              {/* Actions */}
               <button
                 type="button"
                 onClick={() => {
                   setIsUserMenuOpen(false);
-                  alert('Chức năng: Xem hồ sơ cá nhân');
+                  alert('Chức năng: Xem thông tin cá nhân quản trị');
                 }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   width: '100%',
-                  padding: '7px 10px',
+                  padding: '8px 10px',
                   background: 'none',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
@@ -404,31 +562,28 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 <span>Hồ sơ cá nhân</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsUserMenuOpen(false);
-                  alert('Chức năng: Cài đặt tài khoản');
-                }}
+              <Link
+                to="/management/admin/settings"
+                onClick={() => setIsUserMenuOpen(false)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   width: '100%',
-                  padding: '7px 10px',
+                  padding: '8px 10px',
                   background: 'none',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '12px',
                   color: 'var(--foreground)',
                   cursor: 'pointer',
-                  textAlign: 'left',
+                  textDecoration: 'none',
                 }}
                 className="dropdown-item"
               >
                 <Settings size={14} style={{ color: 'var(--muted)' }} />
                 <span>Cài đặt hệ thống</span>
-              </button>
+              </Link>
 
               <Link
                 to="/dashboard"
@@ -438,7 +593,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                   alignItems: 'center',
                   gap: '8px',
                   width: '100%',
-                  padding: '7px 10px',
+                  padding: '8px 10px',
                   background: 'none',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
@@ -446,6 +601,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                   color: 'var(--primary)',
                   cursor: 'pointer',
                   textDecoration: 'none',
+                  fontWeight: 600,
                 }}
                 className="dropdown-item"
               >
@@ -466,7 +622,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                   alignItems: 'center',
                   gap: '8px',
                   width: '100%',
-                  padding: '7px 10px',
+                  padding: '8px 10px',
                   background: 'none',
                   border: 'none',
                   borderRadius: 'var(--radius-md)',
@@ -474,6 +630,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                   color: 'var(--danger)',
                   cursor: 'pointer',
                   textAlign: 'left',
+                  fontWeight: 600,
                 }}
                 className="dropdown-item danger"
               >
@@ -514,6 +671,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           }
         }
         @media (max-width: 640px) {
+          .env-indicator-pill {
+            display: none !important;
+          }
           .user-profile-info {
             display: none !important;
           }

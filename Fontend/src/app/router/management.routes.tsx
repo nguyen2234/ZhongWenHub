@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';
+import { AdminModulePlannedPage } from '../../management/admin/pages/AdminModulePlannedPage';
 import {
   TeacherDashboardPage,
   TeacherClassesPage,
@@ -39,6 +40,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'dashboard',
             element: <AdminDashboardPage />,
           },
+          // 1. Quản lý người dùng & tổ chức
           {
             path: 'users',
             element: <AdminUsersPage />,
@@ -55,6 +57,8 @@ export const managementRoutes: RouteObject[] = [
             path: 'roles',
             element: <AdminRolesPage />,
           },
+
+          // 2. Học liệu & Nội dung
           {
             path: 'hsk-repository',
             element: <AdminHskRepositoryPage />,
@@ -67,6 +71,44 @@ export const managementRoutes: RouteObject[] = [
             path: 'curriculum/lessons/:lessonId/edit',
             element: <AdminLessonEditorPage />,
           },
+          {
+            path: 'grammar',
+            element: <AdminModulePlannedPage moduleKey="grammar" />,
+          },
+          {
+            path: 'exercises',
+            element: <AdminModulePlannedPage moduleKey="exercises" />,
+          },
+          {
+            path: 'videos',
+            element: <AdminModulePlannedPage moduleKey="videos" />,
+          },
+
+          // 3. Kiểm duyệt & AI
+          {
+            path: 'moderation',
+            element: <AdminModulePlannedPage moduleKey="moderation" />,
+          },
+          {
+            path: 'ai-management',
+            element: <AdminModulePlannedPage moduleKey="ai-management" />,
+          },
+
+          // 4. Vận hành & Hệ thống
+          {
+            path: 'analytics',
+            element: <AdminModulePlannedPage moduleKey="analytics" />,
+          },
+          {
+            path: 'support-requests',
+            element: <AdminModulePlannedPage moduleKey="support-requests" />,
+          },
+          {
+            path: 'settings',
+            element: <AdminModulePlannedPage moduleKey="settings" />,
+          },
+
+          // Fallback
           {
             path: '*',
             element: <AdminDashboardPage />,

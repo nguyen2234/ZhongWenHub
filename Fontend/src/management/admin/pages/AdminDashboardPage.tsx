@@ -3,6 +3,7 @@ import { PageHeader } from '../../shared/components';
 import type { DateRangeOption } from '../types/dashboard.types';
 import { getAdminDashboardData } from '../data/mockDashboardData';
 import {
+  ActionPriorityBanner,
   DashboardDateRangeSelect,
   DashboardMetricsGrid,
   LearningActivityChart,
@@ -24,8 +25,8 @@ export const AdminDashboardPage: React.FC = () => {
   return (
     <div className="admin-dashboard">
       <PageHeader
-        title="Dashboard Quản trị"
-        subtitle="Tổng quan vận hành đào tạo, chỉ số học viên và hoạt động hệ thống ZhongWenHub."
+        title="Dashboard Quản trị V2"
+        subtitle="Trung tâm chỉ huy vận hành đào tạo, kiểm duyệt học liệu và giám sát hệ thống ZhongWenHub."
         actions={
           <DashboardDateRangeSelect
             selectedRange={range}
@@ -34,10 +35,17 @@ export const AdminDashboardPage: React.FC = () => {
         }
       />
 
-      {/* Row 1: 4 Key Executive Metrics */}
+      {/* Row 1: Priority Queue & Operational Notice (Việc cần xử lý ngay) */}
+      <ActionPriorityBanner
+        pendingModerationCount={14}
+        urgentTicketsCount={dashboardData.supportOverview.urgentCount}
+        aiAlertCount={1}
+      />
+
+      {/* Row 2: 4 Key Executive Metrics (KPIs) */}
       <DashboardMetricsGrid metrics={dashboardData.metrics} />
 
-      {/* Row 2: Analytics Row (65% Learning Activity + 35% HSK Distribution) */}
+      {/* Row 3: Analytics Row (65% Learning Activity + 35% HSK Distribution) */}
       <div className="dashboard-analytics-row">
         <LearningActivityChart
           data={dashboardData.learningActivity}
@@ -46,18 +54,18 @@ export const AdminDashboardPage: React.FC = () => {
         <HskDistributionCard distribution={dashboardData.hskDistribution} />
       </div>
 
-      {/* Row 3: Operations & Scale Row */}
+      {/* Row 4: Academic Scale & System Operations Row */}
       <div className="dashboard-operations-row">
-        {/* Left Column: Recent Users & Academic Content Scale */}
+        {/* Left Column: Academic Content Scale & Recent Users */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-          <RecentUsersCard users={dashboardData.recentUsers} />
           <ContentScaleCard
             contentScale={dashboardData.contentScale}
             rangeLabel={dashboardData.rangeLabel}
           />
+          <RecentUsersCard users={dashboardData.recentUsers} />
         </div>
 
-        {/* Right Column: Support SLA Overview & Recent Activity Timeline */}
+        {/* Right Column: Support SLA Overview & Operations Activity Timeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
           <SupportOverviewCard overview={dashboardData.supportOverview} />
           <RecentActivityFeed activities={dashboardData.recentActivities} />

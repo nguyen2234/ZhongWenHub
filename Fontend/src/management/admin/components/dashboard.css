@@ -252,7 +252,7 @@
 }
 
 .svg-bar-element:hover {
-  fill: #3730a3 !important;
+  fill: var(--primary-hover, #B80010) !important;
 }
 
 /* HSK Distribution Card */

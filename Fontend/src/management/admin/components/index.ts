@@ -1,3 +1,4 @@
+export * from './ActionPriorityBanner';
 export * from './DashboardDateRangeSelect';
 export * from './DashboardMetricsGrid';
 export * from './LearningActivityChart';

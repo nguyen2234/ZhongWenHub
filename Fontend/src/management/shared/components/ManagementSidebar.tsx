@@ -6,6 +6,7 @@ import {
   Search,
   ArrowLeft,
   X,
+  ExternalLink,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 import type { UserRole } from '../../../types';
@@ -33,7 +34,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
-  // Filter navigation items by search query if user types in search
+  // Filter navigation items by quick search
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) return groups;
     const q = searchQuery.toLowerCase().trim();
@@ -48,11 +49,11 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
   const roleTitle = useMemo(() => {
     switch (currentRole) {
       case 'TEACHER':
-        return 'Giáo viên';
+        return 'Giáo viên & Đào tạo';
       case 'SUPPORT':
         return 'Hỗ trợ CSKH';
       default:
-        return 'Quản trị viên';
+        return 'Quản trị viên Hệ thống';
     }
   }, [currentRole]);
 
@@ -60,26 +61,27 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
     <aside
       className={`management-sidebar ${isCollapsed ? 'collapsed' : 'expanded'} ${isMobileOpen ? 'mobile-open' : ''}`}
       style={{
-        width: isCollapsed ? '72px' : '260px',
+        width: isCollapsed ? '72px' : '264px',
         backgroundColor: 'var(--surface)',
-        borderRight: '1px solid var(--border)',
+        borderRight: '1px solid var(--border-strong)',
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        transition: 'width 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: 'width 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         overflow: 'visible',
+        boxShadow: isCollapsed ? 'none' : '1px 0 3px rgba(15, 23, 42, 0.02)',
       }}
     >
       {/* =====================================================================
-          1. STICKY TOP BRAND & ROLE HEADER
+          1. BRAND & CONSOLE HEADER
           ===================================================================== */}
       <div
         style={{
-          height: '62px',
-          borderBottom: '1px solid var(--border)',
+          height: '64px',
+          borderBottom: '1px solid var(--border-strong)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: isCollapsed ? 'center' : 'space-between',
@@ -93,17 +95,17 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-3)',
+            gap: '10px',
             textDecoration: 'none',
             overflow: 'hidden',
           }}
-          title="ZhongWenHub Management Portal"
+          title="ZhongWenHub Admin Console"
         >
-          {/* Logo Badge */}
+          {/* Brand Seal Icon (Viettel Red #E60012) */}
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '38px',
+              height: '38px',
               borderRadius: 'var(--radius-lg)',
               backgroundColor: 'var(--primary)',
               color: '#ffffff',
@@ -111,9 +113,9 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               fontFamily: 'var(--font-hanzi)',
-              fontWeight: 700,
-              fontSize: '18px',
-              boxShadow: '0 2px 8px rgba(67, 56, 202, 0.25)',
+              fontWeight: 800,
+              fontSize: '19px',
+              boxShadow: '0 3px 10px rgba(230, 0, 18, 0.25)',
               flexShrink: 0,
             }}
           >
@@ -125,10 +127,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span
                   style={{
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 700,
+                    fontSize: '14.5px',
+                    fontWeight: 800,
                     color: 'var(--foreground)',
-                    letterSpacing: '-0.2px',
+                    letterSpacing: '-0.3px',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -136,13 +138,14 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                 </span>
                 <span
                   style={{
-                    fontSize: '9px',
+                    fontSize: '9.5px',
                     fontWeight: 700,
-                    padding: '1px 5px',
+                    padding: '1px 6px',
                     borderRadius: 'var(--radius-full)',
                     backgroundColor: 'var(--primary-light)',
                     color: 'var(--primary)',
-                    letterSpacing: '0.3px',
+                    letterSpacing: '0.4px',
+                    textTransform: 'uppercase',
                   }}
                 >
                   {currentRole}
@@ -155,6 +158,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  fontWeight: 500,
                 }}
               >
                 {roleTitle}
@@ -163,7 +167,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           )}
         </Link>
 
-        {/* Mobile Close Button (only visible on mobile drawer) */}
+        {/* Mobile Close Button */}
         {isMobileOpen && onMobileClose && (
           <button
             type="button"
@@ -174,7 +178,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               display: 'none',
               background: 'none',
               border: 'none',
-              padding: '6px',
+              padding: '8px',
               color: 'var(--muted)',
               cursor: 'pointer',
               borderRadius: 'var(--radius-md)',
@@ -186,7 +190,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
       </div>
 
       {/* =====================================================================
-          2. QUICK FILTER SEARCH INPUT (Expanded only)
+          2. QUICK SEARCH FILTER (Expanded only)
           ===================================================================== */}
       {!isCollapsed && (
         <div style={{ padding: 'var(--space-3) var(--space-4) var(--space-1) var(--space-4)', flexShrink: 0 }}>
@@ -198,7 +202,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
             }}
           >
             <Search
-              size={14}
+              size={13}
               style={{
                 position: 'absolute',
                 left: '10px',
@@ -210,15 +214,15 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm nhanh mục..."
+              placeholder="Tìm nhanh menu..."
               aria-label="Tìm nhanh mục chức năng"
               style={{
                 width: '100%',
                 height: '32px',
-                padding: '0 10px 0 30px',
+                padding: '0 24px 0 28px',
                 fontSize: '12px',
                 backgroundColor: 'var(--background)',
-                border: '1px solid var(--border)',
+                border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-md)',
                 color: 'var(--foreground)',
                 outline: 'none',
@@ -234,7 +238,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   right: '6px',
                   background: 'none',
                   border: 'none',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   color: 'var(--muted)',
                   cursor: 'pointer',
                   padding: '2px 4px',
@@ -248,18 +252,26 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
       )}
 
       {/* =====================================================================
-          3. SCROLLABLE NAVIGATION BODY (Independent Scroll)
+          3. NAVIGATION ITEMS WITH GROUP HEADERS
           ===================================================================== */}
-      <div
+      <nav
+        aria-label="Admin Navigation"
         style={{
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? 'var(--space-2) 0' : 'var(--space-2) var(--space-2)',
+          padding: isCollapsed ? 'var(--space-2) 0' : 'var(--space-2) var(--space-3)',
         }}
       >
         {filteredGroups.length === 0 ? (
-          <div style={{ padding: 'var(--space-4)', textAlign: 'center', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+          <div
+            style={{
+              padding: 'var(--space-4)',
+              textAlign: 'center',
+              fontSize: 'var(--text-xs)',
+              color: 'var(--muted)',
+            }}
+          >
             Không tìm thấy mục nào
           </div>
         ) : (
@@ -267,16 +279,16 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
             <div
               key={group.id}
               style={{
-                marginBottom: isCollapsed ? 'var(--space-2)' : 'var(--space-3)',
+                marginBottom: isCollapsed ? 'var(--space-3)' : 'var(--space-4)',
                 paddingTop: groupIdx > 0 && isCollapsed ? 'var(--space-2)' : '0',
                 borderTop: groupIdx > 0 && isCollapsed ? '1px solid var(--border)' : 'none',
               }}
             >
-              {/* Group Title Header */}
-              {!isCollapsed ? (
+              {/* Group Title */}
+              {!isCollapsed && (
                 <div
                   style={{
-                    padding: '8px 12px 4px 12px',
+                    padding: '6px 10px 4px 10px',
                     fontSize: '10.5px',
                     fontWeight: 700,
                     textTransform: 'uppercase',
@@ -287,10 +299,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                 >
                   {group.title}
                 </div>
-              ) : null}
+              )}
 
-              {/* Group Nav Items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {/* Items List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {group.items.map((item) => {
                   const isActive =
                     item.path === `/management/${currentRole.toLowerCase()}/dashboard`
@@ -315,8 +327,8 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                           gap: '10px',
                           height: '38px',
                           padding: isCollapsed ? '0' : '0 12px',
-                          margin: isCollapsed ? '2px auto' : '0 4px',
-                          width: isCollapsed ? '44px' : 'auto',
+                          margin: isCollapsed ? '2px auto' : '0',
+                          width: isCollapsed ? '44px' : '100%',
                           borderRadius: 'var(--radius-md)',
                           textDecoration: 'none',
                           fontSize: '13px',
@@ -324,21 +336,22 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                           backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
                           color: isActive ? 'var(--primary)' : 'var(--foreground)',
                           position: 'relative',
-                          transition: 'all 0.12s ease',
+                          transition: 'background-color 0.12s ease, color 0.12s ease',
+                          minHeight: '38px',
                         }}
                         className={`nav-item ${isActive ? 'active' : ''}`}
                       >
-                        {/* Subtle Active Indicator Bar on Left */}
+                        {/* 3px Left Brand Active Bar */}
                         {isActive && !isCollapsed && (
                           <div
                             style={{
                               position: 'absolute',
                               left: 0,
-                              top: '8px',
-                              bottom: '8px',
-                              width: '3px',
+                              top: '6px',
+                              bottom: '6px',
+                              width: '3.5px',
                               backgroundColor: 'var(--primary)',
-                              borderRadius: '0 2px 2px 0',
+                              borderRadius: '0 3px 3px 0',
                             }}
                           />
                         )}
@@ -361,6 +374,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
+                                fontSize: '13px',
                               }}
                             >
                               {item.label}
@@ -368,17 +382,21 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                           )}
                         </div>
 
-                        {/* Badge counter */}
+                        {/* Badge Indicator */}
                         {!isCollapsed && item.badge !== undefined && (
                           <span
                             style={{
-                              fontSize: '10.5px',
+                              fontSize: '10px',
                               fontWeight: 700,
-                              padding: '1px 6px',
+                              padding: typeof item.badge === 'number' ? '1px 6px' : '1px 5px',
                               borderRadius: 'var(--radius-full)',
-                              backgroundColor: isActive ? 'rgba(67, 56, 202, 0.14)' : 'rgba(239, 68, 68, 0.12)',
-                              color: isActive ? 'var(--primary)' : 'var(--danger)',
+                              backgroundColor:
+                                typeof item.badge === 'number'
+                                  ? 'rgba(230, 0, 18, 0.12)'
+                                  : 'var(--primary-light)',
+                              color: 'var(--primary)',
                               lineHeight: 1.3,
+                              letterSpacing: '0.2px',
                             }}
                           >
                             {item.badge}
@@ -386,35 +404,35 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                         )}
                       </NavLink>
 
-                      {/* Floating Tooltip when Collapsed */}
+                      {/* Tooltip for Collapsed Mode */}
                       {isCollapsed && hoveredItemId === item.id && (
                         <div
                           style={{
                             position: 'absolute',
-                            left: '60px',
+                            left: '64px',
                             top: '50%',
                             transform: 'translateY(-50%)',
                             backgroundColor: '#0f172a',
                             color: '#ffffff',
-                            padding: '5px 10px',
+                            padding: '6px 12px',
                             borderRadius: 'var(--radius-md)',
                             fontSize: '12px',
                             fontWeight: 500,
                             whiteSpace: 'nowrap',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.2)',
                             zIndex: 100,
                             pointerEvents: 'none',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
+                            gap: '8px',
                           }}
                         >
                           <span>{item.label}</span>
                           {item.badge !== undefined && (
                             <span
                               style={{
-                                backgroundColor: 'var(--danger)',
-                                color: '#fff',
+                                backgroundColor: 'var(--primary)',
+                                color: '#ffffff',
                                 fontSize: '10px',
                                 fontWeight: 700,
                                 padding: '1px 5px',
@@ -433,24 +451,33 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
             </div>
           ))
         )}
-      </div>
+      </nav>
 
       {/* =====================================================================
-          4. STICKY BOTTOM ACTIONS & COLLAPSE TOGGLE
+          4. FOOTER: WORKSPACE SWITCHER & COLLAPSE TOGGLE
           ===================================================================== */}
       <div
         style={{
-          borderTop: '1px solid var(--border)',
+          borderTop: '1px solid var(--border-strong)',
           backgroundColor: 'var(--surface)',
           padding: isCollapsed ? 'var(--space-2) var(--space-1)' : 'var(--space-3) var(--space-3)',
           flexShrink: 0,
         }}
       >
-        {/* Quick Role Switcher (Simulating multi-role navigation in development) */}
-        {!isCollapsed ? (
+        {/* Workspace Quick Switcher */}
+        {!isCollapsed && (
           <div style={{ marginBottom: 'var(--space-2)' }}>
-            <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 700, marginBottom: '6px' }}>
-              Không gian làm việc:
+            <div
+              style={{
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                color: 'var(--muted)',
+                fontWeight: 700,
+                marginBottom: '6px',
+                letterSpacing: '0.4px',
+              }}
+            >
+              Không gian quản trị:
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
               {(['ADMIN', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
@@ -460,14 +487,14 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   onClick={() => onRoleChange && onRoleChange(r)}
                   style={{
                     textAlign: 'center',
-                    padding: '4px 0',
+                    padding: '5px 0',
                     borderRadius: 'var(--radius-sm)',
-                    fontSize: '10.5px',
+                    fontSize: '11px',
                     fontWeight: currentRole === r ? 700 : 500,
                     backgroundColor: currentRole === r ? 'var(--primary-light)' : 'var(--background)',
                     color: currentRole === r ? 'var(--primary)' : 'var(--muted)',
                     textDecoration: 'none',
-                    border: `1px solid ${currentRole === r ? 'var(--primary)' : 'var(--border)'}`,
+                    border: `1px solid ${currentRole === r ? 'rgba(230, 0, 18, 0.4)' : 'var(--border-strong)'}`,
                     transition: 'all 0.12s ease',
                   }}
                   title={`Chuyển tới ${r} Workspace`}
@@ -477,38 +504,41 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               ))}
             </div>
           </div>
-        ) : null}
+        )}
 
-        {/* Back to Student Portal Link */}
+        {/* Back to Student Portal */}
         <Link
           to="/dashboard"
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            justifyContent: isCollapsed ? 'center' : 'space-between',
             gap: '8px',
             padding: isCollapsed ? '8px 0' : '7px 10px',
             borderRadius: 'var(--radius-md)',
-            color: 'var(--muted)',
+            color: 'var(--foreground)',
             textDecoration: 'none',
             fontSize: '12px',
             fontWeight: 500,
-            border: '1px solid var(--border)',
+            border: '1px solid var(--border-strong)',
             backgroundColor: 'var(--background)',
             marginBottom: '6px',
             transition: 'background-color 0.15s ease',
           }}
-          title="Quay lại Cổng học viên (Student Hub)"
+          title="Quay lại Cổng Học Viên"
         >
-          <ArrowLeft size={15} style={{ flexShrink: 0 }} />
-          {!isCollapsed && <span>Về Cổng Học Viên</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ArrowLeft size={14} style={{ flexShrink: 0, color: 'var(--muted)' }} />
+            {!isCollapsed && <span>Cổng Học Viên</span>}
+          </div>
+          {!isCollapsed && <ExternalLink size={12} style={{ color: 'var(--muted)' }} />}
         </Link>
 
-        {/* Desktop Collapse / Expand Toggle Button */}
+        {/* Collapse / Expand Toggle */}
         <button
           type="button"
           onClick={onToggleCollapse}
-          aria-label={isCollapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
+          aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -526,7 +556,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           }}
           className="collapse-toggle-btn"
         >
-          {!isCollapsed && <span>Thu gọn</span>}
+          {!isCollapsed && <span>Thu gọn sidebar</span>}
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
@@ -543,11 +573,11 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         @media (max-width: 1023px) {
           .management-sidebar {
             position: fixed !important;
-            left: -280px;
+            left: -300px;
             top: 0;
             bottom: 0;
-            width: 260px !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            width: 280px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
           }
           .management-sidebar.mobile-open {

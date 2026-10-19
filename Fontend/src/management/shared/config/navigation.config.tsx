@@ -7,20 +7,13 @@ import {
   BookOpen,
   FolderKanban,
   FileText,
-  HelpCircle,
   CheckSquare,
-  ClipboardCheck,
   LifeBuoy,
   BarChart3,
   Settings,
-  PenTool,
-  Layers,
-  Inbox,
-  TrendingUp,
-  MessageSquare,
-  AlertCircle,
-  BookMarked,
   Bot,
+  Video,
+  ShieldAlert,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 
@@ -31,7 +24,7 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
     items: [
       {
         id: 'admin-dashboard',
-        label: 'Dashboard',
+        label: 'Dashboard V2',
         path: '/management/admin/dashboard',
         icon: <LayoutDashboard size={17} />,
         roles: ['ADMIN'],
@@ -39,19 +32,84 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
     ],
   },
   {
+    id: 'admin-content-mgmt',
+    title: 'HỌC LIỆU & NỘI DUNG',
+    items: [
+      {
+        id: 'admin-hsk-repository',
+        label: 'Kho chuẩn HSK',
+        path: '/management/admin/hsk-repository',
+        icon: <BookOpen size={17} />,
+        roles: ['ADMIN'],
+      },
+      {
+        id: 'admin-curriculum',
+        label: 'Giáo trình & Bài học',
+        path: '/management/admin/curriculum',
+        icon: <FolderKanban size={17} />,
+        roles: ['ADMIN'],
+      },
+      {
+        id: 'admin-grammar',
+        label: 'Ngữ pháp HSK (FE-9)',
+        path: '/management/admin/grammar',
+        icon: <FileText size={17} />,
+        badge: 'Mới',
+        roles: ['ADMIN'],
+      },
+      {
+        id: 'admin-exercises',
+        label: 'Ngân hàng bài tập (FE-9)',
+        path: '/management/admin/exercises',
+        icon: <CheckSquare size={17} />,
+        badge: 'Mới',
+        roles: ['ADMIN'],
+      },
+      {
+        id: 'admin-videos',
+        label: 'Học liệu Video',
+        path: '/management/admin/videos',
+        icon: <Video size={17} />,
+        roles: ['ADMIN'],
+      },
+    ],
+  },
+  {
+    id: 'admin-moderation-ai',
+    title: 'KIỂM DUYỆT & TRỢ LÝ AI',
+    items: [
+      {
+        id: 'admin-moderation',
+        label: 'Duyệt nội dung',
+        path: '/management/admin/moderation',
+        icon: <ShieldAlert size={17} />,
+        badge: 14,
+        roles: ['ADMIN'],
+      },
+      {
+        id: 'admin-ai-management',
+        label: 'Trợ lý AI Tutor',
+        path: '/management/admin/ai-management',
+        icon: <Bot size={17} />,
+        badge: 'AI',
+        roles: ['ADMIN'],
+      },
+    ],
+  },
+  {
     id: 'admin-user-mgmt',
-    title: 'QUẢN LÝ NGƯỜI DÙNG',
+    title: 'NGƯỜI DÙNG & TỔ CHỨC',
     items: [
       {
         id: 'admin-users',
-        label: 'Người dùng',
+        label: 'Học viên & Người dùng',
         path: '/management/admin/users',
         icon: <Users size={17} />,
         roles: ['ADMIN'],
       },
       {
         id: 'admin-teachers',
-        label: 'Giáo viên',
+        label: 'Đội ngũ Giáo viên',
         path: '/management/admin/teachers',
         icon: <GraduationCap size={17} />,
         roles: ['ADMIN'],
@@ -65,7 +123,7 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
       },
       {
         id: 'admin-roles',
-        label: 'Vai trò & quyền',
+        label: 'Vai trò & Phân quyền',
         path: '/management/admin/roles',
         icon: <ShieldCheck size={17} />,
         roles: ['ADMIN'],
@@ -73,56 +131,16 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
     ],
   },
   {
-    id: 'admin-content-mgmt',
-    title: 'NỘI DUNG HỌC TẬP',
-    items: [
-      {
-        id: 'admin-hsk-repository',
-        label: 'Chuẩn dữ liệu HSK',
-        path: '/management/admin/hsk-repository',
-        icon: <BookOpen size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-curriculum',
-        label: 'Giáo trình & Bài học',
-        path: '/management/admin/curriculum',
-        icon: <FolderKanban size={17} />,
-        roles: ['ADMIN'],
-      },
-    ],
-  },
-  {
-    id: 'admin-assessment',
-    title: 'ĐÁNH GIÁ',
-    items: [
-      {
-        id: 'admin-question-bank',
-        label: 'Ngân hàng câu hỏi',
-        path: '/management/admin/question-bank',
-        icon: <HelpCircle size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-exercises',
-        label: 'Bài tập',
-        path: '/management/admin/exercises',
-        icon: <CheckSquare size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-tests',
-        label: 'Bài kiểm tra',
-        path: '/management/admin/tests',
-        icon: <ClipboardCheck size={17} />,
-        roles: ['ADMIN'],
-      },
-    ],
-  },
-  {
     id: 'admin-system',
-    title: 'HỆ THỐNG',
+    title: 'VẬN HÀNH & HỆ THỐNG',
     items: [
+      {
+        id: 'admin-analytics',
+        label: 'Báo cáo học tập',
+        path: '/management/admin/analytics',
+        icon: <BarChart3 size={17} />,
+        roles: ['ADMIN'],
+      },
       {
         id: 'admin-support-requests',
         label: 'Yêu cầu hỗ trợ',
@@ -132,15 +150,8 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
         roles: ['ADMIN'],
       },
       {
-        id: 'admin-reports',
-        label: 'Báo cáo',
-        path: '/management/admin/reports',
-        icon: <BarChart3 size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
         id: 'admin-settings',
-        label: 'Cài đặt',
+        label: 'Cài đặt hệ thống',
         path: '/management/admin/settings',
         icon: <Settings size={17} />,
         roles: ['ADMIN'],
@@ -185,21 +196,7 @@ export const TEACHER_NAV_GROUPS: ManagementNavGroup[] = [
         id: 'teacher-classes',
         label: 'Lớp của tôi',
         path: '/management/teacher/classes',
-        icon: <Layers size={17} />,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-students',
-        label: 'Học viên',
-        path: '/management/teacher/students',
-        icon: <Users size={17} />,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-lectures',
-        label: 'Bài giảng',
-        path: '/management/teacher/lectures',
-        icon: <FileText size={17} />,
+        icon: <FolderKanban size={17} />,
         roles: ['TEACHER'],
       },
       {
@@ -207,74 +204,6 @@ export const TEACHER_NAV_GROUPS: ManagementNavGroup[] = [
         label: 'Bài tập',
         path: '/management/teacher/assignments',
         icon: <CheckSquare size={17} />,
-        roles: ['TEACHER'],
-      },
-    ],
-  },
-  {
-    id: 'teacher-content',
-    title: 'NỘI DUNG',
-    items: [
-      {
-        id: 'teacher-my-content',
-        label: 'Nội dung của tôi',
-        path: '/management/teacher/my-content',
-        icon: <FolderKanban size={17} />,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-question-bank',
-        label: 'Ngân hàng câu hỏi',
-        path: '/management/teacher/question-bank',
-        icon: <HelpCircle size={17} />,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-tests',
-        label: 'Bài kiểm tra',
-        path: '/management/teacher/tests',
-        icon: <ClipboardCheck size={17} />,
-        roles: ['TEACHER'],
-      },
-    ],
-  },
-  {
-    id: 'teacher-assessment',
-    title: 'ĐÁNH GIÁ',
-    items: [
-      {
-        id: 'teacher-submissions',
-        label: 'Bài nộp',
-        path: '/management/teacher/submissions',
-        icon: <Inbox size={17} />,
-        badge: 14,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-grading',
-        label: 'Chấm điểm',
-        path: '/management/teacher/grading',
-        icon: <PenTool size={17} />,
-        roles: ['TEACHER'],
-      },
-    ],
-  },
-  {
-    id: 'teacher-analytics',
-    title: 'PHÂN TÍCH',
-    items: [
-      {
-        id: 'teacher-student-progress',
-        label: 'Tiến độ học viên',
-        path: '/management/teacher/student-progress',
-        icon: <TrendingUp size={17} />,
-        roles: ['TEACHER'],
-      },
-      {
-        id: 'teacher-class-performance',
-        label: 'Hiệu suất lớp',
-        path: '/management/teacher/class-performance',
-        icon: <BarChart3 size={17} />,
         roles: ['TEACHER'],
       },
     ],
@@ -300,53 +229,17 @@ export const SUPPORT_NAV_GROUPS: ManagementNavGroup[] = [
     title: 'HỖ TRỢ',
     items: [
       {
-        id: 'support-tickets',
-        label: 'Tickets',
-        path: '/management/support/tickets',
-        icon: <LifeBuoy size={17} />,
-        badge: 5,
-        roles: ['SUPPORT'],
-      },
-      {
         id: 'support-requests',
-        label: 'Yêu cầu người dùng',
-        path: '/management/support/requests',
-        icon: <MessageSquare size={17} />,
-        roles: ['SUPPORT'],
-      },
-      {
-        id: 'support-issues',
-        label: 'Vấn đề được báo cáo',
-        path: '/management/support/issues',
-        icon: <AlertCircle size={17} />,
-        badge: 2,
-        roles: ['SUPPORT'],
-      },
-    ],
-  },
-  {
-    id: 'support-knowledge',
-    title: 'KIẾN THỨC',
-    items: [
-      {
-        id: 'support-faq',
-        label: 'FAQ',
-        path: '/management/support/faq',
-        icon: <HelpCircle size={17} />,
-        roles: ['SUPPORT'],
-      },
-      {
-        id: 'support-articles',
-        label: 'Bài viết trợ giúp',
-        path: '/management/support/articles',
-        icon: <BookMarked size={17} />,
+        label: 'Yêu cầu hỗ trợ',
+        path: '/management/support/dashboard',
+        icon: <LifeBuoy size={17} />,
+        badge: 3,
         roles: ['SUPPORT'],
       },
     ],
   },
 ];
 
-// Helper to get flat list if needed
 export const getNavItemsForRole = (role: 'ADMIN' | 'TEACHER' | 'SUPPORT') => {
   switch (role) {
     case 'TEACHER':
