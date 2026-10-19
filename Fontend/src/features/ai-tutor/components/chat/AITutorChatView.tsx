@@ -74,6 +74,18 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
 
   const messageEndRef = useRef<HTMLDivElement>(null);
 
+  // Close mobile sidebar drawer on Escape key
+  useEffect(() => {
+    if (!isSidebarOpenMobile) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsSidebarOpenMobile(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarOpenMobile]);
+
   // Initialize messages for active conversation
   useEffect(() => {
     if (activeConvId === 'conv-1') {
@@ -475,8 +487,10 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
                 boxShadow: '0 2px 10px rgba(124, 58, 237, 0.25)',
               }}
               onClick={onSwitchToLive}
+              className="ai-chat-live-btn"
             >
-              Luyện nói trực tiếp (Live) ➜
+              <span className="ai-chat-live-btn-full">Luyện nói trực tiếp (Live) ➜</span>
+              <span className="ai-chat-live-btn-short">Live ➜</span>
             </Button>
           </div>
         </div>

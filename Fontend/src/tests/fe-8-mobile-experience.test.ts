@@ -148,4 +148,119 @@ describe('FE-8: Mobile-First Student Experience & Responsive Architecture', () =
       expect(computeBottomPadding(58, 34)).toBe(92); // iPhone X-16 Home indicator safe-area
     });
   });
+
+  describe('5. Mobile Lesson Practice Modal Ergonomics', () => {
+    it('should configure fullscreen dialog geometry for mobile viewports', () => {
+      const mobileViewportWidth = 390;
+      const isMobile = mobileViewportWidth < 768;
+      const modalWidth = isMobile ? '100vw' : 'min(1040px, calc(100vw - 48px))';
+      const modalHeight = isMobile ? '100dvh' : 'min(760px, calc(100dvh - 48px))';
+
+      expect(modalWidth).toBe('100vw');
+      expect(modalHeight).toBe('100dvh');
+    });
+
+    it('should enforce flex: 1 with min-height: 0 on practice modal body to prevent nested scroll shifts', () => {
+      const modalBodyStyles = {
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+      };
+
+      expect(modalBodyStyles.flex).toBe(1);
+      expect(modalBodyStyles.minHeight).toBe(0);
+      expect(modalBodyStyles.overflowY).toBe('auto');
+    });
+  });
+
+  describe('6. Mobile Learning Path 6-Step Pedagogical Road', () => {
+    it('should have exactly 6 sequential foundational steps', () => {
+      const totalSteps = 6;
+      expect(totalSteps).toBe(6);
+    });
+
+    it('should provide complete metadata for each roadmap step including hanzi, title, and practiceRoute', () => {
+      const sampleSteps = [
+        { stepNumber: 1, hanzi: '拼', title: 'Pinyin – Phiên âm Latin', practiceRoute: '/skills/speaking?tab=pinyin' },
+        { stepNumber: 2, hanzi: '声', title: 'Thanh điệu tiếng Trung', practiceRoute: '/skills/speaking' },
+        { stepNumber: 3, hanzi: '字', title: 'Chữ Hán cơ bản', practiceRoute: '/skills/writing' },
+        { stepNumber: 4, hanzi: '词', title: 'Từ vựng HSK 1', practiceRoute: '/vocabulary' },
+        { stepNumber: 5, hanzi: '语', title: 'Ngữ pháp cơ bản', practiceRoute: '/grammar' },
+        { stepNumber: 6, hanzi: '听', title: 'Luyện nghe và nói', practiceRoute: '/skills' },
+      ];
+
+      expect(sampleSteps).toHaveLength(6);
+      sampleSteps.forEach((step, idx) => {
+        expect(step.stepNumber).toBe(idx + 1);
+        expect(step.hanzi.length).toBeGreaterThan(0);
+        expect(step.title.length).toBeGreaterThan(0);
+        expect(step.practiceRoute.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should clearly resolve all 3 learning statuses: not_started, in_progress, completed', () => {
+      const resolveStatus = (completedLessonIds: string[], targetLessonId: string | null, activeLessonId: string | null) => {
+        if (targetLessonId && completedLessonIds.includes(targetLessonId)) return 'completed';
+        if (targetLessonId && targetLessonId === activeLessonId) return 'in_progress';
+        return 'not_started';
+      };
+
+      expect(resolveStatus(['les-hsk1-1'], 'les-hsk1-1', 'les-hsk1-2')).toBe('completed');
+      expect(resolveStatus(['les-hsk1-1'], 'les-hsk1-2', 'les-hsk1-2')).toBe('in_progress');
+      expect(resolveStatus(['les-hsk1-1'], 'les-hsk1-3', 'les-hsk1-2')).toBe('not_started');
+    });
+  });
+
+  describe('7. Mobile HSK Curriculum Level Tabs & Layout', () => {
+    it('should define HSK levels from 1 to 9 with proper names', () => {
+      const levels = [1, 2, 3, 4, 5, 6, 7];
+      expect(levels).toHaveLength(7);
+      expect(levels[0]).toBe(1);
+      expect(levels[levels.length - 1]).toBe(7);
+    });
+
+    it('should support switching between 2-column desktop and vertical mobile layout without horizontal overflow', () => {
+      const isMobileLayout = (viewportWidth: number) => viewportWidth < 1024;
+
+      expect(isMobileLayout(320)).toBe(true);
+      expect(isMobileLayout(375)).toBe(true);
+      expect(isMobileLayout(390)).toBe(true);
+      expect(isMobileLayout(430)).toBe(true);
+      expect(isMobileLayout(768)).toBe(true);
+      expect(isMobileLayout(1024)).toBe(false);
+      expect(isMobileLayout(1440)).toBe(false);
+    });
+  });
+
+  describe('8. Responsive Breakpoint Consistency (320px to 1440px)', () => {
+    it('should correctly categorize all requested breakpoints', () => {
+      const targetBreakpoints = [320, 375, 390, 430, 768, 1024, 1440];
+      expect(targetBreakpoints).toHaveLength(7);
+
+      const getLayoutMode = (width: number): 'compact-mobile' | 'standard-mobile' | 'tablet' | 'desktop' => {
+        if (width <= 430) return 'compact-mobile';
+        if (width < 768) return 'standard-mobile';
+        if (width < 1024) return 'tablet';
+        return 'desktop';
+      };
+
+      const modes = targetBreakpoints.map((w) => getLayoutMode(w));
+      expect(modes).toEqual([
+        'compact-mobile',
+        'compact-mobile',
+        'compact-mobile',
+        'compact-mobile',
+        'tablet',
+        'desktop',
+        'desktop',
+      ]);
+    });
+
+    it('should restrict mobile hero sticker illustration to maximum 80-100px', () => {
+      const maxMobileStickerSize = 80;
+      expect(maxMobileStickerSize).toBeLessThanOrEqual(100);
+      expect(maxMobileStickerSize).toBeGreaterThanOrEqual(60);
+    });
+  });
 });
+

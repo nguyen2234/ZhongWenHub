@@ -31,7 +31,16 @@ export const MOBILE_BOTTOM_NAV_ITEMS: BottomNavItem[] = [
     label: 'Học HSK',
     path: '/learning-path',
     icon: BookOpen,
-    matchPrefixes: ['/learning-path', '/lesson', '/grammar', '/skills'],
+    matchPrefixes: [
+      '/learning-path',
+      '/lesson',
+      '/grammar',
+      '/skills',
+      '/vocabulary',
+      '/practice',
+      '/mock-exams',
+      '/games',
+    ],
   },
   {
     id: 'video',

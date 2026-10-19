@@ -280,3 +280,10 @@
     animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
+
+@media (max-width: 640px) {
+  .lesson-toc-mobile-trigger {
+    margin: -16px -14px 20px !important;
+  }
+}
+

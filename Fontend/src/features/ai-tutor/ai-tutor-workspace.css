@@ -11,8 +11,8 @@
 
 .ai-chat-root-container {
   display: flex;
-  height: calc(100vh - 140px);
-  min-height: 520px;
+  height: calc(100dvh - 140px);
+  min-height: 480px;
   background-color: var(--surface);
   border-radius: var(--radius-2xl);
   border: 1px solid var(--border);
@@ -85,7 +85,7 @@
 
 @media (max-width: 768px) {
   .ai-chat-root-container {
-    height: calc(100vh - 150px);
+    height: calc(100dvh - 140px);
     border-radius: var(--radius-xl);
   }
 
@@ -142,3 +142,17 @@
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px;
   }
 }
+
+.ai-chat-live-btn-short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .ai-chat-live-btn-full {
+    display: none !important;
+  }
+  .ai-chat-live-btn-short {
+    display: inline !important;
+  }
+}
+

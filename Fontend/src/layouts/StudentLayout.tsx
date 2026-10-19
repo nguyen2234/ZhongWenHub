@@ -547,6 +547,7 @@ export const StudentLayout: React.FC = () => {
           {/* Quick Management Switch */}
           <Link
             to="/management/admin/dashboard"
+            className="header-admin-link"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -737,6 +738,9 @@ export const StudentLayout: React.FC = () => {
             border-right: none !important;
             padding: 0 8px 0 12px !important;
           }
+          .header-admin-link {
+            display: none !important;
+          }
           .header-admin-text {
             display: none !important;
           }
@@ -747,10 +751,10 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .student-main-viewport {
-            padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+            padding-bottom: 24px !important;
           }
           .student-footer {
-            margin-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+            margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
           }
         }
 
@@ -761,12 +765,18 @@ export const StudentLayout: React.FC = () => {
           .header-search-compact {
             display: inline-flex !important;
           }
-          .header-brand-title span:last-child {
+          .header-brand-title {
+            display: none !important;
+          }
+          .header-pinyin-btn {
+            display: none !important;
+          }
+          .header-hsk-badge {
             display: none !important;
           }
           .header-right-actions {
             gap: 6px !important;
-            padding-right: 10px !important;
+            padding-right: 8px !important;
           }
           .footer-viewing-text {
             display: none !important;
@@ -774,17 +784,17 @@ export const StudentLayout: React.FC = () => {
         }
 
         @media (max-width: 480px) {
-          .header-brand-title {
-            display: none !important;
-          }
-          .header-pinyin-btn {
+          .header-xp-pill {
             display: none !important;
           }
         }
 
         @media (max-width: 360px) {
-          .header-hsk-badge {
+          .header-streak-label {
             display: none !important;
+          }
+          .header-streak-pill {
+            padding: 4px 6px !important;
           }
         }
       `}</style>

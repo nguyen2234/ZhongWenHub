@@ -34,13 +34,13 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
+    <div className="student-content-container profile-page-root" style={{ maxWidth: '960px' }}>
       {/* Banner */}
       <div
+        className="profile-banner-card"
         style={{
           background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
           borderRadius: '20px',
-          padding: '28px 32px',
           color: '#ffffff',
           marginBottom: '28px',
           display: 'flex',
@@ -91,7 +91,7 @@ export const ProfilePage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))',
             gap: '12px',
           }}
         >
@@ -159,11 +159,11 @@ export const ProfilePage: React.FC = () => {
 
       {/* Main Settings Card */}
       <div
+        className="profile-settings-card"
         style={{
           backgroundColor: '#ffffff',
           borderRadius: '20px',
           border: '1.5px solid #e2e8f0',
-          padding: '28px',
           display: 'flex',
           flexDirection: 'column',
           gap: '24px',
@@ -173,7 +173,7 @@ export const ProfilePage: React.FC = () => {
           Thông tin Cá nhân & Mục tiêu Học tập
         </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '20px' }}>
           {/* Full Name */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
@@ -295,6 +295,22 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
       </div>
+      <style>{`
+        .profile-banner-card {
+          padding: 28px 32px;
+        }
+        .profile-settings-card {
+          padding: 28px;
+        }
+        @media (max-width: 640px) {
+          .profile-banner-card {
+            padding: 20px 16px !important;
+          }
+          .profile-settings-card {
+            padding: 18px 14px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

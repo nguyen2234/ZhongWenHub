@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 20_sticker_chibi_ao_dai_trang/
 *.zip
+scratch/
+test-results/
+playwright-report/

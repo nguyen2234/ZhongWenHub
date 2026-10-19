@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Languages,
@@ -89,6 +89,26 @@ export const LessonTableOfContents: React.FC<LessonTableOfContentsProps> = ({
   };
 
   const activeItem = items.find((i) => i.id === activeSectionId) || items[0];
+
+  // Handle Escape key and lock body scroll on mobile bottom sheet
+  useEffect(() => {
+    if (!isMobileModalOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileModalOpen(false);
+      }
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMobileModalOpen]);
 
   return (
     <>
