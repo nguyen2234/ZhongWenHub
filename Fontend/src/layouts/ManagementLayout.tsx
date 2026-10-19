@@ -34,7 +34,6 @@ export const ManagementLayout: React.FC = () => {
   // Mobile drawer open state (< 1024px)
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-
   // Handle window resizing
   useEffect(() => {
     const handleResize = () => {
@@ -76,8 +75,8 @@ export const ManagementLayout: React.FC = () => {
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.4)',
-            backdropFilter: 'blur(2px)',
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(3px)',
             zIndex: 49,
             transition: 'opacity 0.2s ease',
           }}
@@ -112,15 +111,16 @@ export const ManagementLayout: React.FC = () => {
           onMobileToggle={() => setIsMobileOpen((prev) => !prev)}
         />
 
-        {/* Content Viewport with Breathing Room */}
+        {/* Content Viewport */}
         <main
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: 'clamp(20px, 3vw, 32px)',
-            maxWidth: '1600px',
+            padding: 'clamp(16px, 2.5vw, 28px)',
             width: '100%',
+            maxWidth: '1680px',
             margin: '0 auto',
+            boxSizing: 'border-box',
           }}
         >
           <Outlet />

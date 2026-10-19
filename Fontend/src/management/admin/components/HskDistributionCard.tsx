@@ -5,6 +5,16 @@ export interface HskDistributionCardProps {
   distribution: HskDistributionItem[];
 }
 
+const HSK_COLORS: Record<string, string> = {
+  'hsk-1': 'var(--hsk1, #0284c7)',
+  'hsk-2': 'var(--hsk2, #0d9488)',
+  'hsk-3': 'var(--hsk3, #059669)',
+  'hsk-4': 'var(--hsk4, #d97706)',
+  'hsk-5': 'var(--hsk5, #ea580c)',
+  'hsk-6': 'var(--hsk6, #be123c)',
+  'hsk-7-9': 'var(--hsk7-9, #4f46e5)',
+};
+
 export const HskDistributionCard: React.FC<HskDistributionCardProps> = ({ distribution }) => {
   const totalLearners = distribution.reduce((acc, curr) => acc + curr.learnerCount, 0);
 
@@ -22,7 +32,7 @@ export const HskDistributionCard: React.FC<HskDistributionCardProps> = ({ distri
         <span
           style={{
             fontSize: '11px',
-            fontWeight: 600,
+            fontWeight: 700,
             padding: '2px 8px',
             borderRadius: 'var(--radius-full)',
             backgroundColor: 'var(--primary-light)',
@@ -35,6 +45,8 @@ export const HskDistributionCard: React.FC<HskDistributionCardProps> = ({ distri
 
       <div className="hsk-list-container">
         {distribution.map((item) => {
+          const barColor = HSK_COLORS[item.levelId] || item.colorVar || 'var(--primary)';
+
           return (
             <div key={item.levelId} className="hsk-item-row">
               <div className="hsk-item-info">
@@ -58,7 +70,7 @@ export const HskDistributionCard: React.FC<HskDistributionCardProps> = ({ distri
                   className="hsk-progress-bar"
                   style={{
                     width: `${Math.min(100, Math.max(1, item.percentage))}%`,
-                    backgroundColor: item.colorVar || 'var(--primary)',
+                    backgroundColor: barColor,
                   }}
                 />
               </div>
@@ -71,16 +83,18 @@ export const HskDistributionCard: React.FC<HskDistributionCardProps> = ({ distri
         style={{
           marginTop: 'var(--space-4)',
           paddingTop: 'var(--space-3)',
-          borderTop: '1px solid var(--border-subtle)',
+          borderTop: '1px solid var(--border-strong)',
           fontSize: '11px',
           color: 'var(--muted)',
           display: 'flex',
           justifyContent: 'space-between',
         }}
       >
-        <span>Phổ cập cao nhất: <strong>HSK 1 - HSK 2 (55%)</strong></span>
-        <span>Chuẩn mới HSK 3.0</span>
+        <span>Tỷ trọng lớn nhất: <strong>HSK 1 - HSK 2 (55%)</strong></span>
+        <span>Chuẩn quốc tế HSK 3.0</span>
       </div>
     </div>
   );
 };
+
+export default HskDistributionCard;

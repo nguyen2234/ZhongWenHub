@@ -1,3 +1,4 @@
+// @ts-ignore
 import { describe, it, expect } from 'bun:test';
 import { GrammarService } from '../features/grammar/services/grammar.service';
 import { MOCK_GRAMMAR_POINTS } from '../features/grammar/mock/mockGrammarData';
@@ -138,7 +139,6 @@ describe('FE-9: Practice & Grammar UX Redesign Suite', () => {
     it('should correctly evaluate matching answers normalizing punctuation and spaces', () => {
       const point = GrammarService.getGrammarById('g-hsk1-01');
       expect(point).toBeDefined();
-      const standard = point!.practice!.standardAnswer; // '我是汉语老师。'
 
       // Helper function matching GrammarPage evaluator
       const evaluate = (userInput: string, targetPoint: typeof point) => {

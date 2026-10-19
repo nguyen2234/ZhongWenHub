@@ -1,4 +1,4 @@
-﻿name: Deploy ZhongWenHub Frontend
+name: Deploy ZhongWenHub Frontend
 
 on:
   push:
@@ -45,6 +45,8 @@ jobs:
           bun run src/tests/student-runner.test.ts
           bun run src/tests/integration-foundation.test.ts
           bun run src/tests/ai-workspace.test.ts
+          bun test src/tests/fe-9-practice-grammar-ux.test.ts
+          bun test src/tests/fe-10-admin-web-console.test.ts
 
       - name: Build production bundle
         run: bun run build
