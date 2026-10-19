@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, BookOpen } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
@@ -18,6 +19,7 @@ import type {
 import '../components/learning-content.css';
 
 export const AdminCurriculumPage: React.FC = () => {
+  const navigate = useNavigate();
   const [dataVersion, setDataVersion] = useState(0);
 
   // 1. Courses
@@ -136,13 +138,37 @@ export const AdminCurriculumPage: React.FC = () => {
         title="Giáo trình & Bài học"
         subtitle="Cấu trúc phân cấp khóa học, đơn vị bài học (Units) và bài giảng chi tiết (Lessons)."
         actions={
-          <button
-            type="button"
-            className="ds-btn ds-btn-primary ds-btn-sm"
-            onClick={handleOpenAddUnit}
-          >
-            <Plus size={14} /> Thêm Unit mới
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <button
+              type="button"
+              className="ds-btn ds-btn-secondary ds-btn-sm"
+              onClick={() => {
+                const hskNum = selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1';
+                navigate(`/management/admin/grammar?hsk=${hskNum}`);
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span>Ngữ pháp khóa học</span>
+            </button>
+            <button
+              type="button"
+              className="ds-btn ds-btn-secondary ds-btn-sm"
+              onClick={() => {
+                const hskNum = selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1';
+                navigate(`/management/admin/exercises?hsk=${hskNum}`);
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span>Kho bài tập</span>
+            </button>
+            <button
+              type="button"
+              className="ds-btn ds-btn-primary ds-btn-sm"
+              onClick={handleOpenAddUnit}
+            >
+              <Plus size={14} /> Thêm Unit mới
+            </button>
+          </div>
         }
       />
 

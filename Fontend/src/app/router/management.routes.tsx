@@ -19,6 +19,8 @@ import { AdminRolesPage } from '../../management/admin/roles/pages/AdminRolesPag
 import { AdminHskRepositoryPage } from '../../management/admin/content/pages/AdminHskRepositoryPage';
 import { AdminCurriculumPage } from '../../management/admin/content/pages/AdminCurriculumPage';
 import { AdminLessonEditorPage } from '../../management/admin/content/pages/AdminLessonEditorPage';
+import { AdminGrammarManagementPage } from '../../management/admin/content/pages/AdminGrammarManagementPage';
+import { AdminExerciseBankPage } from '../../management/admin/content/pages/AdminExerciseBankPage';
 
 export const managementRoutes: RouteObject[] = [
   {
@@ -73,11 +75,11 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'grammar',
-            element: <AdminModulePlannedPage moduleKey="grammar" />,
+            element: <AdminGrammarManagementPage />,
           },
           {
             path: 'exercises',
-            element: <AdminModulePlannedPage moduleKey="exercises" />,
+            element: <AdminExerciseBankPage />,
           },
           {
             path: 'videos',

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Eye, Edit3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Eye, Edit3, ExternalLink } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import type { ContentStatus, GrammarPoint, HskLevel } from '../types';
 
@@ -16,6 +17,7 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
   selectedLevelId,
   onSelectGrammar,
 }) => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ContentStatus>('ALL');
 
@@ -86,6 +88,27 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
             <option value="DRAFT">Bản nháp</option>
           </select>
         </div>
+
+        <button
+          type="button"
+          className="ds-btn ds-btn-secondary"
+          onClick={() => {
+            const hskParam = selectedLevelId === 'ALL' ? '' : `?hsk=${selectedLevelId.replace('level-hsk-', '')}`;
+            navigate(`/management/admin/grammar${hskParam}`);
+          }}
+          style={{
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: 'var(--text-xs)',
+            flexShrink: 0,
+          }}
+          title="Mở Bảng Quản lý Ngữ pháp chuyên biệt (HSK 1 - 6)"
+        >
+          <ExternalLink size={14} color="var(--primary)" />
+          <span>Mở Quản lý Ngữ pháp (HSK 1 - 6)</span>
+        </button>
       </div>
 
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
