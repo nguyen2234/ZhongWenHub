@@ -7,73 +7,35 @@ interface QuickPracticeCardProps {
 
 export const QuickPracticeCard: React.FC<QuickPracticeCardProps> = ({ onStart }) => {
   return (
-    <div
-      style={{
-        borderRadius: 'var(--radius-2xl)',
-        backgroundColor: 'var(--surface)',
-        border: '1.5px solid var(--border)',
-        padding: 'var(--space-5)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        gap: 'var(--space-3)',
-        boxShadow: '0 4px 14px rgba(0,0,0,0.02)',
-      }}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'rgba(245, 158, 11, 0.12)',
-              color: 'var(--warning)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Zap size={18} />
+    <article className="practice-action-card" aria-label="Luyện nhanh 5 phút">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="practice-action-card-top">
+          <div className="practice-action-card-icon quick">
+            <Zap size={20} />
           </div>
           <div>
-            <h4 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--foreground)' }}>
-              Luyện nhanh 5 phút
-            </h4>
-            <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
-              ⚡ 10 câu ngẫu nhiên từ kiến thức đã học
+            <h3 className="practice-action-card-title">Luyện nhanh 5 phút</h3>
+            <span className="practice-action-card-subtitle">
+              ⚡ 10 câu ngẫu nhiên tổng hợp phản xạ
             </span>
           </div>
         </div>
 
-        <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--muted)', lineHeight: 1.4 }}>
-          Hệ thống tự động lọc các từ từng trả lời sai, ngữ pháp chưa vững và từ vựng đang học để ôn tập cấp tốc.
+        <p className="practice-action-card-desc">
+          Hệ thống chọn ngẫu nhiên các câu hỏi từ vựng, ngữ pháp và đặt câu đã học để rèn luyện phản xạ nhanh mà không gây áp lực điểm số.
         </p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 'var(--space-2)' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '4px' }}>
         <button
           type="button"
+          className="practice-btn-outline"
           onClick={onStart}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 18px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--surface)',
-            border: '1.5px solid var(--border)',
-            color: 'var(--foreground)',
-            fontSize: 'var(--text-xs)',
-            fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
         >
-          <span>BẮT ĐẦU 5 PHÚT</span>
-          <ArrowRight size={14} />
+          <span>Bắt đầu ngay</span>
+          <ArrowRight size={15} />
         </button>
       </div>
-    </div>
+    </article>
   );
 };

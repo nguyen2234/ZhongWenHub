@@ -1,0 +1,808 @@
+/* =========================================================================
+   GRAMMAR LIBRARY (FE-9 Modern EdTech - Option A: Search & Accordion Focus)
+   Palette: Viettel Red #E60012, Surface #FFFFFF, Background #F8FAFC
+   ========================================================================= */
+
+.grammar-page-container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  padding-bottom: 96px; /* Clearance for StudentBottomNav on mobile */
+  box-sizing: border-box;
+}
+
+/* 1. Header (Clean, inspiring, no tall purple banner) */
+.grammar-header {
+  display: flex;
+  justifyContent: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-4, 16px);
+  padding: var(--space-5, 20px) var(--space-6, 24px);
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-2xl, 20px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.grammar-header-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--primary-light, #fee2e2);
+  color: var(--primary, #e60012);
+  padding: 4px 12px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.grammar-header-title {
+  margin: 0 0 6px 0;
+  font-size: var(--text-2xl, 24px);
+  font-weight: 800;
+  color: var(--foreground, #0f172a);
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.grammar-header-title-hanzi {
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  font-size: var(--text-lg, 18px);
+  font-weight: 700;
+  color: var(--primary, #e60012);
+}
+
+.grammar-header-subtitle {
+  margin: 0;
+  font-size: var(--text-sm, 14px);
+  color: var(--muted, #64748b);
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+.grammar-header-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.grammar-stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  background-color: var(--background, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-xl, 14px);
+  min-width: 72px;
+}
+
+.grammar-stat-chip-number {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary, #e60012);
+  line-height: 1.1;
+}
+
+.grammar-stat-chip-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted, #64748b);
+  margin-top: 2px;
+}
+
+/* 2. Search & Filter Bar */
+.grammar-filter-card {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-2xl, 20px);
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.grammar-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.grammar-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #94a3b8);
+  pointer-events: none;
+}
+
+.grammar-search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 42px 0 42px;
+  border-radius: var(--radius-xl, 14px);
+  border: 1px solid var(--border, #cbd5e1);
+  background-color: var(--background, #f8fafc);
+  color: var(--foreground, #0f172a);
+  font-size: var(--text-sm, 14px);
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.grammar-search-input:focus {
+  border-color: var(--primary, #e60012);
+  background-color: var(--surface, #ffffff);
+  box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.12);
+}
+
+.grammar-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted, #94a3b8);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.grammar-search-clear:hover {
+  color: var(--foreground, #0f172a);
+  background-color: var(--border, #e2e8f0);
+}
+
+/* Filter Rows */
+.grammar-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grammar-filter-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+  min-width: 64px;
+}
+
+.grammar-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+
+.grammar-pill {
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full, 9999px);
+  border: 1px solid var(--border, #cbd5e1);
+  background-color: var(--surface, #ffffff);
+  color: var(--foreground, #334155);
+  font-size: var(--text-xs, 12px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grammar-pill:hover {
+  border-color: var(--primary, #e60012);
+  color: var(--primary, #e60012);
+}
+
+.grammar-pill.active {
+  background-color: var(--primary, #e60012);
+  border-color: var(--primary, #e60012);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.grammar-filter-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border, #e2e8f0);
+  font-size: var(--text-xs, 12px);
+  color: var(--muted, #64748b);
+}
+
+.grammar-reset-btn {
+  background: none;
+  border: none;
+  color: var(--primary, #e60012);
+  font-size: var(--text-xs, 12px);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-md, 6px);
+}
+
+.grammar-reset-btn:hover {
+  text-decoration: underline;
+  background-color: var(--primary-light, #fee2e2);
+}
+
+/* 3. Grammar Point Accordion Cards */
+.grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.grammar-card {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-2xl, 20px);
+  overflow: hidden;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+.grammar-card.expanded {
+  border-color: rgba(230, 0, 18, 0.35);
+  box-shadow: 0 4px 16px rgba(230, 0, 18, 0.06);
+}
+
+.grammar-card-header {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.grammar-card-header:hover {
+  background-color: var(--background, #f8fafc);
+}
+
+.grammar-card-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grammar-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grammar-badge-hsk {
+  background-color: #0284c7;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.grammar-badge-category {
+  background-color: var(--background, #f1f5f9);
+  color: var(--muted, #475569);
+  border: 1px solid var(--border, #cbd5e1);
+  padding: 2px 8px;
+  border-radius: var(--radius-md, 6px);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.grammar-badge-diff {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-md, 6px);
+}
+
+.grammar-badge-diff.de {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.grammar-badge-diff.trung-binh {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.grammar-badge-diff.kha {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+.grammar-card-title {
+  margin: 0;
+  font-size: var(--text-base, 16px);
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+}
+
+.grammar-card-pinyin-title {
+  font-size: var(--text-xs, 12px);
+  color: var(--muted, #64748b);
+  font-weight: 500;
+}
+
+.grammar-card-chevron {
+  color: var(--muted, #94a3b8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+/* Expanded Card Content */
+.grammar-card-body {
+  padding: 0 20px 20px 20px;
+  border-top: 1px solid var(--border, #f1f5f9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.grammar-formula-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--primary, #e60012);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grammar-formula-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary, #e60012);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grammar-formula-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  line-height: 1.4;
+}
+
+.grammar-explanation-box {
+  font-size: var(--text-sm, 14px);
+  line-height: 1.6;
+  color: var(--foreground, #334155);
+}
+
+/* Examples Section */
+.grammar-examples-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grammar-examples-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grammar-example-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-xl, 14px);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.grammar-example-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grammar-example-hanzi {
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  letter-spacing: 0.5px;
+}
+
+.grammar-example-pinyin {
+  font-size: 13px;
+  color: #0284c7;
+  font-weight: 500;
+}
+
+.grammar-example-vietnamese {
+  font-size: 13px;
+  color: var(--muted, #475569);
+}
+
+.grammar-audio-btn {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background-color: var(--background, #f8fafc);
+  color: var(--primary, #e60012);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.grammar-audio-btn:hover {
+  background-color: var(--primary-light, #fee2e2);
+  border-color: var(--primary, #e60012);
+}
+
+.grammar-usage-note {
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: var(--radius-lg, 12px);
+  padding: 10px 14px;
+  font-size: var(--text-xs, 12px);
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.grammar-action-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+
+.grammar-practice-btn {
+  min-height: 44px;
+  padding: 0 20px;
+  background-color: var(--primary, #e60012);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-xl, 14px);
+  font-size: var(--text-sm, 14px);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.grammar-practice-btn:hover {
+  background-color: #cc0010;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.25);
+}
+
+/* 4. Empty State */
+.grammar-empty-state {
+  background-color: var(--surface, #ffffff);
+  border: 1.5px dashed var(--border, #cbd5e1);
+  border-radius: var(--radius-2xl, 20px);
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.grammar-empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--muted, #94a3b8);
+}
+
+.grammar-empty-title {
+  margin: 0;
+  font-size: var(--text-base, 16px);
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+}
+
+.grammar-empty-desc {
+  margin: 0;
+  font-size: var(--text-sm, 14px);
+  color: var(--muted, #64748b);
+  max-width: 400px;
+}
+
+/* 5. Grammar Practice Modal */
+.grammar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.grammar-modal-dialog {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--surface, #ffffff);
+  border-radius: var(--radius-2xl, 24px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.grammar-modal-header {
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.grammar-modal-title {
+  margin: 0;
+  font-size: var(--text-lg, 18px);
+  font-weight: 800;
+  color: var(--foreground, #0f172a);
+}
+
+.grammar-modal-subtitle {
+  font-size: var(--text-xs, 12px);
+  color: var(--muted, #64748b);
+}
+
+.grammar-modal-close {
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  color: var(--muted, #64748b);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grammar-modal-close:hover {
+  background-color: var(--background, #f1f5f9);
+  color: var(--foreground, #0f172a);
+}
+
+.grammar-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.grammar-practice-prompt {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  line-height: 1.5;
+}
+
+.grammar-scramble-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--background, #f8fafc);
+  border: 1px dashed var(--border, #cbd5e1);
+  border-radius: var(--radius-xl, 14px);
+}
+
+.grammar-word-token {
+  min-height: 38px;
+  padding: 6px 14px;
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: var(--radius-lg, 10px);
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.grammar-word-token:hover {
+  border-color: var(--primary, #e60012);
+  color: var(--primary, #e60012);
+  background-color: var(--primary-light, #fee2e2);
+}
+
+.grammar-practice-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 16px;
+  border-radius: var(--radius-xl, 14px);
+  border: 1.5px solid var(--border, #cbd5e1);
+  font-size: 16px;
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  color: var(--foreground, #0f172a);
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.grammar-practice-input:focus {
+  border-color: var(--primary, #e60012);
+  box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.12);
+}
+
+/* Practice Evaluation Box */
+.grammar-result-box {
+  padding: 16px;
+  border-radius: var(--radius-xl, 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.grammar-result-box.correct {
+  background-color: #f0fdf4;
+  border: 1.5px solid #86efac;
+}
+
+.grammar-result-box.incorrect {
+  background-color: #fef2f2;
+  border: 1.5px solid #fca5a5;
+}
+
+.grammar-result-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.grammar-result-box.correct .grammar-result-header {
+  color: #15803d;
+}
+
+.grammar-result-box.incorrect .grammar-result-header {
+  color: #b91c1c;
+}
+
+.grammar-comparison-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #334155;
+  background-color: #ffffff;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.grammar-comparison-label {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted, #64748b);
+}
+
+.grammar-comparison-hanzi {
+  font-family: var(--font-hanzi, 'Noto Sans SC', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+}
+
+.grammar-audit-disclaimer {
+  font-size: 11px;
+  color: var(--muted, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.grammar-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* =========================================================================
+   RESPONSIVE OPTIMIZATIONS (320px - 768px - 1440px)
+   ========================================================================= */
+
+@media (max-width: 640px) {
+  .grammar-header {
+    padding: 16px;
+  }
+
+  .grammar-header-title {
+    font-size: 20px;
+  }
+
+  .grammar-header-stats {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .grammar-filter-card {
+    padding: 14px;
+  }
+
+  .grammar-card-header {
+    padding: 14px 16px;
+  }
+
+  .grammar-card-body {
+    padding: 0 16px 16px 16px;
+  }
+
+  .grammar-formula-text {
+    font-size: 13px;
+  }
+
+  .grammar-example-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grammar-example-hanzi {
+    font-size: 16px;
+  }
+
+  .grammar-modal-dialog {
+    border-radius: 20px 20px 0 0;
+    max-height: 95vh;
+  }
+
+  .grammar-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+}

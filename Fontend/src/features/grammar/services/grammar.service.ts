@@ -26,7 +26,15 @@ export class GrammarService {
           item.title.toLowerCase().includes(q) ||
           item.pinyinTitle.toLowerCase().includes(q) ||
           item.structure.toLowerCase().includes(q) ||
-          item.explanation.toLowerCase().includes(q)
+          item.explanation.toLowerCase().includes(q) ||
+          (item.practice?.prompt && item.practice.prompt.toLowerCase().includes(q)) ||
+          (item.practice?.standardAnswer && item.practice.standardAnswer.toLowerCase().includes(q)) ||
+          item.examples.some(
+            (ex) =>
+              ex.chinese.toLowerCase().includes(q) ||
+              ex.pinyin.toLowerCase().includes(q) ||
+              ex.vietnamese.toLowerCase().includes(q)
+          )
       );
     }
 
@@ -35,5 +43,11 @@ export class GrammarService {
 
   static getGrammarById(id: string): GrammarPoint | undefined {
     return MOCK_GRAMMAR_POINTS.find((item) => item.id === id);
+  }
+
+  static getAvailableCategories(): string[] {
+    const categories = new Set<string>();
+    MOCK_GRAMMAR_POINTS.forEach((pt) => categories.add(pt.category));
+    return Array.from(categories);
   }
 }

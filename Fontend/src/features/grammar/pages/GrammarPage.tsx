@@ -1,26 +1,55 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   BookText,
   Search,
   Volume2,
   ChevronDown,
   ChevronUp,
-  Sparkles,
-  BookOpen,
-  Filter,
-  CheckCircle,
+  X,
+  RotateCcw,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  Play,
 } from 'lucide-react';
 import { GrammarService } from '../services/grammar.service';
 import type { GrammarPoint } from '../types/grammar.types';
+import '../grammar-page.css';
 
 export const GrammarPage: React.FC = () => {
   const [selectedHsk, setSelectedHsk] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>('g-hsk1-01');
+
+  // Practice Modal State
   const [practicingPoint, setPracticingPoint] = useState<GrammarPoint | null>(null);
   const [practiceAnswer, setPracticeAnswer] = useState<string>('');
   const [isPracticeSubmitted, setIsPracticeSubmitted] = useState(false);
+  const [practiceIsCorrect, setPracticeIsCorrect] = useState(false);
+
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Categories list
+  const categories = [
+    { id: 'all', label: 'Tất cả' },
+    { id: 'cơ bản', label: 'Cơ bản' },
+    { id: 'câu chữ', label: 'Câu chữ' },
+    { id: 'trợ từ', label: 'Trợ từ' },
+    { id: 'liên từ', label: 'Liên từ' },
+    { id: 'bổ ngữ', label: 'Bổ ngữ' },
+    { id: 'phó từ', label: 'Phó từ' },
+  ];
+
+  const hskLevels = [
+    { label: 'Tất cả', val: null },
+    { label: 'HSK 1', val: 1 },
+    { label: 'HSK 2', val: 2 },
+    { label: 'HSK 3', val: 3 },
+    { label: 'HSK 4', val: 4 },
+    { label: 'HSK 5', val: 5 },
+    { label: 'HSK 6', val: 6 },
+  ];
 
   const points = useMemo(() => {
     return GrammarService.getGrammarPoints({
@@ -30,6 +59,7 @@ export const GrammarPage: React.FC = () => {
     });
   }, [selectedHsk, selectedCategory, searchQuery]);
 
+  // Audio Speech Synthesis
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -40,475 +70,492 @@ export const GrammarPage: React.FC = () => {
     }
   };
 
+  const handleToggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleResetFilters = () => {
+    setSelectedHsk(null);
+    setSelectedCategory('all');
+    setSearchQuery('');
+  };
+
+  // Open Practice Modal
   const handleStartPractice = (point: GrammarPoint) => {
     setPracticingPoint(point);
     setPracticeAnswer('');
     setIsPracticeSubmitted(false);
+    setPracticeIsCorrect(false);
   };
 
+  // Close Practice Modal & restore scroll
+  const handleClosePractice = () => {
+    setPracticingPoint(null);
+    setPracticeAnswer('');
+    setIsPracticeSubmitted(false);
+    setPracticeIsCorrect(false);
+  };
+
+  // Handle Practice Evaluation
+  const handleSubmitPractice = () => {
+    if (!practicingPoint || !practiceAnswer.trim()) return;
+
+    const normalizedUser = practiceAnswer
+      .replace(/[.,!?。！？\s]/g, '')
+      .toLowerCase();
+
+    const standard = (
+      practicingPoint.practice?.standardAnswer ||
+      practicingPoint.examples[0]?.chinese ||
+      ''
+    )
+      .replace(/[.,!?。！？\s]/g, '')
+      .toLowerCase();
+
+    const acceptable = (practicingPoint.practice?.acceptableAnswers || []).map((ans) =>
+      ans.replace(/[.,!?。！？\s]/g, '').toLowerCase()
+    );
+
+    const isMatch = normalizedUser === standard || acceptable.includes(normalizedUser);
+
+    setPracticeIsCorrect(isMatch);
+    setIsPracticeSubmitted(true);
+  };
+
+  // Append clicked token to answer input
+  const handleAddWordToken = (token: string) => {
+    setPracticeAnswer((prev) => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed}${token}` : token;
+    });
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // Handle Escape key & Scroll lock for Modal
+  useEffect(() => {
+    if (practicingPoint) {
+      document.body.style.overflow = 'hidden';
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleClosePractice();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = 'auto';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  }, [practicingPoint]);
+
   return (
-    <div className="student-content-container">
-      {/* Header Banner */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #4338ca 0%, #312e81 100%)',
-          borderRadius: '20px',
-          padding: '28px 32px',
-          color: '#ffffff',
-          boxShadow: '0 8px 24px rgba(67, 56, 202, 0.18)',
-          marginBottom: '28px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '20px',
-        }}
-      >
+    <div className="grammar-page-container">
+      {/* 1. Header (Clean, inspiring, no tall purple banner) */}
+      <header className="grammar-header">
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, marginBottom: '8px' }}>
-            <BookText size={14} />
-            <span>KHO NGỮ PHÁP TIẾNG TRUNG CHUẨN HSK</span>
+          <div className="grammar-header-brand-badge">
+            <BookText size={13} />
+            <span>KHO NGỮ PHÁP TIẾNG TRUNG · HSK 1–6</span>
           </div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '26px', fontWeight: 800 }}>
-            Hệ thống Cấu trúc Ngữ pháp HSK 1 → 6
+          <h1 className="grammar-header-title">
+            Khám phá ngữ pháp
+            <span className="grammar-header-title-hanzi">语法库</span>
           </h1>
-          <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, maxWidth: '640px', lineHeight: 1.5 }}>
-            Tra cứu cấu trúc, phân tích ví dụ song ngữ, luyện nghe phát âm chuẩn và thực hành vận dụng các mẫu câu thông dụng nhất.
+          <p className="grammar-header-subtitle">
+            Hệ thống hóa cấu trúc ngữ pháp chuẩn HSK 1 đến 6. Nắm chắc công thức trực quan, ví dụ song ngữ, luyện nghe phát âm và thực hành đặt câu chuẩn xác.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', padding: '12px 20px', borderRadius: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800 }}>{points.length}</div>
-            <div style={{ fontSize: '11px', opacity: 0.8 }}>Điểm ngữ pháp</div>
+        <div className="grammar-header-stats">
+          <div className="grammar-stat-chip">
+            <span className="grammar-stat-chip-number">{points.length}</span>
+            <span className="grammar-stat-chip-label">Điểm ngữ pháp</span>
           </div>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', padding: '12px 20px', borderRadius: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800 }}>HSK 1–3</div>
-            <div style={{ fontSize: '11px', opacity: 0.8 }}>Trọng tâm</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter & Search Bar */}
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '16px',
-          border: '1.5px solid #e2e8f0',
-          padding: '16px 20px',
-          marginBottom: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Search Input */}
-          <div style={{ position: 'relative', flex: 1, minWidth: '260px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-            <input
-              type="text"
-              placeholder="Tìm kiếm ngữ pháp, cấu trúc, từ khóa (shì, bǐ, 把, trợ từ)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                height: '42px',
-                padding: '0 16px 0 40px',
-                borderRadius: '10px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          {/* HSK Level Pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', marginRight: '4px' }}>Cấp độ:</span>
-            {[
-              { label: 'Tất cả', val: null },
-              { label: 'HSK 1', val: 1 },
-              { label: 'HSK 2', val: 2 },
-              { label: 'HSK 3', val: 3 },
-            ].map((btn) => (
-              <button
-                key={String(btn.val)}
-                type="button"
-                onClick={() => setSelectedHsk(btn.val)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '9999px',
-                  fontSize: '12px',
-                  fontWeight: selectedHsk === btn.val ? 700 : 500,
-                  border: selectedHsk === btn.val ? '1.5px solid #4338ca' : '1px solid #e2e8f0',
-                  backgroundColor: selectedHsk === btn.val ? '#eef2ff' : '#ffffff',
-                  color: selectedHsk === btn.val ? '#4338ca' : '#475569',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {btn.label}
-              </button>
-            ))}
+          <div className="grammar-stat-chip">
+            <span className="grammar-stat-chip-number">HSK 1-6</span>
+            <span className="grammar-stat-chip-label">Cấp độ</span>
           </div>
         </div>
+      </header>
 
-        {/* Categories */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-          <Filter size={14} style={{ color: '#94a3b8' }} />
-          <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Nhóm ngữ pháp:</span>
-          {[
-            { id: 'all', label: 'Tất cả nhóm' },
-            { id: 'cơ bản', label: 'Cơ bản' },
-            { id: 'câu chữ', label: 'Câu chữ đặc biệt' },
-            { id: 'trợ từ', label: 'Trợ từ' },
-            { id: 'liên từ', label: 'Liên từ' },
-          ].map((cat) => (
+      {/* 2. Search & Filter Bar */}
+      <section className="grammar-filter-card" aria-label="Bộ lọc và tìm kiếm ngữ pháp">
+        {/* Search Input */}
+        <div className="grammar-search-wrapper">
+          <Search size={18} className="grammar-search-icon" />
+          <input
+            type="text"
+            className="grammar-search-input"
+            placeholder="Tìm kiếm theo chữ Hán, Pinyin, cấu trúc (shì, bǐ, 把, trợ từ)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Tìm kiếm ngữ pháp"
+          />
+          {searchQuery && (
             <button
-              key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: selectedCategory === cat.id ? 700 : 500,
-                border: 'none',
-                backgroundColor: selectedCategory === cat.id ? '#4338ca' : '#f1f5f9',
-                color: selectedCategory === cat.id ? '#ffffff' : '#64748b',
-                cursor: 'pointer',
-              }}
+              className="grammar-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Xóa nội dung tìm kiếm"
             >
-              {cat.label}
+              <X size={16} />
             </button>
-          ))}
+          )}
         </div>
-      </div>
 
-      {/* Grammar Cards List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* HSK Level Filter */}
+        <div className="grammar-filter-row">
+          <span className="grammar-filter-label">Cấp HSK:</span>
+          <div className="grammar-pill-group">
+            {hskLevels.map((lvl) => {
+              const isActive = selectedHsk === lvl.val;
+              return (
+                <button
+                  key={String(lvl.val)}
+                  type="button"
+                  className={`grammar-pill ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedHsk(lvl.val)}
+                >
+                  {lvl.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <div className="grammar-filter-row">
+          <span className="grammar-filter-label">Phân loại:</span>
+          <div className="grammar-pill-group">
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  className={`grammar-pill ${isActive ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(cat.id)}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Filter Status & Reset */}
+        <div className="grammar-filter-status-row">
+          <span>
+            Hiển thị <strong>{points.length}</strong> điểm ngữ pháp phù hợp
+            {selectedHsk && ` · HSK ${selectedHsk}`}
+            {selectedCategory !== 'all' && ` · Thể loại: ${selectedCategory}`}
+          </span>
+          {(selectedHsk !== null || selectedCategory !== 'all' || searchQuery) && (
+            <button
+              type="button"
+              className="grammar-reset-btn"
+              onClick={handleResetFilters}
+            >
+              Xóa bộ lọc
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* 3. Grammar Point Accordion Cards */}
+      <main className="grammar-list" aria-label="Danh sách điểm ngữ pháp">
         {points.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 24px', backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', color: '#64748b' }}>
-            Không tìm thấy điểm ngữ pháp phù hợp với bộ lọc hiện tại.
+          <div className="grammar-empty-state">
+            <HelpCircle className="grammar-empty-icon" />
+            <h3 className="grammar-empty-title">Không tìm thấy điểm ngữ pháp phù hợp</h3>
+            <p className="grammar-empty-desc">
+              Không có kết quả nào khớp với từ khóa hoặc bộ lọc bạn đã chọn. Vui lòng thử từ khóa khác hoặc xóa bộ lọc.
+            </p>
+            <button
+              type="button"
+              className="grammar-practice-btn"
+              onClick={handleResetFilters}
+              style={{ marginTop: '8px' }}
+            >
+              <RotateCcw size={16} />
+              <span>Xóa bộ lọc để xem tất cả</span>
+            </button>
           </div>
         ) : (
-          points.map((item) => {
-            const isExpanded = expandedId === item.id;
+          points.map((point) => {
+            const isExpanded = expandedId === point.id;
+            const diffClass =
+              point.difficulty === 'Dễ'
+                ? 'de'
+                : point.difficulty === 'Trung bình'
+                ? 'trung-binh'
+                : 'kha';
 
             return (
-              <div
-                key={item.id}
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: '16px',
-                  border: isExpanded ? '1.5px solid #818cf8' : '1.5px solid #e2e8f0',
-                  boxShadow: isExpanded ? '0 4px 16px rgba(99, 102, 241, 0.08)' : 'none',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s ease',
-                }}
+              <article
+                key={point.id}
+                className={`grammar-card ${isExpanded ? 'expanded' : ''}`}
               >
-                {/* Header row */}
-                <div
-                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                  style={{
-                    padding: '16px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    backgroundColor: isExpanded ? '#faf5ff' : '#ffffff',
-                    gap: '16px',
-                  }}
+                {/* Header (Accordion Trigger) */}
+                <button
+                  type="button"
+                  className="grammar-card-header"
+                  onClick={() => handleToggleExpand(point.id)}
+                  aria-expanded={isExpanded}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
-                    <div
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        backgroundColor: '#eef2ff',
-                        color: '#4338ca',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      HSK {item.hskLevel}
+                  <div className="grammar-card-header-left">
+                    <div className="grammar-badge-row">
+                      <span className="grammar-badge-hsk">HSK {point.hskLevel}</span>
+                      <span className="grammar-badge-category">{point.category}</span>
+                      <span className={`grammar-badge-diff ${diffClass}`}>
+                        {point.difficulty}
+                      </span>
                     </div>
-
-                    <div>
-                      <h3 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                        {item.title}
-                      </h3>
-                      <div style={{ fontSize: '12px', color: '#64748b', fontFamily: 'monospace' }}>
-                        {item.structure}
-                      </div>
-                    </div>
+                    <h2 className="grammar-card-title">{point.title}</h2>
+                    <span className="grammar-card-pinyin-title">{point.pinyinTitle}</span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        padding: '3px 8px',
-                        borderRadius: '9999px',
-                        backgroundColor: item.difficulty === 'Dễ' ? '#dcfce7' : item.difficulty === 'Trung bình' ? '#fef3c7' : '#fee2e2',
-                        color: item.difficulty === 'Dễ' ? '#16a34a' : item.difficulty === 'Trung bình' ? '#d97706' : '#dc2626',
-                      }}
-                    >
-                      {item.difficulty}
-                    </span>
-
-                    {isExpanded ? <ChevronUp size={18} style={{ color: '#64748b' }} /> : <ChevronDown size={18} style={{ color: '#64748b' }} />}
+                  <div className="grammar-card-chevron">
+                    {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                   </div>
-                </div>
+                </button>
 
-                {/* Expanded content */}
+                {/* Expanded Body */}
                 {isExpanded && (
-                  <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  <div className="grammar-card-body">
+                    {/* Formula Box */}
+                    <div className="grammar-formula-box">
+                      <span className="grammar-formula-label">Cấu trúc công thức</span>
+                      <div className="grammar-formula-text">{point.structure}</div>
+                    </div>
+
                     {/* Explanation */}
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                        Giải thích ngữ nghĩa & cách dùng:
-                      </div>
-                      <p style={{ margin: 0, fontSize: '13.5px', color: '#1e293b', lineHeight: 1.6 }}>
-                        {item.explanation}
-                      </p>
+                    <div className="grammar-explanation-box">
+                      <p style={{ margin: 0 }}>{point.explanation}</p>
                     </div>
 
-                    {/* Structure Callout */}
-                    <div style={{ padding: '12px 16px', borderRadius: '10px', backgroundColor: '#f8fafc', borderLeft: '4px solid #4338ca', fontSize: '13px', fontWeight: 600, color: '#1e1b4b' }}>
-                      Công thức: <code style={{ color: '#be123c', fontFamily: 'monospace' }}>{item.structure}</code>
-                    </div>
-
-                    {/* Examples */}
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
-                        Ví dụ thực tế:
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {item.examples.map((ex, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              padding: '12px 14px',
-                              borderRadius: '10px',
-                              backgroundColor: '#f1f5f9',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '12px',
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: 'var(--font-hanzi)' }}>
-                                {ex.chinese}
-                              </div>
-                              <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: 600, marginBottom: '2px' }}>
-                                {ex.pinyin}
-                              </div>
-                              <div style={{ fontSize: '12px', color: '#475569' }}>
-                                {ex.vietnamese}
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => speakText(ex.chinese)}
-                              style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '8px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                color: '#4338ca',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifySelf: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                flexShrink: 0,
-                              }}
-                              title="Nghe phát âm chuẩn"
-                            >
-                              <Volume2 size={15} />
-                            </button>
+                    {/* Bilingual Examples */}
+                    <div className="grammar-examples-section">
+                      <span className="grammar-examples-title">Mẫu câu ví dụ song ngữ</span>
+                      {point.examples.map((ex, idx) => (
+                        <div key={idx} className="grammar-example-item">
+                          <div className="grammar-example-content">
+                            <span className="grammar-example-hanzi">{ex.chinese}</span>
+                            <span className="grammar-example-pinyin">{ex.pinyin}</span>
+                            <span className="grammar-example-vietnamese">{ex.vietnamese}</span>
                           </div>
-                        ))}
-                      </div>
+                          <button
+                            type="button"
+                            className="grammar-audio-btn"
+                            onClick={() => speakText(ex.chinese)}
+                            title="Nghe phát âm chuẩn"
+                            aria-label={`Nghe phát âm: ${ex.chinese}`}
+                          >
+                            <Volume2 size={20} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Usage note if any */}
-                    {item.usageNote && (
-                      <div style={{ padding: '10px 14px', borderRadius: '8px', backgroundColor: '#fffbeb', border: '1px solid #fef3c7', fontSize: '12px', color: '#92400e' }}>
-                        💡 <strong>Lưu ý:</strong> {item.usageNote}
+                    {/* Usage Note */}
+                    {point.usageNote && (
+                      <div className="grammar-usage-note">
+                        <strong>Lưu ý: </strong>
+                        {point.usageNote}
                       </div>
                     )}
 
-                    {/* Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', paddingTop: '8px' }}>
+                    {/* Action CTA */}
+                    <div className="grammar-action-row">
                       <button
                         type="button"
-                        onClick={() => handleStartPractice(item)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 16px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          backgroundColor: '#4338ca',
-                          color: '#ffffff',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
+                        className="grammar-practice-btn"
+                        onClick={() => handleStartPractice(point)}
                       >
-                        <Sparkles size={14} />
-                        <span>Luyện tập mẫu câu này</span>
+                        <Play size={16} fill="currentColor" />
+                        <span>Luyện tập cấu trúc này</span>
                       </button>
                     </div>
                   </div>
                 )}
-              </div>
+              </article>
             );
           })
         )}
-      </div>
+      </main>
 
-      {/* Practice Interactive Modal */}
+      {/* 4. Dedicated Grammar Practice Modal */}
       {practicingPoint && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
-          onClick={() => setPracticingPoint(null)}
+          className="grammar-modal-overlay"
+          onClick={handleClosePractice}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="practice-modal-title"
         >
           <div
-            style={{
-              width: '100%',
-              maxWidth: '520px',
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-            }}
+            className="grammar-modal-dialog"
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#eef2ff', color: '#4338ca', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen size={16} />
-              </div>
+            {/* Modal Header */}
+            <div className="grammar-modal-header">
               <div>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>Thực hành: {practicingPoint.title}</h3>
-                <span style={{ fontSize: '11px', color: '#64748b' }}>Áp dụng cấu trúc: {practicingPoint.structure}</span>
+                <h3 id="practice-modal-title" className="grammar-modal-title">
+                  Luyện tập ngữ pháp
+                </h3>
+                <span className="grammar-modal-subtitle">
+                  {practicingPoint.title} · HSK {practicingPoint.hskLevel}
+                </span>
               </div>
-            </div>
-
-            <div style={{ padding: '14px', borderRadius: '12px', backgroundColor: '#f8fafc', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
-                Đề bài: Hãy hoàn thành hoặc sắp xếp câu tương ứng:
-              </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
-                Dịch sang tiếng Trung: "{practicingPoint.examples[0].vietnamese}"
-              </div>
-            </div>
-
-            <textarea
-              placeholder="Nhập câu tiếng Trung của bạn (hoặc Pinyin)..."
-              value={practiceAnswer}
-              onChange={(e) => setPracticeAnswer(e.target.value)}
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '10px',
-                border: '1.5px solid #cbd5e1',
-                fontSize: '14px',
-                boxSizing: 'border-box',
-                outline: 'none',
-                fontFamily: 'var(--font-hanzi)',
-                marginBottom: '16px',
-              }}
-            />
-
-            {isPracticeSubmitted && (
-              <div style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: 700, fontSize: '13px', marginBottom: '4px' }}>
-                  <CheckCircle size={15} />
-                  <span>Đáp án tham khảo:</span>
-                </div>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                  {practicingPoint.examples[0].chinese}
-                </div>
-                <div style={{ fontSize: '12px', color: '#6366f1' }}>
-                  {practicingPoint.examples[0].pinyin}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button
                 type="button"
-                onClick={() => setPracticingPoint(null)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#475569',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
+                className="grammar-modal-close"
+                onClick={handleClosePractice}
+                aria-label="Đóng bài tập"
               >
-                Đóng
+                <X size={20} />
               </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="grammar-modal-body">
+              <div className="grammar-practice-prompt">
+                {practicingPoint.practice?.prompt ||
+                  'Sắp xếp hoặc viết lại câu theo đúng cấu trúc ngữ pháp sau:'}
+              </div>
+
+              {/* Scramble Words Pool (if available) */}
+              {practicingPoint.practice?.scrambledWords &&
+                practicingPoint.practice.scrambledWords.length > 0 && (
+                  <div className="grammar-scramble-pool">
+                    {practicingPoint.practice.scrambledWords.map((token, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="grammar-word-token"
+                        onClick={() => handleAddWordToken(token)}
+                      >
+                        {token}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              {/* User Answer Textarea */}
+              <div>
+                <label
+                  htmlFor="grammar-practice-input"
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748b',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Câu trả lời của bạn:
+                </label>
+                <textarea
+                  id="grammar-practice-input"
+                  ref={inputRef}
+                  className="grammar-practice-input"
+                  placeholder="Nhập câu tiếng Trung của bạn tại đây..."
+                  value={practiceAnswer}
+                  onChange={(e) => setPracticeAnswer(e.target.value)}
+                  disabled={isPracticeSubmitted}
+                />
+              </div>
+
+              {/* Evaluation Result */}
+              {isPracticeSubmitted && (
+                <div
+                  className={`grammar-result-box ${
+                    practiceIsCorrect ? 'correct' : 'incorrect'
+                  }`}
+                >
+                  <div className="grammar-result-header">
+                    {practiceIsCorrect ? (
+                      <>
+                        <CheckCircle2 size={20} />
+                        <span>Chính xác! Câu của bạn chuẩn ngữ pháp.</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle size={20} />
+                        <span>Chưa chính xác. Hãy đối chiếu với mẫu câu chuẩn bên dưới:</span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="grammar-comparison-row">
+                    <span className="grammar-comparison-label">Câu của bạn:</span>
+                    <span className="grammar-comparison-hanzi">{practiceAnswer}</span>
+                  </div>
+
+                  <div className="grammar-comparison-row">
+                    <span className="grammar-comparison-label">Đáp án mẫu chuẩn:</span>
+                    <span className="grammar-comparison-hanzi">
+                      {practicingPoint.practice?.standardAnswer ||
+                        practicingPoint.examples[0]?.chinese}
+                    </span>
+                    {practicingPoint.practice?.explanation && (
+                      <span style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                        Giải thích: {practicingPoint.practice.explanation}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grammar-audit-disclaimer">
+                    <HelpCircle size={14} />
+                    <span>Đối chiếu câu trả lời với mẫu câu chuẩn của điểm ngữ pháp này (không qua xử lý AI).</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="grammar-modal-footer">
               {!isPracticeSubmitted ? (
                 <button
                   type="button"
-                  onClick={() => setIsPracticeSubmitted(true)}
-                  disabled={practiceAnswer.trim().length === 0}
+                  className="grammar-practice-btn"
+                  onClick={handleSubmitPractice}
+                  disabled={!practiceAnswer.trim()}
                   style={{
-                    padding: '8px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    backgroundColor: practiceAnswer.trim().length > 0 ? '#4338ca' : '#cbd5e1',
-                    color: '#ffffff',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: practiceAnswer.trim().length > 0 ? 'pointer' : 'not-allowed',
+                    opacity: !practiceAnswer.trim() ? 0.6 : 1,
+                    cursor: !practiceAnswer.trim() ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  Kiểm tra đáp án
+                  Kiểm tra câu trả lời
                 </button>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setPracticingPoint(null)}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    backgroundColor: '#16a34a',
-                    color: '#ffffff',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Hoàn thành
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="grammar-pill"
+                    onClick={() => {
+                      setPracticeAnswer('');
+                      setIsPracticeSubmitted(false);
+                      setPracticeIsCorrect(false);
+                    }}
+                    style={{ padding: '0 16px', height: '44px' }}
+                  >
+                    Thử làm lại
+                  </button>
+                  <button
+                    type="button"
+                    className="grammar-practice-btn"
+                    onClick={handleClosePractice}
+                  >
+                    Hoàn thành
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -517,5 +564,3 @@ export const GrammarPage: React.FC = () => {
     </div>
   );
 };
-
-export default GrammarPage;

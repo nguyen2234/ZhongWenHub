@@ -14,9 +14,13 @@ import { HSKFilterSection } from './components/HSKFilterSection';
 import { PracticeSession } from './PracticeSession';
 import type { SharedExerciseItem, SkillCategory } from '../exercise-engine';
 import { useLearningState } from '../learning';
+import { Dumbbell } from 'lucide-react';
+import './practice-center.css';
 
 export const PracticeCenter: React.FC = () => {
   const { weakKnowledge } = useLearningState();
+
+  const isRealEvidence = weakKnowledge.length > 0;
 
   const recommendation: PracticeRecommendation = React.useMemo(() => {
     const topWeak = weakKnowledge[0];
@@ -53,6 +57,10 @@ export const PracticeCenter: React.FC = () => {
     return MOCK_MISTAKE_RECORDS;
   }, [weakKnowledge]);
 
+  const mistakeIds = React.useMemo(() => {
+    return new Set(mistakes.map((m) => String(m.exerciseId)));
+  }, [mistakes]);
+
   // Active session state (null when in browse hub)
   const [activeSession, setActiveSession] = useState<{
     mode: PracticeMode;
@@ -79,7 +87,6 @@ export const PracticeCenter: React.FC = () => {
 
   // 2. Launch Quick Practice 5'
   const handleStartQuickPractice = () => {
-    // 10 mixed questions from pool
     const all = Object.values(PRACTICE_EXERCISE_POOL);
     const mixed = [...all].sort(() => 0.5 - Math.random()).slice(0, 10);
 
@@ -119,36 +126,36 @@ export const PracticeCenter: React.FC = () => {
     setActiveSession({
       mode: 'skill',
       title: `${skill.chinese} · ${skill.vietnamese}`,
-      subtitle: `Luyện chuyên sâu kỹ năng`,
+      subtitle: 'Luyện chuyên sâu kỹ năng',
       hskLevel: 2,
       exercises: skillExercises.length > 0 ? skillExercises : Object.values(PRACTICE_EXERCISE_POOL).slice(0, 5),
     });
   };
 
-  // 5. Launch Custom HSK Filter Practice
+  // 5. Launch Custom HSK Filter Practice (Strictly respects metadata)
   const handleStartCustomPractice = (
     level: number,
     skill?: SkillCategory,
     mistakesOnly?: boolean
   ) => {
-    let list = Object.values(PRACTICE_EXERCISE_POOL);
+    let list = Object.values(PRACTICE_EXERCISE_POOL).filter((ex) => ex.hskLevel === level);
 
     if (skill) {
       list = list.filter((ex) => ex.skill === skill);
     }
     if (mistakesOnly) {
-      const mistakeIds = new Set(mistakes.map((m) => m.exerciseId));
-      list = list.filter((ex) => mistakeIds.has(ex.id));
+      list = list.filter((ex) => mistakeIds.has(String(ex.id)));
     }
 
     if (list.length === 0) {
-      list = Object.values(PRACTICE_EXERCISE_POOL).slice(0, 4);
+      // Do not substitute false-level questions
+      return;
     }
 
     setActiveSession({
       mode: 'hsk-filter',
       title: `HSK ${level} · ${skill ? skill : 'Tổng hợp'}`,
-      subtitle: mistakesOnly ? 'Chỉ luyện câu từng sai' : 'Bài tập tự chọn',
+      subtitle: mistakesOnly ? 'Chỉ luyện câu từng sai' : 'Bài tập tự chọn chuẩn HSK',
       hskLevel: level,
       exercises: list,
     });
@@ -173,64 +180,38 @@ export const PracticeCenter: React.FC = () => {
   }
 
   // =========================================================================
-  // PRACTICE CENTER HOME (Targeted Action Hub - Mobile Stackable Layout)
+  // PRACTICE CENTER HOME (Option A: Action-Driven Cascade)
   // =========================================================================
   return (
-    <div
-      style={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-      }}
-    >
-      {/* 1. Header (Clean, inspiring, no dashboard stats clutter) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h1
-            style={{
-              fontSize: 'var(--text-2xl)',
-              fontWeight: 800,
-              color: 'var(--foreground)',
-              margin: 0,
-              letterSpacing: '-0.3px',
-            }}
-          >
-            Luyện tập
+    <div className="practice-page-container">
+      {/* 1. Header (Clean, inspiring, no tall banner) */}
+      <header className="practice-header">
+        <div>
+          <div className="practice-header-brand-badge">
+            <Dumbbell size={13} />
+            <span>TRUNG TÂM LUYỆN TẬP PHẢN XẠ</span>
+          </div>
+          <h1 className="practice-header-title">
+            Trung tâm luyện tập
+            <span className="practice-header-title-hanzi">巩固你学过的知识</span>
           </h1>
-          <span
-            style={{
-              fontFamily: 'var(--font-hanzi)',
-              fontSize: 'var(--text-lg)',
-              color: 'var(--primary)',
-              fontWeight: 700,
-            }}
-          >
-            巩固你学过的知识
-          </span>
+          <p className="practice-header-subtitle">
+            Củng cố kiến thức đã học, rèn luyện phản xạ ngôn ngữ và khắc phục triệt để các câu từng làm sai theo chu trình lặp lại ngắt quãng.
+          </p>
         </div>
-        <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--muted)' }}>
-          &quot;Củng cố những gì bạn đã học&quot; · Chủ động rèn luyện phản xạ, ngữ pháp và khắc phục các câu từng làm sai.
-        </p>
-      </div>
+      </header>
 
       {/* 2. Primary Hero Section: "Đề xuất cho bạn" (Top #1 CTA Priority) */}
-      <section aria-label="Đề xuất cho bạn">
+      <section aria-label="Tiếp tục luyện tập và đề xuất">
         <RecommendedPracticeCard
           recommendation={recommendation}
+          isRealEvidence={isRealEvidence}
           onStart={handleStartRecommended}
         />
       </section>
 
       {/* 3. Fast Action Row: Quick Practice (5 min) & Mistake Review */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 'var(--space-4)',
-        }}
-        aria-label="Luyện nhanh và Lỗi sai"
-      >
+      <section className="practice-quick-dual-row" aria-label="Luyện nhanh và Ôn lỗi sai">
         <QuickPracticeCard onStart={handleStartQuickPractice} />
         <MistakeReviewCard
           mistakes={mistakes}
@@ -239,25 +220,17 @@ export const PracticeCenter: React.FC = () => {
       </section>
 
       {/* 4. Skill Practice Grid (6 categories: 词汇, 语法, 听力, 阅读, 句子, 综合) */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }} aria-label="Luyện tập theo kỹ năng">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <section className="practice-skill-section" aria-label="Luyện tập theo kỹ năng">
+        <div className="practice-section-header">
           <div>
-            <h3 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--foreground)' }}>
-              Luyện tập theo kỹ năng
-            </h3>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-              Rèn giũa từng kỹ năng cụ thể với độ thành thạo đo lường theo thời gian thực
+            <h2 className="practice-section-title">Luyện tập theo kỹ năng</h2>
+            <span className="practice-section-subtitle">
+              6 phân hệ rèn luyện chuyên biệt cho từng khía cạnh ngôn ngữ
             </span>
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: 'var(--space-3)',
-          }}
-        >
+        <div className="practice-skill-grid">
           {SKILL_ITEMS.map((skill) => (
             <SkillPracticeCard
               key={skill.id}
@@ -268,9 +241,13 @@ export const PracticeCenter: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Practice By HSK & Lesson Filters */}
-      <section aria-label="Lọc theo HSK">
-        <HSKFilterSection onStartCustomPractice={handleStartCustomPractice} />
+      {/* 5. Practice By HSK & Custom Filters (Accurate metadata) */}
+      <section aria-label="Bộ lọc luyện tập theo HSK">
+        <HSKFilterSection
+          exercisePool={PRACTICE_EXERCISE_POOL}
+          mistakeIds={mistakeIds}
+          onStartCustomPractice={handleStartCustomPractice}
+        />
       </section>
     </div>
   );

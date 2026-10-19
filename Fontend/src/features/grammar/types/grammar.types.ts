@@ -4,6 +4,15 @@ export interface GrammarExample {
   vietnamese: string;
 }
 
+export interface GrammarPracticeExercise {
+  prompt: string;
+  scrambledWords?: string[];
+  standardAnswer: string;
+  acceptableAnswers?: string[];
+  hint?: string;
+  explanation: string;
+}
+
 export interface GrammarPoint {
   id: string;
   title: string;
@@ -15,4 +24,5 @@ export interface GrammarPoint {
   examples: GrammarExample[];
   usageNote?: string;
   difficulty: 'Dễ' | 'Trung bình' | 'Khá';
+  practice?: GrammarPracticeExercise;
 }
