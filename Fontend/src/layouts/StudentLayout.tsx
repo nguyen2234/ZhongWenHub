@@ -14,6 +14,7 @@ import {
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
 import { StudentSearchModal } from './components/StudentSearchModal';
+import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
 
@@ -221,8 +222,8 @@ export const StudentLayout: React.FC = () => {
         </div>
 
         {/* Center / Search Input Trigger */}
-        <div style={{ flex: 1, padding: '0 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Quick Expand button when sidebar is collapsed */}
+        <div className="header-search-container" style={{ flex: 1, padding: '0 12px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          {/* Quick Expand button when sidebar is collapsed (Desktop only) */}
           {isSidebarCollapsed && (
             <button
               type="button"
@@ -240,6 +241,7 @@ export const StudentLayout: React.FC = () => {
                 backgroundColor: '#ffffff',
                 color: '#64748b',
                 cursor: 'pointer',
+                flexShrink: 0,
               }}
               title="Mở rộng sidebar"
             >
@@ -247,16 +249,18 @@ export const StudentLayout: React.FC = () => {
             </button>
           )}
 
+          {/* Desktop/Tablet Full Search Bar */}
           <button
             type="button"
             onClick={() => setIsSearchModalOpen(true)}
+            className="header-search-full"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               height: '38px',
               width: '100%',
-              maxWidth: '340px',
+              maxWidth: '320px',
               padding: '0 14px',
               borderRadius: 'var(--radius-full)',
               backgroundColor: '#f1f5f9',
@@ -272,7 +276,7 @@ export const StudentLayout: React.FC = () => {
           >
             <Search size={15} style={{ color: '#94a3b8', flexShrink: 0 }} />
             <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              Tìm kiếm nhanh tính năng, bài học...
+              Tìm kiếm...
             </span>
             <kbd
               style={{
@@ -290,15 +294,40 @@ export const StudentLayout: React.FC = () => {
               ⌘K
             </kbd>
           </button>
+
+          {/* Mobile Icon-only Search Button */}
+          <button
+            type="button"
+            onClick={() => setIsSearchModalOpen(true)}
+            className="header-search-compact"
+            aria-label="Tìm kiếm nhanh tính năng"
+            style={{
+              display: 'none',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid #e2e8f0',
+              color: '#64748b',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+            title="Tìm kiếm (⌘K)"
+          >
+            <Search size={16} style={{ color: '#64748b' }} />
+          </button>
         </div>
 
         {/* Right Header: Pinyin Toggle, Indicators, User Profile */}
         <div
+          className="header-right-actions"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            paddingRight: '20px',
+            gap: '8px',
+            paddingRight: '16px',
             flexShrink: 0,
           }}
         >
@@ -306,9 +335,10 @@ export const StudentLayout: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsPinyinActive((p) => !p)}
+            className="header-pinyin-btn"
             style={{
               height: '32px',
-              padding: '0 10px',
+              padding: '0 8px',
               borderRadius: 'var(--radius-full)',
               border: isPinyinActive ? '1.5px solid var(--primary)' : '1px solid #e2e8f0',
               backgroundColor: isPinyinActive ? 'var(--primary-light)' : 'transparent',
@@ -319,6 +349,7 @@ export const StudentLayout: React.FC = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
+              flexShrink: 0,
             }}
             title={isPinyinActive ? 'Đang bật Pinyin phiên âm' : 'Đang ẩn Pinyin'}
           >
@@ -326,15 +357,18 @@ export const StudentLayout: React.FC = () => {
             <span>pīn</span>
           </button>
 
-          <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
+          <div className="header-hsk-badge">
+            <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
+          </div>
 
           {/* Streak Flame Pill */}
           <div
+            className="header-streak-pill"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
-              padding: '4px 10px',
+              padding: '4px 8px',
               borderRadius: 'var(--radius-full)',
               backgroundColor: 'var(--streak-bg)',
               border: '1px solid var(--streak-border)',
@@ -342,14 +376,17 @@ export const StudentLayout: React.FC = () => {
               fontSize: '11px',
               fontWeight: 700,
               whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
             title={`Chuỗi ${streakDays} ngày học liên tiếp`}
           >
             <Flame size={14} />
-            <span>{streakDays} Ngày</span>
+            <span className="header-streak-label">{streakDays}N</span>
           </div>
 
-          <XPIndicator amount={xpTotal} variant="pill" />
+          <div className="header-xp-pill">
+            <XPIndicator amount={xpTotal} variant="pill" />
+          </div>
 
           {/* User Account Dropdown Trigger & Popover */}
           <div ref={accountMenuRef} style={{ position: 'relative' }}>
@@ -634,16 +671,17 @@ export const StudentLayout: React.FC = () => {
             backgroundColor: '#f8fafc',
           }}
         >
-          <main style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
+          <main className="student-main-viewport" style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
             <Outlet />
           </main>
 
           {/* Clean Responsive Footer */}
           <footer
+            className="student-footer"
             style={{
               borderTop: '1px solid #e2e8f0',
               backgroundColor: '#ffffff',
-              padding: '16px 24px',
+              padding: '16px 20px',
               marginTop: 'auto',
             }}
           >
@@ -661,8 +699,8 @@ export const StudentLayout: React.FC = () => {
               <div>
                 © 2026 ZhongWenHub • Nền tảng tự học tiếng Trung theo lộ trình HSK chuẩn quốc tế
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <span className="footer-viewing-text">
                   Đang xem: <strong>{getPageTitle()}</strong>
                 </span>
                 <span>•</span>
@@ -679,6 +717,9 @@ export const StudentLayout: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile-First Fixed Bottom Navigation */}
+      <StudentBottomNav />
+
       {/* Global Quick Search Command Palette */}
       <StudentSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
 
@@ -689,11 +730,12 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .mobile-hamburger-btn {
-            display: inline-flex !important;
+            display: none !important;
           }
           .header-brand-box {
             width: auto !important;
             border-right: none !important;
+            padding: 0 8px 0 12px !important;
           }
           .header-admin-text {
             display: none !important;
@@ -702,6 +744,46 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .desktop-sidebar-expand-btn {
+            display: none !important;
+          }
+          .student-main-viewport {
+            padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+          .student-footer {
+            margin-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .header-search-full {
+            display: none !important;
+          }
+          .header-search-compact {
+            display: inline-flex !important;
+          }
+          .header-brand-title span:last-child {
+            display: none !important;
+          }
+          .header-right-actions {
+            gap: 6px !important;
+            padding-right: 10px !important;
+          }
+          .footer-viewing-text {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .header-brand-title {
+            display: none !important;
+          }
+          .header-pinyin-btn {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .header-hsk-badge {
             display: none !important;
           }
         }

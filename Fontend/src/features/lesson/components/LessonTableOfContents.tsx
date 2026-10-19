@@ -186,17 +186,18 @@ export const LessonTableOfContents: React.FC<LessonTableOfContentsProps> = ({
       </div>
 
       {/* =====================================================================
-          3. MOBILE TRIGGER BAR (< 768px)
+          3. MOBILE TRIGGER BAR (< 1024px)
           ===================================================================== */}
-      <div className="lesson-toc-mobile-trigger">
+      <div className="lesson-toc-mobile-trigger" aria-label="Mục lục bài học trên di động">
         <button
           type="button"
           onClick={() => setIsMobileModalOpen(true)}
           className="lesson-toc-mobile-btn"
-          aria-label="Mở mục lục bài học"
+          aria-label="Mục lục bài học"
+          id="btn-mobile-toc-trigger"
         >
-          <ListOrdered size={15} color="var(--primary, #E60012)" />
-          <span>Mục lục</span>
+          <ListOrdered size={16} color="var(--primary, #E60012)" />
+          <span>Mục lục bài học</span>
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -205,33 +206,52 @@ export const LessonTableOfContents: React.FC<LessonTableOfContentsProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer Modal */}
+      {/* Mobile Bottom Sheet Drawer Modal */}
       {isMobileModalOpen && (
         <div
           className="lesson-toc-mobile-modal"
           onClick={() => setIsMobileModalOpen(false)}
+          role="presentation"
         >
           <div
             className="lesson-toc-mobile-sheet"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mục lục bài học"
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ListOrdered size={18} color="var(--primary, #E60012)" />
-                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                <ListOrdered size={20} color="var(--primary, #E60012)" />
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
                   Mục lục bài học
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}
+                aria-label="Đóng mục lục"
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '6px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {/* Reading progress in bottom sheet */}
+            <div className="lesson-toc-progress-box">
+              <div className="lesson-toc-progress-info">
+                <span>Tiến độ đọc bài</span>
+                <span>{Math.round(readingProgress)}%</span>
+              </div>
+              <div className="lesson-toc-progress-bar-bg" role="progressbar" aria-valuenow={Math.round(readingProgress)} aria-valuemin={0} aria-valuemax={100}>
+                <div
+                  className="lesson-toc-progress-bar-fill"
+                  style={{ width: `${Math.min(100, Math.max(0, readingProgress))}%` }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {items.map((item) => {
                 const isActive = activeSectionId === item.id;
                 const Icon = item.icon;
@@ -242,7 +262,7 @@ export const LessonTableOfContents: React.FC<LessonTableOfContentsProps> = ({
                     type="button"
                     onClick={() => handleItemClick(item.id)}
                     className={`lesson-toc-item-btn ${isActive ? 'active' : ''}`}
-                    style={{ padding: '12px 14px', fontSize: '14px' }}
+                    style={{ padding: '12px 14px', fontSize: '14.5px', minHeight: '48px' }}
                   >
                     {isActive && <div className="lesson-toc-active-stripe" />}
 

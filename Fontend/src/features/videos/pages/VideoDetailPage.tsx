@@ -9,6 +9,12 @@ import {
   Repeat,
   AlertCircle,
   ExternalLink,
+  FileText,
+  Mic,
+  BookOpen,
+  Volume2,
+  Bookmark,
+  Check,
 } from 'lucide-react';
 import { DEMO_VIDEOS } from '../data/demoVideos';
 import type {
@@ -47,6 +53,24 @@ export const VideoDetailPage: React.FC = () => {
   const [selectedSpeakingSentence, setSelectedSpeakingSentence] = useState<VideoSubtitleLine | null>(() => {
     return video.subtitles[0] || null;
   });
+
+  // Mobile Tabs State (FE-8): 'transcript' | 'speaking' | 'vocab'
+  const [activeMobileTab, setActiveMobileTab] = useState<'transcript' | 'speaking' | 'vocab'>('transcript');
+
+  // Extracted unique vocabulary tokens from video subtitles
+  const videoVocabTokens = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { hanzi: string; pinyin: string; meaning: string }[] = [];
+    video.subtitles.forEach((s) => {
+      s.tokens?.forEach((t) => {
+        if (!seen.has(t.hanzi) && t.hanzi.trim().length > 0) {
+          seen.add(t.hanzi);
+          list.push({ hanzi: t.hanzi, pinyin: t.pinyin, meaning: t.meaning });
+        }
+      });
+    });
+    return list;
+  }, [video.subtitles]);
 
   // Alert toast
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
@@ -523,61 +547,151 @@ export const VideoDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Speaking Practice Card */}
-          <SpeakingPracticeCard
-            sentence={selectedSpeakingSentence}
-            onPlaySample={handlePlayTTS}
-            onPracticeCompleted={(dur) => {
-              logVideoEvent('speaking_practice_completed', {
-                subtitleId: selectedSpeakingSentence?.id || '',
-                practiceDurationSeconds: dur,
-              });
-              showToast('Đã hoàn thành lượt luyện nói cho câu này! Bạn có thể nghe lại bản ghi âm.', 'success');
-            }}
-          />
+          {/* Mobile Tab Bar (FE-8: Phụ đề / Luyện nói / Từ vựng) */}
+          <div className="video-mobile-tab-bar" role="tablist" aria-label="Nội dung bài học video">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMobileTab === 'transcript'}
+              className={`video-mobile-tab-btn ${activeMobileTab === 'transcript' ? 'active' : ''}`}
+              onClick={() => setActiveMobileTab('transcript')}
+            >
+              <FileText size={16} />
+              <span>Phụ đề</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMobileTab === 'speaking'}
+              className={`video-mobile-tab-btn ${activeMobileTab === 'speaking' ? 'active' : ''}`}
+              onClick={() => setActiveMobileTab('speaking')}
+            >
+              <Mic size={16} />
+              <span>Luyện nói</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMobileTab === 'vocab'}
+              className={`video-mobile-tab-btn ${activeMobileTab === 'vocab' ? 'active' : ''}`}
+              onClick={() => setActiveMobileTab('vocab')}
+            >
+              <BookOpen size={16} />
+              <span>Từ vựng ({videoVocabTokens.length})</span>
+            </button>
+          </div>
 
-          {/* Video Metadata Card */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '18px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px' }}>
-                {video.title}
-              </h2>
-              <div style={{ fontFamily: 'var(--font-hanzi)', fontSize: '14.5px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
-                {video.chineseTitle}
-              </div>
-            </div>
+          {/* Speaking Practice & Metadata Section */}
+          <div className={`video-speaking-section ${activeMobileTab !== 'speaking' ? 'mobile-hidden' : ''}`}>
+            {/* Speaking Practice Card */}
+            <SpeakingPracticeCard
+              sentence={selectedSpeakingSentence}
+              onPlaySample={handlePlayTTS}
+              onPracticeCompleted={(dur) => {
+                logVideoEvent('speaking_practice_completed', {
+                  subtitleId: selectedSpeakingSentence?.id || '',
+                  practiceDurationSeconds: dur,
+                });
+                showToast('Đã hoàn thành lượt luyện nói cho câu này! Bạn có thể nghe lại bản ghi âm.', 'success');
+              }}
+            />
 
-            <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, margin: 0 }}>
-              {video.description}
-            </p>
-
+            {/* Video Metadata Card */}
             <div
               style={{
-                paddingTop: '10px',
-                borderTop: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '18px 20px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: '11.5px',
-                color: '#64748b',
-                flexWrap: 'wrap',
-                gap: '8px',
+                flexDirection: 'column',
+                gap: '10px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                marginTop: '16px',
               }}
             >
-              <span>Nguồn: <strong>{video.source}</strong></span>
-              {video.sourceNote && <span>{video.sourceNote}</span>}
-              {video.licenseInfo && <span>{video.licenseInfo}</span>}
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px' }}>
+                  {video.title}
+                </h2>
+                <div style={{ fontFamily: 'var(--font-hanzi)', fontSize: '14.5px', fontWeight: 700, color: 'var(--primary, #E60012)' }}>
+                  {video.chineseTitle}
+                </div>
+              </div>
+
+              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.55, margin: 0 }}>
+                {video.description}
+              </p>
+
+              <div
+                style={{
+                  paddingTop: '10px',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontSize: '11.5px',
+                  color: '#64748b',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                <span>Nguồn: <strong>{video.source}</strong></span>
+                {video.sourceNote && <span>{video.sourceNote}</span>}
+                {video.licenseInfo && <span>{video.licenseInfo}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Vocabulary List Tab */}
+          <div className={`video-vocab-section ${activeMobileTab !== 'vocab' ? 'mobile-hidden' : ''}`}>
+            <div className="video-vocab-card">
+              <div className="video-vocab-header">
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                    Từ vựng trong video
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                    Chạm biểu tượng loa để nghe phát âm hoặc dấu trang để lưu ôn tập Spaced Repetition (SRS).
+                  </p>
+                </div>
+                <span className="video-vocab-count-badge">
+                  {videoVocabTokens.length} từ
+                </span>
+              </div>
+
+              <div className="video-vocab-list">
+                {videoVocabTokens.map((token) => {
+                  const saved = isVocabularySaved(token.hanzi);
+                  return (
+                    <div key={token.hanzi} className="video-vocab-item">
+                      <div className="video-vocab-item-main">
+                        <div className="video-vocab-item-hanzi">{token.hanzi}</div>
+                        <div className="video-vocab-item-pinyin">{token.pinyin}</div>
+                        <div className="video-vocab-item-meaning">{token.meaning}</div>
+                      </div>
+                      <div className="video-vocab-item-actions">
+                        <button
+                          type="button"
+                          className="btn-vocab-action"
+                          onClick={() => handlePlayTTS(token.hanzi)}
+                          aria-label={`Nghe phát âm từ ${token.hanzi}`}
+                        >
+                          <Volume2 size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          className={`btn-vocab-action ${saved ? 'saved' : ''}`}
+                          onClick={() => handleSaveTokenToSRS(token)}
+                          aria-label={saved ? `Đã lưu từ ${token.hanzi}` : `Lưu từ ${token.hanzi} vào SRS`}
+                        >
+                          {saved ? <Check size={18} color="#16a34a" /> : <Bookmark size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -585,7 +699,7 @@ export const VideoDetailPage: React.FC = () => {
         {/* =====================================================================
             RIGHT COLUMN (55-58%): SYNCHRONIZED TRANSCRIPT
             ===================================================================== */}
-        <div className="video-right-column">
+        <div className={`video-right-column ${activeMobileTab !== 'transcript' ? 'mobile-hidden' : ''}`}>
           <SynchronizedTranscript
             subtitles={video.subtitles}
             currentTime={currentTime}

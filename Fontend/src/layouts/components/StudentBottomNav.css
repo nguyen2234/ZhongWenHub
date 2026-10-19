@@ -1,0 +1,136 @@
+/* ==========================================================================
+   StudentBottomNav.css - Mobile First Bottom Navigation (FE-8)
+   Brand: Viettel Red #E60012
+   Standards: Fixed bottom, safe-area-inset-bottom, 44px+ touch targets
+   ========================================================================== */
+
+.student-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background-color: #ffffff;
+  border-top: 1.5px solid #e2e8f0;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Hide on desktop (1024px and wider) where sidebar is visible */
+@media (min-width: 1024px) {
+  .student-bottom-nav {
+    display: none !important;
+  }
+}
+
+.student-bottom-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 58px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 48px;
+  min-width: 44px;
+  padding: 6px 2px 4px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  transition: color 0.15s ease, transform 0.15s ease;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.94);
+}
+
+.bottom-nav-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+}
+
+.bottom-nav-icon {
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.bottom-nav-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 3px;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease, font-weight 0.15s ease;
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background-color: var(--primary, #E60012);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 999px;
+  line-height: 1.1;
+  box-shadow: 0 1px 4px rgba(230, 0, 18, 0.3);
+}
+
+/* Active State (Viettel Red) */
+.bottom-nav-item.active {
+  color: var(--primary, #E60012);
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  color: var(--primary, #E60012);
+  transform: translateY(-1px);
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  color: var(--primary, #E60012);
+  font-weight: 800;
+}
+
+.bottom-nav-active-indicator {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2.5px;
+  background-color: var(--primary, #E60012);
+  border-radius: 0 0 2px 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .student-bottom-nav,
+  .bottom-nav-item,
+  .bottom-nav-icon {
+    transition: none !important;
+    animation: none !important;
+  }
+}

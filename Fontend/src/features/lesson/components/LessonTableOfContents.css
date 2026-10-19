@@ -197,18 +197,18 @@
   }
 }
 
-/* Mobile Floating/Bottom Drawer TOC (< 768px) */
+/* Mobile Floating/Bottom Drawer TOC (< 1024px) */
 .lesson-toc-mobile-trigger {
   display: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .lesson-toc-desktop-card {
-    display: none;
+    display: none !important;
   }
 
   .lesson-toc-tablet-bar {
-    display: none;
+    display: none !important;
   }
 
   .lesson-toc-mobile-trigger {
@@ -217,26 +217,35 @@
     justify-content: space-between;
     position: sticky;
     top: 64px;
-    z-index: 25;
-    background-color: rgba(255, 255, 255, 0.95);
+    z-index: 35;
+    background-color: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid #e2e8f0;
-    padding: 10px 14px;
-    margin: -16px -14px 18px;
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1.5px solid #e2e8f0;
+    padding: 10px 16px;
+    margin: -16px -16px 20px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   }
 
   .lesson-toc-mobile-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    gap: 8px;
+    padding: 8px 14px;
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid #fed7da;
     background-color: #ffffff;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    color: #334155;
+    color: var(--primary, #E60012);
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(230, 0, 18, 0.08);
+    transition: all 0.15s ease;
+  }
+
+  .lesson-toc-mobile-btn:active {
+    background-color: #FFF0F1;
   }
 
   .lesson-toc-mobile-active-label {
@@ -248,23 +257,26 @@
   .lesson-toc-mobile-modal {
     position: fixed;
     inset: 0;
-    z-index: 95;
-    background-color: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(2px);
+    z-index: 1050;
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    animation: fadeIn 0.2s ease;
   }
 
   .lesson-toc-mobile-sheet {
     background-color: #ffffff;
     border-radius: 20px 20px 0 0;
-    padding: 20px;
-    max-height: 70vh;
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom, 0px)) 20px;
+    max-height: 80vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 14px;
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }

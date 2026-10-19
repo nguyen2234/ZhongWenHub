@@ -430,7 +430,127 @@
   color: #475569;
 }
 
-/* Responsive adjustments for mobile */
+/* ==========================================================================
+   MOBILE HSK CURRICULUM ACCORDION (FE-8)
+   ========================================================================== */
+
+.hsk-mobile-accordion {
+  display: none;
+}
+
+.hsk-mobile-topic-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hsk-mobile-topic-card:hover {
+  border-color: #cbd5e1;
+}
+
+.hsk-mobile-topic-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: left;
+  gap: 12px;
+  min-height: 52px;
+  transition: background-color 0.15s ease;
+}
+
+.hsk-mobile-topic-header:active {
+  background-color: #f8fafc;
+}
+
+.hsk-mobile-topic-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: #FFF0F1;
+  color: var(--primary, #E60012);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hsk-mobile-topic-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.hsk-mobile-topic-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  font-family: var(--font-hanzi);
+}
+
+.hsk-mobile-topic-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.hsk-mobile-topic-progress {
+  width: 100%;
+  height: 3px;
+  background-color: #f1f5f9;
+  overflow: hidden;
+}
+
+.hsk-mobile-topic-progress-fill {
+  height: 100%;
+  background-color: var(--primary, #E60012);
+  transition: width 0.3s ease;
+}
+
+/* Responsive adjustments for mobile & desktop */
+@media (min-width: 1024px) {
+  .hsk-mobile-accordion {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hsk-two-columns {
+    display: none !important;
+  }
+
+  .hsk-mobile-accordion {
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .hsk-pill-tabs-row {
+    padding: 4px 2px;
+    gap: 6px;
+  }
+
+  .hsk-pill-tab {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 12.5px;
+  }
+}
+
 @media (max-width: 640px) {
   .hsk-lesson-row {
     padding: 12px 14px;
@@ -446,4 +566,16 @@
     font-size: 11px;
     gap: 8px;
   }
+
+  .hsk-practice-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .hsk-practice-card button {
+    width: 100%;
+    justify-content: center;
+  }
 }
+

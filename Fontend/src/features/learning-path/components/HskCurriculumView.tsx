@@ -133,6 +133,19 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
     return topics[0]?.id || 1;
   });
 
+  // Mobile Accordion state: which topics are expanded
+  const [expandedTopicIds, setExpandedTopicIds] = useState<Record<number, boolean>>(() => {
+    return { [topics[0]?.id || 1]: true };
+  });
+
+  const toggleTopicExpand = (topicId: number) => {
+    setExpandedTopicIds((prev) => ({
+      ...prev,
+      [topicId]: !prev[topicId],
+    }));
+    setSelectedTopicId(topicId);
+  };
+
   // When switching HSK level, automatically pick the first topic or active topic
   useEffect(() => {
     if (topics.length > 0) {
@@ -141,8 +154,10 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
       );
       if (topicWithActiveLesson) {
         setSelectedTopicId(topicWithActiveLesson.id);
+        setExpandedTopicIds((prev) => ({ ...prev, [topicWithActiveLesson.id]: true }));
       } else {
         setSelectedTopicId(topics[0].id);
+        setExpandedTopicIds((prev) => ({ ...prev, [topics[0].id]: true }));
       }
     }
   }, [selectedLevel, topics, currentLessonId]);
@@ -702,6 +717,118 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             </div>
           )}
         </main>
+      </div>
+
+      {/* =====================================================================
+          MOBILE HSK CURRICULUM (FE-8): Vertical Topic Cards with Nested Lessons
+          ===================================================================== */}
+      <div className="hsk-mobile-accordion" aria-label="Chủ đề và bài học HSK">
+        {topics.map((topic) => {
+          const isExpanded = expandedTopicIds[topic.id] ?? (topic.id === selectedTopicId);
+          const TopicIcon = topic.icon;
+          const topicCompletedCount = topic.lessons.filter((l) =>
+            completedLessonIds.includes(l.id)
+          ).length;
+          const topicTotalCount = topic.lessons.length;
+          const topicPercent = topicTotalCount > 0
+            ? Math.round((topicCompletedCount / topicTotalCount) * 100)
+            : 0;
+
+          return (
+            <div key={topic.id} className="hsk-mobile-topic-card">
+              <button
+                type="button"
+                className="hsk-mobile-topic-header"
+                onClick={() => toggleTopicExpand(topic.id)}
+                aria-expanded={isExpanded}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                  <div className="hsk-mobile-topic-icon">
+                    <TopicIcon size={18} />
+                  </div>
+                  <div style={{ minWidth: 0, textAlign: 'left', flex: 1 }}>
+                    <div className="hsk-mobile-topic-title">{topic.title}</div>
+                    <div className="hsk-mobile-topic-sub">
+                      {topic.hanziTitle} • {topic.pinyinTitle}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                  <span className="hsk-mobile-topic-badge">
+                    {topicCompletedCount}/{topicTotalCount} bài
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp size={18} color="var(--primary, #E60012)" />
+                  ) : (
+                    <ChevronDown size={18} color="#94a3b8" />
+                  )}
+                </div>
+              </button>
+
+              {/* Progress bar */}
+              <div className="hsk-mobile-topic-progress">
+                <div
+                  className="hsk-mobile-topic-progress-fill"
+                  style={{ width: `${topicPercent}%` }}
+                />
+              </div>
+
+              {/* Nested Lessons List when Expanded */}
+              {isExpanded && (
+                <div className="hsk-lessons-list">
+                  {topic.lessons.map((lesson) => {
+                    const isCompleted = completedLessonIds.includes(lesson.id);
+                    const isCurrent = lesson.id === currentLessonId && !isCompleted;
+
+                    return (
+                      <div
+                        key={lesson.id}
+                        className={`hsk-lesson-row ${isCompleted ? 'completed' : isCurrent ? 'in-progress' : ''}`}
+                        onClick={() => handleLessonAction(lesson.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleLessonAction(lesson.id);
+                          }
+                        }}
+                        aria-label={`Bài ${lesson.lessonNumber}: ${lesson.hanzi}. ${lesson.meaning}. Trạng thái: ${isCompleted ? 'Đã hoàn thành' : isCurrent ? 'Đang học' : 'Chưa học'}`}
+                      >
+                        <div
+                          className={`hsk-lesson-circle ${isCompleted ? 'completed' : isCurrent ? 'in-progress' : 'not-started'}`}
+                        >
+                          {isCompleted ? (
+                            <Check size={16} strokeWidth={2.5} />
+                          ) : isCurrent ? (
+                            <Play size={12} fill="currentColor" />
+                          ) : (
+                            lesson.lessonNumber
+                          )}
+                        </div>
+
+                        <div className="hsk-lesson-content">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span className="hsk-lesson-hanzi">{lesson.hanzi}</span>
+                            <span className="hsk-lesson-pinyin">{lesson.pinyin}</span>
+                          </div>
+                          <div className="hsk-lesson-vi">{lesson.meaning}</div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          <span className={`hsk-lesson-status-pill ${isCompleted ? 'completed' : isCurrent ? 'in-progress' : 'not-started'}`}>
+                            {isCompleted ? 'Đã học' : isCurrent ? 'Đang học' : 'Chưa học'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* =====================================================================

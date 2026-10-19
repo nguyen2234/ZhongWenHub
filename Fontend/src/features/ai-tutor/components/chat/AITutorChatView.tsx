@@ -4,17 +4,18 @@ import {
   Plus,
   Search,
   MessageSquare,
-  Sparkles,
   Languages,
   Globe,
   Radio,
   Trash2,
   RotateCcw,
+  Menu,
 } from 'lucide-react';
-import { Button, HSKLevel } from '../../../../design-system';
+import { Button, HSKLevel, StickerIllustration } from '../../../../design-system';
 import { AITutorService } from '../../services/AITutorService';
 import { AIBlockRenderer } from '../blocks/AIBlockRenderer';
 import type { AITutorContext, AITutorMessage } from '../../types';
+import '../../ai-tutor-workspace.css';
 
 export interface ChatSessionMeta {
   id: string;
@@ -192,29 +193,17 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
   const activeConv = conversations.find((c) => c.id === activeConvId);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        height: 'calc(100vh - 120px)',
-        backgroundColor: 'var(--surface)',
-        borderRadius: 'var(--radius-2xl)',
-        border: '1px solid var(--border)',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
+    <div className="ai-chat-root-container">
+      {/* Mobile Backdrop for Sidebar Drawer */}
+      <div
+        className={`ai-chat-sidebar-backdrop ${isSidebarOpenMobile ? 'active' : ''}`}
+        onClick={() => setIsSidebarOpenMobile(false)}
+      />
+
       {/* =====================================================================
           1. LEFT SIDEBAR: Conversation Management
           ===================================================================== */}
       <div
-        style={{
-          width: '320px',
-          borderRight: '1px solid var(--border)',
-          backgroundColor: 'var(--background)',
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-        }}
         className={`ai-chat-sidebar ${isSidebarOpenMobile ? 'mobile-open' : ''}`}
       >
         {/* New Chat Button & Search */}
@@ -380,20 +369,30 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
             backgroundColor: 'var(--surface)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <button
+              type="button"
+              className="ai-mobile-menu-btn"
+              onClick={() => setIsSidebarOpenMobile(true)}
+              aria-label="Lịch sử đoạn chat"
+            >
+              <Menu size={18} />
+            </button>
+
             <div
               style={{
                 width: '38px',
                 height: '38px',
                 borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--ai)',
-                color: '#ffffff',
+                backgroundColor: 'var(--ai-light, #eff6ff)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
+                border: '1px solid var(--ai-border, #bfdbfe)',
               }}
             >
-              <Sparkles size={18} />
+              <StickerIllustration name="aiTutor" size="xs" decorative />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -483,26 +482,14 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
         </div>
 
         {/* Message Thread Area */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: 'var(--space-5)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-4)',
-            backgroundColor: 'var(--background)',
-          }}
-        >
+        <div className="ai-chat-messages-container">
           {messages.map((msg) => {
             const isAi = msg.role === 'assistant';
             return (
               <div
                 key={msg.id}
+                className="ai-message-row"
                 style={{
-                  display: 'flex',
-                  gap: 'var(--space-3)',
-                  alignItems: 'flex-start',
                   justifyContent: isAi ? 'flex-start' : 'flex-end',
                 }}
               >
@@ -512,30 +499,26 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
                       width: '32px',
                       height: '32px',
                       borderRadius: 'var(--radius-full)',
-                      backgroundColor: 'var(--ai)',
-                      color: '#ffffff',
+                      backgroundColor: 'var(--ai-light, #eff6ff)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
+                      border: '1px solid var(--ai-border, #bfdbfe)',
                     }}
                   >
-                    <Sparkles size={15} />
+                    <StickerIllustration name="aiTutor" size="xs" decorative />
                   </div>
                 )}
 
-                <div style={{ maxWidth: '78%', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div className="ai-message-bubble-wrapper">
                   <div
+                    className="ai-message-bubble"
                     style={{
-                      padding: 'var(--space-3) var(--space-4)',
-                      borderRadius: 'var(--radius-xl)',
                       backgroundColor: isAi ? 'var(--surface)' : 'var(--primary)',
                       color: isAi ? 'var(--foreground)' : '#ffffff',
                       border: isAi ? '1px solid var(--border)' : 'none',
                       boxShadow: isAi ? '0 1px 4px rgba(0,0,0,0.04)' : '0 2px 8px rgba(67, 56, 202, 0.25)',
-                      fontSize: 'var(--text-sm)',
-                      lineHeight: 1.6,
-                      whiteSpace: 'pre-line',
                     }}
                   >
                     {msg.content}
@@ -592,13 +575,7 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
         </div>
 
         {/* Message Composer */}
-        <div
-          style={{
-            padding: 'var(--space-4)',
-            borderTop: '1px solid var(--border)',
-            backgroundColor: 'var(--surface)',
-          }}
-        >
+        <div className="ai-composer-container">
           {/* Quick prompt chips */}
           <div style={{ display: 'flex', gap: 'var(--space-2)', overflowX: 'auto', paddingBottom: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
             <span style={{ fontSize: '11px', color: 'var(--muted)', alignSelf: 'center', whiteSpace: 'nowrap' }}>

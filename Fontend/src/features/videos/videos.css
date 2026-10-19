@@ -859,3 +859,184 @@
   color: #475569;
   line-height: 1.4;
 }
+
+/* =========================================================================
+   FE-8: MOBILE VIDEO LEARNING (Tabs, Vocab list, Touch-first Controls)
+   ========================================================================= */
+
+.video-mobile-tab-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-top: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.video-mobile-tab-btn {
+  flex: 1;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 8px 12px;
+  touch-action: manipulation;
+}
+
+.video-mobile-tab-btn:hover {
+  color: #0f172a;
+}
+
+.video-mobile-tab-btn.active {
+  background-color: #ffffff;
+  color: var(--primary, #E60012);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Video Vocab Section */
+.video-vocab-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.video-vocab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.video-vocab-count-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary, #E60012);
+  background-color: #FFF0F1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.video-vocab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.video-vocab-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  gap: 12px;
+}
+
+.video-vocab-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.video-vocab-item-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.video-vocab-item-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary, #E60012);
+}
+
+.video-vocab-item-meaning {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.video-vocab-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-vocab-action {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+
+.btn-vocab-action:hover,
+.btn-vocab-action:active {
+  border-color: var(--primary, #E60012);
+  color: var(--primary, #E60012);
+  background-color: #FFF0F1;
+}
+
+.btn-vocab-action.saved {
+  border-color: #bbf7d0;
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+/* =========================================================================
+   RESPONSIVE BREAKPOINTS (Desktop vs Mobile handling)
+   ========================================================================= */
+
+@media (max-width: 1023px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .video-mobile-tab-bar {
+    display: none !important;
+  }
+  .video-vocab-section {
+    display: none !important;
+  }
+  .video-speaking-section.mobile-hidden,
+  .video-right-column.mobile-hidden {
+    display: block !important;
+  }
+}
+
