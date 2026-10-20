@@ -8,6 +8,8 @@ import {
   Edit3,
   Layers,
   Sparkles,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 
 import { curriculumService } from '../services/curriculum.service';
@@ -314,6 +316,27 @@ export const AdminLessonEditorPage: React.FC = () => {
               {saveSuccessMessage}
             </span>
           )}
+
+          {/* Deep link buttons */}
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={() => navigate('/management/admin/grammar')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            title="Mở bảng Quản lý Ngữ pháp"
+          >
+            <BookOpen size={14} /> Ngữ pháp
+          </button>
+
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={() => navigate(`/management/admin/exercises?lessonId=${draftLesson.lessonId}`)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            title="Xem bài tập của bài học trong Ngân hàng bài tập"
+          >
+            <HelpCircle size={14} /> Kho bài tập
+          </button>
 
           {/* Action buttons */}
           <button

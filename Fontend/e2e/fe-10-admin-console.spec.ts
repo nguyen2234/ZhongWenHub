@@ -78,22 +78,20 @@ test.describe('FE-10.1: Admin Web Console Redesign E2E', () => {
     await page.screenshot({ path: 'screenshots/admin-dashboard-after-mobile-390.png', fullPage: true });
   });
 
-  test('Navigation Integrity: Planned Module Pages for FE-10.2 & FE-10.3', async ({ page }) => {
+  test('Navigation Integrity: Active Module Pages for FE-10.2 & Planned FE-10.3', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
     // Navigate to Grammar management
     await page.goto('/ZhongWenHub/management/admin/grammar');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Quản lý Ngữ pháp HSK (FE-9)');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.2')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Quản lý Ngữ pháp (HSK 1 - 6)');
 
     // Navigate to Exercises management
     await page.goto('/ZhongWenHub/management/admin/exercises');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Ngân hàng bài tập chuẩn hóa (FE-9)');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.2')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Ngân hàng Bài tập & Câu hỏi');
 
-    // Navigate to AI management
+    // Navigate to AI management (Planned for FE-10.3)
     await page.goto('/ZhongWenHub/management/admin/ai-management');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('h1')).toContainText('Quản lý & Giám sát Trợ lý AI Tutor');
