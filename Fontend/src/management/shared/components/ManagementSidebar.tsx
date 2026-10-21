@@ -48,6 +48,8 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
 
   const roleTitle = useMemo(() => {
     switch (currentRole) {
+      case 'CONTENT_MANAGER':
+        return 'Quản lý học liệu & Kiểm duyệt';
       case 'TEACHER':
         return 'Giáo viên & Đào tạo';
       case 'SUPPORT':
@@ -465,10 +467,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
               Không gian quản trị:
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-              {(['ADMIN', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
+              {(['ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
                 <Link
                   key={r}
-                  to={`/management/${r.toLowerCase()}/dashboard`}
+                  to={r === 'CONTENT_MANAGER' ? '/management/content-manager/dashboard' : `/management/${r.toLowerCase()}/dashboard`}
                   onClick={() => onRoleChange && onRoleChange(r)}
                   style={{
                     textAlign: 'center',
@@ -484,7 +486,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   }}
                   title={`Chuyển tới ${r} Workspace`}
                 >
-                  {r === 'ADMIN' ? 'Admin' : r === 'TEACHER' ? 'Teacher' : 'Support'}
+                  {r === 'ADMIN' ? 'Admin' : r === 'CONTENT_MANAGER' ? 'Content' : r === 'TEACHER' ? 'Teacher' : 'Support'}
                 </Link>
               ))}
             </div>

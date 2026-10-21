@@ -1,4 +1,4 @@
-export type SystemRoleCode = 'ADMIN' | 'TEACHER' | 'SUPPORT' | 'STUDENT';
+export type SystemRoleCode = 'ADMIN' | 'TEACHER' | 'SUPPORT' | 'STUDENT' | 'CONTENT_MANAGER';
 
 export type PermissionModuleId =
   | 'USER_MANAGEMENT'

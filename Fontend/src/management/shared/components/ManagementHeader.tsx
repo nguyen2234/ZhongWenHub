@@ -58,6 +58,17 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
   // Compute breadcrumb hierarchy matching the 5-group sitemap
   const breadcrumb = useMemo(() => {
     const path = location.pathname;
+    // Content Manager routes
+    if (path.includes('/content-manager/dashboard')) return { group: 'Tổng quan', title: 'Dashboard Học liệu', link: '/management/content-manager/dashboard' };
+    if (path.includes('/content-manager/hsk-repository')) return { group: 'Kho học liệu', title: 'Kho học liệu HSK', link: '/management/content-manager/hsk-repository' };
+    if (path.includes('/content-manager/curriculum')) return { group: 'Kho học liệu', title: 'Giáo trình & Bài học', link: '/management/content-manager/curriculum' };
+    if (path.includes('/content-manager/grammar')) return { group: 'Kho học liệu', title: 'Ngữ pháp', link: '/management/content-manager/grammar' };
+    if (path.includes('/content-manager/question-bank')) return { group: 'Kho học liệu', title: 'Ngân hàng câu hỏi', link: '/management/content-manager/question-bank' };
+    if (path.includes('/content-manager/moderation')) return { group: 'Kiểm duyệt & Xuất bản', title: 'Kiểm duyệt nội dung', link: '/management/content-manager/moderation' };
+    if (path.includes('/content-manager/issues')) return { group: 'Hỗ trợ & Lỗi', title: 'Báo cáo lỗi nội dung', link: '/management/content-manager/issues' };
+    if (path.includes('/content-manager/audit-history')) return { group: 'Kiểm toán', title: 'Lịch sử phiên bản', link: '/management/content-manager/audit-history' };
+    if (path.includes('/content-manager/quality-metrics')) return { group: 'Chất lượng', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
+
     // Group: Người dùng & Tổ chức
     if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
     if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
@@ -87,7 +98,11 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     if (path.includes('/teacher/ai-workspace')) return { group: 'Trợ lý AI', title: 'Không gian soạn bài AI', link: '/management/teacher/ai-workspace' };
 
     // Default: Dashboard
-    return { group: 'Tổng quan', title: 'Dashboard V2', link: `/management/${currentRole.toLowerCase()}/dashboard` };
+    return {
+      group: 'Tổng quan',
+      title: currentRole === 'CONTENT_MANAGER' ? 'Dashboard Học liệu' : 'Dashboard V2',
+      link: currentRole === 'CONTENT_MANAGER' ? '/management/content-manager/dashboard' : `/management/${currentRole.toLowerCase()}/dashboard`,
+    };
   }, [location.pathname, currentRole]);
 
   return (

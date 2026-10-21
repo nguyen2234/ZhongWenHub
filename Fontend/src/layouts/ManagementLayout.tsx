@@ -5,6 +5,7 @@ import {
   ADMIN_NAV_GROUPS,
   TEACHER_NAV_GROUPS,
   SUPPORT_NAV_GROUPS,
+  CONTENT_MANAGER_NAV_GROUPS,
 } from '../management/shared/config/navigation.config';
 import type { UserRole } from '../types';
 
@@ -16,6 +17,7 @@ export const ManagementLayout: React.FC = () => {
     const segments = location.pathname.toLowerCase().split('/').filter(Boolean);
     if (segments[0] === 'management' && segments[1]) {
       const roleSegment = segments[1];
+      if (roleSegment === 'content-manager') return 'CONTENT_MANAGER';
       if (roleSegment === 'teacher') return 'TEACHER';
       if (roleSegment === 'support') return 'SUPPORT';
       if (roleSegment === 'admin') return 'ADMIN';
@@ -61,6 +63,8 @@ export const ManagementLayout: React.FC = () => {
 
   const navGroups = useMemo(() => {
     switch (currentRole) {
+      case 'CONTENT_MANAGER':
+        return CONTENT_MANAGER_NAV_GROUPS;
       case 'TEACHER':
         return TEACHER_NAV_GROUPS;
       case 'SUPPORT':

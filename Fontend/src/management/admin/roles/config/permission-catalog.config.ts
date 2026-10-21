@@ -110,6 +110,30 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
     description: 'Duyệt bài học do giáo viên soạn trước khi công khai cho học viên',
     module: 'LEARNING_CONTENT',
   },
+  {
+    code: 'CONTENT_PUBLISH',
+    name: 'Xuất bản nội dung',
+    description: 'Phát hành chính thức học liệu, bài học và ngữ pháp lên nền tảng',
+    module: 'LEARNING_CONTENT',
+  },
+  {
+    code: 'CONTENT_ARCHIVE',
+    name: 'Lưu trữ / Thu hồi nội dung',
+    description: 'Thu hồi bài giảng đã xuất bản về trạng thái lưu trữ hoặc nháp',
+    module: 'LEARNING_CONTENT',
+  },
+  {
+    code: 'CONTENT_RESTORE',
+    name: 'Khôi phục nội dung',
+    description: 'Khôi phục phiên bản học liệu từ lịch sử lưu trữ',
+    module: 'LEARNING_CONTENT',
+  },
+  {
+    code: 'CONTENT_AUDIT_VIEW',
+    name: 'Xem lịch sử phiên bản',
+    description: 'Truy xuất toàn bộ audit log, lịch sử sửa đổi và snapshot phiên bản',
+    module: 'LEARNING_CONTENT',
+  },
 
   // 5. Ngân hàng câu hỏi
   {
@@ -176,12 +200,36 @@ export const PERMISSION_CATALOG: PermissionDefinition[] = [
     description: 'Đánh dấu hoàn thành và đóng phiên hỗ trợ',
     module: 'SUPPORT_TICKETS',
   },
+  {
+    code: 'CONTENT_ISSUE_VIEW',
+    name: 'Xem báo cáo lỗi học liệu',
+    description: 'Tiếp nhận và theo dõi các báo cáo lỗi nội dung được Support chuyển lên',
+    module: 'SUPPORT_TICKETS',
+  },
+  {
+    code: 'CONTENT_ISSUE_ASSIGN',
+    name: 'Phân công xử lý lỗi học liệu',
+    description: 'Chỉ định Content Manager phụ trách xử lý báo cáo lỗi nội dung',
+    module: 'SUPPORT_TICKETS',
+  },
+  {
+    code: 'CONTENT_ISSUE_RESOLVE',
+    name: 'Xử lý báo cáo lỗi học liệu',
+    description: 'Chỉnh sửa, xuất bản bản vá và gửi phản hồi kết quả về Support',
+    module: 'SUPPORT_TICKETS',
+  },
 
   // 8. Báo cáo & Thống kê
   {
     code: 'REPORT_VIEW',
     name: 'Xem báo cáo',
     description: 'Xem báo cáo tăng trưởng người dùng, tỷ lệ hoàn thành bài học',
+    module: 'REPORTS',
+  },
+  {
+    code: 'CONTENT_REPORT_VIEW',
+    name: 'Xem thống kê chất lượng học liệu',
+    description: 'Theo dõi chỉ số chất lượng, độ chuẩn hóa và tỷ lệ lỗi học liệu',
     module: 'REPORTS',
   },
 

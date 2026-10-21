@@ -14,6 +14,7 @@ import {
   Bot,
   Video,
   ShieldAlert,
+  History,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 
@@ -240,8 +241,96 @@ export const SUPPORT_NAV_GROUPS: ManagementNavGroup[] = [
   },
 ];
 
-export const getNavItemsForRole = (role: 'ADMIN' | 'TEACHER' | 'SUPPORT') => {
+export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
+  {
+    id: 'cm-overview',
+    title: 'TỔNG QUAN',
+    items: [
+      {
+        id: 'cm-dashboard',
+        label: 'Tổng quan',
+        path: '/management/content-manager/dashboard',
+        icon: <LayoutDashboard size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+    ],
+  },
+  {
+    id: 'cm-repository',
+    title: 'KHO HỌC LIỆU',
+    items: [
+      {
+        id: 'cm-hsk-repository',
+        label: 'Kho học liệu HSK',
+        path: '/management/content-manager/hsk-repository',
+        icon: <BookOpen size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-curriculum',
+        label: 'Giáo trình & Bài học',
+        path: '/management/content-manager/curriculum',
+        icon: <FolderKanban size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-grammar',
+        label: 'Ngữ pháp',
+        path: '/management/content-manager/grammar',
+        icon: <FileText size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-questions',
+        label: 'Ngân hàng câu hỏi',
+        path: '/management/content-manager/question-bank',
+        icon: <CheckSquare size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+    ],
+  },
+  {
+    id: 'cm-governance',
+    title: 'KIỂM DUYỆT & XỬ LÝ LỖI',
+    items: [
+      {
+        id: 'cm-moderation',
+        label: 'Kiểm duyệt & Xuất bản',
+        path: '/management/content-manager/moderation',
+        icon: <ShieldCheck size={17} />,
+        badge: 7,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-issues',
+        label: 'Báo cáo lỗi nội dung',
+        path: '/management/content-manager/issues',
+        icon: <ShieldAlert size={17} />,
+        badge: 5,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-audit',
+        label: 'Lịch sử phiên bản',
+        path: '/management/content-manager/audit-history',
+        icon: <History size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-quality',
+        label: 'Thống kê chất lượng',
+        path: '/management/content-manager/quality-metrics',
+        icon: <BarChart3 size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+    ],
+  },
+];
+
+export const getNavItemsForRole = (role: 'ADMIN' | 'TEACHER' | 'SUPPORT' | 'CONTENT_MANAGER') => {
   switch (role) {
+    case 'CONTENT_MANAGER':
+      return CONTENT_MANAGER_NAV_GROUPS.flatMap((g) => g.items);
     case 'TEACHER':
       return TEACHER_NAV_GROUPS.flatMap((g) => g.items);
     case 'SUPPORT':
