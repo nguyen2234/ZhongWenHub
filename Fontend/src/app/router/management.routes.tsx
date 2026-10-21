@@ -21,6 +21,11 @@ import { AdminCurriculumPage } from '../../management/admin/content/pages/AdminC
 import { AdminLessonEditorPage } from '../../management/admin/content/pages/AdminLessonEditorPage';
 import { AdminGrammarManagementPage } from '../../management/admin/content/pages/AdminGrammarManagementPage';
 import { AdminExerciseBankPage } from '../../management/admin/content/pages/AdminExerciseBankPage';
+import { ContentManagerDashboardPage } from '../../management/content-manager/pages/ContentManagerDashboardPage';
+import { ContentModerationPage } from '../../management/content-manager/pages/ContentModerationPage';
+import { ContentIssuesPage } from '../../management/content-manager/pages/ContentIssuesPage';
+import { ContentAuditHistoryPage } from '../../management/content-manager/pages/ContentAuditHistoryPage';
+import { ContentQualityMetricsPage } from '../../management/content-manager/pages/ContentQualityMetricsPage';
 
 export const managementRoutes: RouteObject[] = [
   {
@@ -147,6 +152,59 @@ export const managementRoutes: RouteObject[] = [
           {
             path: '*',
             element: <TeacherDashboardPage />,
+          },
+        ],
+      },
+      {
+        path: 'content-manager',
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/management/content-manager/dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: <ContentManagerDashboardPage />,
+          },
+          {
+            path: 'hsk-repository',
+            element: <AdminHskRepositoryPage />,
+          },
+          {
+            path: 'curriculum',
+            element: <AdminCurriculumPage />,
+          },
+          {
+            path: 'curriculum/lessons/:lessonId/edit',
+            element: <AdminLessonEditorPage />,
+          },
+          {
+            path: 'grammar',
+            element: <AdminGrammarManagementPage />,
+          },
+          {
+            path: 'question-bank',
+            element: <AdminExerciseBankPage />,
+          },
+          {
+            path: 'moderation',
+            element: <ContentModerationPage />,
+          },
+          {
+            path: 'issues',
+            element: <ContentIssuesPage />,
+          },
+          {
+            path: 'audit-history',
+            element: <ContentAuditHistoryPage />,
+          },
+          {
+            path: 'quality-metrics',
+            element: <ContentQualityMetricsPage />,
+          },
+          {
+            path: '*',
+            element: <Navigate to="/management/content-manager/dashboard" replace />,
           },
         ],
       },

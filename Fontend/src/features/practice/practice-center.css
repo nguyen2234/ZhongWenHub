@@ -74,24 +74,14 @@
 .practice-recommended-card {
   position: relative;
   background-color: var(--surface, #ffffff);
-  border: 2px solid var(--primary, #e60012);
-  border-radius: var(--radius-2xl, 20px);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
   padding: var(--space-5, 20px) var(--space-6, 24px);
-  box-shadow: 0 4px 20px rgba(230, 0, 18, 0.08);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.05));
   display: flex;
   flex-direction: column;
   gap: var(--space-4, 16px);
   overflow: hidden;
-}
-
-.practice-recommended-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background-color: var(--primary, #e60012);
 }
 
 .practice-recommended-top {

@@ -5,6 +5,7 @@ import {
   ADMIN_NAV_GROUPS,
   TEACHER_NAV_GROUPS,
   SUPPORT_NAV_GROUPS,
+  CONTENT_MANAGER_NAV_GROUPS,
 } from '../management/shared/config/navigation.config';
 import type { UserRole } from '../types';
 
@@ -16,6 +17,7 @@ export const ManagementLayout: React.FC = () => {
     const segments = location.pathname.toLowerCase().split('/').filter(Boolean);
     if (segments[0] === 'management' && segments[1]) {
       const roleSegment = segments[1];
+      if (roleSegment === 'content-manager') return 'CONTENT_MANAGER';
       if (roleSegment === 'teacher') return 'TEACHER';
       if (roleSegment === 'support') return 'SUPPORT';
       if (roleSegment === 'admin') return 'ADMIN';
@@ -45,8 +47,24 @@ export const ManagementLayout: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMobileOpen]);
+
   const navGroups = useMemo(() => {
     switch (currentRole) {
+      case 'CONTENT_MANAGER':
+        return CONTENT_MANAGER_NAV_GROUPS;
       case 'TEACHER':
         return TEACHER_NAV_GROUPS;
       case 'SUPPORT':
@@ -76,7 +94,6 @@ export const ManagementLayout: React.FC = () => {
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(3px)',
             zIndex: 49,
             transition: 'opacity 0.2s ease',
           }}
@@ -115,7 +132,6 @@ export const ManagementLayout: React.FC = () => {
         <main
           style={{
             flex: 1,
-            overflowY: 'auto',
             padding: 'clamp(16px, 2.5vw, 28px)',
             width: '100%',
             maxWidth: '1680px',

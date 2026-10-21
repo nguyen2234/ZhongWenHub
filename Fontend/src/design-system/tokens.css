@@ -186,6 +186,17 @@
   /* Chiều cao control (budgets.md) */
   --control-height: 40px;
   --control-height-mobile: 44px;
+
+  /* Application shell */
+  --app-header-height: 64px;
+  --student-sidebar-width: 256px;
+  --student-sidebar-collapsed-width: 72px;
+  --management-sidebar-width: 264px;
+  --management-sidebar-collapsed-width: 72px;
+  --z-header: 40;
+  --z-sidebar: 50;
+  --z-drawer: 90;
+  --z-modal: 100;
 }
 
 [data-theme-color="ocean"] {
