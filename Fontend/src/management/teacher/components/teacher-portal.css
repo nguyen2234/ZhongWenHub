@@ -98,7 +98,7 @@
 }
 
 .tp-session-today {
-  border-left: 3px solid var(--primary);
+  border-left: 1px solid var(--border);
   background-color: #fafafa;
 }
 
@@ -623,7 +623,7 @@
 
 .tp-picker-item--active {
   background-color: #eef2ff !important;
-  border-left: 3px solid var(--primary);
+  border-left: 1px solid var(--border);
 }
 
 /* Target Class Row in Section C */

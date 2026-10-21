@@ -63,9 +63,9 @@
 }
 
 .video-card-item:hover {
-  transform: translateY(-3px);
-  border-color: #fca5a5;
-  box-shadow: 0 8px 24px rgba(230, 0, 18, 0.08);
+  transform: translateY(-2px);
+  border-color: var(--border-strong, #cbd5e1);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.07));
 }
 
 .video-thumbnail-wrap {
@@ -643,14 +643,13 @@
   border-color: #fca5a5;
 }
 
-/* Token inspection popover */
 .transcript-token-popover {
   margin: 12px 18px 0;
   padding: 12px 14px;
-  background-color: #FFFBFB;
-  border: 1.5px solid #fed7da;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(230, 0, 18, 0.06);
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.07));
 }
 
 .token-popover-hanzi {

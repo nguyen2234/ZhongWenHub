@@ -75,6 +75,20 @@ export const StudentLayout: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!isMobileDrawerOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileDrawerOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMobileDrawerOpen]);
+
   const getPageTitle = () => {
     if (pathname.startsWith('/ai-tutor')) return 'Không gian AI Tutor Chuyên nghiệp';
     if (pathname.startsWith('/ai-live')) return 'Luyện giao tiếp AI Live';
@@ -100,7 +114,7 @@ export const StudentLayout: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
       {/* =====================================================================
           1. HANBEEGO-INSPIRED TOP HEADER
           ===================================================================== */}
@@ -110,10 +124,10 @@ export const StudentLayout: React.FC = () => {
           top: 0,
           zIndex: 40,
           display: 'flex',
-          height: '64px',
+          height: 'var(--app-header-height)',
           alignItems: 'center',
-          borderBottom: '1.5px solid #e2e8f0',
-          backgroundColor: '#ffffff',
+          borderBottom: '1px solid var(--border)',
+          backgroundColor: 'var(--surface)',
           width: '100%',
         }}
       >
@@ -579,8 +593,8 @@ export const StudentLayout: React.FC = () => {
           <div
             style={{
               position: 'sticky',
-              top: '64px',
-              height: 'calc(100vh - 64px)',
+              top: 'var(--app-header-height)',
+              height: 'calc(100vh - var(--app-header-height))',
             }}
           >
             <StudentSidebar
@@ -596,9 +610,8 @@ export const StudentLayout: React.FC = () => {
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 90,
+              zIndex: 'var(--z-drawer)',
               backgroundColor: 'rgba(15, 23, 42, 0.5)',
-              backdropFilter: 'blur(3px)',
               display: 'flex',
             }}
             onClick={() => setIsMobileDrawerOpen(false)}
@@ -613,6 +626,9 @@ export const StudentLayout: React.FC = () => {
                 flexDirection: 'column',
               }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Điều hướng học viên"
             >
               <div
                 style={{
@@ -669,7 +685,7 @@ export const StudentLayout: React.FC = () => {
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--background)',
           }}
         >
           <main className="student-main-viewport" style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
