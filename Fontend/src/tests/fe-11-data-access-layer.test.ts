@@ -15,6 +15,9 @@ import {
   HttpExerciseRepository,
   repositoryContainer,
 } from '../core/repositories';
+import { adminGrammarService } from '../management/admin/content/services/admin-grammar.service';
+import { adminExerciseService } from '../management/admin/content/services/admin-exercise.service';
+import { defaultApiConfig } from '../core/api/client/api-config';
 
 describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
   beforeEach(() => {
@@ -70,21 +73,37 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
   });
 
   // 2. Auth Token Boundary
-  describe('2. Authentication Token Boundary', () => {
-    test('manages access token lifecycle cleanly without direct storage exposure', () => {
+  describe('2. Authentication Token Boundary (In-Memory Security)', () => {
+    test('stores access token strictly in-memory and does not leak refresh token to storage', () => {
       authTokenService.clearTokens();
       expect(authTokenService.isAuthenticated()).toBe(false);
       expect(authTokenService.getAccessToken()).toBeNull();
 
       authTokenService.setTokens({
-        accessToken: 'mock-jwt-bearer-token-12345',
-        refreshToken: 'mock-refresh-token-67890',
+        accessToken: 'memory-bearer-token-12345',
+        refreshToken: 'should-not-be-in-localstorage',
       });
 
       expect(authTokenService.isAuthenticated()).toBe(true);
-      expect(authTokenService.getAccessToken()).toBe('mock-jwt-bearer-token-12345');
+      expect(authTokenService.getAccessToken()).toBe('memory-bearer-token-12345');
+
+      // Verify localStorage does not have refresh token
+      if (typeof window !== 'undefined') {
+        expect(window.localStorage.getItem('zhongwenhub_auth_tokens_v1')).toBeNull();
+        expect(window.localStorage.getItem('refresh_token')).toBeNull();
+      }
 
       authTokenService.clearTokens();
+      expect(authTokenService.isAuthenticated()).toBe(false);
+      expect(authTokenService.getAccessToken()).toBeNull();
+    });
+
+    test('invalidates expired tokens automatically', () => {
+      authTokenService.setSession({
+        accessToken: 'expired-token',
+        expiresAt: Date.now() - 1000, // expired 1s ago
+      });
+
       expect(authTokenService.isAuthenticated()).toBe(false);
       expect(authTokenService.getAccessToken()).toBeNull();
     });
@@ -190,8 +209,8 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
     });
   });
 
-  // 6. Repository Container Switching
-  describe('6. Dependency Injection Container', () => {
+  // 6. Repository Container Switching & Guard Check
+  describe('6. Dependency Injection Container & Sync Guards', () => {
     test('provides active repository and allows test mocking overrides', () => {
       const defaultGrammarRepo = repositoryContainer.getGrammarRepository();
       expect(defaultGrammarRepo).toBeInstanceOf(MockGrammarRepository);
@@ -203,6 +222,40 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
 
       repositoryContainer.reset();
       expect(repositoryContainer.getGrammarRepository()).not.toBe(customMock);
+    });
+
+    test('guards against calling synchronous methods when HTTP mode is active', () => {
+      // Temporarily simulate HTTP mode
+      const originalMode = defaultApiConfig.useMock;
+      try {
+        defaultApiConfig.useMock = false;
+
+        expect(() => adminGrammarService.getAll()).toThrow(
+          /Phương thức đồng bộ không khả dụng khi đang ở chế độ HTTP API Adapter/
+        );
+        expect(() => adminExerciseService.getAll()).toThrow(
+          /Phương thức đồng bộ không khả dụng khi đang ở chế độ HTTP API Adapter/
+        );
+      } finally {
+        defaultApiConfig.useMock = originalMode;
+      }
+    });
+  });
+
+  // 7. HttpClient pre-abort and timeout guard
+  describe('7. HttpClient Cancellation & Pre-abort Handling', () => {
+    test('rejects immediately when passed an already-aborted signal', async () => {
+      const client = new HttpClient();
+      const controller = new AbortController();
+      controller.abort();
+
+      try {
+        await client.get('/test', { signal: controller.signal });
+        expect(true).toBe(false); // Should not reach
+      } catch (err: any) {
+        expect(err.status).toBe(499);
+        expect(err.message).toContain('bị hủy');
+      }
     });
   });
 });

@@ -1,83 +1,93 @@
 /**
  * Authentication Token Boundary Service
- * Encapsulates token lifecycle, persistence, and injection for HTTP requests.
- * Completely decouples UI components from storage mechanism.
+ * 
+ * SECURITY ARCHITECTURE & ASP.NET CORE INTEGRATION:
+ * 1. Access Token: Stored strictly IN-MEMORY during runtime.
+ *    - Never serialized into localStorage to protect against XSS token harvesting.
+ * 2. Refresh Token: Managed EXCLUSIVELY via server-set HttpOnly, Secure, SameSite=Strict cookies.
+ *    - JavaScript runtime has zero read/write access to refresh token cookies.
+ *    - On initial load or page refresh, the client performs a silent refresh (/api/v1/auth/refresh-token)
+ *      to re-hydrate the in-memory access token.
  */
 
-export interface AuthTokens {
+export interface AuthSession {
   accessToken: string;
-  refreshToken?: string;
   expiresAt?: number;
 }
 
-const TOKEN_STORAGE_KEY = 'zhongwenhub_auth_tokens_v1';
-
 class AuthTokenService {
   private inMemoryToken: string | null = null;
+  private tokenExpiresAt: number | null = null;
   private onTokenExpireCallbacks: Array<() => void> = [];
 
   constructor() {
-    this.hydrateFromStorage();
+    this.cleanLegacyStorage();
   }
 
-  private hydrateFromStorage(): void {
+  /**
+   * Cleans any legacy token artifacts from localStorage to prevent lingering secrets.
+   */
+  private cleanLegacyStorage(): void {
     if (typeof window === 'undefined') return;
     try {
-      const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-      if (raw) {
-        const tokens = JSON.parse(raw) as AuthTokens;
-        this.inMemoryToken = tokens.accessToken || null;
-      }
+      window.localStorage.removeItem('zhongwenhub_auth_tokens_v1');
+      window.localStorage.removeItem('zhongwenhub_auth_token');
+      window.localStorage.removeItem('refresh_token');
     } catch {
-      this.inMemoryToken = null;
+      // Ignore storage access errors in sandboxed environments
     }
   }
 
   /**
-   * Returns the current Bearer token, or null if unauthenticated.
+   * Returns current Bearer access token held in memory, or null if unauthenticated.
    */
   getAccessToken(): string | null {
+    if (this.tokenExpiresAt && Date.now() > this.tokenExpiresAt) {
+      this.clearTokens();
+      return null;
+    }
     return this.inMemoryToken;
   }
 
   /**
-   * Sets new authentication tokens and updates storage.
+   * Sets in-memory access token upon successful login or silent cookie refresh.
+   * Does NOT write to localStorage.
    */
-  setTokens(tokens: AuthTokens): void {
-    this.inMemoryToken = tokens.accessToken;
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
-      } catch (err) {
-        console.warn('[AuthTokenService] Failed to persist auth tokens:', err);
-      }
-    }
+  setSession(session: AuthSession): void {
+    this.inMemoryToken = session.accessToken;
+    this.tokenExpiresAt = session.expiresAt || null;
   }
 
   /**
-   * Clears tokens upon logout or session termination.
+   * Legacy compatibility method for setTokens: only extracts accessToken into memory.
+   * Explicitly drops any refreshToken passed to prevent client-side storage.
+   */
+  setTokens(tokens: { accessToken: string; refreshToken?: string; expiresAt?: number }): void {
+    this.setSession({
+      accessToken: tokens.accessToken,
+      expiresAt: tokens.expiresAt,
+    });
+  }
+
+  /**
+   * Clears in-memory session upon logout or 401 Unauthorized response.
    */
   clearTokens(): void {
     this.inMemoryToken = null;
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-      } catch (err) {
-        console.warn('[AuthTokenService] Failed to remove tokens:', err);
-      }
-    }
+    this.tokenExpiresAt = null;
+    this.cleanLegacyStorage();
     this.onTokenExpireCallbacks.forEach((cb) => cb());
   }
 
   /**
-   * Whether the user has an active access token.
+   * Check whether user currently holds a non-expired access token in memory.
    */
   isAuthenticated(): boolean {
-    return Boolean(this.inMemoryToken && this.inMemoryToken.length > 0);
+    return Boolean(this.getAccessToken());
   }
 
   /**
-   * Register a callback triggered when token expires or is cleared.
+   * Register listener for session invalidation (e.g., to redirect to login).
    */
   onExpired(callback: () => void): () => void {
     this.onTokenExpireCallbacks.push(callback);

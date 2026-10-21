@@ -10,9 +10,11 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
 /**
  * Standard HTTP Client for ASP.NET Core REST API integration.
  * - Does NOT wrap successful responses into artificial envelopes (returns data T directly).
- * - Transparently handles Bearer token authentication.
+ * - Transparently handles Bearer token authentication from in-memory AuthTokenService.
+ * - Clears in-memory credentials on 401 Unauthorized responses.
  * - Parses RFC 7807 ProblemDetails on 4xx/5xx responses into ApiClientError.
  * - Supports cancellation via AbortSignal and timeout safety.
+ * - Handles 204 No Content seamlessly.
  */
 export class HttpClient {
   private config: ApiConfig;
@@ -42,7 +44,7 @@ export class HttpClient {
   }
 
   /**
-   * Executes an HTTP request with timeout and error handling.
+   * Executes an HTTP request with timeout, signal handling, and Problem Details decoding.
    */
   private async execute<T>(
     endpoint: string,
@@ -53,10 +55,19 @@ export class HttpClient {
     const url = this.buildUrl(endpoint, options.params);
     const timeoutMs = options.timeoutMs ?? this.config.timeoutMs;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    // Check if caller's signal was already aborted
+    if (options.signal?.aborted) {
+      throw new ApiClientError('Yêu cầu đã bị hủy bởi người dùng.', 499, undefined, true);
+    }
 
-    // Merge custom signals if caller provided one
+    const controller = new AbortController();
+    let isTimeout = false;
+    const timeoutId = setTimeout(() => {
+      isTimeout = true;
+      controller.abort();
+    }, timeoutMs);
+
+    // Forward custom signal abort
     if (options.signal) {
       options.signal.addEventListener('abort', () => controller.abort());
     }
@@ -70,7 +81,7 @@ export class HttpClient {
       headers['Content-Type'] = 'application/json';
     }
 
-    // Inject Bearer token if available
+    // Inject Bearer token from in-memory service if available
     const token = authTokenService.getAccessToken();
     if (token && !headers['Authorization']) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -83,11 +94,12 @@ export class HttpClient {
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
         signal: controller.signal,
+        credentials: 'include', // Include HttpOnly cookies (for refresh token)
       });
 
       clearTimeout(timeoutId);
 
-      // Handle 204 No Content
+      // Handle HTTP 204 No Content
       if (response.status === 204) {
         return undefined as unknown as T;
       }
@@ -98,6 +110,10 @@ export class HttpClient {
       const responseData = isJson ? await response.json() : await response.text();
 
       if (!response.ok) {
+        // Automatically invalidate session on 401 Unauthorized
+        if (response.status === 401) {
+          authTokenService.clearTokens();
+        }
         throw ApiClientError.fromResponse(response.status, responseData);
       }
 
@@ -110,11 +126,23 @@ export class HttpClient {
       }
 
       if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new ApiClientError(
-          'Yêu cầu đã bị hủy hoặc quá thời gian phản hồi (Timeout).',
-          408,
-          undefined,
-          true
+        if (isTimeout) {
+          return Promise.reject(
+            new ApiClientError(
+              'Yêu cầu quá thời gian phản hồi (Timeout). Vui lòng thử lại.',
+              408,
+              undefined,
+              true
+            )
+          );
+        }
+        return Promise.reject(
+          new ApiClientError(
+            'Yêu cầu đã bị hủy bởi người dùng.',
+            499,
+            undefined,
+            true
+          )
         );
       }
 

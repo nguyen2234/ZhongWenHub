@@ -10,6 +10,7 @@ import {
   type IGrammarRepository,
   type AdminGrammarStats,
 } from '../../../../core/repositories';
+import { defaultApiConfig } from '../../../../core/api/client/api-config';
 
 /**
  * Application Service for Admin Grammar Management.
@@ -29,29 +30,47 @@ export class AdminGrammarService {
     return new MockGrammarRepository();
   }
 
+  /**
+   * Guard check: Sync methods cannot run over real HTTP network calls.
+   */
+  private ensureSyncSupported(methodName: string): void {
+    if (!defaultApiConfig.useMock) {
+      throw new Error(
+        `[AdminGrammarService.${methodName}] Phương thức đồng bộ không khả dụng khi đang ở chế độ HTTP API Adapter. ` +
+        `UI components phải sử dụng phương thức bất đồng bộ (${methodName}Async) hoặc cấu hình VITE_USE_MOCK_API=true.`
+      );
+    }
+  }
+
   // --- Synchronous methods (Preserved for existing components and tests) ---
 
   getAll(filters?: Partial<AdminGrammarFilters>): AdminGrammarPoint[] {
+    this.ensureSyncSupported('getAll');
     return this.mockRepo.getAllSync(filters);
   }
 
   getById(id: string): AdminGrammarPoint | undefined {
+    this.ensureSyncSupported('getById');
     return this.mockRepo.getByIdSync(id);
   }
 
   create(dto: CreateAdminGrammarDTO): AdminGrammarPoint {
+    this.ensureSyncSupported('create');
     return this.mockRepo.createSync(dto);
   }
 
   update(id: string, dto: UpdateAdminGrammarDTO): AdminGrammarPoint {
+    this.ensureSyncSupported('update');
     return this.mockRepo.updateSync(id, dto);
   }
 
   delete(id: string): boolean {
+    this.ensureSyncSupported('delete');
     return this.mockRepo.deleteSync(id);
   }
 
   getStats(): AdminGrammarStats {
+    this.ensureSyncSupported('getStats');
     return this.mockRepo.getStatsSync();
   }
 
