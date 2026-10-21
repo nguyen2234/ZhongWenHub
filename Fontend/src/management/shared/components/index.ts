@@ -8,4 +8,5 @@ export * from './StatusBadge';
 export * from './Pagination';
 export * from './EmptyState';
 export * from './ConfirmDialog';
+export * from './TableSkeleton';
 export * from './ManagementRouteGuard';

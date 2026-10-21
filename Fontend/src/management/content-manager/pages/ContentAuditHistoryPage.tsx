@@ -3,6 +3,7 @@ import { Search, Eye, CheckCircle2 } from 'lucide-react';
 import { contentAuditService } from '../services/content-audit.service';
 import { VersionDiffDrawer } from '../components/VersionDiffDrawer';
 import { ModerationBadge } from '../components/ModerationBadge';
+import { Pagination } from '../../shared/components';
 import type { VersionSnapshot } from '../types/content-manager.types';
 import '../components/content-manager.css';
 
@@ -12,6 +13,10 @@ export const ContentAuditHistoryPage: React.FC = () => {
   const [selectedSnapshot, setSelectedSnapshot] = useState<VersionSnapshot | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const snapshots = useMemo(() => {
     let list = contentAuditService.getVersionSnapshots();
@@ -30,6 +35,12 @@ export const ContentAuditHistoryPage: React.FC = () => {
     }
     return list;
   }, [searchQuery, selectedChangeType, refreshKey]);
+
+  const totalPages = Math.ceil(snapshots.length / pageSize) || 1;
+  const paginatedSnapshots = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return snapshots.slice(start, start + pageSize);
+  }, [snapshots, page, pageSize]);
 
   const handleRollback = (snapshot: VersionSnapshot) => {
     contentAuditService.restoreVersion(snapshot.contentId, snapshot.version);
@@ -127,14 +138,14 @@ export const ContentAuditHistoryPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {snapshots.length === 0 ? (
+            {paginatedSnapshots.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                   Không tìm thấy bản ghi lịch sử phiên bản nào.
                 </td>
               </tr>
             ) : (
-              snapshots.map((snap) => (
+              paginatedSnapshots.map((snap) => (
                 <tr key={snap.id}>
                   <td style={{ textAlign: 'center' }}>
                     <span
@@ -217,12 +228,12 @@ export const ContentAuditHistoryPage: React.FC = () => {
 
       {/* 4. Mobile Cards View */}
       <div className="cm-mobile-list">
-        {snapshots.length === 0 ? (
+        {paginatedSnapshots.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px', color: 'var(--muted)', backgroundColor: 'var(--surface)', borderRadius: '12px' }}>
             Không tìm thấy bản ghi nào.
           </div>
         ) : (
-          snapshots.map((snap) => (
+          paginatedSnapshots.map((snap) => (
             <div key={snap.id} className="cm-mobile-card">
               <div className="cm-mobile-card-top">
                 <div>
@@ -266,6 +277,25 @@ export const ContentAuditHistoryPage: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {snapshots.length > pageSize && (
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={snapshots.length}
+            pageSize={pageSize}
+            pageSizeOptions={[10, 20, 50]}
+            onPageChange={setPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
+            itemLabel="bản sao phiên bản"
+          />
+        </div>
+      )}
 
       {/* Diff Drawer */}
       <VersionDiffDrawer

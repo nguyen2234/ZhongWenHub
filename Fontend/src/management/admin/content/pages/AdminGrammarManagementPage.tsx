@@ -508,13 +508,53 @@ export const AdminGrammarManagementPage: React.FC = () => {
           }
         />
 
-        {/* Data Table */}
+        {/* Data Table with Evondev Mobile Card Support (R9 & R11) */}
         <DataTable
           columns={columns}
           data={paginatedData}
           keyExtractor={(item) => item.id}
           onRowClick={handleOpenDetail}
           emptyText="Không tìm thấy điểm ngữ pháp nào phù hợp với bộ lọc."
+          enableMobileCards
+          mobileTitleExtractor={(item) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  padding: '1px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--primary-subtle, rgba(2, 132, 199, 0.08))',
+                  color: 'var(--primary)',
+                }}
+              >
+                HSK {item.hskLevel}
+              </span>
+              <span style={{ fontWeight: 600 }}>{item.title}</span>
+            </div>
+          )}
+          mobileSubtitleExtractor={(item) => (
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--primary)' }}>
+              {item.structureFormula}
+            </span>
+          )}
+          mobileBadgeExtractor={(item) => <ContentStatusBadge status={item.status} />}
+          mobileFields={[
+            {
+              label: 'Danh mục',
+              render: (item) => (
+                <span style={{ textTransform: 'capitalize' }}>{item.category}</span>
+              ),
+            },
+            {
+              label: 'Ví dụ',
+              render: (item) => (
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                  {item.examples[0]?.zh || 'Chưa có'}
+                </span>
+              ),
+            },
+          ]}
         />
 
         {/* Pagination */}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Eye,
   Edit2,
@@ -8,9 +8,10 @@ import {
   Archive,
   Calendar,
   Clock,
-  Layers,
   Award,
 } from 'lucide-react';
+import { StatusBadge, ManagementDataTable } from '../../../shared/components';
+import type { TableColumn, RowAction } from '../../../shared/types';
 import type { AssignmentSummaryDTO, AssignmentStatus } from '../../types';
 
 interface AssignmentTableProps {
@@ -24,28 +25,6 @@ interface AssignmentTableProps {
   onArchive: (assignment: AssignmentSummaryDTO) => void;
 }
 
-const STATUS_CONFIG: Record<
-  AssignmentStatus,
-  { label: string; className: string }
-> = {
-  DRAFT: {
-    label: 'Bản nháp',
-    className: 'tp-status-badge--draft',
-  },
-  PUBLISHED: {
-    label: 'Đã phát hành',
-    className: 'tp-status-badge--published',
-  },
-  CLOSED: {
-    label: 'Đã đóng nộp',
-    className: 'tp-status-badge--closed',
-  },
-  ARCHIVED: {
-    label: 'Đã lưu trữ',
-    className: 'tp-status-badge--archived',
-  },
-};
-
 export const AssignmentTable: React.FC<AssignmentTableProps> = ({
   assignments,
   loading = false,
@@ -56,245 +35,266 @@ export const AssignmentTable: React.FC<AssignmentTableProps> = ({
   onClose,
   onArchive,
 }) => {
-  if (loading) {
-    return (
-      <div className="tp-empty-state" style={{ minHeight: '260px' }}>
-        <div className="tp-loading-spinner" />
-        <p className="tp-empty-state-text" style={{ marginTop: '12px' }}>
-          Đang tải danh sách bài tập...
-        </p>
-      </div>
-    );
-  }
+  const getStatusVariant = (st: AssignmentStatus) => {
+    switch (st) {
+      case 'PUBLISHED':
+        return 'success';
+      case 'DRAFT':
+        return 'warning';
+      case 'CLOSED':
+        return 'neutral';
+      case 'ARCHIVED':
+        return 'danger';
+      default:
+        return 'neutral';
+    }
+  };
 
-  if (assignments.length === 0) {
-    return (
-      <div className="tp-empty-state" style={{ minHeight: '260px' }}>
-        <Layers size={40} className="tp-empty-state-icon" />
-        <h4 className="tp-empty-state-title">Chưa có bài tập nào</h4>
-        <p className="tp-empty-state-text">
-          Hãy tạo bài tập mới từ ngân hàng câu hỏi hoặc điều chỉnh bộ lọc tìm kiếm.
-        </p>
-      </div>
-    );
-  }
+  const getStatusLabel = (st: AssignmentStatus) => {
+    switch (st) {
+      case 'DRAFT':
+        return 'Bản nháp';
+      case 'PUBLISHED':
+        return 'Đã phát hành';
+      case 'CLOSED':
+        return 'Đã đóng nộp';
+      case 'ARCHIVED':
+        return 'Đã lưu trữ';
+      default:
+        return st;
+    }
+  };
+
+  const columns: TableColumn<AssignmentSummaryDTO>[] = useMemo(
+    () => [
+      {
+        key: 'title',
+        header: 'Tiêu đề & Cấp độ',
+        render: (asgn) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  padding: '2px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: `${asgn.hskLevelColor}15`,
+                  color: asgn.hskLevelColor,
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  border: `1px solid ${asgn.hskLevelColor}30`,
+                }}
+              >
+                {asgn.hskLevelName}
+              </span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                {asgn.title}
+              </span>
+            </div>
+            {asgn.description && (
+              <span
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--muted)',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {asgn.description}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'classes',
+        header: 'Lớp giao',
+        hideOnMobile: true,
+        render: (asgn) =>
+          asgn.targetClassNames.length > 0 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {asgn.targetClassNames.map((name, i) => (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: '11px',
+                    padding: '2px 6px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--surface-hover)',
+                    color: 'var(--foreground)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+              Chưa giao lớp
+            </span>
+          ),
+      },
+      {
+        key: 'dueDate',
+        header: 'Hạn nộp',
+        hideOnMobile: true,
+        render: (asgn) =>
+          asgn.earliestDueDate ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--text-xs)', color: 'var(--foreground)' }}>
+              <Calendar size={13} style={{ color: 'var(--muted)' }} />
+              <span className="tabular-nums">{new Date(asgn.earliestDueDate).toLocaleDateString('vi-VN')}</span>
+            </div>
+          ) : (
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+              Không thời hạn
+            </span>
+          ),
+      },
+      {
+        key: 'points',
+        header: 'Câu hỏi & Điểm',
+        align: 'center',
+        hideOnMobile: true,
+        render: (asgn) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: 'var(--text-xs)' }}>
+            <span className="tabular-nums" style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+              {asgn.questionCount} câu · {asgn.totalPoints} đ
+            </span>
+            <span className="tabular-nums" style={{ color: 'var(--muted)', fontSize: '11px' }}>
+              Đạt: ≥ {asgn.passingPoints} đ
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: 'rules',
+        header: 'Quy chế',
+        hideOnMobile: true,
+        render: (asgn) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={12} />
+              <span>{asgn.timeLimitMinutes ? `${asgn.timeLimitMinutes} phút` : 'Không giới hạn'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Award size={12} />
+              <span>{asgn.maxAttempts} lượt làm</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'status',
+        header: 'Trạng thái',
+        width: '120px',
+        render: (asgn) => (
+          <StatusBadge
+            label={getStatusLabel(asgn.status)}
+            variant={getStatusVariant(asgn.status)}
+            size="sm"
+          />
+        ),
+      },
+    ],
+    []
+  );
+
+  const rowActions: RowAction<AssignmentSummaryDTO>[] = useMemo(
+    () => [
+      {
+        id: 'view',
+        label: 'Xem chi tiết',
+        icon: <Eye size={15} />,
+        onClick: (asgn: AssignmentSummaryDTO) => onView(asgn),
+      },
+      {
+        id: 'edit',
+        label: 'Chỉnh sửa bản nháp',
+        icon: <Edit2 size={15} />,
+        isVisible: (asgn: AssignmentSummaryDTO) => asgn.status === 'DRAFT',
+        onClick: (asgn: AssignmentSummaryDTO) => onEdit(asgn),
+      },
+      {
+        id: 'duplicate',
+        label: 'Nhân bản bài tập',
+        icon: <Copy size={15} />,
+        onClick: (asgn: AssignmentSummaryDTO) => onDuplicate(asgn),
+      },
+      {
+        id: 'publish',
+        label: 'Phát hành bài tập',
+        icon: <Send size={15} style={{ color: 'var(--success)' }} />,
+        isVisible: (asgn: AssignmentSummaryDTO) => asgn.status === 'DRAFT',
+        onClick: (asgn: AssignmentSummaryDTO) => onPublish(asgn),
+      },
+      {
+        id: 'close',
+        label: 'Đóng nộp bài',
+        icon: <Lock size={15} style={{ color: 'var(--danger)' }} />,
+        isVisible: (asgn: AssignmentSummaryDTO) => asgn.status === 'PUBLISHED',
+        confirmTitle: 'Xác nhận đóng nộp bài?',
+        confirmMessage: (asgn: AssignmentSummaryDTO) => `Học viên sẽ không thể nộp thêm bài làm cho "${asgn.title}".`,
+        onClick: (asgn: AssignmentSummaryDTO) => onClose(asgn),
+      },
+      {
+        id: 'archive',
+        label: 'Lưu trữ bài tập',
+        icon: <Archive size={15} style={{ color: 'var(--muted)' }} />,
+        isVisible: (asgn: AssignmentSummaryDTO) => asgn.status === 'CLOSED' || asgn.status === 'DRAFT',
+        confirmTitle: 'Lưu trữ bài tập này?',
+        confirmMessage: (asgn: AssignmentSummaryDTO) => `Bài tập "${asgn.title}" sẽ được chuyển vào mục lưu trữ.`,
+        onClick: (asgn: AssignmentSummaryDTO) => onArchive(asgn),
+      },
+    ],
+    [onView, onEdit, onDuplicate, onPublish, onClose, onArchive]
+  );
 
   return (
-    <div className="tp-table-container">
-      <table className="tp-assign-table">
-        <thead>
-          <tr>
-            <th>Tiêu đề & Cấp độ</th>
-            <th>Lớp giao</th>
-            <th>Hạn nộp</th>
-            <th>Câu hỏi & Điểm</th>
-            <th>Quy chế</th>
-            <th>Trạng thái</th>
-            <th style={{ textAlign: 'right' }}>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {assignments.map((asgn) => {
-            const statusInfo = STATUS_CONFIG[asgn.status];
-            return (
-              <tr key={asgn.id}>
-                {/* Tiêu đề & HSK level */}
-                <td style={{ minWidth: '220px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        className="tp-badge"
-                        style={{
-                          backgroundColor: `${asgn.hskLevelColor}15`,
-                          color: asgn.hskLevelColor,
-                          fontWeight: 600,
-                          fontSize: '11px',
-                        }}
-                      >
-                        {asgn.hskLevelName}
-                      </span>
-                      <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-                        {asgn.title}
-                      </span>
-                    </div>
-                    {asgn.description && (
-                      <span
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--muted-foreground)',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {asgn.description}
-                      </span>
-                    )}
-                  </div>
-                </td>
-
-                {/* Lớp giao */}
-                <td style={{ minWidth: '150px' }}>
-                  {asgn.targetClassNames.length > 0 ? (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                      {asgn.targetClassNames.map((name, i) => (
-                        <span
-                          key={i}
-                          className="tp-badge"
-                          style={{
-                            fontSize: '11px',
-                            backgroundColor: '#f3f4f6',
-                            color: '#374151',
-                          }}
-                        >
-                          {name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted-foreground)' }}>
-                      Chưa giao lớp
-                    </span>
-                  )}
-                </td>
-
-                {/* Hạn nộp */}
-                <td style={{ whiteSpace: 'nowrap' }}>
-                  {asgn.earliestDueDate ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--text-xs)', color: 'var(--foreground)' }}>
-                      <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
-                      <span>{new Date(asgn.earliestDueDate).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted-foreground)' }}>
-                      Không thời hạn
-                    </span>
-                  )}
-                </td>
-
-                {/* Câu hỏi & Điểm */}
-                <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: 'var(--text-xs)' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-                      {asgn.questionCount} câu · {asgn.totalPoints} điểm
-                    </span>
-                    <span style={{ color: 'var(--muted-foreground)' }}>
-                      Đạt: ≥ {asgn.passingPoints} đ
-                    </span>
-                  </div>
-                </td>
-
-                {/* Quy chế */}
-                <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: 'var(--text-xs)', color: 'var(--muted-foreground)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} />
-                      <span>{asgn.timeLimitMinutes ? `${asgn.timeLimitMinutes} phút` : 'Không giới hạn'}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Award size={12} />
-                      <span>{asgn.maxAttempts} lượt làm</span>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Trạng thái */}
-                <td>
-                  <span className={`tp-badge ${statusInfo.className}`}>
-                    {statusInfo.label}
-                  </span>
-                </td>
-
-                {/* Thao tác */}
-                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                    {/* View Button */}
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--ghost"
-                      style={{ padding: '6px' }}
-                      onClick={() => onView(asgn)}
-                      title="Xem chi tiết"
-                      aria-label="Xem chi tiết"
-                    >
-                      <Eye size={15} />
-                    </button>
-
-                    {/* Edit Button (Draft only) */}
-                    {asgn.status === 'DRAFT' && (
-                      <button
-                        type="button"
-                        className="tp-btn tp-btn--ghost"
-                        style={{ padding: '6px' }}
-                        onClick={() => onEdit(asgn)}
-                        title="Chỉnh sửa bản nháp"
-                        aria-label="Chỉnh sửa bản nháp"
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                    )}
-
-                    {/* Duplicate Button (Any status) */}
-                    <button
-                      type="button"
-                      className="tp-btn tp-btn--ghost"
-                      style={{ padding: '6px' }}
-                      onClick={() => onDuplicate(asgn)}
-                      title="Nhân bản bài tập"
-                      aria-label="Nhân bản bài tập"
-                    >
-                      <Copy size={15} />
-                    </button>
-
-                    {/* Publish Button (Draft only) */}
-                    {asgn.status === 'DRAFT' && (
-                      <button
-                        type="button"
-                        className="tp-btn tp-btn--ghost"
-                        style={{ padding: '6px', color: '#059669' }}
-                        onClick={() => onPublish(asgn)}
-                        title="Phát hành bài tập"
-                        aria-label="Phát hành bài tập"
-                      >
-                        <Send size={15} />
-                      </button>
-                    )}
-
-                    {/* Close Button (Published only) */}
-                    {asgn.status === 'PUBLISHED' && (
-                      <button
-                        type="button"
-                        className="tp-btn tp-btn--ghost"
-                        style={{ padding: '6px', color: '#dc2626' }}
-                        onClick={() => onClose(asgn)}
-                        title="Đóng nộp bài"
-                        aria-label="Đóng nộp bài"
-                      >
-                        <Lock size={15} />
-                      </button>
-                    )}
-
-                    {/* Archive Button (Closed or Draft) */}
-                    {(asgn.status === 'CLOSED' || asgn.status === 'DRAFT') && (
-                      <button
-                        type="button"
-                        className="tp-btn tp-btn--ghost"
-                        style={{ padding: '6px', color: '#6b7280' }}
-                        onClick={() => onArchive(asgn)}
-                        title="Lưu trữ bài tập"
-                        aria-label="Lưu trữ bài tập"
-                      >
-                        <Archive size={15} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <ManagementDataTable<AssignmentSummaryDTO>
+      columns={columns}
+      data={assignments}
+      keyExtractor={(asgn) => asgn.id}
+      loading={loading}
+      emptyText="Chưa có bài tập nào. Hãy tạo bài tập mới từ ngân hàng câu hỏi hoặc điều chỉnh bộ lọc tìm kiếm."
+      rowActions={rowActions}
+      enableMobileCards={true}
+      mobileTitleExtractor={(asgn) => asgn.title}
+      mobileSubtitleExtractor={(asgn) =>
+        `${asgn.hskLevelName} · ${
+          asgn.targetClassNames.length > 0
+            ? asgn.targetClassNames.join(', ')
+            : 'Chưa giao lớp'
+        }`
+      }
+      mobileBadgeExtractor={(asgn) => (
+        <StatusBadge
+          label={getStatusLabel(asgn.status)}
+          variant={getStatusVariant(asgn.status)}
+          size="sm"
+        />
+      )}
+      mobileFields={[
+        {
+          label: 'Hạn nộp',
+          render: (asgn) =>
+            asgn.earliestDueDate
+              ? new Date(asgn.earliestDueDate).toLocaleDateString('vi-VN')
+              : 'Không thời hạn',
+        },
+        {
+          label: 'Câu hỏi / Điểm',
+          render: (asgn) => `${asgn.questionCount} câu · ${asgn.totalPoints} đ (Đạt: ≥ ${asgn.passingPoints} đ)`,
+        },
+        {
+          label: 'Quy chế',
+          render: (asgn) =>
+            `${asgn.timeLimitMinutes ? `${asgn.timeLimitMinutes}p` : 'Không giới hạn'} · ${asgn.maxAttempts} lượt`,
+        },
+      ]}
+    />
   );
 };
+

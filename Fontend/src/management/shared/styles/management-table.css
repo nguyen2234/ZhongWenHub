@@ -1,0 +1,694 @@
+/* ==========================================================================
+   Management Table Design System — Evondev UI/UX Guidelines
+   Strict Flat-First, Zero Heavy Shadows (R1), 95% Neutral / 5% Accent (R2)
+   Responsive Table-to-Card (R9, R11), WCAG AA & Touch Targets >=44px (R20)
+   ========================================================================== */
+
+/* 1. Main Table Container */
+.mgmt-table-card {
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: none; /* R1: Zero heavy shadows */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 2. Toolbar Container */
+.mgmt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  gap: 12px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.mgmt-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 260px;
+  flex-wrap: wrap;
+}
+
+.mgmt-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 2.1 Search Input */
+.mgmt-search-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+}
+
+.mgmt-search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mgmt-search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 36px;
+  font-size: 14px; /* R8: Min 16px on mobile handled via media query */
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--surface);
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mgmt-search-input:focus {
+  border-color: var(--primary, #0284c7);
+  box-shadow: 0 0 0 1px var(--primary, #0284c7);
+}
+
+.mgmt-search-clear {
+  position: absolute;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.1s ease, background-color 0.1s ease;
+}
+
+.mgmt-search-clear:hover {
+  background-color: var(--muted);
+  color: var(--surface);
+}
+
+/* 2.2 Filter Select */
+.mgmt-filter-select {
+  height: 38px;
+  padding: 0 28px 0 12px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color 0.15s ease;
+}
+
+.mgmt-filter-select:focus {
+  border-color: var(--primary, #0284c7);
+}
+
+/* 2.3 Bulk Actions Bar (app.md: Replaces toolbar when items selected) */
+.mgmt-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: rgba(2, 132, 199, 0.06);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  animation: mgmt-fade-in 0.15s ease-out;
+}
+
+.mgmt-bulk-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mgmt-bulk-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 3. Table Scroller & Standard Table */
+.mgmt-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.mgmt-table thead {
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.mgmt-table th {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* Sortable Header Button (Evondev sortable-header.md) */
+.mgmt-sort-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.mgmt-sort-header-btn:hover {
+  color: var(--foreground);
+}
+
+.mgmt-sort-header-btn.is-active {
+  color: var(--foreground);
+  font-weight: 700;
+}
+
+.mgmt-sort-header-btn.align-right {
+  flex-direction: row-reverse;
+}
+
+.mgmt-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.12s ease;
+}
+
+.mgmt-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.mgmt-table tbody tr:hover {
+  background-color: var(--surface-hover, rgba(0, 0, 0, 0.02));
+}
+
+.mgmt-table tbody tr.is-selected {
+  background-color: rgba(2, 132, 199, 0.05);
+}
+
+.mgmt-table td {
+  padding: 12px 14px;
+  color: var(--foreground);
+  vertical-align: middle;
+}
+
+.mgmt-table td.align-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mgmt-table td.align-center {
+  text-align: center;
+}
+
+/* Checkbox column styling */
+.mgmt-th-checkbox,
+.mgmt-td-checkbox {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+  padding: 10px 12px !important;
+}
+
+.mgmt-checkbox {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  accent-color: var(--primary, #0284c7);
+  vertical-align: middle;
+}
+
+/* 4. Action Buttons Inside Rows */
+.mgmt-actions-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.mgmt-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  padding: 0;
+}
+
+.mgmt-icon-btn:hover {
+  background-color: var(--border);
+  color: var(--foreground);
+}
+
+.mgmt-icon-btn.variant-primary:hover {
+  background-color: rgba(2, 132, 199, 0.1);
+  color: var(--primary, #0284c7);
+}
+
+.mgmt-icon-btn.variant-danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.mgmt-icon-btn:focus-visible {
+  outline: 2px solid var(--primary, #0284c7);
+  outline-offset: 1px;
+}
+
+/* 5. Status Badges — Evondev M7 Standard */
+.mgmt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  line-height: 1.2;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.mgmt-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.mgmt-badge.badge-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+.mgmt-badge.badge-success .mgmt-badge-dot {
+  background-color: #16a34a;
+}
+
+.mgmt-badge.badge-warning {
+  background-color: rgba(234, 179, 8, 0.1);
+  color: #ca8a04;
+  border: 1px solid rgba(234, 179, 8, 0.2);
+}
+.mgmt-badge.badge-warning .mgmt-badge-dot {
+  background-color: #ca8a04;
+}
+
+.mgmt-badge.badge-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.mgmt-badge.badge-danger .mgmt-badge-dot {
+  background-color: #dc2626;
+}
+
+.mgmt-badge.badge-info {
+  background-color: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+.mgmt-badge.badge-info .mgmt-badge-dot {
+  background-color: #0284c7;
+}
+
+.mgmt-badge.badge-neutral {
+  background-color: var(--background);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.mgmt-badge.badge-neutral .mgmt-badge-dot {
+  background-color: var(--muted);
+}
+
+/* 6. Pagination Bar (small-controls.md & app.md) */
+.mgmt-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.mgmt-pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.mgmt-pagination-size-select {
+  height: 30px;
+  padding: 0 20px 0 8px;
+  font-size: 12px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+
+.mgmt-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mgmt-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.mgmt-page-btn:hover:not(:disabled) {
+  background-color: var(--surface-hover, rgba(0, 0, 0, 0.04));
+  border-color: var(--border);
+}
+
+.mgmt-page-btn.is-active {
+  background-color: var(--foreground);
+  color: var(--surface);
+  font-weight: 600;
+}
+
+.mgmt-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mgmt-page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 34px;
+  color: var(--muted);
+}
+
+/* 7. Loading Skeleton State */
+.mgmt-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mgmt-skeleton-bar {
+  height: 16px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--background) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: mgmt-skeleton-pulse 1.4s ease infinite;
+  border-radius: 4px;
+}
+
+@keyframes mgmt-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes mgmt-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 8. Empty & Error States (empty-state.md) */
+.mgmt-state-container {
+  padding: 48px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.mgmt-state-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.mgmt-state-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.mgmt-state-desc {
+  font-size: 13px;
+  max-width: 42ch;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.mgmt-state-action {
+  margin-top: 4px;
+}
+
+/* 9. Mobile Cards Alternative (R9, R11, R20) */
+.mgmt-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background-color: var(--background);
+}
+
+.mgmt-mobile-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: none; /* R1: No shadow */
+  transition: border-color 0.12s ease;
+}
+
+.mgmt-mobile-card:active {
+  border-color: var(--primary, #0284c7);
+}
+
+.mgmt-mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mgmt-mobile-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.mgmt-mobile-card-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.mgmt-mobile-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.mgmt-mobile-card-field-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.mgmt-mobile-card-field-value {
+  color: var(--foreground);
+  font-weight: 500;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.mgmt-mobile-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mgmt-mobile-action-btn {
+  min-height: 44px; /* R20: Minimum 44px touch target on mobile */
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.mgmt-mobile-action-btn:hover {
+  background-color: var(--surface-hover, rgba(0, 0, 0, 0.04));
+}
+
+.mgmt-mobile-action-btn.primary {
+  background-color: var(--primary, #0284c7);
+  border-color: var(--primary, #0284c7);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Responsive Adaptations (320px, 375px, 768px, 1024px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* On screens < 768px, switch from full desktop table to Mobile Card List when configured */
+  .mgmt-table-card.enable-mobile-cards .mgmt-table-wrapper {
+    display: none;
+  }
+
+  .mgmt-table-card.enable-mobile-cards .mgmt-mobile-list {
+    display: flex;
+  }
+
+  /* R8: Input font-size at least 16px on mobile to avoid iOS auto-zoom */
+  .mgmt-search-input,
+  .mgmt-filter-select {
+    font-size: 16px !important;
+  }
+
+  .mgmt-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .mgmt-toolbar-left,
+  .mgmt-toolbar-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .mgmt-search-wrapper {
+    max-width: 100%;
+  }
+
+  .mgmt-filter-select {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .mgmt-pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mgmt-pagination-info {
+    font-size: 12px;
+  }
+
+  /* R20: Mobile pagination buttons touch target 44px */
+  .mgmt-page-btn {
+    min-width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 375px) {
+  .mgmt-mobile-card-grid {
+    grid-template-columns: 1fr; /* Single column on 320-375px */
+  }
+
+  .mgmt-pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

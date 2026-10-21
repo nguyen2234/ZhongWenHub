@@ -11,6 +11,8 @@ import type {
 } from '../types/content-manager.types';
 import '../components/content-manager.css';
 
+import { Pagination } from '../../shared/components';
+
 export const ContentIssuesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ContentIssueStatus | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +20,10 @@ export const ContentIssuesPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('ALL');
   const [selectedIssue, setSelectedIssue] = useState<ContentIssue | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Load issues
   const issues = useMemo(() => {
@@ -28,6 +34,12 @@ export const ContentIssuesPage: React.FC = () => {
       search: searchQuery,
     });
   }, [activeTab, selectedType, selectedPriority, searchQuery, refreshKey]);
+
+  const totalPages = Math.ceil(issues.length / pageSize) || 1;
+  const paginatedIssues = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return issues.slice(start, start + pageSize);
+  }, [issues, page, pageSize]);
 
   // Tab counts
   const tabCounts = useMemo(() => {
@@ -199,14 +211,14 @@ export const ContentIssuesPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {issues.length === 0 ? (
+            {paginatedIssues.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                   Không có báo cáo lỗi nào phù hợp với bộ lọc hiện tại.
                 </td>
               </tr>
             ) : (
-              issues.map((issue) => (
+              paginatedIssues.map((issue) => (
                 <tr key={issue.id}>
                   <td>
                     <div style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--foreground)' }}>
@@ -287,12 +299,12 @@ export const ContentIssuesPage: React.FC = () => {
 
       {/* 5. Mobile Cards View */}
       <div className="cm-mobile-list">
-        {issues.length === 0 ? (
+        {paginatedIssues.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px', color: 'var(--muted)', backgroundColor: 'var(--surface)', borderRadius: '12px' }}>
             Không tìm thấy báo cáo lỗi nào.
           </div>
         ) : (
-          issues.map((issue) => (
+          paginatedIssues.map((issue) => (
             <div key={issue.id} className="cm-mobile-card">
               <div className="cm-mobile-card-top">
                 <div>
@@ -347,6 +359,25 @@ export const ContentIssuesPage: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {issues.length > pageSize && (
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={issues.length}
+            pageSize={pageSize}
+            pageSizeOptions={[10, 20, 50]}
+            onPageChange={setPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
+            itemLabel="báo cáo lỗi"
+          />
+        </div>
+      )}
 
       {/* Drawer */}
       <IssueDetailDrawer

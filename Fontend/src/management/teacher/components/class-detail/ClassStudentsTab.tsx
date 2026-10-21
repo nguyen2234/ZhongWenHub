@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Users, Mail } from 'lucide-react';
-import { Pagination, StatusBadge } from '../../../shared/components';
+import { Pagination, StatusBadge, ManagementDataTable } from '../../../shared/components';
+import type { TableColumn } from '../../../shared/types';
 import type { ClassMemberStatus, ClassMemberViewDTO } from '../../types/class.types';
 
 export interface ClassStudentsTabProps {
@@ -66,6 +67,140 @@ export const ClassStudentsTab: React.FC<ClassStudentsTabProps> = ({ members }) =
         return st;
     }
   };
+
+  const columns: TableColumn<ClassMemberViewDTO>[] = useMemo(
+    () => [
+      {
+        key: 'student',
+        header: 'Học viên',
+        render: (item) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            {item.studentAvatarUrl ? (
+              <img
+                src={item.studentAvatarUrl}
+                alt={item.studentName}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: 'var(--radius-full)',
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--primary-light)',
+                  color: 'var(--primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                }}
+              >
+                {item.studentName.charAt(0)}
+              </div>
+            )}
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                {item.studentName}
+              </div>
+              <div
+                style={{
+                  fontSize: '10px',
+                  fontFamily: 'monospace',
+                  color: 'var(--muted)',
+                }}
+              >
+                {item.studentId}
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'email',
+        header: 'Email',
+        hideOnMobile: true,
+        render: (item) => (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--muted)' }}>
+            <Mail size={12} /> {item.studentEmail}
+          </span>
+        ),
+      },
+      {
+        key: 'enrolledAt',
+        header: 'Ngày ghi danh',
+        hideOnMobile: true,
+        render: (item) => (
+          <span style={{ color: 'var(--foreground)', fontVariantNumeric: 'tabular-nums' }}>
+            {new Date(item.enrolledAt).toLocaleDateString('vi-VN')}
+          </span>
+        ),
+      },
+      {
+        key: 'attendance',
+        header: 'Chuyên cần',
+        align: 'center',
+        render: (item) => (
+          <span
+            style={{
+              fontWeight: 700,
+              fontVariantNumeric: 'tabular-nums',
+              color:
+                item.attendanceRate >= 90
+                  ? 'var(--success)'
+                  : item.attendanceRate >= 75
+                  ? 'var(--warning)'
+                  : 'var(--danger)',
+            }}
+          >
+            {item.attendanceRate}%
+          </span>
+        ),
+      },
+      {
+        key: 'assignments',
+        header: 'Bài tập đã nộp',
+        align: 'center',
+        hideOnMobile: true,
+        render: (item) => (
+          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            {item.completedAssignmentsCount} bài
+          </span>
+        ),
+      },
+      {
+        key: 'status',
+        header: 'Trạng thái',
+        render: (item) => (
+          <div>
+            <StatusBadge
+              label={getMemberStatusLabel(item.status)}
+              variant={getMemberStatusVariant(item.status)}
+              size="sm"
+            />
+            {item.notes && (
+              <div
+                style={{
+                  fontSize: '10px',
+                  color: 'var(--muted)',
+                  marginTop: '2px',
+                  fontStyle: 'italic',
+                }}
+              >
+                {item.notes}
+              </div>
+            )}
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
   return (
     <div className="tp-card">
@@ -134,181 +269,60 @@ export const ClassStudentsTab: React.FC<ClassStudentsTabProps> = ({ members }) =
       </div>
 
       {/* Bảng học viên */}
-      {paginated.length === 0 ? (
-        <div
-          style={{
-            padding: 'var(--space-8)',
-            textAlign: 'center',
-            color: 'var(--muted)',
-            fontSize: 'var(--text-sm)',
-          }}
-        >
-          Không tìm thấy học viên nào phù hợp với bộ lọc.
-        </div>
-      ) : (
-        <div
-          style={{
-            width: '100%',
-            overflowX: 'auto',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              textAlign: 'left',
-              fontSize: 'var(--text-xs)',
-            }}
-          >
-            <thead>
-              <tr
+      <ManagementDataTable<ClassMemberViewDTO>
+        columns={columns}
+        data={paginated}
+        keyExtractor={(item) => item.id}
+        emptyText="Không tìm thấy học viên nào phù hợp với bộ lọc."
+        isFiltered={search.trim() !== '' || statusFilter !== 'ALL'}
+        onClearFilters={() => {
+          setSearch('');
+          setStatusFilter('ALL');
+          setCurrentPage(1);
+        }}
+        enableMobileCards={true}
+        mobileTitleExtractor={(item) => item.studentName}
+        mobileSubtitleExtractor={(item) => item.studentId}
+        mobileBadgeExtractor={(item) => (
+          <StatusBadge
+            label={getMemberStatusLabel(item.status)}
+            variant={getMemberStatusVariant(item.status)}
+            size="sm"
+          />
+        )}
+        mobileFields={[
+          {
+            label: 'Email',
+            render: (item) => item.studentEmail,
+          },
+          {
+            label: 'Chuyên cần',
+            render: (item) => (
+              <span
                 style={{
-                  borderBottom: '1px solid var(--border)',
-                  backgroundColor: 'var(--background)',
+                  fontWeight: 700,
+                  color:
+                    item.attendanceRate >= 90
+                      ? 'var(--success)'
+                      : item.attendanceRate >= 75
+                      ? 'var(--warning)'
+                      : 'var(--danger)',
                 }}
               >
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  HỌC VIÊN
-                </th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  EMAIL
-                </th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  NGÀY GHI DANH
-                </th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  CHUYÊN CẦN
-                </th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  BÀI TẬP ĐÃ NỘP
-                </th>
-                <th style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-                  TRẠNG THÁI
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((item) => (
-                <tr
-                  key={item.id}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    transition: 'background-color 0.1s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--surface-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <td style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                      {item.studentAvatarUrl ? (
-                        <img
-                          src={item.studentAvatarUrl}
-                          alt={item.studentName}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: 'var(--radius-full)',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: 'var(--radius-full)',
-                            backgroundColor: 'var(--primary-light)',
-                            color: 'var(--primary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                          }}
-                        >
-                          {item.studentName.charAt(0)}
-                        </div>
-                      )}
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-                          {item.studentName}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '10px',
-                            fontFamily: 'var(--font-mono)',
-                            color: 'var(--muted)',
-                          }}
-                        >
-                          {item.studentId}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td style={{ padding: '10px 14px', color: 'var(--muted)' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Mail size={12} /> {item.studentEmail}
-                    </span>
-                  </td>
-
-                  <td style={{ padding: '10px 14px', color: 'var(--foreground)' }}>
-                    {new Date(item.enrolledAt).toLocaleDateString('vi-VN')}
-                  </td>
-
-                  <td style={{ padding: '10px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          color:
-                            item.attendanceRate >= 90
-                              ? 'var(--success)'
-                              : item.attendanceRate >= 75
-                              ? 'var(--warning)'
-                              : 'var(--danger)',
-                        }}
-                      >
-                        {item.attendanceRate}%
-                      </span>
-                    </div>
-                  </td>
-
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontWeight: 600 }}>{item.completedAssignmentsCount} bài</span>
-                  </td>
-
-                  <td style={{ padding: '10px 14px' }}>
-                    <StatusBadge
-                      label={getMemberStatusLabel(item.status)}
-                      variant={getMemberStatusVariant(item.status)}
-                      size="sm"
-                    />
-                    {item.notes && (
-                      <div
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--muted)',
-                          marginTop: '2px',
-                          fontStyle: 'italic',
-                        }}
-                      >
-                        {item.notes}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                {item.attendanceRate}%
+              </span>
+            ),
+          },
+          {
+            label: 'Bài tập',
+            render: (item) => `${item.completedAssignmentsCount} bài nộp`,
+          },
+          {
+            label: 'Ghi danh',
+            render: (item) => new Date(item.enrolledAt).toLocaleDateString('vi-VN'),
+          },
+        ]}
+      />
 
       {/* Pagination */}
       {totalPages > 1 && (

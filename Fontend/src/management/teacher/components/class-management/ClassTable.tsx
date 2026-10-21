@@ -1,7 +1,8 @@
-import React from 'react';
-import { Eye, Edit2, Archive, Video, MapPin, Layers } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { StatusBadge } from '../../../shared/components';
+import React, { useMemo } from 'react';
+import { Eye, Edit2, Archive, Video, MapPin } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { StatusBadge, ManagementDataTable } from '../../../shared/components';
+import type { TableColumn, RowAction } from '../../../shared/types';
 import type { ClassLifecycleStatus, ClassSummaryDTO } from '../../types/class.types';
 
 export interface ClassTableProps {
@@ -15,6 +16,8 @@ export const ClassTable: React.FC<ClassTableProps> = ({
   onEdit,
   onArchive,
 }) => {
+  const navigate = useNavigate();
+
   const getStatusVariant = (status: ClassLifecycleStatus) => {
     switch (status) {
       case 'ACTIVE':
@@ -49,261 +52,209 @@ export const ClassTable: React.FC<ClassTableProps> = ({
     }
   };
 
-  if (classes.length === 0) {
-    return (
-      <div
-        style={{
-          padding: 'var(--space-12) var(--space-4)',
-          textAlign: 'center',
-          backgroundColor: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          color: 'var(--muted)',
-        }}
-      >
-        <Layers size={32} style={{ color: 'var(--muted)', marginBottom: '8px', opacity: 0.5 }} />
-        <div style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--foreground)' }}>
-          Không tìm thấy lớp học nào
-        </div>
-        <div style={{ fontSize: 'var(--text-xs)', marginTop: '4px' }}>
-          Hãy thử điều chỉnh bộ lọc tìm kiếm hoặc tạo một lớp học mới.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      style={{
-        width: '100%',
-        overflowX: 'auto',
-        backgroundColor: 'var(--surface)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border)',
-      }}
-    >
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          textAlign: 'left',
-          fontSize: 'var(--text-xs)',
-        }}
-      >
-        <thead>
-          <tr
+  const columns: TableColumn<ClassSummaryDTO>[] = useMemo(
+    () => [
+      {
+        key: 'code',
+        header: 'Mã lớp',
+        width: '100px',
+        render: (cls) => (
+          <span
             style={{
-              borderBottom: '1px solid var(--border)',
-              backgroundColor: 'var(--background)',
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              color: 'var(--primary)',
             }}
           >
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              MÃ LỚP
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              TÊN LỚP HỌC
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              CẤP ĐỘ
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              SĨ SỐ (ACTIVE)
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              LỊCH DẠY TRONG TUẦN
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              HÌNH THỨC
-            </th>
-            <th style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--muted)' }}>
-              TRẠNG THÁI
-            </th>
-            <th
-              style={{
-                padding: '12px 14px',
-                fontWeight: 600,
-                color: 'var(--muted)',
-                textAlign: 'right',
-              }}
-            >
-              THAO TÁC
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {classes.map((cls) => (
-            <tr
-              key={cls.id}
-              style={{
-                borderBottom: '1px solid var(--border)',
-                transition: 'background-color 0.1s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--surface-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              {/* Mã lớp */}
-              <td style={{ padding: '12px 14px' }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: 700,
-                    color: 'var(--primary)',
-                  }}
-                >
-                  {cls.code}
-                </span>
-              </td>
+            {cls.code}
+          </span>
+        ),
+      },
+      {
+        key: 'name',
+        header: 'Tên lớp học',
+        render: (cls) => (
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+              <Link
+                to={`/management/teacher/classes/${cls.id}`}
+                style={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                {cls.name}
+              </Link>
+            </div>
+            {cls.courseName && (
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                Giáo trình: {cls.courseName}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'hskLevel',
+        header: 'Cấp độ',
+        width: '90px',
+        render: (cls) => (
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '11px',
+              fontWeight: 700,
+              backgroundColor: `${cls.hskLevelColor}15`,
+              color: cls.hskLevelColor,
+              border: `1px solid ${cls.hskLevelColor}30`,
+            }}
+          >
+            {cls.hskLevelName}
+          </span>
+        ),
+      },
+      {
+        key: 'studentCount',
+        header: 'Sĩ số',
+        align: 'center',
+        width: '110px',
+        render: (cls) => (
+          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            {cls.derivedEnrollmentCount} / {cls.capacity}
+          </span>
+        ),
+      },
+      {
+        key: 'scheduleSummary',
+        header: 'Lịch dạy trong tuần',
+        render: (cls) => (
+          <span style={{ fontSize: '12px', color: 'var(--foreground)' }}>
+            {cls.schedulesSummary}
+          </span>
+        ),
+      },
+      {
+        key: 'deliveryMode',
+        header: 'Hình thức',
+        width: '110px',
+        render: (cls) => (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+            {cls.locationType === 'ONLINE' ? (
+              <>
+                <Video size={13} style={{ color: 'var(--primary)' }} />
+                <span>Trực tuyến</span>
+              </>
+            ) : cls.locationType === 'OFFLINE' ? (
+              <>
+                <MapPin size={13} style={{ color: '#ca8a04' }} />
+                <span>Tại trung tâm</span>
+              </>
+            ) : (
+              <span>Kết hợp</span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'status',
+        header: 'Trạng thái',
+        width: '120px',
+        render: (cls) => (
+          <StatusBadge
+            label={getStatusLabel(cls.status)}
+            variant={getStatusVariant(cls.status)}
+            size="sm"
+          />
+        ),
+      },
+    ],
+    []
+  );
 
-              {/* Tên lớp & giáo trình */}
-              <td style={{ padding: '12px 14px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
-                  <Link
-                    to={`/management/teacher/classes/${cls.id}`}
-                    style={{ color: 'inherit', textDecoration: 'none' }}
-                  >
-                    {cls.name}
-                  </Link>
-                </div>
-                {cls.courseName && (
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                    {cls.courseName}
-                  </div>
-                )}
-              </td>
+  const rowActions: RowAction<ClassSummaryDTO>[] = useMemo(
+    () => [
+      {
+        key: 'view',
+        label: 'Vào lớp học',
+        icon: <Eye size={15} />,
+        onClick: (cls) => navigate(`/management/teacher/classes/${cls.id}`),
+      },
+      {
+        key: 'edit',
+        label: 'Chỉnh sửa thông tin',
+        icon: <Edit2 size={15} />,
+        onClick: (cls) => onEdit(cls),
+      },
+      {
+        key: 'archive',
+        label: 'Lưu trữ lớp',
+        icon: <Archive size={15} />,
+        variant: 'danger',
+        requireConfirm: true,
+        confirmTitle: 'Xác nhận lưu trữ lớp học',
+        confirmMessage: (cls) =>
+          `Bạn có chắc chắn muốn lưu trữ lớp học "${cls.name}" (${cls.code})? Lớp học sẽ chuyển sang trạng thái ARCHIVED.`,
+        onClick: (cls) => onArchive(cls),
+        hidden: (cls) => cls.status === 'ARCHIVED',
+      },
+    ],
+    [navigate, onEdit, onArchive]
+  );
 
-              {/* Cấp độ HSK */}
-              <td style={{ padding: '12px 14px' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    border: `1px solid ${cls.hskLevelColor}`,
-                    color: cls.hskLevelColor,
-                    backgroundColor: 'var(--background)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {cls.hskLevelName}
-                </span>
-              </td>
-
-              {/* Sĩ số thực tế derived */}
-              <td style={{ padding: '12px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontWeight: 700 }}>
-                    {cls.derivedEnrollmentCount}/{cls.capacity}
-                  </span>
-                  <span style={{ fontSize: '10px', color: 'var(--muted)' }}>học viên</span>
-                </div>
-                <div
-                  style={{
-                    height: '4px',
-                    width: '64px',
-                    backgroundColor: 'var(--background)',
-                    borderRadius: 'var(--radius-full)',
-                    marginTop: '4px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${Math.min(100, (cls.derivedEnrollmentCount / cls.capacity) * 100)}%`,
-                      backgroundColor: 'var(--primary)',
-                    }}
-                  />
-                </div>
-              </td>
-
-              {/* Lịch dạy trong tuần */}
-              <td style={{ padding: '12px 14px', color: 'var(--foreground)' }}>
-                {cls.schedulesSummary}
-              </td>
-
-              {/* Hình thức đào tạo */}
-              <td style={{ padding: '12px 14px' }}>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    color: 'var(--muted)',
-                  }}
-                >
-                  {cls.locationType === 'ONLINE' ? (
-                    <>
-                      <Video size={13} style={{ color: '#0284c7' }} /> Online
-                    </>
-                  ) : (
-                    <>
-                      <MapPin size={13} style={{ color: '#ea580c' }} />{' '}
-                      {cls.locationType === 'HYBRID' ? 'Hybrid' : 'Offline'}
-                    </>
-                  )}
-                </span>
-              </td>
-
-              {/* Trạng thái vòng đời */}
-              <td style={{ padding: '12px 14px' }}>
-                <StatusBadge
-                  label={getStatusLabel(cls.status)}
-                  variant={getStatusVariant(cls.status)}
-                  size="sm"
-                />
-              </td>
-
-              {/* Nút hành động */}
-              <td style={{ padding: '12px 14px', textAlign: 'right' }}>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Link
-                    to={`/management/teacher/classes/${cls.id}`}
-                    className="ds-btn ds-btn-ghost ds-btn-sm"
-                    style={{ padding: '4px 6px', height: '28px' }}
-                    title="Xem chi tiết lớp"
-                  >
-                    <Eye size={14} />
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={() => onEdit(cls)}
-                    className="ds-btn ds-btn-ghost ds-btn-sm"
-                    style={{ padding: '4px 6px', height: '28px' }}
-                    title="Chỉnh sửa thông tin"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-
-                  {cls.status !== 'ARCHIVED' && (
-                    <button
-                      type="button"
-                      onClick={() => onArchive(cls)}
-                      className="ds-btn ds-btn-ghost ds-btn-sm"
-                      style={{ padding: '4px 6px', height: '28px', color: 'var(--danger)' }}
-                      title="Lưu trữ lớp học"
-                    >
-                      <Archive size={14} />
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+  return (
+    <ManagementDataTable<ClassSummaryDTO>
+      columns={columns}
+      data={classes}
+      keyExtractor={(cls) => cls.id}
+      onRowClick={(cls) => navigate(`/management/teacher/classes/${cls.id}`)}
+      rowActions={rowActions}
+      emptyText="Không tìm thấy lớp học nào phù hợp với bộ lọc."
+      enableMobileCards
+      mobileTitleExtractor={(cls) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              fontSize: '11px',
+              padding: '1px 6px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--primary-subtle, rgba(2, 132, 199, 0.08))',
+              color: 'var(--primary)',
+            }}
+          >
+            {cls.code}
+          </span>
+          <span style={{ fontWeight: 600 }}>{cls.name}</span>
+        </div>
+      )}
+      mobileSubtitleExtractor={(cls) => (
+        <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+          {cls.courseName ? `Giáo trình: ${cls.courseName} • ` : ''}{cls.schedulesSummary}
+        </span>
+      )}
+      mobileBadgeExtractor={(cls) => (
+        <StatusBadge
+          label={getStatusLabel(cls.status)}
+          variant={getStatusVariant(cls.status)}
+          size="sm"
+        />
+      )}
+      mobileFields={[
+        {
+          label: 'Sĩ số',
+          render: (cls) => (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {cls.derivedEnrollmentCount} / {cls.capacity} học viên
+            </span>
+          ),
+        },
+        {
+          label: 'Hình thức',
+          render: (cls) => (
+            <span>{cls.locationType === 'ONLINE' ? 'Trực tuyến' : 'Tại trung tâm'}</span>
+          ),
+        },
+      ]}
+    />
   );
 };
