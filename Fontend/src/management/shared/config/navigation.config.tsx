@@ -15,6 +15,7 @@ import {
   Video,
   ShieldAlert,
   History,
+  FileEdit,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 
@@ -28,71 +29,6 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
         label: 'Dashboard V2',
         path: '/management/admin/dashboard',
         icon: <LayoutDashboard size={17} />,
-        roles: ['ADMIN'],
-      },
-    ],
-  },
-  {
-    id: 'admin-content-mgmt',
-    title: 'HỌC LIỆU & NỘI DUNG',
-    items: [
-      {
-        id: 'admin-hsk-repository',
-        label: 'Kho chuẩn HSK',
-        path: '/management/admin/hsk-repository',
-        icon: <BookOpen size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-curriculum',
-        label: 'Giáo trình & Bài học',
-        path: '/management/admin/curriculum',
-        icon: <FolderKanban size={17} />,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-grammar',
-        label: 'Ngữ pháp HSK (FE-9)',
-        path: '/management/admin/grammar',
-        icon: <FileText size={17} />,
-        badge: 'Mới',
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-exercises',
-        label: 'Ngân hàng bài tập (FE-9)',
-        path: '/management/admin/exercises',
-        icon: <CheckSquare size={17} />,
-        badge: 'Mới',
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-videos',
-        label: 'Học liệu Video',
-        path: '/management/admin/videos',
-        icon: <Video size={17} />,
-        roles: ['ADMIN'],
-      },
-    ],
-  },
-  {
-    id: 'admin-moderation-ai',
-    title: 'KIỂM DUYỆT & TRỢ LÝ AI',
-    items: [
-      {
-        id: 'admin-moderation',
-        label: 'Duyệt nội dung',
-        path: '/management/admin/moderation',
-        icon: <ShieldAlert size={17} />,
-        badge: 14,
-        roles: ['ADMIN'],
-      },
-      {
-        id: 'admin-ai-management',
-        label: 'Trợ lý AI Tutor',
-        path: '/management/admin/ai-management',
-        icon: <Bot size={17} />,
-        badge: 'AI',
         roles: ['ADMIN'],
       },
     ],
@@ -132,19 +68,33 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
     ],
   },
   {
+    id: 'admin-ai-group',
+    title: 'TRÍ TUỆ NHÂN TẠO',
+    items: [
+      {
+        id: 'admin-ai-management',
+        label: 'Trợ lý AI Tutor',
+        path: '/management/admin/ai-management',
+        icon: <Bot size={17} />,
+        badge: 'AI',
+        roles: ['ADMIN'],
+      },
+    ],
+  },
+  {
     id: 'admin-system',
     title: 'VẬN HÀNH & HỆ THỐNG',
     items: [
       {
         id: 'admin-analytics',
-        label: 'Báo cáo học tập',
+        label: 'Báo cáo tổng hợp',
         path: '/management/admin/analytics',
         icon: <BarChart3 size={17} />,
         roles: ['ADMIN'],
       },
       {
         id: 'admin-support-requests',
-        label: 'Yêu cầu hỗ trợ',
+        label: 'Hỗ trợ vận hành',
         path: '/management/admin/support-requests',
         icon: <LifeBuoy size={17} />,
         badge: 3,
@@ -152,7 +102,7 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
       },
       {
         id: 'admin-settings',
-        label: 'Cài đặt hệ thống',
+        label: 'Cấu hình hệ thống',
         path: '/management/admin/settings',
         icon: <Settings size={17} />,
         roles: ['ADMIN'],
@@ -257,11 +207,11 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
   },
   {
     id: 'cm-repository',
-    title: 'KHO HỌC LIỆU',
+    title: 'HỌC LIỆU & BIÊN TẬP',
     items: [
       {
         id: 'cm-hsk-repository',
-        label: 'Kho học liệu HSK',
+        label: 'Kho HSK',
         path: '/management/content-manager/hsk-repository',
         icon: <BookOpen size={17} />,
         roles: ['CONTENT_MANAGER'],
@@ -271,6 +221,13 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
         label: 'Giáo trình & Bài học',
         path: '/management/content-manager/curriculum',
         icon: <FolderKanban size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-lesson-editor',
+        label: 'Trình biên tập bài học',
+        path: '/management/content-manager/curriculum/lessons/les-8/edit',
+        icon: <FileEdit size={17} />,
         roles: ['CONTENT_MANAGER'],
       },
       {
@@ -287,11 +244,18 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
         icon: <CheckSquare size={17} />,
         roles: ['CONTENT_MANAGER'],
       },
+      {
+        id: 'cm-videos',
+        label: 'Học liệu video',
+        path: '/management/content-manager/videos',
+        icon: <Video size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
     ],
   },
   {
     id: 'cm-governance',
-    title: 'KIỂM DUYỆT & XỬ LÝ LỖI',
+    title: 'KIỂM DUYỆT & VẬN HÀNH',
     items: [
       {
         id: 'cm-moderation',
@@ -303,7 +267,7 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
       },
       {
         id: 'cm-issues',
-        label: 'Báo cáo lỗi nội dung',
+        label: 'Báo cáo lỗi học liệu (Support)',
         path: '/management/content-manager/issues',
         icon: <ShieldAlert size={17} />,
         badge: 5,

@@ -128,7 +128,7 @@ export const ActionPriorityBanner: React.FC<ActionPriorityBannerProps> = ({
           </div>
 
           <Link
-            to="/management/admin/moderation"
+            to="/management/content-manager/moderation"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   FileText,
   CheckSquare,
@@ -155,6 +155,10 @@ const MODULE_SPECS: Record<AdminModulePlannedPageProps['moduleKey'], ModuleSpec>
 
 export const AdminModulePlannedPage: React.FC<AdminModulePlannedPageProps> = ({ moduleKey }) => {
   const spec = MODULE_SPECS[moduleKey];
+  const location = useLocation();
+  const dashboardPath = location.pathname.includes('/content-manager')
+    ? '/management/content-manager/dashboard'
+    : '/management/admin/dashboard';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
@@ -163,7 +167,7 @@ export const AdminModulePlannedPage: React.FC<AdminModulePlannedPageProps> = ({ 
         subtitle={spec.subtitle}
         actions={
           <Link
-            to="/management/admin/dashboard"
+            to={dashboardPath}
             style={{
               display: 'inline-flex',
               alignItems: 'center',

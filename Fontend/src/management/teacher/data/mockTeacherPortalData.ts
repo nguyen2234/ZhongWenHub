@@ -326,14 +326,14 @@ export const INITIAL_QUICK_ACTIONS: TeacherQuickAction[] = [
     id: 'qa-curriculum',
     label: 'Kho giáo trình HSK',
     description: 'Tra cứu chuẩn HSK 3.0 & bài học',
-    path: '/management/admin/curriculum',
+    path: '/management/content-manager/curriculum',
     iconName: 'curriculum',
   },
   {
     id: 'qa-questions',
     label: 'Ngân hàng đề thi',
     description: 'Khám phá câu hỏi & bài tập chuẩn',
-    path: '/management/admin/hsk-repository',
+    path: '/management/content-manager/hsk-repository',
     iconName: 'questions',
   },
   {

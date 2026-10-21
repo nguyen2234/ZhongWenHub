@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   Save,
@@ -122,22 +122,27 @@ export const AdminLessonEditorPage: React.FC = () => {
     };
   }, [draftLesson]);
 
+  const location = useLocation();
+  const curriculumBackPath = location.pathname.includes('/content-manager')
+    ? '/management/content-manager/curriculum'
+    : '/management/admin/curriculum';
+
   // Safe navigation handler
   const handleSafeBack = useCallback(() => {
     if (isDirty) {
-      setPendingNavigationPath('/management/admin/curriculum');
+      setPendingNavigationPath(curriculumBackPath);
       setIsConfirmLeaveOpen(true);
     } else {
-      navigate('/management/admin/curriculum');
+      navigate(curriculumBackPath);
     }
-  }, [isDirty, navigate]);
+  }, [isDirty, navigate, curriculumBackPath]);
 
   const handleConfirmDiscard = () => {
     setIsConfirmLeaveOpen(false);
     if (pendingNavigationPath) {
       navigate(pendingNavigationPath);
     } else {
-      navigate('/management/admin/curriculum');
+      navigate(curriculumBackPath);
     }
   };
 

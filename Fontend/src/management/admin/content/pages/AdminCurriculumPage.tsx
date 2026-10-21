@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, BookOpen } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
@@ -131,6 +131,10 @@ export const AdminCurriculumPage: React.FC = () => {
   }, [currentUnitForLesson]);
 
   const activeCourse = courses.find((c) => c.id === selectedCourseId) || courses[0];
+  const location = useLocation();
+  const isContentManager = location.pathname.includes('/content-manager');
+  const grammarBasePath = isContentManager ? '/management/content-manager/grammar' : '/management/admin/grammar';
+  const exerciseBasePath = isContentManager ? '/management/content-manager/question-bank' : '/management/admin/exercises';
 
   return (
     <div className="lcm-page">
@@ -144,7 +148,7 @@ export const AdminCurriculumPage: React.FC = () => {
               className="ds-btn ds-btn-secondary ds-btn-sm"
               onClick={() => {
                 const hskNum = selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1';
-                navigate(`/management/admin/grammar?hsk=${hskNum}`);
+                navigate(`${grammarBasePath}?hsk=${hskNum}`);
               }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
@@ -155,7 +159,7 @@ export const AdminCurriculumPage: React.FC = () => {
               className="ds-btn ds-btn-secondary ds-btn-sm"
               onClick={() => {
                 const hskNum = selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1';
-                navigate(`/management/admin/exercises?hsk=${hskNum}`);
+                navigate(`${exerciseBasePath}?hsk=${hskNum}`);
               }}
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >

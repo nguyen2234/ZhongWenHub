@@ -133,7 +133,7 @@ export const ClassOverviewTab: React.FC<ClassOverviewTabProps> = ({ detail }) =>
                 Giáo Trình Học Tập Liên Kết
               </h3>
               <Link
-                to="/management/admin/curriculum"
+                to="/management/content-manager/curriculum"
                 className="ds-btn ds-btn-ghost ds-btn-sm"
                 style={{ fontSize: '11px', gap: '4px' }}
               >

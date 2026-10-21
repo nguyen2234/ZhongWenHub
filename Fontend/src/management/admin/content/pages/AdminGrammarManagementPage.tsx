@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
   RotateCcw,
@@ -146,18 +146,23 @@ export const AdminGrammarManagementPage: React.FC = () => {
     handleCloseDrawer();
   }, [handleCloseDrawer]);
 
+  const location = useLocation();
+  const isContentManager = location.pathname.includes('/content-manager');
+  const basePath = isContentManager ? '/management/content-manager' : '/management/admin';
+  const exercisePath = isContentManager ? '/management/content-manager/question-bank' : '/management/admin/exercises';
+
   const handleNavigateToExercises = useCallback(
     (grammarId: string) => {
-      navigate(`/management/admin/exercises?grammarId=${grammarId}`);
+      navigate(`${exercisePath}?grammarId=${grammarId}`);
     },
-    [navigate]
+    [navigate, exercisePath]
   );
 
   const handleNavigateToLesson = useCallback(
     (lessonId: string) => {
-      navigate(`/management/admin/curriculum/lessons/${lessonId}/edit`);
+      navigate(`${basePath}/curriculum/lessons/${lessonId}/edit`);
     },
-    [navigate]
+    [navigate, basePath]
   );
 
   // 4. Data Table columns
