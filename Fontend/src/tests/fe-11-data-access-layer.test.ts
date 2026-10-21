@@ -422,10 +422,25 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
 
       await client.get('https://api.zhongwenhub.vn/api/v1/data');
       expect(capturedHeaders).toBeDefined();
-      expect(capturedHeaders['Authorization']).toBe('Bearer secret-jwt-token-xyz');
+      const getHeader = (name: string) =>
+        capturedHeaders instanceof Headers ? capturedHeaders.get(name) : capturedHeaders[name];
+      expect(getHeader('authorization')).toBe('Bearer secret-jwt-token-xyz');
     });
 
-    test('STRICTLY DOES NOT attach Authorization Bearer or CSRF headers to external untrusted domains', async () => {
+    test('protocol-relative external URLs are NOT considered trusted', () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+        trustedOrigins: ['https://api.zhongwenhub.vn'],
+      });
+
+      expect(client.isTrustedOrigin('//external.example/api')).toBe(false);
+      expect(client.isTrustedOrigin('//evil-hacker.com/steal')).toBe(false);
+      expect(client.isTrustedOrigin('//api.zhongwenhub.vn.attacker.com')).toBe(false);
+      // Valid allowlisted origin with protocol-relative notation resolves to trusted host
+      expect(client.isTrustedOrigin('//api.zhongwenhub.vn/api/v1')).toBe(true);
+    });
+
+    test('STRICTLY DOES NOT attach in-memory Authorization Bearer or CSRF headers to external untrusted domains', async () => {
       const client = new HttpClient({
         baseUrl: '/api/v1',
         trustedOrigins: ['https://api.zhongwenhub.vn'],
@@ -448,13 +463,113 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
       await client.post('https://untrusted-external-api.com/webhooks', { data: 123 });
 
       expect(capturedHeaders).toBeDefined();
+      const getHeader = (name: string) =>
+        capturedHeaders instanceof Headers ? capturedHeaders.get(name) : capturedHeaders[name];
+
       // MUST NOT contain Authorization
-      expect(capturedHeaders['Authorization']).toBeUndefined();
+      expect(getHeader('authorization')).toBeNull();
       // MUST NOT contain CSRF token
-      expect(capturedHeaders['X-CSRF-TOKEN']).toBeUndefined();
-      expect(capturedHeaders['X-XSRF-TOKEN']).toBeUndefined();
+      expect(getHeader('x-csrf-token')).toBeNull();
+      expect(getHeader('x-xsrf-token')).toBeNull();
       // Credentials must be set to 'omit' to prevent cookie leakage
       expect(capturedCredentials).toBe('omit');
+    });
+
+    test('Untrusted URL + credentials: "include" -> enforces credentials: "omit"', async () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+        trustedOrigins: ['https://api.zhongwenhub.vn'],
+      });
+
+      let capturedCredentials: any = null;
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        capturedCredentials = init?.credentials;
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      // Caller explicitly tries to pass credentials: 'include' to an untrusted domain
+      await client.get('https://untrusted-api.com/user/profile', {
+        credentials: 'include',
+      });
+
+      // Must be forcefully stripped/overridden to 'omit'
+      expect(capturedCredentials).toBe('omit');
+    });
+
+    test('Untrusted URL + caller-provided Authorization & X-CSRF-TOKEN -> headers are stripped', async () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+      });
+
+      let capturedHeaders: any = null;
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        capturedHeaders = init?.headers;
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      await client.post(
+        'https://untrusted-api.com/leak',
+        { test: 1 },
+        {
+          headers: {
+            Authorization: 'Bearer leaked-caller-token',
+            'X-CSRF-TOKEN': 'leaked-csrf-token',
+            'Proxy-Authorization': 'Basic dXNlcjpwYXNz',
+            'X-Custom-Header': 'keep-this-safe-header',
+          },
+        }
+      );
+
+      const getHeader = (name: string) =>
+        capturedHeaders instanceof Headers ? capturedHeaders.get(name) : capturedHeaders[name];
+
+      expect(getHeader('authorization')).toBeNull();
+      expect(getHeader('x-csrf-token')).toBeNull();
+      expect(getHeader('proxy-authorization')).toBeNull();
+      expect(getHeader('x-custom-header')).toBe('keep-this-safe-header');
+    });
+
+    test('Header case variations (uppercase, lowercase, mixed) are all strictly stripped on untrusted requests', async () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+      });
+
+      let capturedHeaders: any = null;
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        capturedHeaders = init?.headers;
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      // Various case mutations
+      await client.post(
+        'https://external-service.org/endpoint',
+        {},
+        {
+          headers: {
+            AUTHORIZATION: 'Bearer uppercase-token',
+            'x-csrf-token': 'lowercase-csrf',
+            'X-Xsrf-Token': 'mixed-xsrf',
+            'PROXY-AUTHORIZATION': 'Basic secret',
+          },
+        }
+      );
+
+      const getHeader = (name: string) =>
+        capturedHeaders instanceof Headers ? capturedHeaders.get(name) : capturedHeaders[name];
+
+      expect(getHeader('authorization')).toBeNull();
+      expect(getHeader('x-csrf-token')).toBeNull();
+      expect(getHeader('x-xsrf-token')).toBeNull();
+      expect(getHeader('proxy-authorization')).toBeNull();
     });
   });
 });

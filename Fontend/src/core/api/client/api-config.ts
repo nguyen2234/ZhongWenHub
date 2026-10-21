@@ -16,9 +16,9 @@ export interface ApiConfig {
   trustedOrigins?: string[];
 }
 
-// Parse comma-separated trusted origins from VITE_TRUSTED_ORIGINS if configured
+// Parse comma-separated trusted origins from VITE_API_TRUSTED_ORIGINS if configured
 function parseTrustedOrigins(): string[] {
-  const envVal = import.meta.env?.VITE_TRUSTED_ORIGINS as string | undefined;
+  const envVal = (import.meta.env?.VITE_API_TRUSTED_ORIGINS ?? import.meta.env?.VITE_TRUSTED_ORIGINS) as string | undefined;
   if (!envVal) return [];
   return envVal
     .split(',')

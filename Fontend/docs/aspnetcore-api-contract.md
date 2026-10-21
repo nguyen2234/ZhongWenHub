@@ -67,10 +67,15 @@
      - `Secure: CookieSecurePolicy.Always` (Chỉ truyền qua giao thức HTTPS).
      - `SameSite: SameSiteMode.Strict` (Trình duyệt từ chối gửi cookie trong mọi cross-site request).
      - `Path: /api/v1/auth` (Thu hẹp phạm vi gửi cookie chỉ cho nhóm endpoint xác thực).
-   * **Phía Frontend (HttpClient Origin Boundary):**
-     - Frontend `HttpClient` chỉ đính kèm `Authorization: Bearer <token>` và `X-CSRF-TOKEN` khi request gửi đến origin thuộc danh sách tin cậy (`trustedOrigins` hoặc `same-origin`).
-     - Khi gọi đến URL tuyệt đối thuộc external domain khác, `HttpClient` tự động loại bỏ header nhạy cảm và gán `credentials: 'omit'`.
-
+    * **Phía Frontend (HttpClient Origin Boundary & Header Stripping):**
+      - Cấu hình biến môi trường duy nhất: `VITE_API_TRUSTED_ORIGINS` (danh sách domain phân tách bằng dấu phẩy, nghiêm cấm wildcard `*`).
+      - Chỉ các origin thuộc allowlist hợp lệ hoặc relative/same-origin mới được coi là tin cậy. Trong production, chỉ origin HTTPS được chấp nhận (HTTP chỉ cho phép trên localhost/loopback ở môi trường development).
+      - Các URL giao thức tương đối (protocol-relative `//external.example`) **không** được coi là tin cậy.
+      - Frontend `HttpClient` chỉ tự động đính kèm `Authorization: Bearer <token>` và `X-CSRF-TOKEN` khi request gửi đến trusted origin.
+      - **Bảo vệ tuyệt đối khi gọi External / Untrusted Origin:**
+        - Tự động cưỡng chế `credentials: 'omit'` bất kể caller có truyền `credentials: 'include'` hay không.
+        - Tự động loại bỏ toàn bộ các header nhạy cảm do caller truyền vào (`Authorization`, `Proxy-Authorization`, `X-CSRF-TOKEN`, `X-XSRF-TOKEN`) bằng Headers API (chuẩn hóa không phân biệt chữ hoa/thường).
+        - Không xóa session in-memory khi gặp mã lỗi 401 từ origin ngoại vi.
 ---
 
 ## 2. QUY TRÌNH TRẠNG THÁI NỘI DUNG (CONTENT LIFECYCLE)

@@ -43,19 +43,33 @@ export class HttpClient {
   }
 
   /**
-   * Determines whether target URL belongs to a trusted origin.
-   * Prevents leaking Authorization Bearer and Anti-CSRF headers to external 3rd-party services.
-   * Wildcards are strictly prohibited.
+   * Validates if a normalized origin is trusted.
+   * In production, only HTTPS origins are allowed.
+   * HTTP is only allowed for loopback/localhost in development.
    */
-  public isTrustedOrigin(targetUrl: string): boolean {
-    const isAbsolute = targetUrl.startsWith('http://') || targetUrl.startsWith('https://');
-    if (!isAbsolute) {
-      // Relative endpoints always resolve to same-origin / configured base URL
-      return true;
-    }
-
+  private checkOriginTrusted(originStr: string): boolean {
     try {
-      const parsed = new URL(targetUrl);
+      const parsed = new URL(originStr);
+      const protocol = parsed.protocol.toLowerCase();
+      const hostname = parsed.hostname.toLowerCase();
+      const isProd = import.meta.env?.PROD === true || import.meta.env?.MODE === 'production';
+
+      const isLoopback =
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '::1' ||
+        hostname === '[::1]';
+
+      // Security rule: Only HTTPS is allowed in production.
+      // HTTP is only permitted on localhost / loopback during development.
+      if (protocol === 'http:') {
+        if (isProd || !isLoopback) {
+          return false;
+        }
+      } else if (protocol !== 'https:') {
+        return false;
+      }
+
       const targetOrigin = parsed.origin.toLowerCase();
 
       // Check current window origin
@@ -73,17 +87,21 @@ export class HttpClient {
         }
       }
 
-      // Check explicit trusted origins allowlist (strictly reject wildcards)
+      // Check allowlist (strict match, reject wildcards)
       const allowlist = this.config.trustedOrigins || [];
       return allowlist.some((trusted) => {
-        if (trusted === '*' || !trusted) return false;
+        if (!trusted || trusted === '*') return false;
         try {
-          const trustedOrigin = trusted.startsWith('http')
-            ? new URL(trusted).origin.toLowerCase()
-            : trusted.toLowerCase();
-          return targetOrigin === trustedOrigin;
+          const trustedUrl = new URL(trusted.startsWith('http') ? trusted : `https://${trusted}`);
+          if (
+            trustedUrl.protocol === 'http:' &&
+            (isProd || (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(trustedUrl.hostname.toLowerCase())))
+          ) {
+            return false;
+          }
+          return targetOrigin === trustedUrl.origin.toLowerCase();
         } catch {
-          return targetOrigin === trusted.toLowerCase();
+          return false;
         }
       });
     } catch {
@@ -92,10 +110,74 @@ export class HttpClient {
   }
 
   /**
+   * Determines whether target URL belongs to a trusted origin.
+   * Prevents leaking Authorization Bearer and Anti-CSRF headers to external 3rd-party services.
+   * Wildcards are strictly prohibited.
+   * Protocol-relative URLs (e.g., //external.example) are NOT blindly trusted.
+   * In production, only HTTPS origins are accepted; HTTP is only tolerated on localhost in dev.
+   */
+  public isTrustedOrigin(targetUrl: string): boolean {
+    if (!targetUrl || typeof targetUrl !== 'string') {
+      return false;
+    }
+
+    const trimmed = targetUrl.trim();
+
+    // 1. Protocol-relative URLs (e.g. "//external.example/api") point to external hosts.
+    // MUST NOT be treated as path-relative! Resolve against current protocol/host to check origin.
+    if (trimmed.startsWith('//') || trimmed.startsWith('\\\\')) {
+      try {
+        const protocol = typeof window !== 'undefined' && window.location?.protocol ? window.location.protocol : 'https:';
+        const resolved = new URL(`${protocol}${trimmed}`);
+        return this.checkOriginTrusted(resolved.origin);
+      } catch {
+        return false;
+      }
+    }
+
+    // 2. Absolute URLs with scheme
+    const hasScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed);
+    if (hasScheme) {
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return false;
+        }
+        return this.checkOriginTrusted(parsed.origin);
+      } catch {
+        return false;
+      }
+    }
+
+    // 3. Path-relative URLs (e.g. "/api/v1/...", "grammar")
+    // If baseUrl is absolute, resolve relative path against baseUrl
+    if (this.config.baseUrl.startsWith('http://') || this.config.baseUrl.startsWith('https://')) {
+      try {
+        const baseOrigin = new URL(this.config.baseUrl).origin;
+        return this.checkOriginTrusted(baseOrigin);
+      } catch {
+        return false;
+      }
+    }
+
+    // Relative baseUrl on same-origin host
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return this.checkOriginTrusted(window.location.origin);
+    }
+
+    return true;
+  }
+
+  /**
    * Builds full URL with normalized query string parameters.
    */
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined | null>): string {
-    const isAbsolute = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+    const isAbsolute =
+      endpoint.startsWith('http://') ||
+      endpoint.startsWith('https://') ||
+      endpoint.startsWith('//') ||
+      endpoint.startsWith('\\\\');
+
     const base = isAbsolute ? endpoint : `${this.config.baseUrl.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
 
     if (!params) return base;
@@ -143,37 +225,61 @@ export class HttpClient {
       options.signal.addEventListener('abort', onExternalAbort);
     }
 
-    const headers: Record<string, string> = {
-      Accept: 'application/json, application/problem+json',
-      ...(options.headers as Record<string, string>),
-    };
+    // Initialize headers using Headers API for case-insensitive operations
+    const headers = new Headers();
+    headers.set('Accept', 'application/json, application/problem+json');
 
-    if (body !== undefined) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    // Security: Anti-CSRF injection ONLY for trusted origins on state-changing requests
-    if (isTrusted && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-      const csrfToken = extractCsrfToken();
-      if (csrfToken && !headers['X-CSRF-TOKEN'] && !headers['X-XSRF-TOKEN']) {
-        headers['X-CSRF-TOKEN'] = csrfToken;
+    if (options.headers) {
+      if (options.headers instanceof Headers) {
+        options.headers.forEach((value, key) => headers.set(key, value));
+      } else if (Array.isArray(options.headers)) {
+        options.headers.forEach(([key, value]) => headers.set(key, value));
+      } else {
+        Object.entries(options.headers).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            headers.set(key, String(value));
+          }
+        });
       }
     }
 
-    // Security: Inject Bearer token from in-memory service ONLY for trusted origins
+    if (body !== undefined && !headers.has('content-type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+
     if (isTrusted) {
-      const token = authTokenService.getAccessToken();
-      if (token && !headers['Authorization']) {
-        headers['Authorization'] = `Bearer ${token}`;
+      // Security: Anti-CSRF injection ONLY for trusted origins on state-changing requests
+      if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+        const csrfToken = extractCsrfToken();
+        if (csrfToken && !headers.has('x-csrf-token') && !headers.has('x-xsrf-token')) {
+          headers.set('X-CSRF-TOKEN', csrfToken);
+        }
       }
+
+      // Security: Inject Bearer token from in-memory service ONLY for trusted origins
+      const token = authTokenService.getAccessToken();
+      if (token && !headers.has('authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+    } else {
+      // Security: For untrusted / external origins, strip sensitive headers case-insensitively
+      // Standard Headers API delete() is case-insensitive
+      headers.delete('authorization');
+      headers.delete('proxy-authorization');
+      headers.delete('x-csrf-token');
+      headers.delete('x-xsrf-token');
     }
 
-    // Security: Default to 'same-origin' if trusted, force 'omit' for untrusted external origins to prevent credential leakage
-    const credentials = options.credentials ?? (isTrusted ? (this.config.credentials ?? 'same-origin') : 'omit');
+    // Security: Unconditionally enforce credentials: 'omit' for untrusted origins,
+    // regardless of what caller passed in options.credentials!
+    const credentials: RequestCredentials = isTrusted
+      ? (options.credentials ?? this.config.credentials ?? 'same-origin')
+      : 'omit';
 
     try {
+      const { headers: _ignoredHeaders, credentials: _ignoredCredentials, ...restOptions } = options;
       const response = await fetch(url, {
-        ...options,
+        ...restOptions,
         method,
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined,
