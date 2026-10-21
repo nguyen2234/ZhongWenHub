@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X, Edit3, Save, ExternalLink, BookOpen, Layers, CheckSquare } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import type { ContentStatus, Lesson, UpdateLessonDTO } from '../types';
@@ -18,6 +18,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
   onSave,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [titleZh, setTitleZh] = useState('');
   const [titleVi, setTitleVi] = useState('');
@@ -248,7 +249,8 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                 onClick={() => {
                   if (lesson) {
                     onClose();
-                    navigate(`/management/admin/curriculum/lessons/${lesson.id}/edit`);
+                    const basePath = location.pathname.includes('/content-manager') ? '/management/content-manager' : '/management/admin';
+                    navigate(`${basePath}/curriculum/lessons/${lesson.id}/edit`);
                   }
                 }}
               >

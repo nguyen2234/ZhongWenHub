@@ -1,50 +1,87 @@
 import React from 'react';
+import '../styles/management-table.css';
 
-export type StatusVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+export type StatusVariant =
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'active'
+  | 'published'
+  | 'resolved'
+  | 'pending'
+  | 'in_progress'
+  | 'draft'
+  | 'inactive'
+  | 'rejected'
+  | 'error'
+  | 'archived';
 
 export interface StatusBadgeProps {
   label: string;
-  variant?: StatusVariant;
+  variant?: StatusVariant | string;
   size?: 'sm' | 'md';
+  showDot?: boolean;
+  className?: string;
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   label,
   variant = 'neutral',
   size = 'md',
+  showDot = true,
+  className = '',
 }) => {
-  const getColors = () => {
-    switch (variant) {
+  // Normalize variant according to Evondev M7 Standard
+  const normalizeVariant = (v: string): 'success' | 'warning' | 'danger' | 'info' | 'neutral' => {
+    const lower = v.toLowerCase();
+    switch (lower) {
       case 'success':
-        return { bg: 'rgba(34, 197, 94, 0.1)', text: '#16a34a', border: 'rgba(34, 197, 94, 0.2)' };
+      case 'active':
+      case 'published':
+      case 'resolved':
+      case 'completed':
+      case 'passed':
+        return 'success';
       case 'warning':
-        return { bg: 'rgba(234, 179, 8, 0.1)', text: '#ca8a04', border: 'rgba(234, 179, 8, 0.2)' };
+      case 'pending':
+      case 'pending_review':
+      case 'in_progress':
+      case 'upcoming':
+      case 'medium':
+        return 'warning';
       case 'danger':
-        return { bg: 'rgba(239, 68, 68, 0.1)', text: '#dc2626', border: 'rgba(239, 68, 68, 0.2)' };
+      case 'error':
+      case 'rejected':
+      case 'failed':
+      case 'critical':
+      case 'high':
+        return 'danger';
       case 'info':
-        return { bg: 'rgba(59, 130, 246, 0.1)', text: '#2563eb', border: 'rgba(59, 130, 246, 0.2)' };
+      case 'low':
+        return 'info';
+      case 'draft':
+      case 'inactive':
+      case 'archived':
+      case 'neutral':
       default:
-        return { bg: 'var(--border)', text: 'var(--muted)', border: 'transparent' };
+        return 'neutral';
     }
   };
 
-  const colors = getColors();
+  const norm = normalizeVariant(variant);
 
   return (
     <span
+      className={`mgmt-badge badge-${norm} ${size === 'sm' ? 'text-xs py-0.5' : ''} ${className}`}
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
         padding: size === 'sm' ? '1px 6px' : '2px 8px',
-        fontSize: size === 'sm' ? '10px' : '11px',
-        fontWeight: 600,
-        borderRadius: 'var(--radius-full)',
-        backgroundColor: colors.bg,
-        color: colors.text,
-        border: `1px solid ${colors.border}`,
+        fontSize: size === 'sm' ? '10.5px' : '11.5px',
       }}
     >
-      {label}
+      {showDot && <span className="mgmt-badge-dot" aria-hidden="true" />}
+      <span>{label}</span>
     </span>
   );
 };

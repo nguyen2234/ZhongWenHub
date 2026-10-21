@@ -466,7 +466,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
             >
               Không gian quản trị:
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
               {(['ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
                 <Link
                   key={r}

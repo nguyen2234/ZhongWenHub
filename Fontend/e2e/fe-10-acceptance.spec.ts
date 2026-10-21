@@ -28,8 +28,8 @@ test.describe('FE-10.1: Full Acceptance Suite (Admin, Teacher, Support across vi
 
     // Test quick search in sidebar
     const searchInput = sidebar.locator('input[placeholder*="Tìm nhanh"]');
-    await searchInput.fill('Ngữ pháp');
-    await expect(sidebar.locator('text=Ngữ pháp HSK (FE-9)')).toBeVisible();
+    await searchInput.fill('Giáo viên');
+    await expect(sidebar.locator('text=Đội ngũ Giáo viên')).toBeVisible();
     await searchInput.fill('');
 
     // Test sidebar collapse toggle
@@ -188,14 +188,14 @@ test.describe('FE-10.1: Full Acceptance Suite (Admin, Teacher, Support across vi
     await page.goto('/ZhongWenHub/management/admin/dashboard');
     await page.waitForLoadState('networkidle');
 
-    // Click on Moderation link
+    // Click on Moderation link (safely redirects to Content Manager workspace in FE-12)
     await page.locator('a[href*="/moderation"]').first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Hàng đợi kiểm duyệt học liệu');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.3')).toBeVisible();
+    await expect(page).toHaveURL(/.*\/management\/content-manager\/moderation/);
+    await expect(page.locator('.cm-page-title, h1').first()).toBeVisible();
 
-    // Click back to dashboard
-    await page.locator('a:has-text("Về Dashboard")').first().click();
+    // Return to Admin dashboard
+    await page.goto('/ZhongWenHub/management/admin/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Click on Urgent Support link

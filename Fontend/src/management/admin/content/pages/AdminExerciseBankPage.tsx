@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plus,
   RotateCcw,
@@ -177,18 +177,22 @@ export const AdminExerciseBankPage: React.FC = () => {
     handleCloseDrawer();
   }, [handleCloseDrawer]);
 
+  const location = useLocation();
+  const isContentManager = location.pathname.includes('/content-manager');
+  const basePath = isContentManager ? '/management/content-manager' : '/management/admin';
+
   const handleNavigateToGrammar = useCallback(
     (grammarId: string) => {
-      navigate(`/management/admin/grammar?id=${grammarId}`);
+      navigate(`${basePath}/grammar?id=${grammarId}`);
     },
-    [navigate]
+    [navigate, basePath]
   );
 
   const handleNavigateToLesson = useCallback(
     (lessonId: string) => {
-      navigate(`/management/admin/curriculum/lessons/${lessonId}/edit`);
+      navigate(`${basePath}/curriculum/lessons/${lessonId}/edit`);
     },
-    [navigate]
+    [navigate, basePath]
   );
 
   // 4. Data Table columns
@@ -661,13 +665,51 @@ export const AdminExerciseBankPage: React.FC = () => {
           }
         />
 
-        {/* Data Table */}
-        <DataTable
+        {/* Data Table with Evondev Mobile Card Support (R9 & R11) */}
+        <DataTable<AdminExerciseItem>
           columns={columns}
           data={paginatedData}
           keyExtractor={(item) => item.id}
           onRowClick={handleOpenDetail}
           emptyText="Không tìm thấy câu hỏi nào phù hợp với bộ lọc."
+          enableMobileCards
+          mobileTitleExtractor={(item) => (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  padding: '1px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--primary-subtle, rgba(2, 132, 199, 0.08))',
+                  color: 'var(--primary)',
+                }}
+              >
+                HSK {item.hskLevel}
+              </span>
+              <span style={{ fontWeight: 600 }}>{item.title}</span>
+            </div>
+          )}
+          mobileSubtitleExtractor={(item) => (
+            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+              Mã: {item.id} • Dạng bài: {item.type}
+            </span>
+          )}
+          mobileBadgeExtractor={(item) => <ContentStatusBadge status={item.status} />}
+          mobileFields={[
+            {
+              label: 'Kỹ năng',
+              render: (item) => <span style={{ textTransform: 'capitalize' }}>{item.skill}</span>,
+            },
+            {
+              label: 'Thưởng XP',
+              render: (item) => (
+                <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  +{item.xpReward} XP
+                </span>
+              ),
+            },
+          ]}
         />
 
         {/* Pagination */}

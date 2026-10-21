@@ -26,6 +26,11 @@ import { ContentModerationPage } from '../../management/content-manager/pages/Co
 import { ContentIssuesPage } from '../../management/content-manager/pages/ContentIssuesPage';
 import { ContentAuditHistoryPage } from '../../management/content-manager/pages/ContentAuditHistoryPage';
 import { ContentQualityMetricsPage } from '../../management/content-manager/pages/ContentQualityMetricsPage';
+import {
+  ManagementRouteGuard,
+  AdminLegacyContentRedirect,
+  AdminLegacyLessonEditorRedirect,
+} from '../../management/shared/components';
 
 export const managementRoutes: RouteObject[] = [
   {
@@ -45,80 +50,118 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'dashboard',
-            element: <AdminDashboardPage />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminDashboardPage />
+              </ManagementRouteGuard>
+            ),
           },
           // 1. Quản lý người dùng & tổ chức
           {
             path: 'users',
-            element: <AdminUsersPage />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminUsersPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'teachers',
-            element: <AdminTeachersPage />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminTeachersPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'support-staff',
-            element: <AdminSupportStaffPage />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminSupportStaffPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'roles',
-            element: <AdminRolesPage />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminRolesPage />
+              </ManagementRouteGuard>
+            ),
           },
 
-          // 2. Học liệu & Nội dung
-          {
-            path: 'hsk-repository',
-            element: <AdminHskRepositoryPage />,
-          },
-          {
-            path: 'curriculum',
-            element: <AdminCurriculumPage />,
-          },
-          {
-            path: 'curriculum/lessons/:lessonId/edit',
-            element: <AdminLessonEditorPage />,
-          },
-          {
-            path: 'grammar',
-            element: <AdminGrammarManagementPage />,
-          },
-          {
-            path: 'exercises',
-            element: <AdminExerciseBankPage />,
-          },
-          {
-            path: 'videos',
-            element: <AdminModulePlannedPage moduleKey="videos" />,
-          },
-
-          // 3. Kiểm duyệt & AI
-          {
-            path: 'moderation',
-            element: <AdminModulePlannedPage moduleKey="moderation" />,
-          },
+          // 2. Trí tuệ nhân tạo (AI)
           {
             path: 'ai-management',
-            element: <AdminModulePlannedPage moduleKey="ai-management" />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminModulePlannedPage moduleKey="ai-management" />
+              </ManagementRouteGuard>
+            ),
           },
 
-          // 4. Vận hành & Hệ thống
+          // 3. Vận hành & Hệ thống
           {
             path: 'analytics',
-            element: <AdminModulePlannedPage moduleKey="analytics" />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminModulePlannedPage moduleKey="analytics" />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'support-requests',
-            element: <AdminModulePlannedPage moduleKey="support-requests" />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminModulePlannedPage moduleKey="support-requests" />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'settings',
-            element: <AdminModulePlannedPage moduleKey="settings" />,
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminModulePlannedPage moduleKey="settings" />
+              </ManagementRouteGuard>
+            ),
+          },
+
+          // 4. Safe Redirects for Legacy Content Routes (FE-12 Strict Separation)
+          // Validates session permission and redirects safely to /management/content-manager/...
+          // Blocks unauthorized escalation attempts (e.g. Student/Support)
+          {
+            path: 'hsk-repository',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/hsk-repository" />,
+          },
+          {
+            path: 'curriculum',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/curriculum" />,
+          },
+          {
+            path: 'curriculum/lessons/:lessonId/edit',
+            element: <AdminLegacyLessonEditorRedirect />,
+          },
+          {
+            path: 'grammar',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/grammar" />,
+          },
+          {
+            path: 'exercises',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/question-bank" />,
+          },
+          {
+            path: 'videos',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/videos" />,
+          },
+          {
+            path: 'moderation',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/moderation" />,
           },
 
           // Fallback
           {
             path: '*',
-            element: <AdminDashboardPage />,
+            element: <Navigate to="/management/admin/dashboard" replace />,
           },
         ],
       },
@@ -131,27 +174,47 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'dashboard',
-            element: <TeacherDashboardPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['TEACHER', 'ADMIN']}>
+                <TeacherDashboardPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'classes',
-            element: <TeacherClassesPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['TEACHER', 'ADMIN']}>
+                <TeacherClassesPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'classes/:classId',
-            element: <TeacherClassDetailPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['TEACHER', 'ADMIN']}>
+                <TeacherClassDetailPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'assignments',
-            element: <TeacherAssignmentsPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['TEACHER', 'ADMIN']}>
+                <TeacherAssignmentsPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'ai-workspace',
-            element: <TeacherAIWorkspacePage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['TEACHER', 'ADMIN']}>
+                <TeacherAIWorkspacePage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: '*',
-            element: <TeacherDashboardPage />,
+            element: <Navigate to="/management/teacher/dashboard" replace />,
           },
         ],
       },
@@ -164,43 +227,99 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'dashboard',
-            element: <ContentManagerDashboardPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <ContentManagerDashboardPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'hsk-repository',
-            element: <AdminHskRepositoryPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminHskRepositoryPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'curriculum',
-            element: <AdminCurriculumPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminCurriculumPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'curriculum/lessons/:lessonId/edit',
-            element: <AdminLessonEditorPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminLessonEditorPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'lesson-editor',
+            element: <Navigate to="/management/content-manager/curriculum/lessons/les-8/edit" replace />,
           },
           {
             path: 'grammar',
-            element: <AdminGrammarManagementPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminGrammarManagementPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'question-bank',
-            element: <AdminExerciseBankPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminExerciseBankPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'exercises',
+            element: <Navigate to="/management/content-manager/question-bank" replace />,
+          },
+          {
+            path: 'videos',
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminModulePlannedPage moduleKey="videos" />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'moderation',
-            element: <ContentModerationPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <ContentModerationPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'issues',
-            element: <ContentIssuesPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <ContentIssuesPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'audit-history',
-            element: <ContentAuditHistoryPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <ContentAuditHistoryPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: 'quality-metrics',
-            element: <ContentQualityMetricsPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <ContentQualityMetricsPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: '*',
@@ -217,11 +336,15 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'dashboard',
-            element: <SupportDashboardPage />,
+            element: (
+              <ManagementRouteGuard requiredRole={['SUPPORT', 'ADMIN']}>
+                <SupportDashboardPage />
+              </ManagementRouteGuard>
+            ),
           },
           {
             path: '*',
-            element: <SupportDashboardPage />,
+            element: <Navigate to="/management/support/dashboard" replace />,
           },
         ],
       },

@@ -10,25 +10,23 @@ import { getAdminDashboardData, mockDashboardDataByRange } from '../management/a
 import { managementRoutes } from '../app/router/management.routes';
 
 describe('FE-10.1: Admin Web Console Redesign Suite', () => {
-  describe('1. Admin Navigation Architecture (5 Groups & Sitemap)', () => {
-    it('defines exactly 5 main navigation groups for Admin Console', () => {
-      expect(ADMIN_NAV_GROUPS).toHaveLength(5);
+  describe('1. Admin Navigation Architecture (FE-12 Restructured & Streamlined)', () => {
+    it('defines exactly 4 main navigation groups for Admin Console (Content separated to Content Manager)', () => {
+      expect(ADMIN_NAV_GROUPS).toHaveLength(4);
       const groupIds = ADMIN_NAV_GROUPS.map((g) => g.id);
       expect(groupIds).toEqual([
         'admin-overview',
-        'admin-content-mgmt',
-        'admin-moderation-ai',
         'admin-user-mgmt',
+        'admin-ai-group',
         'admin-system',
       ]);
     });
 
-    it('has standard uppercase group titles', () => {
+    it('has standard uppercase group titles matching Evondev UX/UI', () => {
       expect(ADMIN_NAV_GROUPS[0].title).toBe('TỔNG QUAN');
-      expect(ADMIN_NAV_GROUPS[1].title).toBe('HỌC LIỆU & NỘI DUNG');
-      expect(ADMIN_NAV_GROUPS[2].title).toBe('KIỂM DUYỆT & TRỢ LÝ AI');
-      expect(ADMIN_NAV_GROUPS[3].title).toBe('NGƯỜI DÙNG & TỔ CHỨC');
-      expect(ADMIN_NAV_GROUPS[4].title).toBe('VẬN HÀNH & HỆ THỐNG');
+      expect(ADMIN_NAV_GROUPS[1].title).toBe('NGƯỜI DÙNG & TỔ CHỨC');
+      expect(ADMIN_NAV_GROUPS[2].title).toBe('TRÍ TUỆ NHÂN TẠO');
+      expect(ADMIN_NAV_GROUPS[3].title).toBe('VẬN HÀNH & HỆ THỐNG');
     });
 
     it('ensures all admin navigation items have valid /management/admin/ paths', () => {
@@ -43,25 +41,33 @@ describe('FE-10.1: Admin Web Console Redesign Suite', () => {
       });
     });
 
-    it('contains FE-9 synchronized content items (Grammar, Exercises, Video)', () => {
+    it('verifies that HỌC LIỆU & NỘI DUNG and Duyệt nội dung are completely removed from Admin sidebar', () => {
       const contentGroup = ADMIN_NAV_GROUPS.find((g) => g.id === 'admin-content-mgmt');
-      expect(contentGroup).toBeDefined();
-      const itemPaths = contentGroup!.items.map((i) => i.path);
-      expect(itemPaths).toContain('/management/admin/hsk-repository');
-      expect(itemPaths).toContain('/management/admin/curriculum');
-      expect(itemPaths).toContain('/management/admin/grammar');
-      expect(itemPaths).toContain('/management/admin/exercises');
-      expect(itemPaths).toContain('/management/admin/videos');
+      expect(contentGroup).toBeUndefined();
+
+      const allAdminItems = ADMIN_NAV_GROUPS.flatMap((g) => g.items);
+      const itemPaths = allAdminItems.map((i) => i.path);
+      const itemIds = allAdminItems.map((i) => i.id);
+
+      expect(itemPaths).not.toContain('/management/admin/hsk-repository');
+      expect(itemPaths).not.toContain('/management/admin/curriculum');
+      expect(itemPaths).not.toContain('/management/admin/grammar');
+      expect(itemPaths).not.toContain('/management/admin/exercises');
+      expect(itemPaths).not.toContain('/management/admin/videos');
+      expect(itemPaths).not.toContain('/management/admin/moderation');
+      expect(itemIds).not.toContain('admin-moderation');
     });
 
-    it('displays actionable badges for pending moderation queue and new features', () => {
-      const moderationGroup = ADMIN_NAV_GROUPS.find((g) => g.id === 'admin-moderation-ai');
-      expect(moderationGroup).toBeDefined();
-      const moderationItem = moderationGroup!.items.find((i) => i.id === 'admin-moderation');
-      expect(moderationItem?.badge).toBe(14);
-
-      const aiItem = moderationGroup!.items.find((i) => i.id === 'admin-ai-management');
+    it('displays actionable badges for AI and operational support requests', () => {
+      const aiGroup = ADMIN_NAV_GROUPS.find((g) => g.id === 'admin-ai-group');
+      expect(aiGroup).toBeDefined();
+      const aiItem = aiGroup!.items.find((i) => i.id === 'admin-ai-management');
       expect(aiItem?.badge).toBe('AI');
+
+      const systemGroup = ADMIN_NAV_GROUPS.find((g) => g.id === 'admin-system');
+      expect(systemGroup).toBeDefined();
+      const supportItem = systemGroup!.items.find((i) => i.id === 'admin-support-requests');
+      expect(supportItem?.badge).toBe(3);
     });
   });
 

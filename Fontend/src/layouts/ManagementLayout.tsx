@@ -7,10 +7,16 @@ import {
   SUPPORT_NAV_GROUPS,
   CONTENT_MANAGER_NAV_GROUPS,
 } from '../management/shared/config/navigation.config';
+import { managementAuthService } from '../management/shared/services/management-auth.service';
 import type { UserRole } from '../types';
 
 export const ManagementLayout: React.FC = () => {
   const location = useLocation();
+  const [session, setSession] = useState(() => managementAuthService.getSession());
+
+  useEffect(() => {
+    return managementAuthService.subscribe((updated) => setSession(updated));
+  }, []);
 
   // Determine current role based on exact URL role segment (/management/:roleSegment/...)
   const currentRole: UserRole = useMemo(() => {
@@ -22,8 +28,8 @@ export const ManagementLayout: React.FC = () => {
       if (roleSegment === 'support') return 'SUPPORT';
       if (roleSegment === 'admin') return 'ADMIN';
     }
-    return 'ADMIN';
-  }, [location.pathname]);
+    return session.role;
+  }, [location.pathname, session.role]);
 
   // Sidebar expanded / collapsed state (persisted or auto-collapsed on tablet)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -108,6 +114,7 @@ export const ManagementLayout: React.FC = () => {
         onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
         isMobileOpen={isMobileOpen}
         onMobileClose={() => setIsMobileOpen(false)}
+        onRoleChange={(role) => managementAuthService.switchRole(role)}
       />
 
       {/* Main Management Workspace */}
@@ -126,6 +133,8 @@ export const ManagementLayout: React.FC = () => {
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onMobileToggle={() => setIsMobileOpen((prev) => !prev)}
+          userName={session.name}
+          userEmail={session.email}
         />
 
         {/* Content Viewport */}

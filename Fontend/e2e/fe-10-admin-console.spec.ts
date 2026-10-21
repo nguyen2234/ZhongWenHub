@@ -12,14 +12,14 @@ test.describe('FE-10.1: Admin Web Console Redesign E2E', () => {
     await expect(page.locator('.breadcrumb-prefix')).toContainText('Quản trị ADMIN');
     await expect(page.locator('.env-indicator-pill')).toContainText('Mô phỏng Demo');
 
-    // 2. Check 5 Groups in Sidebar
+    // 2. Check 4 Groups in Sidebar (FE-12 separation)
     const sidebar = page.locator('aside.management-sidebar');
     await expect(sidebar).toBeVisible();
     await expect(sidebar).toContainText('TỔNG QUAN');
-    await expect(sidebar).toContainText('HỌC LIỆU & NỘI DUNG');
-    await expect(sidebar).toContainText('KIỂM DUYỆT & TRỢ LÝ AI');
     await expect(sidebar).toContainText('NGƯỜI DÙNG & TỔ CHỨC');
+    await expect(sidebar).toContainText('TRÍ TUỆ NHÂN TẠO');
     await expect(sidebar).toContainText('VẬN HÀNH & HỆ THỐNG');
+    await expect(sidebar).not.toContainText('HỌC LIỆU & NỘI DUNG');
 
     // 3. Active Nav State for Dashboard
     const activeItem = page.locator('a.nav-item.active');
@@ -81,13 +81,15 @@ test.describe('FE-10.1: Admin Web Console Redesign E2E', () => {
   test('Navigation Integrity: Active Module Pages for FE-10.2 & Planned FE-10.3', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
 
-    // Navigate to Grammar management
+    // Navigate to Grammar management (redirects to content-manager workspace)
     await page.goto('/ZhongWenHub/management/admin/grammar');
+    await page.waitForURL('**/management/content-manager/grammar');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('h1')).toContainText('Quản lý Ngữ pháp (HSK 1 - 6)');
 
-    // Navigate to Exercises management
+    // Navigate to Exercises management (redirects to content-manager workspace)
     await page.goto('/ZhongWenHub/management/admin/exercises');
+    await page.waitForURL('**/management/content-manager/question-bank');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('h1')).toContainText('Ngân hàng Bài tập & Câu hỏi');
 

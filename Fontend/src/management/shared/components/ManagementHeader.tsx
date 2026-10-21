@@ -55,42 +55,36 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Compute breadcrumb hierarchy matching the 5-group sitemap
+  // Compute breadcrumb hierarchy matching the reorganized sitemap
   const breadcrumb = useMemo(() => {
     const path = location.pathname;
     // Content Manager routes
     if (path.includes('/content-manager/dashboard')) return { group: 'Tổng quan', title: 'Dashboard Học liệu', link: '/management/content-manager/dashboard' };
-    if (path.includes('/content-manager/hsk-repository')) return { group: 'Kho học liệu', title: 'Kho học liệu HSK', link: '/management/content-manager/hsk-repository' };
-    if (path.includes('/content-manager/curriculum')) return { group: 'Kho học liệu', title: 'Giáo trình & Bài học', link: '/management/content-manager/curriculum' };
-    if (path.includes('/content-manager/grammar')) return { group: 'Kho học liệu', title: 'Ngữ pháp', link: '/management/content-manager/grammar' };
-    if (path.includes('/content-manager/question-bank')) return { group: 'Kho học liệu', title: 'Ngân hàng câu hỏi', link: '/management/content-manager/question-bank' };
-    if (path.includes('/content-manager/moderation')) return { group: 'Kiểm duyệt & Xuất bản', title: 'Kiểm duyệt nội dung', link: '/management/content-manager/moderation' };
-    if (path.includes('/content-manager/issues')) return { group: 'Hỗ trợ & Lỗi', title: 'Báo cáo lỗi nội dung', link: '/management/content-manager/issues' };
-    if (path.includes('/content-manager/audit-history')) return { group: 'Kiểm toán', title: 'Lịch sử phiên bản', link: '/management/content-manager/audit-history' };
-    if (path.includes('/content-manager/quality-metrics')) return { group: 'Chất lượng', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
+    if (path.includes('/content-manager/hsk-repository')) return { group: 'Học liệu & Biên tập', title: 'Kho HSK', link: '/management/content-manager/hsk-repository' };
+    if (path.includes('/content-manager/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
+    if (path.includes('/content-manager/lesson-editor')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
+    if (path.includes('/content-manager/curriculum')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình & Bài học', link: '/management/content-manager/curriculum' };
+    if (path.includes('/content-manager/grammar')) return { group: 'Học liệu & Biên tập', title: 'Ngữ pháp', link: '/management/content-manager/grammar' };
+    if (path.includes('/content-manager/question-bank') || path.includes('/content-manager/exercises')) return { group: 'Học liệu & Biên tập', title: 'Ngân hàng câu hỏi', link: '/management/content-manager/question-bank' };
+    if (path.includes('/content-manager/videos')) return { group: 'Học liệu & Biên tập', title: 'Học liệu video', link: '/management/content-manager/videos' };
+    if (path.includes('/content-manager/moderation')) return { group: 'Kiểm duyệt & Vận hành', title: 'Kiểm duyệt & Xuất bản', link: '/management/content-manager/moderation' };
+    if (path.includes('/content-manager/issues')) return { group: 'Kiểm duyệt & Vận hành', title: 'Báo cáo lỗi học liệu', link: '/management/content-manager/issues' };
+    if (path.includes('/content-manager/audit-history')) return { group: 'Kiểm duyệt & Vận hành', title: 'Lịch sử phiên bản', link: '/management/content-manager/audit-history' };
+    if (path.includes('/content-manager/quality-metrics')) return { group: 'Kiểm duyệt & Vận hành', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
 
-    // Group: Người dùng & Tổ chức
+    // Group: Người dùng & Tổ chức (Admin)
     if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
     if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
     if (path.includes('/support-staff')) return { group: 'Người dùng & Tổ chức', title: 'Nhân viên hỗ trợ', link: '/management/admin/support-staff' };
     if (path.includes('/roles')) return { group: 'Người dùng & Tổ chức', title: 'Vai trò & Phân quyền', link: '/management/admin/roles' };
 
-    // Group: Học liệu & Nội dung
-    if (path.includes('/hsk-repository')) return { group: 'Học liệu & Nội dung', title: 'Kho chuẩn HSK', link: '/management/admin/hsk-repository' };
-    if (path.includes('/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Nội dung', title: 'Biên soạn bài học số', link: path };
-    if (path.includes('/curriculum')) return { group: 'Học liệu & Nội dung', title: 'Giáo trình & Bài học', link: '/management/admin/curriculum' };
-    if (path.includes('/grammar')) return { group: 'Học liệu & Nội dung', title: 'Ngữ pháp HSK (FE-9)', link: '/management/admin/grammar' };
-    if (path.includes('/exercises')) return { group: 'Học liệu & Nội dung', title: 'Ngân hàng bài tập (FE-9)', link: '/management/admin/exercises' };
-    if (path.includes('/videos')) return { group: 'Học liệu & Nội dung', title: 'Học liệu Video', link: '/management/admin/videos' };
+    // Group: Trí tuệ nhân tạo (Admin)
+    if (path.includes('/ai-management')) return { group: 'Trí tuệ nhân tạo', title: 'Trợ lý AI Tutor', link: '/management/admin/ai-management' };
 
-    // Group: Kiểm duyệt & AI
-    if (path.includes('/moderation')) return { group: 'Kiểm duyệt & AI', title: 'Duyệt nội dung học liệu', link: '/management/admin/moderation' };
-    if (path.includes('/ai-management')) return { group: 'Kiểm duyệt & AI', title: 'Trợ lý AI Tutor', link: '/management/admin/ai-management' };
-
-    // Group: Vận hành & Hệ thống
-    if (path.includes('/analytics')) return { group: 'Vận hành & Hệ thống', title: 'Báo cáo học tập', link: '/management/admin/analytics' };
-    if (path.includes('/support-requests')) return { group: 'Vận hành & Hệ thống', title: 'Yêu cầu hỗ trợ', link: '/management/admin/support-requests' };
-    if (path.includes('/settings')) return { group: 'Vận hành & Hệ thống', title: 'Cài đặt hệ thống', link: '/management/admin/settings' };
+    // Group: Vận hành & Hệ thống (Admin)
+    if (path.includes('/analytics')) return { group: 'Vận hành & Hệ thống', title: 'Báo cáo tổng hợp', link: '/management/admin/analytics' };
+    if (path.includes('/support-requests')) return { group: 'Vận hành & Hệ thống', title: 'Hỗ trợ vận hành', link: '/management/admin/support-requests' };
+    if (path.includes('/settings')) return { group: 'Vận hành & Hệ thống', title: 'Cấu hình hệ thống', link: '/management/admin/settings' };
 
     // Teacher routes
     if (path.includes('/teacher/classes')) return { group: 'Giảng dạy', title: 'Lớp học của tôi', link: '/management/teacher/classes' };
@@ -545,7 +539,14 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                       color: 'var(--primary)',
                     }}
                   >
-                    VAI TRÒ: QUẢN TRỊ VIÊN
+                    VAI TRÒ:{' '}
+                    {currentRole === 'CONTENT_MANAGER'
+                      ? 'QUẢN LÝ HỌC LIỆU'
+                      : currentRole === 'TEACHER'
+                        ? 'GIÁO VIÊN'
+                        : currentRole === 'SUPPORT'
+                          ? 'NHÂN VIÊN HỖ TRỢ'
+                          : 'QUẢN TRỊ VIÊN'}
                   </span>
                 </div>
               </div>

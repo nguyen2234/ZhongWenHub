@@ -16,6 +16,8 @@ import type {
 } from '../types/content-manager.types';
 import '../components/content-manager.css';
 
+import { Pagination } from '../../shared/components';
+
 export const ContentModerationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ModerationStatus | 'ALL'>('PENDING_REVIEW');
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +26,10 @@ export const ContentModerationPage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
   const [isSelfPublishOpen, setIsSelfPublishOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Load items
   const items = useMemo(() => {
@@ -34,6 +40,12 @@ export const ContentModerationPage: React.FC = () => {
       search: searchQuery,
     });
   }, [activeTab, selectedType, selectedHsk, searchQuery, refreshKey]);
+
+  const totalPages = Math.ceil(items.length / pageSize) || 1;
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [items, page, pageSize]);
 
   // Counts for tabs
   const tabCounts = useMemo(() => {
@@ -211,14 +223,14 @@ export const ContentModerationPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {items.length === 0 ? (
+            {paginatedItems.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: 'var(--muted)' }}>
                   Không tìm thấy học liệu nào phù hợp với bộ lọc.
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              paginatedItems.map((item) => (
                 <tr key={item.id}>
                   <td>
                     <span
@@ -291,12 +303,12 @@ export const ContentModerationPage: React.FC = () => {
 
       {/* 5. Mobile Cards View (R9 - zero horizontal overflow) */}
       <div className="cm-mobile-list">
-        {items.length === 0 ? (
+        {paginatedItems.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '30px', color: 'var(--muted)', backgroundColor: 'var(--surface)', borderRadius: '12px' }}>
             Không tìm thấy học liệu nào.
           </div>
         ) : (
-          items.map((item) => (
+          paginatedItems.map((item) => (
             <div key={item.id} className="cm-mobile-card">
               <div className="cm-mobile-card-top">
                 <div>
@@ -340,6 +352,25 @@ export const ContentModerationPage: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {items.length > pageSize && (
+        <div style={{ marginTop: 'var(--space-4)' }}>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={items.length}
+            pageSize={pageSize}
+            pageSizeOptions={[10, 20, 50]}
+            onPageChange={setPage}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPage(1);
+            }}
+            itemLabel="học liệu"
+          />
+        </div>
+      )}
 
       {/* Drawers & Modals */}
       <ContentPreviewDrawer
