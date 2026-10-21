@@ -42,15 +42,34 @@
    * JWT Bearer Token trong header `Authorization: Bearer <token>` được lưu trữ thuần túy trong Memory (JS Runtime).
    * Vai trò (Roles): `Student`, `Teacher`, `Admin`, `Support`.
    * Endpoint học viên tuyệt đối không trả về nội dung ở trạng thái `DRAFT` hoặc `ARCHIVED`.
-5. **Cơ chế Cookie Scoping & Chống tấn công CSRF (Anti-CSRF Strategy):**
-   * **Refresh Token Cookie Scope:** Cookie refresh token được ASP.NET Core thiết lập với cờ:
-     - `HttpOnly: true` (Ngăn chặn hoàn toàn JavaScript/XSS đọc cookie).
-     - `Secure: true` (Chỉ truyền qua giao thức mã hóa HTTPS).
+5. **Cơ chế Cookie Scoping, CORS & Chống tấn công CSRF (Anti-CSRF & CORS Strategy):**
+   * **Xác thực Antiforgery Token bắt buộc tại ASP.NET Core:**
+     - Backend **bắt buộc phải kích hoạt kiểm tra Antiforgery** (`[ValidateAntiForgeryToken]` hoặc middleware `IAntiforgery.ValidateRequestAsync`) tại mọi endpoint sử dụng cookie authentication để thay đổi trạng thái, đặc biệt là:
+       - `POST /api/v1/auth/refresh-token`
+       - `POST /api/v1/auth/logout`
+     - Token chống giả mạo được gửi qua header `X-XSRF-TOKEN` hoặc `X-CSRF-TOKEN`.
+   * **Chính sách CORS nghiêm ngặt (Strict CORS Policy):**
+     - Khi Frontend và Backend chạy ở hai domain khác nhau (cross-origin):
+       - **Tuyệt đối cấm sử dụng wildcard `AllowAnyOrigin()` hoặc `*`** khi kích hoạt `AllowCredentials()`.
+       - Backend phải chỉ định danh sách domain nguồn được phép rõ ràng:
+         ```csharp
+         builder.Services.AddCors(options => {
+             options.AddPolicy("TrustedFrontendPolicy", policy => {
+                 policy.WithOrigins("https://zhongwenhub.vn", "http://localhost:5173")
+                       .AllowCredentials()
+                       .WithHeaders("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-CSRF-TOKEN")
+                       .WithMethods("GET", "POST", "PUT", "DELETE");
+             });
+         });
+         ```
+   * **Cấu hình Cookie Refresh Token an toàn:**
+     - `HttpOnly: true` (Ngăn chặn 100% việc đọc qua JavaScript/XSS).
+     - `Secure: CookieSecurePolicy.Always` (Chỉ truyền qua giao thức HTTPS).
      - `SameSite: SameSiteMode.Strict` (Trình duyệt từ chối gửi cookie trong mọi cross-site request).
      - `Path: /api/v1/auth` (Thu hẹp phạm vi gửi cookie chỉ cho nhóm endpoint xác thực).
-   * **Phòng chống CSRF cho Refresh & Logout:**
-     - Endpoint `POST /api/v1/auth/refresh-token` và `POST /api/v1/auth/logout` sử dụng header chống giả mạo `X-XSRF-TOKEN` hoặc `X-CSRF-TOKEN` sinh từ ASP.NET Core `IAntiforgery`.
-     - Frontend `HttpClient` mặc định sử dụng `credentials: 'same-origin'` để triệt tiêu việc rò rỉ cookie sang các domain thứ ba.
+   * **Phía Frontend (HttpClient Origin Boundary):**
+     - Frontend `HttpClient` chỉ đính kèm `Authorization: Bearer <token>` và `X-CSRF-TOKEN` khi request gửi đến origin thuộc danh sách tin cậy (`trustedOrigins` hoặc `same-origin`).
+     - Khi gọi đến URL tuyệt đối thuộc external domain khác, `HttpClient` tự động loại bỏ header nhạy cảm và gán `credentials: 'omit'`.
 
 ---
 

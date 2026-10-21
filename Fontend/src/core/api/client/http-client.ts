@@ -27,7 +27,8 @@ function extractCsrfToken(): string | null {
 /**
  * Standard HTTP Client for ASP.NET Core REST API integration.
  * - Does NOT wrap successful responses into artificial envelopes (returns data T directly).
- * - Transparently handles Bearer token authentication from in-memory AuthTokenService.
+ * - Restricts Bearer token and Anti-CSRF header injection STRICTLY to trusted API origins.
+ * - Prohibits sending authentication credentials or tokens to external 3rd-party domains.
  * - Enforces listener cleanup for external AbortSignals.
  * - Timeout covers the entire network roundtrip, including response body consumption.
  * - Scopes cookie credentials to 'same-origin' by default with CSRF header support.
@@ -39,6 +40,55 @@ export class HttpClient {
 
   constructor(config: Partial<ApiConfig> = {}) {
     this.config = { ...defaultApiConfig, ...config };
+  }
+
+  /**
+   * Determines whether target URL belongs to a trusted origin.
+   * Prevents leaking Authorization Bearer and Anti-CSRF headers to external 3rd-party services.
+   * Wildcards are strictly prohibited.
+   */
+  public isTrustedOrigin(targetUrl: string): boolean {
+    const isAbsolute = targetUrl.startsWith('http://') || targetUrl.startsWith('https://');
+    if (!isAbsolute) {
+      // Relative endpoints always resolve to same-origin / configured base URL
+      return true;
+    }
+
+    try {
+      const parsed = new URL(targetUrl);
+      const targetOrigin = parsed.origin.toLowerCase();
+
+      // Check current window origin
+      if (typeof window !== 'undefined' && window.location?.origin) {
+        if (targetOrigin === window.location.origin.toLowerCase()) {
+          return true;
+        }
+      }
+
+      // Check baseUrl origin if baseUrl is absolute
+      if (this.config.baseUrl.startsWith('http://') || this.config.baseUrl.startsWith('https://')) {
+        const baseOrigin = new URL(this.config.baseUrl).origin.toLowerCase();
+        if (targetOrigin === baseOrigin) {
+          return true;
+        }
+      }
+
+      // Check explicit trusted origins allowlist (strictly reject wildcards)
+      const allowlist = this.config.trustedOrigins || [];
+      return allowlist.some((trusted) => {
+        if (trusted === '*' || !trusted) return false;
+        try {
+          const trustedOrigin = trusted.startsWith('http')
+            ? new URL(trusted).origin.toLowerCase()
+            : trusted.toLowerCase();
+          return targetOrigin === trustedOrigin;
+        } catch {
+          return targetOrigin === trusted.toLowerCase();
+        }
+      });
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -63,7 +113,7 @@ export class HttpClient {
 
   /**
    * Executes an HTTP request with timeout spanning both headers and body consumption,
-   * proper event listener cleanup, and Problem Details decoding.
+   * proper event listener cleanup, trusted origin scoping, and Problem Details decoding.
    */
   private async execute<T>(
     endpoint: string,
@@ -73,6 +123,7 @@ export class HttpClient {
   ): Promise<T> {
     const url = this.buildUrl(endpoint, options.params);
     const timeoutMs = options.timeoutMs ?? this.config.timeoutMs;
+    const isTrusted = this.isTrustedOrigin(url);
 
     // Check if caller's signal was already aborted before starting
     if (options.signal?.aborted) {
@@ -101,22 +152,24 @@ export class HttpClient {
       headers['Content-Type'] = 'application/json';
     }
 
-    // Anti-CSRF protection: Inject token for state-changing requests if present
-    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    // Security: Anti-CSRF injection ONLY for trusted origins on state-changing requests
+    if (isTrusted && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
       const csrfToken = extractCsrfToken();
       if (csrfToken && !headers['X-CSRF-TOKEN'] && !headers['X-XSRF-TOKEN']) {
         headers['X-CSRF-TOKEN'] = csrfToken;
       }
     }
 
-    // Inject Bearer token from in-memory service if available
-    const token = authTokenService.getAccessToken();
-    if (token && !headers['Authorization']) {
-      headers['Authorization'] = `Bearer ${token}`;
+    // Security: Inject Bearer token from in-memory service ONLY for trusted origins
+    if (isTrusted) {
+      const token = authTokenService.getAccessToken();
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
     }
 
-    // Default to 'same-origin' to restrict cookie leakage unless explicitly overridden
-    const credentials = options.credentials ?? this.config.credentials ?? 'same-origin';
+    // Security: Default to 'same-origin' if trusted, force 'omit' for untrusted external origins to prevent credential leakage
+    const credentials = options.credentials ?? (isTrusted ? (this.config.credentials ?? 'same-origin') : 'omit');
 
     try {
       const response = await fetch(url, {
@@ -160,7 +213,7 @@ export class HttpClient {
         // Safe 401 handling without recursive loop:
         // Invalidate in-memory tokens only. We DO NOT initiate an automatic background retry/refresh loop
         // here to avoid cascading 401 storm attacks or cyclic failures.
-        if (response.status === 401) {
+        if (response.status === 401 && isTrusted) {
           authTokenService.clearTokens();
         }
         throw ApiClientError.fromResponse(response.status, responseData);

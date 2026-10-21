@@ -374,4 +374,87 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
       }
     });
   });
+
+  // 8. Trusted Origin Boundary & Token Leakage Prevention
+  describe('8. Trusted Origin Scoping & Token Leakage Prevention', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    test('isTrustedOrigin correctly identifies relative and allowlisted origins while rejecting wildcards', () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+        trustedOrigins: ['https://api.zhongwenhub.vn', 'http://localhost:5000', '*'],
+      });
+
+      // Relative paths are always trusted
+      expect(client.isTrustedOrigin('/api/v1/grammar')).toBe(true);
+      expect(client.isTrustedOrigin('grammar')).toBe(true);
+
+      // Allowlisted origins
+      expect(client.isTrustedOrigin('https://api.zhongwenhub.vn/api/v1/grammar')).toBe(true);
+      expect(client.isTrustedOrigin('http://localhost:5000/api/v1/grammar')).toBe(true);
+
+      // Untrusted external origins
+      expect(client.isTrustedOrigin('https://evil-hacker.com/steal-token')).toBe(false);
+      expect(client.isTrustedOrigin('https://api.zhongwenhub.vn.attacker.com/evil')).toBe(false);
+      expect(client.isTrustedOrigin('http://unknown-domain.org')).toBe(false);
+    });
+
+    test('attaches Authorization Bearer token to trusted origin requests only', async () => {
+      const client = new HttpClient({
+        baseUrl: 'https://api.zhongwenhub.vn/api/v1',
+        trustedOrigins: ['https://api.zhongwenhub.vn'],
+      });
+
+      authTokenService.setSession({ accessToken: 'secret-jwt-token-xyz' });
+
+      let capturedHeaders: any = null;
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        capturedHeaders = init?.headers;
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      await client.get('https://api.zhongwenhub.vn/api/v1/data');
+      expect(capturedHeaders).toBeDefined();
+      expect(capturedHeaders['Authorization']).toBe('Bearer secret-jwt-token-xyz');
+    });
+
+    test('STRICTLY DOES NOT attach Authorization Bearer or CSRF headers to external untrusted domains', async () => {
+      const client = new HttpClient({
+        baseUrl: '/api/v1',
+        trustedOrigins: ['https://api.zhongwenhub.vn'],
+      });
+
+      authTokenService.setSession({ accessToken: 'confidential-token-do-not-leak' });
+
+      let capturedHeaders: any = null;
+      let capturedCredentials: any = null;
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        capturedHeaders = init?.headers;
+        capturedCredentials = init?.credentials;
+        return new Response(JSON.stringify({ external: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      // Call external third-party domain
+      await client.post('https://untrusted-external-api.com/webhooks', { data: 123 });
+
+      expect(capturedHeaders).toBeDefined();
+      // MUST NOT contain Authorization
+      expect(capturedHeaders['Authorization']).toBeUndefined();
+      // MUST NOT contain CSRF token
+      expect(capturedHeaders['X-CSRF-TOKEN']).toBeUndefined();
+      expect(capturedHeaders['X-XSRF-TOKEN']).toBeUndefined();
+      // Credentials must be set to 'omit' to prevent cookie leakage
+      expect(capturedCredentials).toBe('omit');
+    });
+  });
 });
