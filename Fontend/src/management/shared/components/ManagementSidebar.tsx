@@ -61,7 +61,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
     <aside
       className={`management-sidebar ${isCollapsed ? 'collapsed' : 'expanded'} ${isMobileOpen ? 'mobile-open' : ''}`}
       style={{
-        width: isCollapsed ? '72px' : '264px',
+        width: isCollapsed ? 'var(--management-sidebar-collapsed-width)' : 'var(--management-sidebar-width)',
         backgroundColor: 'var(--surface)',
         borderRight: '1px solid var(--border-strong)',
         display: 'flex',
@@ -69,10 +69,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         height: '100vh',
         position: 'sticky',
         top: 0,
-        zIndex: 50,
+        zIndex: 'var(--z-sidebar)',
         transition: 'width 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         overflow: 'visible',
-        boxShadow: isCollapsed ? 'none' : '1px 0 3px rgba(15, 23, 42, 0.02)',
+        boxShadow: 'none',
       }}
     >
       {/* =====================================================================
@@ -333,29 +333,14 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                           textDecoration: 'none',
                           fontSize: '13px',
                           fontWeight: isActive ? 600 : 500,
-                          backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
-                          color: isActive ? 'var(--primary)' : 'var(--foreground)',
+                          backgroundColor: isActive ? 'var(--secondary)' : 'transparent',
+                          color: 'var(--foreground)',
                           position: 'relative',
                           transition: 'background-color 0.12s ease, color 0.12s ease',
                           minHeight: '38px',
                         }}
                         className={`nav-item ${isActive ? 'active' : ''}`}
                       >
-                        {/* 3px Left Brand Active Bar */}
-                        {isActive && !isCollapsed && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: 0,
-                              top: '6px',
-                              bottom: '6px',
-                              width: '3.5px',
-                              backgroundColor: 'var(--primary)',
-                              borderRadius: '0 3px 3px 0',
-                            }}
-                          />
-                        )}
-
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                           <span
                             style={{

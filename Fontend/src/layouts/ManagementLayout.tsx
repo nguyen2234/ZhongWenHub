@@ -45,6 +45,20 @@ export const ManagementLayout: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (!isMobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMobileOpen]);
+
   const navGroups = useMemo(() => {
     switch (currentRole) {
       case 'TEACHER':
@@ -76,7 +90,6 @@ export const ManagementLayout: React.FC = () => {
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(3px)',
             zIndex: 49,
             transition: 'opacity 0.2s ease',
           }}
@@ -115,7 +128,6 @@ export const ManagementLayout: React.FC = () => {
         <main
           style={{
             flex: 1,
-            overflowY: 'auto',
             padding: 'clamp(16px, 2.5vw, 28px)',
             width: '100%',
             maxWidth: '1680px',

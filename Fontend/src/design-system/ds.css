@@ -83,15 +83,19 @@ textarea {
 .student-sidebar-scroll {
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE / Edge Legacy */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
 }
 
 .student-sidebar-scroll::-webkit-scrollbar {
-  display: none; /* Chrome, Edge, Safari, Opera */
-  width: 0;
-  height: 0;
+  width: 4px;
 }
+
+.student-sidebar-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-full); }
+.student-sidebar-scroll:hover { scrollbar-color: var(--border-strong) transparent; }
+.student-sidebar-scroll:hover::-webkit-scrollbar-thumb { background: var(--border-strong); }
+
+html { scroll-padding-top: calc(var(--app-header-height) + var(--space-4)); }
 
 /* ==========================================================================
    BUTTONS (I1, Button.md)

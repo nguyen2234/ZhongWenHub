@@ -77,8 +77,8 @@
 }
 
 .rpm-role-item.is-active {
-  background-color: var(--primary-light);
-  border-left: 3px solid var(--primary);
+  background-color: var(--secondary);
+  font-weight: 600;
 }
 
 .rpm-role-item-top {
@@ -540,8 +540,8 @@
   }
 
   .rpm-role-item.is-active {
-    border-left: 1px solid var(--primary);
-    border-color: var(--primary);
+    border-color: var(--border-strong, #cbd5e1);
+    background-color: var(--secondary);
   }
 
   .rpm-modules-grid {

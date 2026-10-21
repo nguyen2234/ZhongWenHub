@@ -93,17 +93,17 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
   return (
     <header
       style={{
-        height: '64px',
+        height: 'var(--app-header-height)',
         backgroundColor: 'var(--surface)',
-        borderBottom: '1px solid var(--border-strong)',
+        borderBottom: '1px solid var(--border)',
         padding: '0 var(--space-6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'sticky',
         top: 0,
-        zIndex: 40,
-        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.03)',
+        zIndex: 'var(--z-header)',
+        boxShadow: 'none',
       }}
     >
       {/* =====================================================================
@@ -376,8 +376,8 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                   style={{
                     padding: '8px 10px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--primary-light)',
-                    borderLeft: '3px solid var(--primary)',
+                    backgroundColor: 'var(--secondary)',
+                    border: '1px solid var(--border)',
                   }}
                 >
                   <div style={{ fontWeight: 600, color: 'var(--primary)' }}>

@@ -35,17 +35,16 @@
 /* Card Base Standards */
 .dashboard-card {
   background-color: var(--surface, #ffffff);
-  border: 1px solid var(--border-strong, #e2e8f0);
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
   position: relative;
   overflow: hidden;
 }
 
 .dashboard-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  border-color: var(--border-strong);
 }
 
 .dashboard-card-interactive {
@@ -53,16 +52,15 @@
 }
 
 .dashboard-card-interactive:hover {
-  transform: translateY(-2px);
-  border-color: #fed7da;
-  box-shadow: 0 6px 16px rgba(230, 0, 18, 0.08);
+  border-color: var(--border-strong);
+  background-color: var(--surface-hover);
 }
 
 /* Section 1: Hero Banner (HanbeeGo Layout + Viettel Red) */
 .hero-banner-container {
-  background: linear-gradient(135deg, #FFF0F1 0%, #FFFFFF 55%, #FFF5F5 100%);
-  border: 1.5px solid #fed7da;
-  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   padding: 28px 32px;
   position: relative;
   overflow: hidden;
@@ -137,14 +135,13 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.25);
+  box-shadow: none;
   white-space: nowrap;
 }
 
 .btn-viettel-primary:hover {
   background-color: var(--primary-hover, #B80010);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(230, 0, 18, 0.35);
+  box-shadow: none;
 }
 
 .btn-viettel-primary:active {
@@ -153,14 +150,14 @@
 
 /* Section 2: Tiếp tục học Card */
 .continue-card-wrapper {
-  background: linear-gradient(135deg, #ffffff 0%, #fbfcfe 100%);
-  border: 1.5px solid #fed7da;
-  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   padding: 22px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(230, 0, 18, 0.04);
+  box-shadow: none;
 }
 
 /* Section 3: Course Cards Grid */
@@ -183,9 +180,8 @@
 }
 
 .course-card:hover {
-  transform: translateY(-2px);
-  border-color: #fed7da;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-strong);
+  background-color: var(--surface-hover);
 }
 
 /* Section 4: Video Learning Cards Grid */
@@ -207,9 +203,7 @@
 }
 
 .video-thumb-card:hover {
-  transform: translateY(-2px);
-  border-color: #fed7da;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: var(--border-strong);
 }
 
 /* Section 5: Recommendations Grid */
@@ -232,9 +226,8 @@
 }
 
 .rec-card:hover {
-  transform: translateY(-2px);
-  border-color: #fed7da;
-  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.06);
+  border-color: var(--border-strong);
+  background-color: var(--surface-hover);
 }
 
 /* Section 6: Daily Challenge Checklist */
