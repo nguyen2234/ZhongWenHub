@@ -39,9 +39,18 @@
    }
    ```
 4. **Bảo mật & Phân quyền (Authentication & Authorization):**
-   * JWT Bearer Token trong header `Authorization: Bearer <token>`.
+   * JWT Bearer Token trong header `Authorization: Bearer <token>` được lưu trữ thuần túy trong Memory (JS Runtime).
    * Vai trò (Roles): `Student`, `Teacher`, `Admin`, `Support`.
    * Endpoint học viên tuyệt đối không trả về nội dung ở trạng thái `DRAFT` hoặc `ARCHIVED`.
+5. **Cơ chế Cookie Scoping & Chống tấn công CSRF (Anti-CSRF Strategy):**
+   * **Refresh Token Cookie Scope:** Cookie refresh token được ASP.NET Core thiết lập với cờ:
+     - `HttpOnly: true` (Ngăn chặn hoàn toàn JavaScript/XSS đọc cookie).
+     - `Secure: true` (Chỉ truyền qua giao thức mã hóa HTTPS).
+     - `SameSite: SameSiteMode.Strict` (Trình duyệt từ chối gửi cookie trong mọi cross-site request).
+     - `Path: /api/v1/auth` (Thu hẹp phạm vi gửi cookie chỉ cho nhóm endpoint xác thực).
+   * **Phòng chống CSRF cho Refresh & Logout:**
+     - Endpoint `POST /api/v1/auth/refresh-token` và `POST /api/v1/auth/logout` sử dụng header chống giả mạo `X-XSRF-TOKEN` hoặc `X-CSRF-TOKEN` sinh từ ASP.NET Core `IAntiforgery`.
+     - Frontend `HttpClient` mặc định sử dụng `credentials: 'same-origin'` để triệt tiêu việc rò rỉ cookie sang các domain thứ ba.
 
 ---
 

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import {
   isProblemDetails,
   ProblemDetails,
@@ -101,7 +101,7 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
     test('invalidates expired tokens automatically', () => {
       authTokenService.setSession({
         accessToken: 'expired-token',
-        expiresAt: Date.now() - 1000, // expired 1s ago
+        expiresAt: Date.now() - 1000,
       });
 
       expect(authTokenService.isAuthenticated()).toBe(false);
@@ -225,7 +225,6 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
     });
 
     test('guards against calling synchronous methods when HTTP mode is active', () => {
-      // Temporarily simulate HTTP mode
       const originalMode = defaultApiConfig.useMock;
       try {
         defaultApiConfig.useMock = false;
@@ -242,8 +241,14 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
     });
   });
 
-  // 7. HttpClient pre-abort and timeout guard
-  describe('7. HttpClient Cancellation & Pre-abort Handling', () => {
+  // 7. HttpClient Robustness: Cancellation, Listener Cleanup, Timeout, 204, 401
+  describe('7. HttpClient Lifecycle & Network Robustness', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
     test('rejects immediately when passed an already-aborted signal', async () => {
       const client = new HttpClient();
       const controller = new AbortController();
@@ -251,10 +256,121 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
 
       try {
         await client.get('/test', { signal: controller.signal });
-        expect(true).toBe(false); // Should not reach
+        expect(true).toBe(false);
       } catch (err: any) {
         expect(err.status).toBe(499);
         expect(err.message).toContain('bị hủy');
+      }
+    });
+
+    test('cleans up AbortSignal event listener after request completes', async () => {
+      const client = new HttpClient();
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      let listenerCount = 0;
+      const originalAdd = signal.addEventListener.bind(signal);
+      const originalRemove = signal.removeEventListener.bind(signal);
+
+      signal.addEventListener = (type: string, listener: any) => {
+        if (type === 'abort') listenerCount++;
+        return originalAdd(type, listener);
+      };
+      signal.removeEventListener = (type: string, listener: any) => {
+        if (type === 'abort') listenerCount--;
+        return originalRemove(type, listener);
+      };
+
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      };
+
+      await client.get('/test', { signal });
+
+      // Must be 0 because removeEventListener was executed in finally block
+      expect(listenerCount).toBe(0);
+    });
+
+    test('enforces timeout during body consumption if reading hangs', async () => {
+      const client = new HttpClient();
+
+      globalThis.fetch = async (_url: string, init?: RequestInit) => {
+        const signal = init?.signal;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'Content-Type': 'application/json' }),
+          json: async () => {
+            return new Promise((resolve, reject) => {
+              const timer = setTimeout(() => resolve({ done: true }), 200);
+              signal?.addEventListener('abort', () => {
+                clearTimeout(timer);
+                reject(new DOMException('The operation was aborted.', 'AbortError'));
+              });
+            });
+          },
+        } as unknown as Response;
+      };
+
+      try {
+        await client.get('/slow-body', { timeoutMs: 40 });
+        expect(true).toBe(false);
+      } catch (err: any) {
+        expect(err.status).toBe(408);
+        expect(err.message).toContain('Timeout');
+      }
+    });
+
+    test('handles HTTP 204 No Content returning undefined', async () => {
+      const client = new HttpClient();
+
+      globalThis.fetch = async () => {
+        return new Response(null, { status: 204 });
+      };
+
+      const result = await client.delete('/resource/123');
+      expect(result).toBeUndefined();
+    });
+
+    test('invalidates in-memory session on HTTP 401 without recursive loop', async () => {
+      const client = new HttpClient();
+      authTokenService.setSession({ accessToken: 'valid-before-401' });
+      expect(authTokenService.isAuthenticated()).toBe(true);
+
+      globalThis.fetch = async () => {
+        return new Response(JSON.stringify({ title: 'Unauthorized', status: 401 }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/problem+json' },
+        });
+      };
+
+      try {
+        await client.get('/protected');
+        expect(true).toBe(false);
+      } catch (err: any) {
+        expect(err.status).toBe(401);
+        expect(authTokenService.isAuthenticated()).toBe(false);
+        expect(authTokenService.getAccessToken()).toBeNull();
+      }
+    });
+
+    test('translates network fetch failure into ApiClientError with isNetworkError flag', async () => {
+      const client = new HttpClient();
+
+      globalThis.fetch = async () => {
+        throw new TypeError('Failed to fetch');
+      };
+
+      try {
+        await client.get('/network-down');
+        expect(true).toBe(false);
+      } catch (err: any) {
+        expect(err.isNetworkError).toBe(true);
+        expect(err.status).toBe(0);
+        expect(err.message).toContain('Không thể kết nối đến máy chủ');
       }
     });
   });

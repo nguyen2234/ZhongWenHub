@@ -7,6 +7,7 @@ export interface ApiConfig {
   baseUrl: string;
   timeoutMs: number;
   useMock: boolean;
+  credentials?: RequestCredentials;
 }
 
 export const defaultApiConfig: ApiConfig = {
@@ -15,4 +16,6 @@ export const defaultApiConfig: ApiConfig = {
   timeoutMs: 15000,
   // Flag to toggle between Mock and HTTP adapters in the service container
   useMock: import.meta.env?.VITE_USE_MOCK_API !== 'false',
+  // Standard credential mode (same-origin by default to restrict cookie leakage)
+  credentials: 'same-origin',
 };
