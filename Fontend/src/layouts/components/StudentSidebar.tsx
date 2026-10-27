@@ -78,6 +78,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
       style={{
         width: isCollapsed ? '72px' : '256px',
         height: '100%',
+        minHeight: 0,
         backgroundColor: '#ffffff',
         borderRight: '1.5px solid #f1f5f9',
         display: 'flex',
@@ -142,6 +143,9 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         className="student-sidebar-scroll"
         style={{
           flex: 1,
+          minHeight: 0,
+          overscrollBehaviorY: 'contain',
+          scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
           padding: isCollapsed ? '12px 6px' : '12px 12px',
