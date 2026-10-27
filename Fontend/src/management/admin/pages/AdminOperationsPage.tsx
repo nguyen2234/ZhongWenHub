@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, BarChart3, LifeBuoy, Settings, Download, Search, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Bot, BarChart3, Settings, Download, Search, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '../../shared/components';
 import './admin-operations.css';
 
