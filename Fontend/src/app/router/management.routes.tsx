@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';
 import { AdminModulePlannedPage } from '../../management/admin/pages/AdminModulePlannedPage';
+import { AdminOperationsPage } from '../../management/admin/pages/AdminOperationsPage';
 import {
   TeacherDashboardPage,
   TeacherClassesPage,
@@ -95,7 +96,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'ai-management',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="ai-management" />
+                <AdminOperationsPage kind="ai-management" />
               </ManagementRouteGuard>
             ),
           },
@@ -105,7 +106,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'analytics',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="analytics" />
+                <AdminOperationsPage kind="analytics" />
               </ManagementRouteGuard>
             ),
           },
@@ -113,7 +114,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'support-requests',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="support-requests" />
+                <AdminOperationsPage kind="support-requests" />
               </ManagementRouteGuard>
             ),
           },
@@ -121,7 +122,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'settings',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="settings" />
+                <AdminOperationsPage kind="settings" />
               </ManagementRouteGuard>
             ),
           },
