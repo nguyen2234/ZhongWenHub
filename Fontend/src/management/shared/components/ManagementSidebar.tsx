@@ -68,7 +68,9 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         borderRight: '1px solid var(--border-strong)',
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        flexShrink: 0,
         position: 'sticky',
         top: 0,
         zIndex: 'var(--z-sidebar)',
@@ -260,6 +262,9 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         aria-label="Admin Navigation"
         style={{
           flex: 1,
+          minHeight: 0,
+          overscrollBehaviorY: 'contain',
+          scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
           padding: isCollapsed ? 'var(--space-2) 0' : 'var(--space-2) var(--space-3)',
