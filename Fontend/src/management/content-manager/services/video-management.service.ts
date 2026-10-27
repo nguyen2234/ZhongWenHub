@@ -226,14 +226,14 @@ const INITIAL_VIDEOS: VideoContent[] = [
 ];
 
 class VideoManagementService {
-  private videos: VideoContent[] = [...INITIAL_VIDEOS];
+  private videos: VideoContent[] = structuredClone(INITIAL_VIDEOS);
 
   resetToInitial(): void {
-    this.videos = [...INITIAL_VIDEOS];
+    this.videos = structuredClone(INITIAL_VIDEOS);
   }
 
   getVideos(filters?: VideoFilters): VideoContent[] {
-    let result = [...this.videos];
+    let result = structuredClone(this.videos);
 
     if (filters?.hskLevel && filters.hskLevel !== 'ALL') {
       result = result.filter((v) => v.hskLevel === filters.hskLevel);
@@ -265,7 +265,8 @@ class VideoManagementService {
   }
 
   getVideoById(id: string): VideoContent | undefined {
-    return this.videos.find((v) => v.id === id);
+    const video = this.videos.find((v) => v.id === id);
+    return video ? structuredClone(video) : undefined;
   }
 
   createVideo(dto: CreateVideoDTO): VideoContent {
@@ -289,15 +290,15 @@ class VideoManagementService {
       lessonId: dto.lessonId,
       lessonTitle: dto.lessonTitle,
       status: dto.status || 'DRAFT',
-      tags: dto.tags.length > 0 ? dto.tags : ['Học liệu video'],
+      tags: dto.tags.length > 0 ? [...dto.tags] : ['Học liệu video'],
       viewCount: 0,
-      transcripts: dto.transcripts || [],
+      transcripts: dto.transcripts ? structuredClone(dto.transcripts) : [],
       createdAt: now,
       updatedAt: now,
     };
 
     this.videos.unshift(newVideo);
-    return newVideo;
+    return structuredClone(newVideo);
   }
 
   updateVideo(id: string, dto: UpdateVideoDTO): VideoContent {
@@ -317,12 +318,14 @@ class VideoManagementService {
     const updated: VideoContent = {
       ...existing,
       ...dto,
+      tags: dto.tags ? [...dto.tags] : [...existing.tags],
+      transcripts: dto.transcripts ? structuredClone(dto.transcripts) : structuredClone(existing.transcripts),
       durationFormatted,
       updatedAt: now,
     };
 
     this.videos[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   deleteVideo(id: string): boolean {
@@ -337,12 +340,13 @@ class VideoManagementService {
     if (index === -1) throw new Error(`Không tìm thấy video: ${id}`);
 
     const now = new Date().toISOString();
-    this.videos[index] = {
+    const updated: VideoContent = {
       ...this.videos[index],
-      transcripts,
+      transcripts: structuredClone(transcripts),
       updatedAt: now,
     };
-    return this.videos[index];
+    this.videos[index] = updated;
+    return structuredClone(updated);
   }
 }
 

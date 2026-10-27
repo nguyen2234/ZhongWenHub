@@ -178,14 +178,14 @@ const INITIAL_TICKETS: SupportTicket[] = [
 ];
 
 class SupportTicketService {
-  private tickets: SupportTicket[] = [...INITIAL_TICKETS];
+  private tickets: SupportTicket[] = structuredClone(INITIAL_TICKETS);
 
   resetToInitial(): void {
-    this.tickets = [...INITIAL_TICKETS];
+    this.tickets = structuredClone(INITIAL_TICKETS);
   }
 
   getTickets(filters?: TicketFilters): SupportTicket[] {
-    let result = [...this.tickets];
+    let result = structuredClone(this.tickets);
 
     if (filters?.status && filters.status !== 'ALL') {
       result = result.filter((t) => t.status === filters.status);
@@ -216,7 +216,8 @@ class SupportTicketService {
   }
 
   getTicketById(id: string): SupportTicket | undefined {
-    return this.tickets.find((t) => t.id === id);
+    const ticket = this.tickets.find((t) => t.id === id);
+    return ticket ? structuredClone(ticket) : undefined;
   }
 
   updateTicketStatus(
@@ -231,34 +232,37 @@ class SupportTicketService {
     const existing = this.tickets[index];
     const now = new Date().toISOString();
 
+    const newHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      actorName: actor,
+      actorRole: 'SUPPORT' as const,
+      action: `Chuyển trạng thái sang [${newStatus}]. ${note ? `Ghi chú: ${note}` : ''}`,
+      timestamp: now,
+    };
+
+    const newNotes = note
+      ? [
+          ...existing.notes.map((n) => ({ ...n })),
+          {
+            id: `note-${Date.now()}`,
+            author: actor,
+            content: note,
+            createdAt: now,
+            isInternal: true,
+          },
+        ]
+      : existing.notes.map((n) => ({ ...n }));
+
     const updated: SupportTicket = {
       ...existing,
       status: newStatus,
       updatedAt: now,
-      history: [
-        ...existing.history,
-        {
-          id: `hist-${Date.now()}`,
-          actorName: actor,
-          actorRole: 'SUPPORT',
-          action: `Chuyển trạng thái sang [${newStatus}]. ${note ? `Ghi chú: ${note}` : ''}`,
-          timestamp: now,
-        },
-      ],
+      notes: newNotes,
+      history: [...existing.history.map((h) => ({ ...h })), newHistoryEntry],
     };
 
-    if (note) {
-      updated.notes.push({
-        id: `note-${Date.now()}`,
-        author: actor,
-        content: note,
-        createdAt: now,
-        isInternal: true,
-      });
-    }
-
     this.tickets[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   assignTicket(
@@ -272,25 +276,25 @@ class SupportTicketService {
     const existing = this.tickets[index];
     const now = new Date().toISOString();
 
+    const newHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      actorName: actor,
+      actorRole: 'SUPPORT' as const,
+      action: `Phân công xử lý vé cho: ${assigneeName}.`,
+      timestamp: now,
+    };
+
     const updated: SupportTicket = {
       ...existing,
       assigneeName,
       status: existing.status === 'NEW' ? 'IN_PROGRESS' : existing.status,
       updatedAt: now,
-      history: [
-        ...existing.history,
-        {
-          id: `hist-${Date.now()}`,
-          actorName: actor,
-          actorRole: 'SUPPORT',
-          action: `Phân công xử lý vé cho: ${assigneeName}.`,
-          timestamp: now,
-        },
-      ],
+      notes: existing.notes.map((n) => ({ ...n })),
+      history: [...existing.history.map((h) => ({ ...h })), newHistoryEntry],
     };
 
     this.tickets[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   addNote(
@@ -305,35 +309,33 @@ class SupportTicketService {
     const existing = this.tickets[index];
     const now = new Date().toISOString();
 
+    const newNote = {
+      id: `note-${Date.now()}`,
+      author,
+      content,
+      createdAt: now,
+      isInternal,
+    };
+
+    const newHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      actorName: author,
+      actorRole: 'SUPPORT' as const,
+      action: isInternal
+        ? `Thêm ghi chú nội bộ CSKH.`
+        : `Gửi phản hồi trao đổi tới học viên.`,
+      timestamp: now,
+    };
+
     const updated: SupportTicket = {
       ...existing,
       updatedAt: now,
-      notes: [
-        ...existing.notes,
-        {
-          id: `note-${Date.now()}`,
-          author,
-          content,
-          createdAt: now,
-          isInternal,
-        },
-      ],
-      history: [
-        ...existing.history,
-        {
-          id: `hist-${Date.now()}`,
-          actorName: author,
-          actorRole: 'SUPPORT',
-          action: isInternal
-            ? `Thêm ghi chú nội bộ CSKH.`
-            : `Gửi phản hồi trao đổi tới học viên.`,
-          timestamp: now,
-        },
-      ],
+      notes: [...existing.notes.map((n) => ({ ...n })), newNote],
+      history: [...existing.history.map((h) => ({ ...h })), newHistoryEntry],
     };
 
     this.tickets[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   /**
@@ -376,35 +378,33 @@ class SupportTicketService {
     const existing = this.tickets[index];
     const now = new Date().toISOString();
 
+    const newNote = {
+      id: `note-${Date.now()}`,
+      author: staffName,
+      content: `Đã chuyển tiếp lỗi học liệu sang Content Manager với mã báo cáo [${createdIssue.id}]. Tiêu đề: "${createdIssue.title}".`,
+      createdAt: now,
+      isInternal: true,
+    };
+
+    const newHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      actorName: staffName,
+      actorRole: 'SUPPORT' as const,
+      action: `Chuyển tiếp báo cáo lỗi sang ban Quản lý học liệu (Mã: ${createdIssue.id}).`,
+      timestamp: now,
+    };
+
     const updated: SupportTicket = {
       ...existing,
       contentIssueId: createdIssue.id,
       status: 'IN_PROGRESS',
       updatedAt: now,
-      notes: [
-        ...existing.notes,
-        {
-          id: `note-${Date.now()}`,
-          author: staffName,
-          content: `Đã chuyển tiếp lỗi học liệu sang Content Manager với mã báo cáo [${createdIssue.id}]. Tiêu đề: "${createdIssue.title}".`,
-          createdAt: now,
-          isInternal: true,
-        },
-      ],
-      history: [
-        ...existing.history,
-        {
-          id: `hist-${Date.now()}`,
-          actorName: staffName,
-          actorRole: 'SUPPORT',
-          action: `Chuyển tiếp báo cáo lỗi sang ban Quản lý học liệu (Mã: ${createdIssue.id}).`,
-          timestamp: now,
-        },
-      ],
+      notes: [...existing.notes.map((n) => ({ ...n })), newNote],
+      history: [...existing.history.map((h) => ({ ...h })), newHistoryEntry],
     };
 
     this.tickets[index] = updated;
-    return { ticket: updated, contentIssueId: createdIssue.id };
+    return { ticket: structuredClone(updated), contentIssueId: createdIssue.id };
   }
 
   getMetrics(): SupportMetrics {

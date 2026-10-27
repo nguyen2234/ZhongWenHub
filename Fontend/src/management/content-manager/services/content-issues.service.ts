@@ -8,10 +8,10 @@ import { INITIAL_CONTENT_ISSUES } from '../data/mockContentManagerData';
 import { contentAuditService } from './content-audit.service';
 
 class ContentIssuesService {
-  private issues: ContentIssue[] = [...INITIAL_CONTENT_ISSUES];
+  private issues: ContentIssue[] = structuredClone(INITIAL_CONTENT_ISSUES);
 
   resetToInitial(): void {
-    this.issues = [...INITIAL_CONTENT_ISSUES];
+    this.issues = structuredClone(INITIAL_CONTENT_ISSUES);
   }
 
   getIssues(filter?: {
@@ -20,7 +20,7 @@ class ContentIssuesService {
     issueType?: ContentIssueType;
     search?: string;
   }): ContentIssue[] {
-    let result = [...this.issues];
+    let result = structuredClone(this.issues);
 
     if (filter?.status) {
       result = result.filter((issue) => issue.status === filter.status);
@@ -48,7 +48,8 @@ class ContentIssuesService {
   }
 
   getIssueById(id: string): ContentIssue | undefined {
-    return this.issues.find((issue) => issue.id === id);
+    const issue = this.issues.find((issue) => issue.id === id);
+    return issue ? structuredClone(issue) : undefined;
   }
 
   /**
@@ -72,7 +73,7 @@ class ContentIssuesService {
       status: existing.status === 'NEW' ? 'TRIAGED' : existing.status,
       updatedAt: now,
       history: [
-        ...existing.history,
+        ...existing.history.map((h) => ({ ...h })),
         {
           id: `act-${Date.now()}`,
           actorName: actor,
@@ -84,7 +85,7 @@ class ContentIssuesService {
     };
 
     this.issues[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   /**
@@ -107,7 +108,7 @@ class ContentIssuesService {
       status: newStatus,
       updatedAt: now,
       history: [
-        ...existing.history,
+        ...existing.history.map((h) => ({ ...h })),
         {
           id: `act-${Date.now()}`,
           actorName: actor,
@@ -119,7 +120,7 @@ class ContentIssuesService {
     };
 
     this.issues[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   /**
@@ -151,7 +152,7 @@ class ContentIssuesService {
       resolutionVersion: newVersion,
       isOverdue: false,
       history: [
-        ...existing.history,
+        ...existing.history.map((h) => ({ ...h })),
         {
           id: `act-${Date.now()}`,
           actorName: actor,
@@ -181,7 +182,7 @@ class ContentIssuesService {
       },
     });
 
-    return updated;
+    return structuredClone(updated);
   }
 
   /**
@@ -201,7 +202,7 @@ class ContentIssuesService {
       status: 'REOPENED',
       updatedAt: now,
       history: [
-        ...existing.history,
+        ...existing.history.map((h) => ({ ...h })),
         {
           id: `act-${Date.now()}`,
           actorName: actor,
@@ -213,7 +214,7 @@ class ContentIssuesService {
     };
 
     this.issues[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 
   /**
@@ -252,7 +253,7 @@ class ContentIssuesService {
       ],
     };
     this.issues.unshift(newIssue);
-    return newIssue;
+    return structuredClone(newIssue);
   }
 
   /**
@@ -292,7 +293,7 @@ class ContentIssuesService {
       updatedAt: now,
       closedAt: now,
       history: [
-        ...existing.history,
+        ...existing.history.map((h) => ({ ...h })),
         {
           id: `act-${Date.now()}`,
           actorName: actor,
@@ -304,7 +305,7 @@ class ContentIssuesService {
     };
 
     this.issues[index] = updated;
-    return updated;
+    return structuredClone(updated);
   }
 }
 
