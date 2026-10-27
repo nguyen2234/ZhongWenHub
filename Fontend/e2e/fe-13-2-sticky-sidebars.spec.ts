@@ -128,8 +128,9 @@ test.describe('FE-13.2: Sticky Sidebars & Independent Scrolling Acceptance Suite
     await collapseBtn.click();
 
     await expect(sidebar).toHaveClass(/collapsed/);
+    await expect(sidebar).toHaveCSS('width', '72px');
     const collapsedBox = await sidebar.boundingBox();
-    expect(collapsedBox!.width).toBe(72);
+    expect(collapsedBox!.width).toBeCloseTo(72, 0);
     expect(collapsedBox!.y).toBe(0);
 
     // Scroll page
@@ -138,12 +139,99 @@ test.describe('FE-13.2: Sticky Sidebars & Independent Scrolling Acceptance Suite
 
     const scrolledCollapsedBox = await sidebar.boundingBox();
     expect(scrolledCollapsedBox!.y).toBe(0);
-    expect(scrolledCollapsedBox!.width).toBe(72);
+    expect(scrolledCollapsedBox!.width).toBeCloseTo(72, 0);
 
     // Re-expand
     await collapseBtn.click();
     await expect(sidebar).toHaveClass(/expanded/);
+    await expect(sidebar).toHaveCSS('width', '264px');
     const expandedBox = await sidebar.boundingBox();
-    expect(expandedBox!.width).toBe(264);
+    expect(expandedBox!.width).toBeCloseTo(264, 0);
+  });
+
+  test('Test 6: Mobile Drawer closes via Backdrop Click and Escape Key', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/ZhongWenHub/management/admin/dashboard');
+    await page.waitForLoadState('networkidle');
+
+    const sidebar = page.locator('aside.management-sidebar');
+    const hamburger = page.locator('.header-mobile-toggle');
+
+    // 1. Open drawer & close via backdrop
+    await hamburger.click();
+    await expect(sidebar).toHaveClass(/mobile-open/);
+    const backdrop = page.locator('[data-testid="management-mobile-backdrop"]');
+    await expect(backdrop).toBeVisible();
+    await backdrop.click({ position: { x: 350, y: 100 } });
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+
+    // 2. Open drawer & close via Escape key
+    await hamburger.click();
+    await expect(sidebar).toHaveClass(/mobile-open/);
+    await page.keyboard.press('Escape');
+    await expect(sidebar).not.toHaveClass(/mobile-open/);
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+  });
+
+  test('Test 7: Sticky Sidebar verified across all 4 management portals', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const portalRoutes = [
+      '/ZhongWenHub/management/admin/dashboard',
+      '/ZhongWenHub/management/content-manager/dashboard',
+      '/ZhongWenHub/management/teacher/dashboard',
+      '/ZhongWenHub/management/support/dashboard',
+    ];
+
+    for (const route of portalRoutes) {
+      await page.goto(route);
+      await page.waitForLoadState('networkidle');
+
+      const sidebar = page.locator('aside.management-sidebar');
+      await expect(sidebar).toBeVisible();
+
+      const box = await sidebar.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y).toBeCloseTo(0, 0);
+      expect(box!.height).toBeCloseTo(900, 1);
+
+      // Scroll window
+      await page.evaluate(() => window.scrollTo({ top: 300, behavior: 'instant' }));
+      await page.waitForTimeout(100);
+
+      const scrolledBox = await sidebar.boundingBox();
+      expect(scrolledBox!.y).toBeCloseTo(0, 0);
+    }
+  });
+
+  test('Test 8: Responsive viewport matrix (320, 375, 390, 768, 1024, 1280, 1440, 1920) without horizontal page overflow', async ({ page }) => {
+    const viewports = [
+      { width: 320, height: 568 },
+      { width: 375, height: 667 },
+      { width: 390, height: 844 },
+      { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+      { width: 1280, height: 800 },
+      { width: 1440, height: 900 },
+      { width: 1920, height: 1080 },
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize(vp);
+      await page.goto('/ZhongWenHub/management/admin/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+      const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
+      expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 2);
+
+      if (vp.width >= 1024) {
+        const sidebar = page.locator('aside.management-sidebar');
+        await expect(sidebar).toBeVisible();
+      } else {
+        const hamburger = page.locator('.header-mobile-toggle');
+        await expect(hamburger).toBeVisible();
+      }
+    }
   });
 });

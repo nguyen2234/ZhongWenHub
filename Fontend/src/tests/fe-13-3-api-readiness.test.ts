@@ -1,11 +1,10 @@
+// @ts-ignore
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { supportTicketService } from '../management/support/services/support-ticket.service';
 import { videoManagementService } from '../management/content-manager/services/video-management.service';
 import { contentIssuesService } from '../management/content-manager/services/content-issues.service';
 import type { PagedResponse, ApiProblemDetails } from '../types/api/common.dto';
 import type { SupportTicketDto } from '../types/api/support.dto';
-import type { VideoContentDto } from '../types/api/video.dto';
-import type { ContentIssueDto } from '../types/api/content-issue.dto';
 
 describe('FE-13.3 API Readiness & Immutability Verification', () => {
   beforeEach(() => {
@@ -59,11 +58,11 @@ describe('FE-13.3 API Readiness & Immutability Verification', () => {
       const ticketId = 'TICK-2041';
       const result = supportTicketService.escalateToContentManager(ticketId, {
         targetContentId: 'g-hsk3-01',
-        targetContentType: 'GRAMMAR',
+        targetContentType: 'GRAMMAR_POINT',
         targetContentTitle: 'Ngữ pháp câu chữ Ba (把)',
         title: 'Sai dịch nghĩa cấu trúc câu chữ Ba',
         description: 'Phần giải thích cấu trúc bị động nhầm lẫn với chủ động.',
-        issueType: 'GRAMMAR_EXPLANATION',
+        issueType: 'WRONG_MEANING',
         priority: 'URGENT',
         reportedBy: 'Trần Minh Quân',
         supportStaffName: 'Trần Thuỳ Trang (Support)',
@@ -102,6 +101,7 @@ describe('FE-13.3 API Readiness & Immutability Verification', () => {
         hskLevel: 1,
         topic: 'Giao tiếp hàng ngày',
         duration: 120,
+        status: 'DRAFT',
         videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         tags: ['Giao tiếp', 'HSK 1'],
         transcripts: initialTranscripts,
