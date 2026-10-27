@@ -13,7 +13,7 @@ export const ClassAssignmentsPlaceholderTab: React.FC = () => {
         action={
           <Link
             to="/management/teacher/assignments"
-            className="tp-btn tp-btn--primary"
+            className="ds-btn ds-btn-primary"
             style={{ marginTop: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             <CheckSquare size={16} />

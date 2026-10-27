@@ -13,3 +13,6 @@ export * from './pages/ContentModerationPage';
 export * from './pages/ContentIssuesPage';
 export * from './pages/ContentAuditHistoryPage';
 export * from './pages/ContentQualityMetricsPage';
+export * from './pages/VideoManagementPage';
+export * from './types/video.types';
+export * from './services/video-management.service';
