@@ -594,7 +594,9 @@ export const StudentLayout: React.FC = () => {
             style={{
               position: 'sticky',
               top: 'var(--app-header-height)',
-              height: 'calc(100vh - var(--app-header-height))',
+              height: 'calc(100dvh - var(--app-header-height))',
+              maxHeight: 'calc(100dvh - var(--app-header-height))',
+              overflow: 'hidden',
             }}
           >
             <StudentSidebar
