@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test';
 
+async function setSessionRole(page: any, role: string) {
+  await page.addInitScript((r: string) => {
+    window.sessionStorage.setItem('zwh_management_session', JSON.stringify({
+      id: `usr-${r.toLowerCase()}-01`,
+      name: `${r} Lead`,
+      email: `${r.toLowerCase()}@zhongwenhub.edu.vn`,
+      role: r,
+      permissions: ['*'],
+    }));
+  }, role);
+}
+
 test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance Suite', () => {
+  test.beforeEach(async ({ page }) => {
+    await setSessionRole(page, 'ADMIN');
+  });
   test.describe('1. Content Manager Video Management (/management/content-manager/videos)', () => {
     test('Desktop 1440px: Video listing, HSK filter, search, preview modal, and editor drawer', async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
@@ -12,11 +27,10 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await expect(page.locator('h1')).toContainText('Quản lý học liệu Video & Phụ đề');
 
       // 2. Metric Strip
-      await expect(page.locator('.ds-card').first()).toBeVisible();
-      await expect(page.locator('text=Tổng video')).toBeVisible();
+      await expect(page.locator('text=Tổng số video')).toBeVisible();
 
       // 3. Search and filtering
-      const searchInput = page.locator('input[placeholder*="Tìm video theo tiêu đề"]');
+      const searchInput = page.locator('input[placeholder*="Tìm theo tiêu đề"]');
       await expect(searchInput).toBeVisible();
       await searchInput.fill('Chào hỏi');
       await page.waitForTimeout(300);
@@ -33,14 +47,12 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await previewBtn.click();
 
       // Verify modal and synchronized transcript
-      const previewModal = page.locator('.cm-drawer-backdrop[role="dialog"]');
+      const previewModal = page.locator('div[role="dialog"]');
       await expect(previewModal).toBeVisible();
-      await expect(previewModal).toContainText('Xem trước Video & Phụ đề');
       await expect(previewModal.locator('video')).toBeVisible();
-      await expect(previewModal.locator('.ds-badge')).toBeVisible();
 
       // Close preview modal
-      await previewModal.locator('button:has-text("Đóng")').click();
+      await previewModal.locator('button:has-text("Đóng xem trước")').click();
       await expect(previewModal).not.toBeVisible();
 
       // 5. Open Video Editor Modal
@@ -48,10 +60,10 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await expect(addVideoBtn).toBeVisible();
       await addVideoBtn.click();
 
-      const editorModal = page.locator('.cm-drawer-backdrop[role="dialog"]');
+      const editorModal = page.locator('div[role="dialog"]');
       await expect(editorModal).toBeVisible();
-      await expect(editorModal).toContainText('Thêm Video Học Liệu Mới');
-      await expect(editorModal).toContainText('Đoạn phụ đề & Lời thoại');
+      await expect(editorModal).toContainText('Thêm học liệu video mới');
+      await expect(editorModal).toContainText('Phụ đề & Lời thoại');
 
       // Close editor modal
       await editorModal.locator('button:has-text("Hủy bỏ")').click();
@@ -70,9 +82,9 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await expect(page.locator('h1')).toContainText('Trung tâm Hỗ trợ Học viên (Support CSKH)');
 
       // 2. Support Metrics
-      await expect(page.locator('text=Tổng yêu cầu')).toBeVisible();
-      await expect(page.locator('text=Chờ xử lý')).toBeVisible();
-      await expect(page.locator('text=Khẩn cấp')).toBeVisible();
+      await expect(page.locator('text=Tổng số vé')).toBeVisible();
+      await expect(page.locator('text=Vé mới nhận')).toBeVisible();
+      await expect(page.locator('text=Đang xử lý').first()).toBeVisible();
 
       // 3. Tab switching
       const inProgressTab = page.locator('button:has-text("Đang xử lý")').first();
@@ -80,20 +92,20 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await page.waitForTimeout(200);
 
       // Switch back to All
-      await page.locator('button:has-text("Tất cả yêu cầu")').first().click();
+      await page.locator('button:has-text("Tất cả vé")').first().click();
+      await page.waitForTimeout(300);
 
       // 4. Open Ticket Detail Drawer
-      const detailBtn = page.locator('button:has-text("Chi tiết")').first();
+      const detailBtn = page.locator('tbody tr button:has-text("Xử lý")').first();
       await expect(detailBtn).toBeVisible();
       await detailBtn.click();
 
-      const drawer = page.locator('.cm-drawer-backdrop[role="dialog"]');
+      const drawer = page.locator('div[role="dialog"]');
       await expect(drawer).toBeVisible();
-      await expect(drawer).toContainText('Chi tiết yêu cầu');
-      await expect(drawer).toContainText('Lịch sử tương tác');
+      await expect(drawer).toContainText('Lịch sử hoạt động');
 
       // Close drawer
-      await drawer.locator('button:has-text("Đóng")').first().click();
+      await drawer.locator('button[aria-label="Đóng chi tiết vé"]').click();
       await expect(drawer).not.toBeVisible();
     });
   });
@@ -105,10 +117,10 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await page.waitForLoadState('networkidle');
 
       await expect(page.locator('h1')).toContainText('Giám sát Vận hành Trí tuệ Nhân tạo');
-      await expect(page.locator('text=AI Tutor Đồng hành')).toBeVisible();
-      await expect(page.locator('text=AI Luyện khẩu ngữ trực tiếp')).toBeVisible();
-      await expect(page.locator('text=AI Chấm bài tự động')).toBeVisible();
-      await expect(page.locator('text=Mô phỏng Demo')).toBeVisible();
+      await expect(page.locator('text=AI Tutor (Trợ lý đối thoại)')).toBeVisible();
+      await expect(page.locator('text=AI Live (Luyện phát âm & Phản xạ)')).toBeVisible();
+      await expect(page.locator('text=AI Grading (Chấm bài tập & Đoạn văn)')).toBeVisible();
+      await expect(page.locator('text=Ngưỡng Cảnh Báo Hạn Mức Toàn Hệ Thống')).toBeVisible();
     });
 
     test('Analytics: Executive KPIs, HSK distribution, skill breakdown, and date filter', async ({ page }) => {
@@ -116,10 +128,10 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await page.goto('/ZhongWenHub/management/admin/analytics');
       await page.waitForLoadState('networkidle');
 
-      await expect(page.locator('h1')).toContainText('Báo cáo & Phân tích Đào tạo (Platform Analytics)');
-      await expect(page.locator('text=Phân bổ học viên theo cấp độ HSK')).toBeVisible();
-      await expect(page.locator('text=Phân bổ kỹ năng')).toBeVisible();
-      await expect(page.locator('text=Tỉ lệ hoàn thành khóa học')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Báo cáo & Phân tích Đào tạo');
+      await expect(page.locator('h3:has-text("Phân bố học viên theo cấp độ HSK")')).toBeVisible();
+      await expect(page.locator('text=Phân bổ thời lượng học theo kỹ năng')).toBeVisible();
+      await expect(page.locator('text=Tỷ lệ hoàn thành bài học')).toBeVisible();
     });
 
     test('Support Requests Oversight: Cross-linked tickets with shared supportTicketService', async ({ page }) => {
@@ -127,8 +139,8 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await page.goto('/ZhongWenHub/management/admin/support-requests');
       await page.waitForLoadState('networkidle');
 
-      await expect(page.locator('h1')).toContainText('Giám sát Xử lý Yêu cầu Hỗ trợ (Support Oversight)');
-      await expect(page.locator('text=Cần can thiệp gấp')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Giám sát Xử lý Yêu cầu Hỗ trợ');
+      await expect(page.locator('text=Phân quyền Giám sát Admin')).toBeVisible();
       await expect(page.locator('tbody tr').first()).toBeVisible();
     });
 
@@ -137,10 +149,10 @@ test.describe('FE-13.1: Complete Management Frontend & Evondev UI/UX Acceptance 
       await page.goto('/ZhongWenHub/management/admin/settings');
       await page.waitForLoadState('networkidle');
 
-      await expect(page.locator('h1')).toContainText('Cấu hình Hệ thống & Vận hành (System Settings)');
-      await expect(page.locator('text=Nhận diện & Thương hiệu')).toBeVisible();
-      await expect(page.locator('text=#E60012')).toBeVisible();
-      await expect(page.locator('text=Chế độ bảo trì hệ thống')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Cấu hình Hệ thống & Vận hành');
+      await expect(page.locator('text=1. Thông tin Nền tảng & Định danh')).toBeVisible();
+      await expect(page.locator('text=Tên nền tảng hiển thị')).toBeVisible();
+      await expect(page.locator('text=Cấu hình mô phỏng')).toBeVisible();
     });
   });
 

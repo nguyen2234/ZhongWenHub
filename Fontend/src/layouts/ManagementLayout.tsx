@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { ManagementSidebar, ManagementHeader } from '../management/shared/components';
 import {
   ADMIN_NAV_GROUPS,
@@ -11,25 +11,13 @@ import { managementAuthService } from '../management/shared/services/management-
 import type { UserRole } from '../types';
 
 export const ManagementLayout: React.FC = () => {
-  const location = useLocation();
   const [session, setSession] = useState(() => managementAuthService.getSession());
 
   useEffect(() => {
     return managementAuthService.subscribe((updated) => setSession(updated));
   }, []);
 
-  // Determine current role based on exact URL role segment (/management/:roleSegment/...)
-  const currentRole: UserRole = useMemo(() => {
-    const segments = location.pathname.toLowerCase().split('/').filter(Boolean);
-    if (segments[0] === 'management' && segments[1]) {
-      const roleSegment = segments[1];
-      if (roleSegment === 'content-manager') return 'CONTENT_MANAGER';
-      if (roleSegment === 'teacher') return 'TEACHER';
-      if (roleSegment === 'support') return 'SUPPORT';
-      if (roleSegment === 'admin') return 'ADMIN';
-    }
-    return session.role;
-  }, [location.pathname, session.role]);
+  const currentRole: UserRole = session.role;
 
   // Sidebar expanded / collapsed state (persisted or auto-collapsed on tablet)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -94,6 +82,7 @@ export const ManagementLayout: React.FC = () => {
       {/* Mobile Backdrop Overlay (< 1024px) */}
       {isMobileOpen && (
         <div
+          data-testid="management-mobile-backdrop"
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
           style={{

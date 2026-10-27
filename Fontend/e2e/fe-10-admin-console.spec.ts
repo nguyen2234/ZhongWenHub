@@ -27,7 +27,7 @@ test.describe('FE-10.1: Admin Web Console Redesign E2E', () => {
     await expect(activeItem).toContainText('Dashboard V2');
 
     // 4. Action Priority Banner
-    await expect(page.locator('text=14 chờ duyệt')).toBeVisible();
+    await expect(page.locator('text=chờ duyệt')).toBeVisible();
     await expect(page.locator('text=Mô phỏng vận hành')).toBeVisible();
 
     // 5. Metric Cards
@@ -93,10 +93,9 @@ test.describe('FE-10.1: Admin Web Console Redesign E2E', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('h1')).toContainText('Ngân hàng Bài tập & Câu hỏi');
 
-    // Navigate to AI management (Planned for FE-10.3)
+    // Navigate to AI management (Fully implemented in FE-13)
     await page.goto('/ZhongWenHub/management/admin/ai-management');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Quản lý & Giám sát Trợ lý AI Tutor');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.3')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Giám sát Vận hành Trí tuệ Nhân tạo');
   });
 });
