@@ -75,7 +75,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         top: 0,
         zIndex: 'var(--z-sidebar)',
         transition: 'width 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-        overflow: 'visible',
+        overflow: 'hidden',
         boxShadow: 'none',
       }}
     >
@@ -259,6 +259,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           3. NAVIGATION ITEMS WITH GROUP HEADERS
           ===================================================================== */}
       <nav
+        className="management-sidebar-nav"
         aria-label="Admin Navigation"
         style={{
           flex: 1,
@@ -267,7 +268,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? 'var(--space-2) 0' : 'var(--space-2) var(--space-3)',
+          padding: isCollapsed ? 'var(--space-2) 0 var(--space-4)' : 'var(--space-2) var(--space-3) var(--space-4)',
         }}
       >
         {filteredGroups.length === 0 ? (
@@ -476,7 +477,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                 <Link
                   key={r}
                   to={r === 'CONTENT_MANAGER' ? '/management/content-manager/dashboard' : `/management/${r.toLowerCase()}/dashboard`}
-                  onClick={() => onRoleChange && onRoleChange(r)}
+                  onClick={() => {
+                    if (onRoleChange) onRoleChange(r);
+                    if (onMobileClose) onMobileClose();
+                  }}
                   style={{
                     textAlign: 'center',
                     padding: '5px 0',
@@ -501,6 +505,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         {/* Back to Student Portal */}
         <Link
           to="/dashboard"
+          onClick={onMobileClose}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -565,12 +570,15 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         @media (max-width: 1023px) {
           .management-sidebar {
             position: fixed !important;
-            left: -300px;
+            left: -320px;
             top: 0;
             bottom: 0;
-            width: 280px !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            width: min(300px, 85vw) !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            z-index: var(--z-drawer) !important;
           }
           .management-sidebar.mobile-open {
             left: 0 !important;

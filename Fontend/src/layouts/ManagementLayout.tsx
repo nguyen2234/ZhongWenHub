@@ -102,6 +102,8 @@ export const ManagementLayout: React.FC = () => {
             backgroundColor: 'rgba(15, 23, 42, 0.45)',
             zIndex: 49,
             transition: 'opacity 0.2s ease',
+            overscrollBehavior: 'none',
+            touchAction: 'none',
           }}
         />
       )}

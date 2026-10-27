@@ -114,7 +114,7 @@ export const StudentLayout: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
       {/* =====================================================================
           1. HANBEEGO-INSPIRED TOP HEADER
           ===================================================================== */}
@@ -587,45 +587,54 @@ export const StudentLayout: React.FC = () => {
       {/* =====================================================================
           2. HANBEEGO-STYLE TWO-PANE BODY (Sticky Sidebar + Main Content)
           ===================================================================== */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 64px)' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100dvh - var(--app-header-height))' }}>
         {/* Persistent Desktop Sidebar */}
-        <div className="desktop-sidebar-wrapper" style={{ display: 'block' }}>
-          <div
-            style={{
-              position: 'sticky',
-              top: 'var(--app-header-height)',
-              height: 'calc(100dvh - var(--app-header-height))',
-              maxHeight: 'calc(100dvh - var(--app-header-height))',
-              overflow: 'hidden',
-            }}
-          >
-            <StudentSidebar
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={toggleSidebarCollapse}
-            />
-          </div>
-        </div>
+        <aside
+          className="desktop-sidebar-wrapper student-sidebar-wrapper"
+          style={{
+            position: 'sticky',
+            top: 'var(--app-header-height)',
+            height: 'calc(100dvh - var(--app-header-height))',
+            maxHeight: 'calc(100dvh - var(--app-header-height))',
+            flexShrink: 0,
+            zIndex: 'var(--z-sidebar)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+          <StudentSidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={toggleSidebarCollapse}
+          />
+        </aside>
 
         {/* Mobile Slide-in Drawer */}
         {isMobileDrawerOpen && (
           <div
+            className="mobile-sidebar-drawer-overlay"
             style={{
               position: 'fixed',
               inset: 0,
               zIndex: 'var(--z-drawer)',
               backgroundColor: 'rgba(15, 23, 42, 0.5)',
               display: 'flex',
+              overscrollBehavior: 'none',
+              touchAction: 'none',
             }}
             onClick={() => setIsMobileDrawerOpen(false)}
           >
             <div
+              className="mobile-sidebar-drawer"
               style={{
-                width: '280px',
-                height: '100%',
+                width: 'min(300px, 85vw)',
+                height: '100dvh',
+                maxHeight: '100dvh',
                 backgroundColor: '#ffffff',
                 boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: 'hidden',
               }}
               onClick={(e) => e.stopPropagation()}
               role="dialog"
@@ -639,6 +648,7 @@ export const StudentLayout: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexShrink: 0,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -665,12 +675,13 @@ export const StudentLayout: React.FC = () => {
                   type="button"
                   onClick={() => setIsMobileDrawerOpen(false)}
                   style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                  aria-label="Đóng thanh điều hướng"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }} className="student-sidebar-scroll">
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <StudentSidebar
                   isCollapsed={false}
                   onNavigate={() => setIsMobileDrawerOpen(false)}

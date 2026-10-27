@@ -10,7 +10,7 @@ body {
   margin: 0;
   padding: 0;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
@@ -80,20 +80,25 @@ textarea {
 }
 
 /* Sidebar Invisible Scrollbar: Smooth scrolling without ugly gray track */
-.student-sidebar-scroll {
+.student-sidebar-scroll,
+.management-sidebar-nav {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
-.student-sidebar-scroll::-webkit-scrollbar {
+.student-sidebar-scroll::-webkit-scrollbar,
+.management-sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
 
-.student-sidebar-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-full); }
-.student-sidebar-scroll:hover { scrollbar-color: var(--border-strong) transparent; }
-.student-sidebar-scroll:hover::-webkit-scrollbar-thumb { background: var(--border-strong); }
+.student-sidebar-scroll::-webkit-scrollbar-thumb,
+.management-sidebar-nav::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-full); }
+.student-sidebar-scroll:hover,
+.management-sidebar-nav:hover { scrollbar-color: var(--border-strong) transparent; }
+.student-sidebar-scroll:hover::-webkit-scrollbar-thumb,
+.management-sidebar-nav:hover::-webkit-scrollbar-thumb { background: var(--border-strong); }
 
 html { scroll-padding-top: calc(var(--app-header-height) + var(--space-4)); }
 

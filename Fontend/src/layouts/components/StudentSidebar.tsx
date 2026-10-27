@@ -99,6 +99,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
             borderBottom: '1px solid #f8fafc',
+            flexShrink: 0,
           }}
         >
           {!isCollapsed && (
@@ -148,7 +149,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? '12px 6px' : '12px 12px',
+          padding: isCollapsed ? '12px 6px 24px' : '12px 12px 24px',
           display: 'flex',
           flexDirection: 'column',
           gap: isCollapsed ? '12px' : '18px',
