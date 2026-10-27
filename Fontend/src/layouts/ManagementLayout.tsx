@@ -85,7 +85,7 @@ export const ManagementLayout: React.FC = () => {
       className="management-layout-root"
       style={{
         display: 'flex',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         backgroundColor: 'var(--background)',
         width: '100%',
         position: 'relative',
