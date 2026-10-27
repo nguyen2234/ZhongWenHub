@@ -15,12 +15,23 @@ import {
 } from '../components';
 import '../components/dashboard.css';
 
+import { contentModerationService } from '../../content-manager/services/content-moderation.service';
+import { supportTicketService } from '../../support/services/support-ticket.service';
+
 export const AdminDashboardPage: React.FC = () => {
   const [range, setRange] = useState<DateRangeOption>('30d');
 
   const dashboardData = useMemo(() => {
     return getAdminDashboardData(range);
   }, [range]);
+
+  const pendingModerationCount = useMemo(() => {
+    return contentModerationService.getModerationItems({ status: 'PENDING_REVIEW' }).length;
+  }, []);
+
+  const urgentTicketsCount = useMemo(() => {
+    return supportTicketService.getMetrics().urgent;
+  }, []);
 
   return (
     <div className="admin-dashboard">
@@ -37,8 +48,8 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* Row 1: Priority Queue & Operational Notice (Việc cần xử lý ngay) */}
       <ActionPriorityBanner
-        pendingModerationCount={14}
-        urgentTicketsCount={dashboardData.supportOverview.urgentCount}
+        pendingModerationCount={pendingModerationCount}
+        urgentTicketsCount={urgentTicketsCount}
         aiAlertCount={1}
       />
 

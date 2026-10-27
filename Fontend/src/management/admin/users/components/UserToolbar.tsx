@@ -31,6 +31,21 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
   onFilterChange,
   onResetFilters,
 }) => {
+  const [internalSearch, setInternalSearch] = React.useState(filters.search);
+
+  React.useEffect(() => {
+    setInternalSearch(filters.search);
+  }, [filters.search]);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      if (internalSearch !== filters.search) {
+        onFilterChange({ ...filters, search: internalSearch });
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [internalSearch, filters, onFilterChange]);
+
   const isFiltered =
     filters.search.trim() !== '' ||
     filters.status !== 'ALL' ||
@@ -46,8 +61,8 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
             type="text"
             className="user-search-input"
             placeholder="Tìm theo tên hoặc email..."
-            value={filters.search}
-            onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+            value={internalSearch}
+            onChange={(e) => setInternalSearch(e.target.value)}
             aria-label="Tìm theo tên hoặc email"
           />
         </div>

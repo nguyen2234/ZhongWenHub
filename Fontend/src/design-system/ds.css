@@ -201,6 +201,106 @@ html { scroll-padding-top: calc(var(--app-header-height) + var(--space-4)); }
   cursor: progress;
 }
 
+/* Teacher Portal Button Aliases (Issue #7: .tp-btn -> .ds-btn) */
+.tp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.tp-btn--primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.tp-btn--primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.tp-btn--secondary {
+  background-color: var(--secondary);
+  border-color: transparent;
+  color: var(--foreground);
+}
+.tp-btn--secondary:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+}
+.tp-btn--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.tp-btn--ghost:hover:not(:disabled) {
+  background-color: var(--item-hover);
+  color: var(--foreground);
+}
+.tp-btn--danger {
+  background-color: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+.tp-btn--danger:hover:not(:disabled) {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+/* Legacy Button Aliases (Admin Teachers & Support Staff: .btn -> .ds-btn) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.btn-secondary {
+  background-color: var(--secondary);
+  border-color: transparent;
+  color: var(--foreground);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+}
+.btn-sm {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+
 /* ==========================================================================
    FORM INPUTS & CONTROLS (Input.md, budgets.md)
    ========================================================================== */
