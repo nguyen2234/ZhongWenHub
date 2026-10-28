@@ -1,0 +1,27 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio & JetBrains Rider
+.vs/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+
+## Environment & Secrets
+.env
+*.local.json
+appsettings.*.local.json
+
+## Testing & Coverage
+TestResults/
+coverage/
+
+## Operating System
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
