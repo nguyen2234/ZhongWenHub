@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZhongWenHub.Business\ZhongWenHub.Business.csproj" />
-    <ProjectReference Include="..\ZhongWenHub.Data\ZhongWenHub.Data.csproj" />
+    <ProjectReference Include="..\Business\ZhongWenHub.Business.csproj" />
+    <ProjectReference Include="..\Data\ZhongWenHub.Data.csproj" />
   </ItemGroup>
 
 </Project>

@@ -80,14 +80,19 @@ Hệ thống bao gồm 2 phân hệ chính:
 
 ---
 
-### 2.3. Cây Thư mục Thực tế Backend
+### 2.3. Cây Thư mục Thực tế Backend (Tối ưu hóa Thư mục Vật lý)
+
+> **Quy ước Tên gọi & Phân biệt Rõ ràng:**
+> - **Tên thư mục vật lý (Physical Folders):** `src/Api/`, `src/Business/`, `src/Data/` (ngắn gọn, trực quan, loại bỏ tiền tố dư thừa).
+> - **Tên Project (.csproj & Assembly):** `ZhongWenHub.Api.csproj`, `ZhongWenHub.Business.csproj`, `ZhongWenHub.Data.csproj` (định danh toàn cục trong solution).
+> - **Namespaces C#:** Giữ nguyên chuẩn hóa `ZhongWenHub.Api.*`, `ZhongWenHub.Business.*`, `ZhongWenHub.Data.*`.
 
 ```text
 Backend/
 ├── ZhongWenHub.sln
 │
 ├── src/
-│   ├── ZhongWenHub.Api/
+│   ├── Api/                               # ZhongWenHub.Api.csproj
 │   │   ├── Controllers/
 │   │   │   ├── AdminUsersController.cs
 │   │   │   ├── AuthController.cs
@@ -100,7 +105,7 @@ Backend/
 │   │   ├── appsettings.json
 │   │   └── appsettings.Development.json
 │   │
-│   ├── ZhongWenHub.Business/
+│   ├── Business/                          # ZhongWenHub.Business.csproj
 │   │   ├── Authentication/
 │   │   │   ├── DTOs/
 │   │   │   │   ├── AuthResultDto.cs
@@ -139,7 +144,7 @@ Backend/
 │   │   │   └── ICurrentUserService.cs
 │   │   └── DependencyInjection.cs
 │   │
-│   └── ZhongWenHub.Data/
+│   └── Data/                              # ZhongWenHub.Data.csproj
 │       ├── Constants/
 │       │   └── RoleConstants.cs
 │       ├── Entities/

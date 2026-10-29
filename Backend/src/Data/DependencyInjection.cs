@@ -12,8 +12,13 @@ public static class DependencyInjection
     public static IServiceCollection AddData(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure Database (PostgreSQL)
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Host=localhost;Port=5432;Database=zhongwenhub_dev;Username=postgres;Password=postgres";
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Chuỗi kết nối 'DefaultConnection' chưa được cấu hình. " +
+                "Vui lòng cấu hình trong appsettings.json hoặc biến môi trường ConnectionStrings:DefaultConnection.");
+        }
 
         services.AddDbContext<ApplicationDbContext>(options =>
         {

@@ -41,28 +41,34 @@ Theo đúng điều kiện bắt buộc số 1, 2, 3:
 
 ## 3. DANH SÁCH THAY ĐỔI MÃ NGUỒN VÀ PROJECT
 
-### 3.1. Các Project Đã Thêm và Thay Thế
-- **Tạo mới:** `Backend/src/ZhongWenHub.Data/ZhongWenHub.Data.csproj` (.NET 8 Class Library).
-- **Tạo mới:** `Backend/src/ZhongWenHub.Business/ZhongWenHub.Business.csproj` (.NET 8 Class Library).
+### 3.1. Tối ưu Hóa Thư mục Vật lý (Simplified Physical Folders)
+- **Tên thư mục vật lý:** `src/Api/`, `src/Business/`, `src/Data/`.
+- **Tên project (.csproj):**
+  - `Backend/src/Api/ZhongWenHub.Api.csproj` (.NET 8 Web API).
+  - `Backend/src/Business/ZhongWenHub.Business.csproj` (.NET 8 Class Library).
+  - `Backend/src/Data/ZhongWenHub.Data.csproj` (.NET 8 Class Library).
+- **Namespaces C#:** Giữ nguyên vẹn `ZhongWenHub.Api.*`, `ZhongWenHub.Business.*`, `ZhongWenHub.Data.*`.
 - **Đã gỡ bỏ khỏi Solution & Đĩa:**
   - `Backend/src/ZhongWenHub.Domain` (đã sáp nhập vào Data và Business).
   - `Backend/src/ZhongWenHub.Application` (đã chuyển thành Business).
   - `Backend/src/ZhongWenHub.Infrastructure` (đã chuyển thành Data).
 
-### 3.2. Project References Mới
-- `ZhongWenHub.Api.csproj` $\longrightarrow$ `ZhongWenHub.Business.csproj`, `ZhongWenHub.Data.csproj`.
-- `ZhongWenHub.Business.csproj` $\longrightarrow$ `ZhongWenHub.Data.csproj`.
-- `ZhongWenHub.Data.csproj` $\longrightarrow$ *(Không tham chiếu project nào)*.
-- `ZhongWenHub.UnitTests.csproj` $\longrightarrow$ `ZhongWenHub.Business.csproj`, `ZhongWenHub.Data.csproj`.
-- `ZhongWenHub.IntegrationTests.csproj` $\longrightarrow$ `ZhongWenHub.Api.csproj`.
+### 3.2. Project References Chuẩn mực
+- `ZhongWenHub.Api.csproj` $\longrightarrow$ `..\Business\ZhongWenHub.Business.csproj`, `..\Data\ZhongWenHub.Data.csproj`.
+- `ZhongWenHub.Business.csproj` $\longrightarrow$ `..\Data\ZhongWenHub.Data.csproj`.
+- `ZhongWenHub.Data.csproj` $\longrightarrow$ *(Không tham chiếu project nào - Tầng dữ liệu độc lập)*.
+- `ZhongWenHub.UnitTests.csproj` $\longrightarrow$ `..\..\src\Business\ZhongWenHub.Business.csproj`, `..\..\src\Data\ZhongWenHub.Data.csproj`.
+- `ZhongWenHub.IntegrationTests.csproj` $\longrightarrow$ `..\..\src\Api\ZhongWenHub.Api.csproj`.
 
-### 3.3. Tối ưu Dependency Injection
-- `Program.cs` tại tầng Api giờ chỉ đăng ký 2 dòng tường minh:
-  ```csharp
-  builder.Services.AddData(builder.Configuration);      // PostgreSQL, Identity, DbContext
-  builder.Services.AddBusiness(builder.Configuration);  // Services, JWT, Authorization Policies
-  ```
-- Thêm `[assembly: CollectionBehavior(DisableTestParallelization = true)]` trong `CustomWebApplicationFactory.cs` của Integration Tests để bảo vệ cơ sở dữ liệu kiểm thử không bị xung đột concurrency khi xUnit chạy nhiều test classes song song.
+### 3.3. Xử lý Tồn đọng Bảo mật & Độ tin cậy (Security & Reliability Hardening)
+1. **Loại bỏ Fallback Connection String nhạy cảm:**
+   - Trong `Data/DependencyInjection.cs` và `Data/Persistence/ApplicationDbContextFactory.cs`, đã loại bỏ hoàn toàn fallback connection string chứa thông tin đăng nhập PostgreSQL (`postgres:postgres`).
+   - Ứng dụng ném ngoại lệ `InvalidOperationException` tường minh khi thiếu cấu hình `DefaultConnection`, không ghi đè giá trị giả lập và không in secret ra log.
+2. **Loại bỏ Fallback JWT Secret nhạy cảm:**
+   - Trong `Business/DependencyInjection.cs`, đã loại bỏ hoàn toàn chuỗi bí mật JWT hardcode fallback.
+   - Bắt buộc `JwtSettings:Secret` phải được cung cấp qua cấu hình hoặc biến môi trường với độ dài tối thiểu 32 ký tự (256-bit). Ném `InvalidOperationException` ngay khi khởi tạo nếu không hợp lệ.
+3. **Xử lý Optimistic Concurrency cho Concurrent Logins:**
+   - Bổ sung cơ chế bắt `DbUpdateConcurrencyException` khi cập nhật trường metadata đăng nhập `LastLoginAt` trong `AuthService.cs`, bảo đảm an toàn khi người dùng đăng nhập đồng thời từ nhiều thiết bị/trình duyệt.
 
 ---
 
@@ -72,8 +78,7 @@ Theo đúng điều kiện bắt buộc số 1, 2, 3:
 ```powershell
 cd D:\ZhongWenHub\Backend
 $env:DOTNET_ROOT = 'C:\Users\nguyen\AppData\Local\dotnet'
-& "$env:DOTNET_ROOT\dotnet.exe" build .\ZhongWenHub.sln
-& 'D:\ZhongWenHub\Backend\publish\ZhongWenHub.Api.exe' --urls 'http://127.0.0.1:5000'
+& "$env:DOTNET_ROOT\dotnet.exe" run --project src/Api/ZhongWenHub.Api.csproj --urls 'http://127.0.0.1:5000'
 ```
 
 ### 4.2. Chạy Kiểm thử Tự động Backend

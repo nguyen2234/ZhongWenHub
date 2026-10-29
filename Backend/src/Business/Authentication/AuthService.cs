@@ -74,9 +74,16 @@ public class AuthService : IAuthService
             return AuthResultDto.Failed(401, "Xác thực thất bại", "Tài khoản hoặc mật khẩu không chính xác.");
         }
 
-        await _userManager.ResetAccessFailedCountAsync(user);
-        user.LastLoginAt = DateTime.UtcNow;
-        await _userManager.UpdateAsync(user);
+        try
+        {
+            await _userManager.ResetAccessFailedCountAsync(user);
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Concurrent login from multiple clients for the same user account; non-critical metadata update
+        }
 
         var roles = await _userManager.GetRolesAsync(user);
         var userDto = MapToUserDto(user, roles);

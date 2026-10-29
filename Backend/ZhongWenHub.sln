@@ -1,11 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3CCAD0CB-1948-4FAE-9D2F-F5A99F64140C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Api", "src\ZhongWenHub.Api\ZhongWenHub.Api.csproj", "{7935EBA6-61BD-40A5-A761-CA738660B50D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Api", "src\Api\ZhongWenHub.Api.csproj", "{7935EBA6-61BD-40A5-A761-CA738660B50D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9250DD52-C7B7-4D85-A7C5-1E682F53A06F}"
 EndProject
@@ -13,9 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.UnitTests", "te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.IntegrationTests", "tests\ZhongWenHub.IntegrationTests\ZhongWenHub.IntegrationTests.csproj", "{1A124FAA-B696-45EF-842B-B18724023C80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Data", "src\ZhongWenHub.Data\ZhongWenHub.Data.csproj", "{2F477788-C25C-4524-8F79-E43CDA928A53}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Data", "src\Data\ZhongWenHub.Data.csproj", "{2F477788-C25C-4524-8F79-E43CDA928A53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Business", "src\ZhongWenHub.Business\ZhongWenHub.Business.csproj", "{2E133B7E-2876-4006-98BB-0574CF15A946}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhongWenHub.Business", "src\Business\ZhongWenHub.Business.csproj", "{2E133B7E-2876-4006-98BB-0574CF15A946}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

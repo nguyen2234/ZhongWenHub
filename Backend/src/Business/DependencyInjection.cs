@@ -18,9 +18,11 @@ public static class DependencyInjection
         // Configure JWT Settings
         var jwtSettings = new JwtSettings();
         configuration.GetSection(JwtSettings.SectionName).Bind(jwtSettings);
-        if (string.IsNullOrWhiteSpace(jwtSettings.Secret))
+        if (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32)
         {
-            jwtSettings.Secret = "ZhongWenHub_Development_Super_Secret_Key_At_Least_32_Bytes_Long_2026!";
+            throw new InvalidOperationException(
+                "Cấu hình 'JwtSettings:Secret' là bắt buộc và phải có độ dài tối thiểu 32 ký tự (256-bit). " +
+                "Vui lòng cấu hình trong appsettings.json hoặc biến môi trường JwtSettings__Secret.");
         }
         services.Configure<JwtSettings>(options =>
         {

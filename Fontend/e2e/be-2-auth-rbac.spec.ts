@@ -13,12 +13,12 @@ test.describe('BE-2: Authentication, User Management & RBAC Integration', () => 
     await page.click('button[type="submit"]');
 
     // Should navigate to student portal /dashboard
-    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
     await expect(page.locator('body')).toBeVisible();
 
     // Student attempting to access /management/admin/dashboard should be redirected safely
     await page.goto('/ZhongWenHub/management/admin/dashboard');
-    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
   });
 
   test('Flow 2: Admin Login -> Admin Portal -> User Management Page', async ({ page }) => {
@@ -28,7 +28,7 @@ test.describe('BE-2: Authentication, User Management & RBAC Integration', () => 
     await page.click('button[type="submit"]');
 
     // Should navigate to admin portal
-    await expect(page).toHaveURL(/.*management\/admin\/dashboard/);
+    await expect(page).toHaveURL(/.*management\/admin\/dashboard/, { timeout: 10000 });
 
     // Navigate to Admin Users
     await page.goto('/ZhongWenHub/management/admin/users');

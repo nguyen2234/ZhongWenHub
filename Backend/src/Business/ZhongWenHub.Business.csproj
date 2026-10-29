@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZhongWenHub.Data\ZhongWenHub.Data.csproj" />
+    <ProjectReference Include="..\Data\ZhongWenHub.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
