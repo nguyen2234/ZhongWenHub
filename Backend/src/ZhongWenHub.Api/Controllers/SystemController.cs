@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Application.DTOs.Common;
-using ZhongWenHub.Domain.Constants;
-using ZhongWenHub.Infrastructure.Persistence;
+using ZhongWenHub.Business.Authorization;
+using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Api.Controllers;
 

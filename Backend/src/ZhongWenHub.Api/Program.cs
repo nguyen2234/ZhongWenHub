@@ -5,15 +5,17 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using ZhongWenHub.Api.Middleware;
-using ZhongWenHub.Application.DTOs.Common;
-using ZhongWenHub.Infrastructure.DependencyInjection;
-using ZhongWenHub.Infrastructure.Identity;
-using ZhongWenHub.Infrastructure.Persistence;
+using ZhongWenHub.Business;
+using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Data;
+using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Infrastructure Services (PostgreSQL DbContext, Identity, JWT, Policies, Services)
-builder.Services.AddInfrastructure(builder.Configuration);
+// Add Data (PostgreSQL DbContext, Identity) and Business Services (JWT, Policies, Services)
+builder.Services.AddData(builder.Configuration);
+builder.Services.AddBusiness(builder.Configuration);
 
 // Add Controllers & JSON Serialization Configuration
 builder.Services.AddControllers()

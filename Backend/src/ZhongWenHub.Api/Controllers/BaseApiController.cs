@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Application.DTOs.Common;
+using ZhongWenHub.Business.Common.DTOs;
 
 namespace ZhongWenHub.Api.Controllers;
 

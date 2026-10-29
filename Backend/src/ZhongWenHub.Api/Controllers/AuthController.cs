@@ -1,8 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Application.Abstractions;
-using ZhongWenHub.Application.DTOs.Auth;
+using ZhongWenHub.Business.Authentication;
+using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Business.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 
