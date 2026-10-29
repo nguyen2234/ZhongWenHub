@@ -1,4 +1,4 @@
-using ZhongWenHub.Domain.Entities;
+using ZhongWenHub.Data.Entities;
 
 namespace ZhongWenHub.UnitTests;
 

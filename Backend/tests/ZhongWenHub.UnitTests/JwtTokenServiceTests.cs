@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Application.DTOs.Auth;
-using ZhongWenHub.Domain.Constants;
-using ZhongWenHub.Infrastructure.Authentication;
+using ZhongWenHub.Business.Authentication;
+using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Data.Constants;
 
 namespace ZhongWenHub.UnitTests;
 

@@ -1,4 +1,4 @@
-using ZhongWenHub.Application.DTOs.Common;
+using ZhongWenHub.Business.Common.DTOs;
 
 namespace ZhongWenHub.UnitTests;
 

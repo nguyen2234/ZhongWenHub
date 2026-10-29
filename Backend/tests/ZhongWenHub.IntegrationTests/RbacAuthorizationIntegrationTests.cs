@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using ZhongWenHub.Application.DTOs.Auth;
-using ZhongWenHub.Application.DTOs.Common;
+using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Business.Common.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 
