@@ -36,6 +36,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                     v => Enum.Parse<UserStatus>(v))
                 .HasMaxLength(30)
                 .IsRequired();
+            b.Property(u => u.LockReason).HasMaxLength(500);
+            b.Property(u => u.LockedAt).HasColumnType("timestamptz");
+            b.Property(u => u.Notes).HasMaxLength(1000);
+            b.Property(u => u.CurrentHskLevel).HasMaxLength(20).HasDefaultValue("HSK 1");
             b.Property(u => u.CreatedAt).HasColumnType("timestamptz").IsRequired();
             b.Property(u => u.UpdatedAt).HasColumnType("timestamptz");
             b.Property(u => u.LastLoginAt).HasColumnType("timestamptz");

@@ -1,33 +1,48 @@
-# MA TRẬN PHÂN QUYỀN HỆ THỐNG (RBAC & POLICY MATRIX)
+# MA TRẬN PHÂN QUYỀN RBAC (AUTHORIZATION MATRIX)
 
-## 1. Danh Mục Vai Trò (System Roles)
+**Dự án:** ZhongWenHub  
+**Chuẩn:** ASP.NET Core Policy-Based Authorization  
+**Phiên bản:** BE-2 (v2.0.0)
 
-| Mã Vai Trò | Tên Hiển Thị | Quyền Hạn Trọng Tâm |
+---
+
+## 1. SÁU VAI TRÒ CHÍNH THỨC VÀ PHẠM VI TRÁCH NHIỆM
+
+| Mã Vai trò | Tên Vai trò | Mô tả Trách nhiệm & Quyền hạn |
 | :--- | :--- | :--- |
-| `SUPER_ADMIN` | Quản trị viên tối cao | Toàn quyền kiểm soát hệ thống, thiết lập cấp cao, quản trị người dùng và vai trò |
-| `ADMIN` | Quản trị viên vận hành | Vận hành toàn diện, duyệt nội dung, giải quyết khiếu nại, xem thống kê |
-| `CONTENT_MANAGER`| Quản lý học liệu | Quản lý lộ trình HSK, từ vựng, ngữ pháp, bài tập, video, phụ đề và lỗi học liệu |
-| `TEACHER` | Giáo viên | Quản lý lớp học, chấm bài tập, giao bài và tương tác học viên |
-| `SUPPORT` | Chăm sóc khách hàng | Tiếp nhận vé hỗ trợ (tickets), phản ánh học liệu từ học viên và chuyển tiếp liên phòng ban |
-| `STUDENT` | Học viên | Học bài theo lộ trình, làm bài tập, xem video, gửi vé hỗ trợ |
+| `SUPER_ADMIN` | Quản trị viên tối cao | Toàn quyền kiểm soát hệ thống; cấu hình hệ thống; quản lý Super Admin & Admin; quản trị bảo mật; gán và thu hồi mọi vai trò. |
+| `ADMIN` | Quản trị viên vận hành | Quản lý người dùng, học viên, giáo viên, nhân viên hỗ trợ; theo dõi dashboard vận hành và thống kê KPI; **không thể** tự nâng quyền hoặc can thiệp Super Admin. |
+| `CONTENT_MANAGER`| Quản lý học liệu | Quản lý lộ trình HSK, từ vựng, ngữ pháp, bài tập, video, phụ đề và kiểm duyệt chất lượng nội dung học tập. |
+| `TEACHER` | Giáo viên giảng dạy | Quản lý lớp học được phân công, chấm điểm bài tập, giao bài và theo dõi kết quả học viên trong lớp phụ trách. |
+| `SUPPORT` | Nhân viên hỗ trợ | Xử lý vé hỗ trợ (tickets), chăm sóc học viên và tiếp nhận báo cáo phản ánh chất lượng nội dung. |
+| `STUDENT` | Học viên | Tham gia các khóa học, làm bài tập, làm flashcards SRS, luyện kỹ năng và quản lý hồ sơ cá nhân. |
 
 ---
 
-## 2. Ma Trận Chính Sách Ủy Quyền (Policy-Based Authorization Matrix)
+## 2. MA TRẬN AUTHORIZATION POLICY VÀ VAI TRÒ
 
-| Chính Sách (Policy) | `SUPER_ADMIN` | `ADMIN` | `CONTENT_MANAGER` | `TEACHER` | `SUPPORT` | `STUDENT` | Mô Tả Nghiệp Vụ |
+| Policy Tên | `SUPER_ADMIN` | `ADMIN` | `CONTENT_MANAGER` | `TEACHER` | `SUPPORT` | `STUDENT` | Mô tả Policy |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **SystemSettingsManage** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Cấu hình tham số hệ thống, bảo mật nâng cao |
-| **UserManagementAccess** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | Quản lý danh sách tài khoản, khóa/mở tài khoản |
-| **AdminAccess** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | Truy cập phân hệ điều hành quản trị |
-| **ContentManagementAccess** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | Quản lý kho video, từ vựng HSK, ngữ pháp, lỗi nội dung |
-| **TeacherAccess** | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | Nghiệp vụ sư phạm, lớp học và chấm bài |
-| **SupportAccess** | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | Xử lý vé hỗ trợ, CSKH và tiếp nhận phản ánh |
-| **StudentAccess** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Quyền truy cập các tiện ích nền tảng học tập |
+| **SystemSettingsManage** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | Quản lý tham số hệ thống, biến môi trường, bảo mật cấp cao |
+| **UserManagementAccess** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | Quản lý danh sách người dùng, trạng thái khóa/mở khóa và vai trò |
+| **AdminAccess** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | Truy cập Admin Dashboard và các công cụ vận hành |
+| **ContentManagementAccess** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | Quản lý kho video, từ vựng HSK, ngữ pháp, bài tập |
+| **TeacherAccess** | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | Quản lý lớp học, bài tập và theo dõi học viên |
+| **SupportAccess** | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | Quản lý và xử lý ticket phản hồi của học viên |
+| **StudentAccess** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Truy cập cổng học viên và các tính năng học tập |
 
 ---
 
-## 3. Ranh Giới Kiểm Soát Bảo Mật
-1. **Phía Client (Frontend):** Phân quyền chỉ nhằm phục vụ tối ưu hóa trải nghiệm người dùng (UX: ẩn/hiện menu, bảo vệ router).
-2. **Phía Server (Backend):** Mọi request đều được thẩm định độc lập tại tầng middleware và Controller qua thuộc tính `[Authorize(Policy = "...")]`.
-3. **Phòng chống giả mạo:** Máy chủ **tuyệt đối không** tin cậy vai trò gửi từ client. Vai trò được trích xuất trực tiếp từ chữ ký số của JWT Token đã được xác minh bằng khóa bí mật máy chủ.
+## 3. MA TRẬN BẢO MẬT USER MANAGEMENT ENDPOINTS
+
+| Endpoint | Method | Policy yêu cầu | Quy tắc nghiệp vụ & Chống leo quyền |
+| :--- | :---: | :--- | :--- |
+| `/api/v1/admin/users` | `GET` | `UserManagementAccess` | Lọc, tìm kiếm, phân trang người dùng |
+| `/api/v1/admin/users/kpis` | `GET` | `UserManagementAccess` | Lấy số liệu thống kê tổng, hoạt động, bị khóa, mới 30 ngày |
+| `/api/v1/admin/users/{id}` | `GET` | `UserManagementAccess` | Xem chi tiết học viên và thông số học tập |
+| `/api/v1/admin/users` | `POST` | `UserManagementAccess` | Tạo người dùng. **Chỉ SUPER_ADMIN mới được tạo tài khoản có vai trò SUPER_ADMIN.** |
+| `/api/v1/admin/users/{id}` | `PUT` | `UserManagementAccess` | Cập nhật thông tin. **ADMIN không được sửa tài khoản SUPER_ADMIN.** |
+| `/api/v1/admin/users/{id}/lock` | `POST` | `UserManagementAccess` | Khóa tài khoản kèm lý do. Thu hồi toàn bộ refresh token. **Không thể khóa Super Admin cuối cùng.** |
+| `/api/v1/admin/users/{id}/unlock` | `POST` | `UserManagementAccess` | Mở khóa tài khoản trở lại trạng thái ACTIVE. |
+| `/api/v1/admin/users/{id}/status` | `PATCH` | `UserManagementAccess` | Cập nhật trạng thái trực tiếp (`ACTIVE`, `LOCKED`, `INACTIVE`). |
+| `/api/v1/admin/users/{id}/roles` | `PUT` | `UserManagementAccess` | Cập nhật vai trò. **Chặn tự leo quyền (Self-escalation), chặn Admin cấp SUPER_ADMIN, bảo vệ Super Admin cuối cùng.** |

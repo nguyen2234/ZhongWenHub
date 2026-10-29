@@ -56,8 +56,18 @@ public class AuthService : IAuthService
 
         if (user.Status != UserStatus.ACTIVE)
         {
-            await RecordAuditAsync(user.Id, user.UserName, "LOGIN_INACTIVE", ipAddress, userAgent, false, $"Trạng thái tài khoản: {user.Status}.", cancellationToken);
-            return AuthResultDto.Failed(403, "Tài khoản không khả dụng", $"Tài khoản đang ở trạng thái {user.Status}, không thể đăng nhập.");
+            var statusTitle = (user.Status == UserStatus.LOCKED || user.Status == UserStatus.SUSPENDED)
+                ? "Tài khoản bị khóa"
+                : "Tài khoản không khả dụng";
+            var reason = !string.IsNullOrWhiteSpace(user.LockReason)
+                ? $" Lý do: {user.LockReason}"
+                : string.Empty;
+            var statusDetail = (user.Status == UserStatus.LOCKED || user.Status == UserStatus.SUSPENDED)
+                ? $"Tài khoản của bạn đã bị khóa.{reason} Vui lòng liên hệ quản trị viên để được hỗ trợ."
+                : $"Tài khoản đang ở trạng thái {user.Status}, không thể đăng nhập.";
+
+            await RecordAuditAsync(user.Id, user.UserName, "LOGIN_INACTIVE", ipAddress, userAgent, false, $"Trạng thái tài khoản: {user.Status}.{reason}", cancellationToken);
+            return AuthResultDto.Failed(403, statusTitle, statusDetail);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);

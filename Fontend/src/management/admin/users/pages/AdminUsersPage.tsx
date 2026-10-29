@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { PageHeader, Pagination, ConfirmDialog } from '../../../shared/components';
 import type {
@@ -66,7 +66,15 @@ export const AdminUsersPage: React.FC = () => {
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
 
   const triggerRefresh = useCallback(() => {
-    setUsersVersion((v) => v + 1);
+    adminUserService.syncFromBackend().finally(() => {
+      setUsersVersion((v) => v + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    adminUserService.syncFromBackend().finally(() => {
+      setUsersVersion((v) => v + 1);
+    });
   }, []);
 
   // Handle Toolbar filters change

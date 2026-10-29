@@ -9,17 +9,115 @@ import type {
   UserSummaryKPIs,
 } from '../types/user.types';
 import { INITIAL_USER_KPIS, INITIAL_USERS } from '../data/mockUserData';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
 
 class AdminUserService {
   private users: UserDetail[] = [...INITIAL_USERS];
   private kpis: UserSummaryKPIs = { ...INITIAL_USER_KPIS };
   private initialActiveCount = INITIAL_USERS.filter((u) => u.status === 'ACTIVE').length;
   private initialLockedCount = INITIAL_USERS.filter((u) => u.status === 'LOCKED').length;
+  private isSyncing = false;
+  private hasSynced = false;
+
+  constructor() {
+    this.syncFromBackend();
+  }
+
+  public async syncFromBackend(): Promise<void> {
+    if (this.isSyncing) return;
+    this.isSyncing = true;
+
+    try {
+      const token = authTokenService.getAccessToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      // Fetch users and KPIs in parallel
+      const [usersRes, kpisRes] = await Promise.all([
+        fetch(getApiUrl('admin/users?page=1&pageSize=100'), {
+          headers,
+          credentials: 'include',
+        }),
+        fetch(getApiUrl('admin/users/kpis'), {
+          headers,
+          credentials: 'include',
+        }),
+      ]);
+
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        if (usersData && Array.isArray(usersData.items) && usersData.items.length > 0) {
+          const mappedUsers: UserDetail[] = usersData.items.map((b: any) => ({
+            id: b.id,
+            name: b.name || b.displayName || 'Người dùng',
+            email: b.email,
+            avatarUrl: b.avatarUrl,
+            hskLevel: b.hskLevel || 'HSK 1',
+            status: b.status === 'SUSPENDED' ? 'LOCKED' : (b.status || 'ACTIVE'),
+            progressPercentage: b.progressPercentage || 0,
+            joinedAt: b.joinedAt || '28/10/2026',
+            joinedDateRaw: b.joinedDateRaw || new Date().toISOString().slice(0, 10),
+            lastActiveAt: b.lastActiveAt || 'Vừa mới tạo',
+            lastActiveDateRaw: b.lastActiveDateRaw || new Date().toISOString(),
+            phone: b.phone,
+            notes: b.notes,
+            lockReason: b.lockReason,
+            lockedAt: b.lockedAt,
+            learningSummary: b.learningSummary || {
+              currentHsk: b.hskLevel || 'HSK 1',
+              totalXp: 0,
+              streakDays: 0,
+              completedLessons: 0,
+              totalLessons: 35,
+              progressPercentage: 0,
+              vocabularyMastered: 0,
+              srsReviewDue: 0,
+              lastStudySession: 'Chưa có hoạt động học tập',
+            },
+          }));
+
+          this.users = mappedUsers;
+          this.hasSynced = true;
+        }
+      }
+
+      if (kpisRes.ok) {
+        const kpisData = await kpisRes.json();
+        if (kpisData) {
+          this.kpis = {
+            totalLearners: kpisData.totalLearners ?? this.users.length,
+            activeLearners: kpisData.activeLearners ?? this.users.filter((u) => u.status === 'ACTIVE').length,
+            lockedLearners: kpisData.lockedLearners ?? this.users.filter((u) => u.status === 'LOCKED').length,
+            newLearners30d: kpisData.newLearners30d ?? this.users.length,
+          };
+          this.initialActiveCount = this.kpis.activeLearners;
+          this.initialLockedCount = this.kpis.lockedLearners;
+        }
+      }
+    } catch {
+      // In offline or non-authenticated test mode, fallback gracefully to initial data
+    } finally {
+      this.isSyncing = false;
+    }
+  }
 
   public getKPIs(): UserSummaryKPIs {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     const active = this.users.filter((u) => u.status === 'ACTIVE').length;
     const locked = this.users.filter((u) => u.status === 'LOCKED').length;
-    // Reflect state changes proportionally on the realistic total base
     return {
       totalLearners: this.kpis.totalLearners,
       activeLearners: this.kpis.activeLearners + (active - this.initialActiveCount),
@@ -33,6 +131,9 @@ class AdminUserService {
     pagination: { page: number; pageSize: number },
     sort?: UserSort
   ): PaginatedResponse<UserListItem> {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     let result = [...this.users];
 
     // 1. Search filter (Name or Email)
@@ -143,6 +244,28 @@ class AdminUserService {
     this.kpis.newLearners30d += 1;
     if (dto.status === 'ACTIVE') this.kpis.activeLearners += 1;
 
+    // Send async create request to backend in background
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      fetch(getApiUrl('admin/users'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          initialHsk: dto.initialHsk,
+          status: dto.status,
+          notes: dto.notes,
+        }),
+      }).catch(() => {
+        // Log or handle background error
+      });
+    }
+
     return JSON.parse(JSON.stringify(newUser));
   }
 
@@ -166,8 +289,27 @@ class AdminUserService {
     if (dto.notes !== undefined) {
       user.notes = dto.notes;
     }
-    // Update HSK in learning summary without touching raw telemetry
     user.learningSummary.currentHsk = dto.hskLevel;
+
+    // Send update request to backend if valid guid
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          hskLevel: dto.hskLevel,
+          status: dto.status,
+          notes: dto.notes,
+        }),
+      }).catch(() => {});
+    }
 
     return JSON.parse(JSON.stringify(user));
   }
@@ -182,6 +324,19 @@ class AdminUserService {
     user.lockReason = reason || 'Tài khoản tạm thời bị khóa bởi Quản trị viên.';
     user.lockedAt = new Date().toLocaleString('vi-VN');
 
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      fetch(getApiUrl(`admin/users/${id}/lock`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ reason: user.lockReason }),
+      }).catch(() => {});
+    }
+
     return JSON.parse(JSON.stringify(user));
   }
 
@@ -194,6 +349,17 @@ class AdminUserService {
     user.status = 'ACTIVE';
     delete user.lockReason;
     delete user.lockedAt;
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      fetch(getApiUrl(`admin/users/${id}/unlock`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      }).catch(() => {});
+    }
 
     return JSON.parse(JSON.stringify(user));
   }

@@ -15,6 +15,7 @@ import {
   CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
+import { authService } from '../../../features/auth/services/authService';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -629,8 +630,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
 
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   setIsUserMenuOpen(false);
+                  await authService.logout();
                   navigate('/login');
                 }}
                 style={{
