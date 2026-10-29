@@ -21,9 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ZhongWenHub.Domain\ZhongWenHub.Domain.csproj" />
-    <ProjectReference Include="..\..\src\ZhongWenHub.Application\ZhongWenHub.Application.csproj" />
-    <ProjectReference Include="..\..\src\ZhongWenHub.Infrastructure\ZhongWenHub.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Business\ZhongWenHub.Business.csproj" />
+    <ProjectReference Include="..\..\src\Data\ZhongWenHub.Data.csproj" />
   </ItemGroup>
 
 </Project>

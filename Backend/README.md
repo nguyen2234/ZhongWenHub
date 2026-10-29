@@ -7,18 +7,17 @@ ASP.NET Core Web API 8.0 + PostgreSQL + Entity Framework Core + ASP.NET Core Ide
 * PostgreSQL 16+ hoặc Docker Compose
 * Công cụ EF Core CLI (`dotnet tool install --global dotnet-ef` hoặc đã có sẵn)
 
-## 2. Cấu Trúc Solution & Clean Architecture
+## 2. Cấu Trúc Solution & 3-Tier Layered Architecture
 ```text
 ZhongWenHub.sln
 ├── src/
-│   ├── ZhongWenHub.Domain/            # Domain Entities, Enums, Constants (Không phụ thuộc EF/ASP.NET)
-│   ├── ZhongWenHub.Application/       # DTOs, Service Interfaces, Logic Abstractions
-│   ├── ZhongWenHub.Infrastructure/    # PostgreSQL EF DbContext, Identity, JWT, Token Service, Seeding
-│   └── ZhongWenHub.Api/               # Controllers, Middleware, Auth/Health Endpoints, OpenAPI/Swagger
+│   ├── Api/                           # ZhongWenHub.Api: Controllers, Middleware, Auth/Health Endpoints, OpenAPI/Swagger
+│   ├── Business/                      # ZhongWenHub.Business: Authentication, Services, Authorization Policies, DTOs
+│   └── Data/                          # ZhongWenHub.Data: PostgreSQL EF DbContext, Identity Entities, Migrations, Seeding
 ├── tests/
 │   ├── ZhongWenHub.UnitTests/         # Unit Tests (JWT, Token, Pagination, Policies)
 │   └── ZhongWenHub.IntegrationTests/  # Integration Tests (PostgreSQL, Identity, Login, Refresh, RBAC)
-├── docs/                              # Kiến trúc, Bảo mật, Ma trận phân quyền, Báo cáo BE-1
+├── docs/                              # Kiến trúc, Bảo mật, Ma trận phân quyền, Báo cáo
 ├── docker-compose.yml                 # PostgreSQL container orchestration
 ├── .env.example                       # Biến môi trường mẫu an toàn
 └── README.md
@@ -32,14 +31,14 @@ docker compose up -d
 Hoặc kết nối trực tiếp PostgreSQL cục bộ (port 5432).
 
 ## 4. Chạy Migrations
-Áp dụng InitialCreate migration vào PostgreSQL:
+Áp dụng migrations vào PostgreSQL:
 ```bash
-dotnet ef database update --project src/ZhongWenHub.Infrastructure --startup-project src/ZhongWenHub.Api
+dotnet ef database update --project src/Data/ZhongWenHub.Data.csproj --startup-project src/Api/ZhongWenHub.Api.csproj
 ```
 
 ## 5. Chạy API
 ```bash
-dotnet run --project src/ZhongWenHub.Api
+dotnet run --project src/Api/ZhongWenHub.Api.csproj
 ```
 Truy cập Swagger UI tại:
 * `http://localhost:5000/swagger` (hoặc cổng cấu hình)

@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Infrastructure.Persistence;
+using ZhongWenHub.Data.Persistence;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace ZhongWenHub.IntegrationTests;
 
