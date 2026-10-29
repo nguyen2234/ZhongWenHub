@@ -97,6 +97,13 @@ public static class DbInitializer
                     DisplayName: "Trần Minh Quân (Student)",
                     Role: RoleConstants.Student,
                     Password: "StudentPassword123!"
+                ),
+                (
+                    Email: "student@example.com",
+                    Username: "student_example",
+                    DisplayName: "Học Viên Mẫu (Student Example)",
+                    Role: RoleConstants.Student,
+                    Password: "ExamplePassword123!"
                 )
             };
 

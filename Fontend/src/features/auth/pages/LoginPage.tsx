@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { LoginForm } from '../components/LoginForm';
 import type { AuthUser } from '../types/auth.types';
+import type { UserRole } from '../../../types/roles';
+import { ROLE_DEFAULT_PATHS } from '../../../types/roles';
 
 export interface LoginPageProps {
   onSuccessLogin?: (user: AuthUser) => void;
@@ -13,14 +15,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onNavigate,
 }) => {
   const routerNavigate = useNavigate();
-  const handleNav = onNavigate ?? ((r) => routerNavigate(`/${r}`));
 
   const handleSuccess = (user: AuthUser) => {
     if (onSuccessLogin) {
       onSuccessLogin(user);
     }
-    handleNav('dashboard');
+    const role = (user.role || user.roles?.[0] || 'STUDENT') as UserRole;
+    const targetPath = ROLE_DEFAULT_PATHS[role] || '/dashboard';
+    if (onNavigate && !targetPath.startsWith('/management')) {
+      onNavigate('dashboard');
+    } else {
+      routerNavigate(targetPath);
+    }
   };
+
+  const handleNav = onNavigate ?? ((r) => routerNavigate(`/${r}`));
 
   return (
     <AuthLayout

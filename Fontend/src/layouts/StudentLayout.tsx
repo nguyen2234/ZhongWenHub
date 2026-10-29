@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
@@ -17,6 +18,7 @@ import { StudentSearchModal } from './components/StudentSearchModal';
 import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
+import { authService } from '../features/auth/services/authService';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -553,6 +555,38 @@ export const StudentLayout: React.FC = () => {
                 >
                   <ShieldCheck size={16} style={{ color: '#4338ca' }} />
                   <span>Cổng Quản trị hệ thống</span>
+                </button>
+
+                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+
+                {/* Logout Action */}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsAccountMenuOpen(false);
+                    await authService.logout();
+                    navigate('/login');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#e11d48',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fff1f2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <LogOut size={16} style={{ color: '#e11d48' }} />
+                  <span>Đăng xuất</span>
                 </button>
               </div>
             )}

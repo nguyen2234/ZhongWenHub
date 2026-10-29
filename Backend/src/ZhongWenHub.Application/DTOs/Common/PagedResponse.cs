@@ -4,6 +4,8 @@ public class PagedResponse<T>
 {
     public IReadOnlyList<T> Items { get; set; } = Array.Empty<T>();
     public int PageNumber { get; set; } = 1;
+    public int CurrentPage => PageNumber;
+    public int Page => PageNumber;
     public int PageSize { get; set; } = 20;
     public int TotalItems { get; set; }
     public int TotalPages => PageSize > 0 ? (int)Math.Ceiling((double)TotalItems / PageSize) : 0;

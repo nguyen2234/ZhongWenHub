@@ -20,7 +20,7 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
   // Role validation (ADMIN always possesses supreme system oversight)
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    const isRoleAllowed = session.role === 'ADMIN' || roles.includes(session.role);
+    const isRoleAllowed = session.role === 'SUPER_ADMIN' || session.role === 'ADMIN' || roles.includes(session.role);
     if (!isRoleAllowed) {
       const safePath = ROLE_DEFAULT_PATHS[session.role] || '/dashboard';
       return <Navigate to={safePath} replace />;

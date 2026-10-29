@@ -13,6 +13,13 @@ export interface ManagementSession {
 const STORAGE_KEY = 'zwh_management_session';
 
 const DEFAULT_SESSIONS: Record<UserRole, ManagementSession> = {
+  SUPER_ADMIN: {
+    id: 'usr-superadmin-01',
+    name: 'Hệ Thống Super Admin',
+    email: 'superadmin@zhongwenhub.edu.vn',
+    role: 'SUPER_ADMIN',
+    permissions: adminRolePermissionService.getRoleByCode('ADMIN')?.permissions || [],
+  },
   ADMIN: {
     id: 'usr-admin-01',
     name: 'Minh Anh (Admin)',
@@ -68,7 +75,8 @@ class ManagementAuthService {
           const parsed = JSON.parse(stored) as ManagementSession;
           if (parsed && parsed.role && DEFAULT_SESSIONS[parsed.role]) {
             // Re-sync permissions from catalog
-            const catalogPermissions = adminRolePermissionService.getRoleByCode(parsed.role)?.permissions || [];
+            const roleCode = parsed.role === 'SUPER_ADMIN' ? 'ADMIN' : parsed.role;
+            const catalogPermissions = adminRolePermissionService.getRoleByCode(roleCode)?.permissions || [];
             return {
               ...parsed,
               permissions: catalogPermissions.length > 0 ? catalogPermissions : parsed.permissions,
@@ -99,7 +107,8 @@ class ManagementAuthService {
   }
 
   public setSession(session: ManagementSession): void {
-    const catalogPermissions = adminRolePermissionService.getRoleByCode(session.role)?.permissions || [];
+    const roleCode = session.role === 'SUPER_ADMIN' ? 'ADMIN' : session.role;
+    const catalogPermissions = adminRolePermissionService.getRoleByCode(roleCode)?.permissions || [];
     this.currentSession = {
       ...session,
       permissions: catalogPermissions.length > 0 ? catalogPermissions : session.permissions,

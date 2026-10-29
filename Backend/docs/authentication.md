@@ -1,59 +1,120 @@
-# HỆ THỐNG XÁC THỰC BẢO MẬT (JWT & REFRESH TOKEN)
+# KIẾN TRÚC XÁC THỰC (AUTHENTICATION & TOKEN LIFECYCLE)
 
-## 1. Cơ Chế Xác Thực Kép (Dual-Token Pattern)
+**Dự án:** ZhongWenHub  
+**Chuẩn:** JWT (JSON Web Token) + Refresh Token Rotation + HttpOnly Cookie  
+**Mục tiêu bảo mật:** Zero Trust, XSS-resistant, Token-Reuse Proof, RFC 7807 Problem Details.
 
-Hệ thống bảo vệ tài nguyên bằng mô hình Access Token ngắn hạn kết hợp Refresh Token xoay vòng (Token Rotation) an toàn cao:
+---
 
+## 1. LUỒNG XÁC THỰC ĐĂNG NHẬP (LOGIN FLOW)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Người dùng
+    participant FE as React Frontend
+    participant API as AuthController (/login)
+    participant Auth as AuthService
+    participant DB as PostgreSQL (users, refresh_tokens)
+
+    User->>FE: Nhập Email và Mật khẩu
+    FE->>API: POST /api/v1/auth/login { email, password, rememberMe }
+    API->>Auth: LoginAsync(request, ip, userAgent)
+    Auth->>DB: Tìm người dùng theo Email/Username
+    alt Người dùng không tồn tại hoặc bị xóa
+        Auth-->>API: 401 Unauthorized (ProblemDetails: Sai tài khoản hoặc mật khẩu)
+        API-->>FE: 401 Unauthorized
+    else Tài khoản bị khóa (Status == LOCKED / SUSPENDED)
+        Auth-->>API: 403 Forbidden (ProblemDetails: Tài khoản bị khóa kèm lý do)
+        API-->>FE: 403 Forbidden
+    else Sai mật khẩu
+        Auth->>DB: Tăng AccessFailedCount, kiểm tra lockout
+        Auth-->>API: 401 Unauthorized (ProblemDetails: Sai tài khoản hoặc mật khẩu)
+        API-->>FE: 401 Unauthorized
+    else Xác thực thành công
+        Auth->>Auth: Reset AccessFailedCount, cập nhật LastLoginAt
+        Auth->>Auth: Sinh Access Token (15 phút) & Refresh Token (7 hoặc 30 ngày)
+        Auth->>DB: Lưu SHA-256 hash của Refresh Token
+        Auth->>DB: Ghi AuthAuditRecord (LOGIN_SUCCESS)
+        Auth-->>API: AuthResult (AccessToken, UserDto, RawRefreshToken, Expiry)
+        API->>FE: Set-Cookie: refreshToken=...; HttpOnly; Path=/api/v1/auth
+        API-->>FE: HTTP 200 OK { accessToken, expiresIn, tokenType, user }
+    end
+    FE->>FE: Lưu Access Token trong Memory (Runtime)
+    FE->>FE: Điều hướng tới Portal tương ứng với Vai trò
 ```
-[Client] ─── (1) POST /api/v1/auth/login ─────────────► [API Server]
-         ◄── (2) 200 OK + AccessToken (Body) ─────────
-                 + Set-Cookie: refreshToken (HttpOnly)
 
-[Client] ─── (3) GET /api/v1/auth/me (Bearer Token) ──► [API Server]
-         ◄── (4) 200 OK + User Profile ───────────────
+---
 
-[Client] ─── (5) POST /api/v1/auth/refresh (Cookie) ──► [API Server]
-         ◄── (6) 200 OK + New AccessToken ────────────
-                 + Set-Cookie: newRefreshToken (Rotated)
-```
+## 2. VÒNG ĐỜI VÀ XOAY VÒNG TOKEN (REFRESH TOKEN ROTATION)
 
-## 2. Thông Số Kỹ Thuật Access Token
-- **Thuật toán:** HMAC-SHA256 (`HS256`).
-- **Thời hạn (TTL):** 15 phút (mặc định cấu hình qua `JwtSettings:AccessTokenExpirationMinutes`).
-- **Nội dung Claims:**
-  - `sub`: Định danh người dùng (User UUID).
-  - `email`: Địa chỉ email.
-  - `name`: Tên hiển thị (`DisplayName`).
-  - `username`: Tên đăng nhập.
-  - `roles` & `http://schemas.microsoft.com/ws/2008/06/identity/claims/role`: Danh sách vai trò người dùng.
-  - `status`: Trạng thái kích hoạt tài khoản (`ACTIVE`).
-  - `jti`: UUID ngẫu nhiên định danh phiên bản token.
-  - `iss`: `"ZhongWenHub"`.
-  - `aud`: `"ZhongWenHub-Client"`.
-- **Lưu trữ phía Frontend:** Khuyến nghị lưu trong Javascript memory (không lưu trong `localStorage`).
+1. **Access Token:**
+   - Thời hạn: 15 phút (900 giây).
+   - Lưu trữ: Hoàn toàn trong RAM (JavaScript Memory) của ứng dụng Frontend.
+   - Truyền tải: Header `Authorization: Bearer <accessToken>`.
+   - Chứa các Claims: `nameid` (UserId), `email`, `unique_name`, `username`, `status`, `role` (các vai trò).
 
-## 3. Thông Số Kỹ Thuật Refresh Token
-- **Tạo sinh:** Bộ sinh số ngẫu nhiên chuẩn mật mã (`RandomNumberGenerator.Create()`) tạo 64-byte payload, mã hóa URL-safe base64.
-- **Lưu trữ Database:** **Chỉ lưu chuỗi băm SHA-256** dạng hex (64 ký tự) vào bảng `refresh_tokens`, tuyệt đối không lưu plain text.
-- **Thời hạn:**
-  - Thông thường: 7 ngày.
-  - Khi bật `rememberMe: true`: 30 ngày.
-- **Vận chuyển:**
-  - Qua `HttpOnly` Cookie nhằm ngăn chặn hoàn toàn tấn công XSS đánh cắp token.
-  - Cookie flags: `HttpOnly = true`, `Secure = true` (khi chạy HTTPS), `SameSite = Lax`, `Path = /api/v1/auth`.
+2. **Refresh Token:**
+   - Thời hạn: 7 ngày (mặc định) hoặc 30 ngày (khi chọn "Ghi nhớ đăng nhập").
+   - Lưu trữ phía Client: **Chỉ duy nhất trong HttpOnly Cookie** (`refreshToken`).
+   - Lưu trữ phía Server: **Chỉ lưu chuỗi băm SHA-256** tại bảng `refresh_tokens`.
+   - Cơ chế xoay vòng: Mỗi lần gọi `POST /api/v1/auth/refresh`, token cũ lập tức bị thu hồi (`RevokedAt = DateTime.UtcNow`, gán `ReplacedByTokenHash`) và một token mới được sinh ra và gửi lại qua Cookie.
 
-## 4. Cơ Chế Xoay Vòng & Phát Hiện Tấn Công Dùng Lại (Token Rotation & Reuse Detection)
-1. **Xoay vòng:** Mỗi lần gọi `/api/v1/auth/refresh` thành công:
-   - Refresh token cũ lập tức được đánh dấu `RevokedAt = DateTime.UtcNow`, ghi nhận lý do `"Đã xoay vòng token (Rotated)"` và liên kết `ReplacedByTokenHash = newTokenHash`.
-   - Một cặp token mới được cấp phát và thay thế cookie phía client.
-2. **Phát hiện tái sử dụng (Reuse Detection):**
-   - Nếu một refresh token đã bị thu hồi (`IsRevoked == true`) được gửi lên máy chủ:
-   - Hệ thống xác định đây là hành vi sao chép / chiếm đoạt token (Replay Attack).
-   - **Biện pháp khẩn cấp:** Ngay lập tức thu hồi **toàn bộ** các refresh token đang hoạt động của người dùng đó.
-   - Ghi bản ghi kiểm toán bảo mật mức độ cao (`REFRESH_REUSE_DETECTED`).
-   - Trả về mã lỗi HTTP 401 Problem Details buộc tất cả các thiết bị phải đăng nhập lại.
+3. **Phát hiện tấn công Token Reuse:**
+   - Nếu một token đã từng bị xoay vòng (đã có `RevokedAt`) được gửi lên lần thứ hai, hệ thống xác định có kẻ tấn công đã sao chép được token.
+   - Hệ thống ngay lập tức thu hồi **tất cả** các phiên đang hoạt động của người dùng đó (`Revoke(reason: "Reuse Attack")`), ghi log cảnh báo và trả về HTTP 401.
 
-## 5. Đăng Xuất (Logout)
-- Endpoint: `POST /api/v1/auth/logout`.
-- Đánh dấu thu hồi token trong cơ sở dữ liệu (`RevokedAt`, `RevocationReason = "Đăng xuất bởi người dùng"`).
-- Xóa cookie `refreshToken` trên trình duyệt bằng cách thiết lập giá trị rỗng và thời gian hết hạn trong quá khứ.
+---
+
+## 3. DANH SÁCH ENDPOINTS XÁC THỰC
+
+### 3.1. Đăng nhập
+- **Method:** `POST`
+- **Endpoint:** `/api/v1/auth/login`
+- **Quyền:** Public (`[AllowAnonymous]`)
+- **Request Body:**
+  ```json
+  {
+    "email": "student@example.com",
+    "password": "ExamplePassword123!",
+    "rememberMe": true
+  }
+  ```
+- **Response 200 OK:**
+  ```json
+  {
+    "accessToken": "eyJhbGciOi...",
+    "expiresIn": 900,
+    "tokenType": "Bearer",
+    "user": {
+      "id": "19594c13-fe6c-4c51-b223-08e3aaf66786",
+      "username": "student_example",
+      "email": "student@example.com",
+      "displayName": "Học Viên Mẫu (Student Example)",
+      "roles": ["STUDENT"],
+      "status": "ACTIVE",
+      "createdAt": "2026-10-29T15:14:39Z",
+      "lastLoginAt": "2026-10-29T15:15:10Z"
+    },
+    "refreshTokenExpiry": "2026-11-28T15:15:10Z"
+  }
+  ```
+  *Kèm header `Set-Cookie: refreshToken=...; Path=/api/v1/auth; HttpOnly; SameSite=Lax`.*
+
+### 3.2. Làm mới phiên đăng nhập (Refresh Token)
+- **Method:** `POST`
+- **Endpoint:** `/api/v1/auth/refresh` (hoặc `/api/v1/auth/refresh-token`)
+- **Quyền:** Public (đọc token từ Cookie)
+- **Response 200 OK:** Cấp Access Token mới và cập nhật Refresh Token Cookie mới.
+
+### 3.3. Đăng xuất (Logout)
+- **Method:** `POST`
+- **Endpoint:** `/api/v1/auth/logout`
+- **Quyền:** Public / Authenticated
+- **Thực hiện:** Thu hồi Refresh Token hiện tại trên cơ sở dữ liệu, xóa cookie khỏi trình duyệt và làm sạch session.
+
+### 3.4. Lấy thông tin tài khoản hiện tại (/me)
+- **Method:** `GET`
+- **Endpoint:** `/api/v1/auth/me`
+- **Quyền:** Bắt buộc có Access Token hợp lệ (`[Authorize]`)
+- **Response 200 OK:** `UserDto` chứa đầy đủ thông tin tài khoản, danh sách vai trò và trạng thái.

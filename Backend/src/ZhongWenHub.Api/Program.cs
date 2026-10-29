@@ -86,8 +86,8 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Seed Database on startup if in Development or Staging
-if (app.Environment.IsDevelopment())
+// Seed Database and apply pending migrations on startup
+if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
