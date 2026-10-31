@@ -76,7 +76,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     <aside
       className={`student-sidebar-container ${className}`.trim()}
       style={{
-        width: isCollapsed ? '72px' : '256px',
+        width: isCollapsed ? 'var(--student-sidebar-collapsed-width, 72px)' : 'var(--student-sidebar-width, 256px)',
         height: '100%',
         minHeight: 0,
         backgroundColor: '#ffffff',

@@ -142,7 +142,7 @@ export const StudentLayout: React.FC = () => {
             justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
             gap: '10px',
             padding: isSidebarCollapsed ? '0 10px' : '0 16px',
-            width: isSidebarCollapsed ? '72px' : '256px',
+            width: isSidebarCollapsed ? 'var(--student-sidebar-collapsed-width, 72px)' : 'var(--student-sidebar-width, 256px)',
             borderRight: '1.5px solid #f1f5f9',
             flexShrink: 0,
             boxSizing: 'border-box',
@@ -790,7 +790,7 @@ export const StudentLayout: React.FC = () => {
 
       {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (max-width: 1024px) {
+        @media (max-width: 1023px) {
           .desktop-sidebar-wrapper {
             display: none !important;
           }
