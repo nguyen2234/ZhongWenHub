@@ -163,4 +163,46 @@ test.describe('Fluid Responsive Layout Acceptance Suite', () => {
     await page.screenshot({ path: 'screenshots/fluid-practice-1366x768.png', fullPage: false });
   });
 
+  test('Sidebar Navigation: "Phát âm" removed from KỸ NĂNG, "Luyện nói" preserved & functional', async ({ page }) => {
+    // 1. Verify on Desktop 1440px
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/ZhongWenHub/dashboard');
+    await page.waitForLoadState('networkidle');
+
+    const sidebar = page.locator('.desktop-sidebar-wrapper');
+    await expect(sidebar).toBeVisible();
+
+    // Verify "Phát âm" is strictly absent from the sidebar
+    const pronunciationItem = sidebar.locator('text="Phát âm"');
+    await expect(pronunciationItem).toHaveCount(0);
+
+    // Verify "Luyện nói" is present under KỸ NĂNG
+    const speakingItem = sidebar.locator('button', { hasText: 'Luyện nói' });
+    await expect(speakingItem).toBeVisible();
+
+    // Verify all 4 required skill items exist in KỸ NĂNG
+    await expect(sidebar.locator('button', { hasText: 'Luyện nghe' })).toBeVisible();
+    await expect(sidebar.locator('button', { hasText: 'Luyện nói' })).toBeVisible();
+    await expect(sidebar.locator('button', { hasText: 'Đọc hiểu' })).toBeVisible();
+    await expect(sidebar.locator('button', { hasText: 'Luyện viết' })).toBeVisible();
+
+    // Click "Luyện nói" and verify it navigates cleanly to Speaking / Pronunciation page
+    await speakingItem.click();
+    await page.waitForLoadState('networkidle');
+    expect(page.url()).toContain('/skills/speaking');
+    await expect(page.locator('text=LUYỆN KỸ NĂNG NÓI & PHÁT ÂM')).toBeVisible();
+
+    // Take screenshot of speaking page
+    await page.screenshot({ path: 'screenshots/sidebar-speaking-preserved-desktop.png', fullPage: false });
+
+    // 2. Verify on Laptop 1366px
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/ZhongWenHub/dashboard');
+    await page.waitForLoadState('networkidle');
+    const laptopSidebar = page.locator('.desktop-sidebar-wrapper');
+    await expect(laptopSidebar).toBeVisible();
+    await expect(laptopSidebar.locator('text="Phát âm"')).toHaveCount(0);
+    await expect(laptopSidebar.locator('button', { hasText: 'Luyện nói' })).toBeVisible();
+  });
+
 });
