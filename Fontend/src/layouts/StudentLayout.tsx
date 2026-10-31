@@ -631,6 +631,7 @@ export const StudentLayout: React.FC = () => {
             height: 'calc(100dvh - var(--app-header-height))',
             maxHeight: 'calc(100dvh - var(--app-header-height))',
             flexShrink: 0,
+            alignSelf: 'flex-start',
             zIndex: 'var(--z-sidebar)',
             display: 'flex',
             flexDirection: 'column',

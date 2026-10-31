@@ -134,6 +134,13 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         matchPrefixes: ['/mock-exams'],
       },
       {
+        id: 'games',
+        path: '/games',
+        label: 'Trò chơi học tập',
+        icon: Gamepad2,
+        matchPrefixes: ['/games'],
+      },
+      {
         id: 'videos',
         path: '/videos',
         label: 'Học qua video',
