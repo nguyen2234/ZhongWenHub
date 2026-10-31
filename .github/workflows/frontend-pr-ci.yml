@@ -1,4 +1,4 @@
-﻿name: Frontend Pull Request CI
+name: Frontend Pull Request CI
 
 on:
   pull_request:
@@ -51,5 +51,7 @@ jobs:
         if: failure()
         with:
           name: playwright-report
-          path: Fontend/playwright-report/
+          path: |
+            Fontend/playwright-report/
+            Fontend/test-results/
           retention-days: 14

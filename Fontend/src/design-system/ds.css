@@ -57,25 +57,49 @@ textarea {
 }
 
 /* ==========================================================================
-   STUDENT LAYOUT & CONTAINER SYSTEM (FE-5.6 Centered Layout & Consistent Spacing)
+   STUDENT LAYOUT & CONTAINER SYSTEM (Fluid Responsive Layout System)
    ========================================================================== */
+:root {
+  --student-sidebar-width: 256px;
+  --student-sidebar-collapsed-width: 72px;
+}
+
+@media (max-width: 1366px) {
+  :root {
+    --student-sidebar-width: 232px;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --student-sidebar-width: 216px;
+  }
+}
+
+.student-main-viewport {
+  container-type: inline-size;
+  container-name: student-viewport;
+}
+
 .student-content-container {
   width: 100%;
   max-width: 1360px;
   margin-inline: auto;
-  padding: 24px 28px 48px;
+  padding: clamp(18px, 2vw, 24px) clamp(16px, 2vw, 28px) 48px;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: student-container;
 }
 
 @media (max-width: 1024px) {
   .student-content-container {
-    padding: 20px 20px 36px;
+    padding: 16px 16px 36px;
   }
 }
 
 @media (max-width: 640px) {
   .student-content-container {
-    padding: 16px 14px 28px;
+    padding: 14px 12px 28px;
   }
 }
 
