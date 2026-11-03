@@ -1,0 +1,799 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using ZhongWenHub.Business.Learning.DTOs;
+using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Data.Persistence;
+
+namespace ZhongWenHub.Business.Learning;
+
+public class LearningService : ILearningService
+{
+    private readonly ApplicationDbContext _context;
+
+    public LearningService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    private static string GetLocalDateString(DateTime? utc = null)
+    {
+        var time = (utc ?? DateTime.UtcNow).AddHours(7); // Vietnam UTC+7
+        return time.ToString("yyyy-MM-dd");
+    }
+
+    private static string GetYesterdayDateString(DateTime? utc = null)
+    {
+        var time = (utc ?? DateTime.UtcNow).AddHours(7).AddDays(-1);
+        return time.ToString("yyyy-MM-dd");
+    }
+
+    private async Task<StudentLearningProfile> GetOrCreateProfileAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var profile = await _context.StudentLearningProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+        if (profile == null)
+        {
+            profile = new StudentLearningProfile
+            {
+                UserId = userId,
+                SelectedHskLevel = 1,
+                CurrentLessonId = "les-1",
+                XpTotal = 0,
+                StreakDays = 0,
+                LastActivityDate = string.Empty,
+                TargetDailyMinutes = 30,
+                TargetDailyXp = 50
+            };
+            _context.StudentLearningProfiles.Add(profile);
+
+            // Also initialize first lesson progress
+            var firstLesson = new StudentLessonProgress
+            {
+                UserId = userId,
+                LessonId = "les-1",
+                Status = "NOT_STARTED",
+                CurrentStepIndex = 0,
+                MaxUnlockedStepIndex = 0,
+                QuizScore = 0,
+                TotalQuizQuestions = 5,
+                XpEarned = 0
+            };
+            _context.StudentLessonProgresses.Add(firstLesson);
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return profile;
+    }
+
+    private static void UpdateStreak(StudentLearningProfile profile, string todayStr, string yesterdayStr)
+    {
+        if (profile.StreakDays == 0 || string.IsNullOrEmpty(profile.LastActivityDate))
+        {
+            profile.StreakDays = 1;
+            profile.LastActivityDate = todayStr;
+            return;
+        }
+
+        if (profile.LastActivityDate == todayStr)
+        {
+            // Already active today; streak stays same
+            return;
+        }
+
+        if (profile.LastActivityDate == yesterdayStr)
+        {
+            profile.StreakDays += 1;
+        }
+        else
+        {
+            // Reset to 1 upon restarting
+            profile.StreakDays = 1;
+        }
+
+        profile.LastActivityDate = todayStr;
+    }
+
+    private async Task<StudentDailyActivity> GetOrCreateDailyActivityAsync(Guid userId, string dateStr, CancellationToken cancellationToken)
+    {
+        var activity = _context.StudentDailyActivities.Local
+            .FirstOrDefault(a => a.UserId == userId && a.ActivityDate == dateStr)
+            ?? await _context.StudentDailyActivities
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.ActivityDate == dateStr, cancellationToken);
+
+        if (activity == null)
+        {
+            activity = new StudentDailyActivity
+            {
+                UserId = userId,
+                ActivityDate = dateStr,
+                Minutes = 0,
+                XpEarned = 0,
+                CompletedLessonsJson = "[]",
+                ExercisesCompleted = 0,
+                ReviewsCompleted = 0
+            };
+            _context.StudentDailyActivities.Add(activity);
+        }
+
+        return activity;
+    }
+
+    private async Task<int> AwardIdempotentXpAsync(
+        StudentLearningProfile profile,
+        string eventId,
+        int amount,
+        string source,
+        string? description,
+        string todayStr,
+        CancellationToken cancellationToken)
+    {
+        if (amount <= 0) return 0;
+
+        var exists = await _context.StudentXpTransactions
+            .AnyAsync(x => x.UserId == profile.UserId && x.EventId == eventId, cancellationToken);
+
+        if (exists)
+        {
+            return 0;
+        }
+
+        var tx = new StudentXpTransaction
+        {
+            UserId = profile.UserId,
+            EventId = eventId,
+            Amount = amount,
+            Source = source,
+            Description = description
+        };
+        _context.StudentXpTransactions.Add(tx);
+
+        profile.XpTotal += amount;
+
+        var daily = await GetOrCreateDailyActivityAsync(profile.UserId, todayStr, cancellationToken);
+        daily.XpEarned += amount;
+
+        return amount;
+    }
+
+    public async Task<StudentLearningStateDto> GetStudentLearningStateAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+
+        var lessons = await _context.StudentLessonProgresses
+            .Where(l => l.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        var attempts = await _context.StudentPracticeAttempts
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(100)
+            .ToListAsync(cancellationToken);
+
+        var vocabularies = await _context.StudentVocabularyProgresses
+            .Where(v => v.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        var activities = await _context.StudentDailyActivities
+            .Where(a => a.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        var rewardedEvents = await _context.StudentXpTransactions
+            .Where(x => x.UserId == userId)
+            .Select(x => x.EventId)
+            .ToListAsync(cancellationToken);
+
+        var todayStr = GetLocalDateString();
+
+        var state = new StudentLearningStateDto
+        {
+            SchemaVersion = 1,
+            StudentId = userId.ToString(),
+            SelectedHskLevel = profile.SelectedHskLevel,
+            CurrentLessonId = profile.CurrentLessonId,
+            CompletedLessonIds = lessons.Where(l => l.Status == "COMPLETED").Select(l => l.LessonId).Distinct().ToList(),
+            XpTotal = profile.XpTotal,
+            StreakDays = profile.StreakDays,
+            LastActivityDate = profile.LastActivityDate,
+            DailyGoal = new DailyGoalDto
+            {
+                TargetMinutes = profile.TargetDailyMinutes,
+                TargetXp = profile.TargetDailyXp
+            },
+            RewardedEventIds = rewardedEvents
+        };
+
+        foreach (var l in lessons)
+        {
+            state.LessonProgress[l.LessonId] = new LessonProgressDto
+            {
+                LessonId = l.LessonId,
+                UserId = userId.ToString(),
+                Status = l.Status,
+                CurrentStepIndex = l.CurrentStepIndex,
+                MaxUnlockedStepIndex = l.MaxUnlockedStepIndex,
+                QuizScore = l.QuizScore,
+                TotalQuizQuestions = l.TotalQuizQuestions,
+                XpEarned = l.XpEarned,
+                CompletedAt = l.CompletedAt?.ToString("o"),
+                UpdatedAt = (l.UpdatedAt ?? l.CreatedAt).ToString("o")
+            };
+        }
+
+        foreach (var a in attempts)
+        {
+            state.ExerciseAttempts.Add(new PracticeAttemptDto
+            {
+                Id = a.Id.ToString(),
+                StudentId = userId.ToString(),
+                ExerciseId = a.ExerciseId,
+                QuestionId = a.QuestionId,
+                KnowledgePointId = a.KnowledgePointId,
+                TopicTitle = a.TopicTitle,
+                Category = a.Category,
+                HskLevel = a.HskLevel,
+                UserAnswer = a.UserAnswer,
+                IsCorrect = a.IsCorrect,
+                AttemptedAt = a.AttemptedAt.ToString("o")
+            });
+        }
+
+        foreach (var v in vocabularies)
+        {
+            var nextReviewStr = GetLocalDateString(v.NextReviewAt);
+            state.UserVocabStates[v.VocabularyId] = new UserVocabularyStateDto
+            {
+                VocabularyId = v.VocabularyId,
+                Status = v.Status,
+                FirstLearnedAt = GetLocalDateString(v.FirstLearnedAt),
+                LastReviewedAt = GetLocalDateString(v.LastReviewedAt),
+                NextReviewAt = nextReviewStr,
+                ReviewCount = v.ReviewCount,
+                CorrectCount = v.CorrectCount,
+                IsDueToday = nextReviewStr.CompareTo(todayStr) <= 0
+            };
+
+            state.UserSrsStates[v.VocabularyId] = new SrsStateDto
+            {
+                VocabularyId = v.VocabularyId,
+                Stability = v.Stability,
+                Difficulty = v.Difficulty,
+                Interval = v.IntervalDays,
+                Repetitions = v.Repetitions,
+                EaseFactor = v.EaseFactor
+            };
+        }
+
+        foreach (var act in activities)
+        {
+            List<string> completedList;
+            try
+            {
+                completedList = JsonSerializer.Deserialize<List<string>>(act.CompletedLessonsJson) ?? new List<string>();
+            }
+            catch
+            {
+                completedList = new List<string>();
+            }
+
+            state.DailyActivityHistory[act.ActivityDate] = new DailyActivityDto
+            {
+                Date = act.ActivityDate,
+                Minutes = act.Minutes,
+                XpEarned = act.XpEarned,
+                CompletedLessons = completedList,
+                ExercisesCompleted = act.ExercisesCompleted,
+                ReviewsCompleted = act.ReviewsCompleted
+            };
+        }
+
+        // Calculate Weak Knowledge
+        state.WeakKnowledgePoints = CalculateWeakKnowledge(attempts);
+
+        return state;
+    }
+
+    private static List<WeakKnowledgeDto> CalculateWeakKnowledge(List<StudentPracticeAttempt> attempts)
+    {
+        var grouped = attempts
+            .GroupBy(a => new { a.KnowledgePointId, a.TopicTitle, a.Category, a.HskLevel })
+            .Select(g =>
+            {
+                var total = g.Count();
+                var correct = g.Count(x => x.IsCorrect);
+                var incorrect = total - correct;
+                var accuracy = total > 0 ? (double)correct / total * 100 : 0;
+
+                string masteryLevel;
+                if (total < 2) masteryLevel = "INSUFFICIENT_DATA";
+                else if (accuracy >= 80) masteryLevel = "MASTERED";
+                else if (accuracy >= 60) masteryLevel = "RECOVERING";
+                else masteryLevel = "WEAK";
+
+                return new WeakKnowledgeDto
+                {
+                    Id = $"wk-{g.Key.KnowledgePointId}",
+                    KnowledgePointId = g.Key.KnowledgePointId,
+                    TopicTitle = g.Key.TopicTitle,
+                    Category = g.Key.Category,
+                    HskLevel = g.Key.HskLevel,
+                    TotalAttempts = total,
+                    CorrectAttempts = correct,
+                    IncorrectAttempts = incorrect,
+                    Accuracy = Math.Round(accuracy, 1),
+                    MasteryLevel = masteryLevel,
+                    Trend = "improving",
+                    Evidence = $"Độ chính xác {Math.Round(accuracy, 0)}% qua {total} lượt làm bài",
+                    LastEvaluatedAt = DateTime.UtcNow.ToString("o"),
+                    SuggestedPractice = new WeakKnowledgeSuggestedPracticeDto
+                    {
+                        Title = $"Luyện tập {g.Key.TopicTitle}",
+                        Route = $"/practice/grammar/{g.Key.KnowledgePointId}",
+                        ExerciseIds = g.Select(x => x.ExerciseId).Distinct().Take(5).ToList()
+                    }
+                };
+            })
+            .Where(w => w.MasteryLevel == "WEAK" || w.MasteryLevel == "RECOVERING")
+            .ToList();
+
+        return grouped;
+    }
+
+    public async Task<StudentLearningStateDto> UpdatePreferencesAsync(Guid userId, UpdateLearningPreferencesDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+
+        if (dto.SelectedHskLevel.HasValue && dto.SelectedHskLevel.Value >= 1 && dto.SelectedHskLevel.Value <= 9)
+        {
+            profile.SelectedHskLevel = dto.SelectedHskLevel.Value;
+        }
+
+        if (dto.TargetDailyMinutes.HasValue && dto.TargetDailyMinutes.Value > 0)
+        {
+            profile.TargetDailyMinutes = dto.TargetDailyMinutes.Value;
+        }
+
+        if (dto.TargetDailyXp.HasValue && dto.TargetDailyXp.Value > 0)
+        {
+            profile.TargetDailyXp = dto.TargetDailyXp.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.CurrentLessonId))
+        {
+            profile.CurrentLessonId = dto.CurrentLessonId;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<List<LessonProgressDto>> GetLessonProgressesAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var lessons = await _context.StudentLessonProgresses
+            .Where(l => l.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        return lessons.Select(l => new LessonProgressDto
+        {
+            LessonId = l.LessonId,
+            UserId = userId.ToString(),
+            Status = l.Status,
+            CurrentStepIndex = l.CurrentStepIndex,
+            MaxUnlockedStepIndex = l.MaxUnlockedStepIndex,
+            QuizScore = l.QuizScore,
+            TotalQuizQuestions = l.TotalQuizQuestions,
+            XpEarned = l.XpEarned,
+            CompletedAt = l.CompletedAt?.ToString("o"),
+            UpdatedAt = (l.UpdatedAt ?? l.CreatedAt).ToString("o")
+        }).ToList();
+    }
+
+    public async Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var lesson = _context.StudentLessonProgresses.Local
+            .FirstOrDefault(l => l.UserId == userId && l.LessonId == lessonId)
+            ?? await _context.StudentLessonProgresses
+                .FirstOrDefaultAsync(l => l.UserId == userId && l.LessonId == lessonId, cancellationToken);
+
+        if (lesson == null)
+        {
+            lesson = new StudentLessonProgress
+            {
+                UserId = userId,
+                LessonId = lessonId,
+                Status = "IN_PROGRESS",
+                CurrentStepIndex = dto.CurrentStepIndex,
+                MaxUnlockedStepIndex = Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex)
+            };
+            _context.StudentLessonProgresses.Add(lesson);
+        }
+        else
+        {
+            if (lesson.Status == "NOT_STARTED") lesson.Status = "IN_PROGRESS";
+            lesson.CurrentStepIndex = dto.CurrentStepIndex;
+            lesson.MaxUnlockedStepIndex = Math.Max(lesson.MaxUnlockedStepIndex,
+                Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex));
+        }
+
+        profile.CurrentLessonId = lessonId;
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.Minutes += 1;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return new LessonProgressDto
+        {
+            LessonId = lesson.LessonId,
+            UserId = userId.ToString(),
+            Status = lesson.Status,
+            CurrentStepIndex = lesson.CurrentStepIndex,
+            MaxUnlockedStepIndex = lesson.MaxUnlockedStepIndex,
+            QuizScore = lesson.QuizScore,
+            TotalQuizQuestions = lesson.TotalQuizQuestions,
+            XpEarned = lesson.XpEarned,
+            CompletedAt = lesson.CompletedAt?.ToString("o"),
+            UpdatedAt = (lesson.UpdatedAt ?? lesson.CreatedAt).ToString("o")
+        };
+    }
+
+    public async Task<StudentLearningStateDto> CompleteLessonAsync(Guid userId, string lessonId, CompleteLessonDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var lesson = _context.StudentLessonProgresses.Local
+            .FirstOrDefault(l => l.UserId == userId && l.LessonId == lessonId)
+            ?? await _context.StudentLessonProgresses
+                .FirstOrDefaultAsync(l => l.UserId == userId && l.LessonId == lessonId, cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var xpAmount = dto.XpEarned > 0 ? dto.XpEarned : 100;
+
+        if (lesson == null)
+        {
+            lesson = new StudentLessonProgress
+            {
+                UserId = userId,
+                LessonId = lessonId,
+                Status = "COMPLETED",
+                CurrentStepIndex = 5,
+                MaxUnlockedStepIndex = 5,
+                QuizScore = dto.QuizScore,
+                TotalQuizQuestions = dto.TotalQuizQuestions,
+                XpEarned = xpAmount,
+                CompletedAt = now
+            };
+            _context.StudentLessonProgresses.Add(lesson);
+        }
+        else
+        {
+            lesson.Status = "COMPLETED";
+            lesson.CurrentStepIndex = 5;
+            lesson.MaxUnlockedStepIndex = 5;
+            lesson.QuizScore = dto.QuizScore;
+            lesson.TotalQuizQuestions = dto.TotalQuizQuestions;
+            lesson.XpEarned = xpAmount;
+            lesson.CompletedAt = now;
+        }
+
+        // Award XP idempotently
+        var eventId = $"lesson_complete_{lessonId}";
+        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "LESSON_COMPLETION", $"Hoàn thành bài học {lessonId}", todayStr, cancellationToken);
+
+        // Update streak
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        // Update daily activity
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.Minutes += 15;
+
+        List<string> completedLessons;
+        try
+        {
+            completedLessons = JsonSerializer.Deserialize<List<string>>(daily.CompletedLessonsJson) ?? new List<string>();
+        }
+        catch
+        {
+            completedLessons = new List<string>();
+        }
+        if (!completedLessons.Contains(lessonId))
+        {
+            completedLessons.Add(lessonId);
+            daily.CompletedLessonsJson = JsonSerializer.Serialize(completedLessons);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<Dictionary<string, DailyActivityDto>> GetDailyActivitiesAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var activities = await _context.StudentDailyActivities
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.ActivityDate)
+            .Take(30)
+            .ToListAsync(cancellationToken);
+
+        var result = new Dictionary<string, DailyActivityDto>();
+        foreach (var act in activities)
+        {
+            List<string> completedList;
+            try
+            {
+                completedList = JsonSerializer.Deserialize<List<string>>(act.CompletedLessonsJson) ?? new List<string>();
+            }
+            catch
+            {
+                completedList = new List<string>();
+            }
+
+            result[act.ActivityDate] = new DailyActivityDto
+            {
+                Date = act.ActivityDate,
+                Minutes = act.Minutes,
+                XpEarned = act.XpEarned,
+                CompletedLessons = completedList,
+                ExercisesCompleted = act.ExercisesCompleted,
+                ReviewsCompleted = act.ReviewsCompleted
+            };
+        }
+
+        return result;
+    }
+
+    public async Task<StudentLearningStateDto> RecordPracticeAttemptAsync(Guid userId, RecordPracticeAttemptDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var attempt = new StudentPracticeAttempt
+        {
+            UserId = userId,
+            ExerciseId = dto.ExerciseId,
+            QuestionId = dto.QuestionId,
+            KnowledgePointId = dto.KnowledgePointId,
+            TopicTitle = dto.TopicTitle,
+            Category = dto.Category,
+            HskLevel = dto.HskLevel,
+            UserAnswer = dto.UserAnswer,
+            IsCorrect = dto.IsCorrect,
+            AttemptedAt = DateTime.UtcNow
+        };
+        _context.StudentPracticeAttempts.Add(attempt);
+
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.ExercisesCompleted += 1;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<StudentLearningStateDto> RecordPracticeSessionAsync(Guid userId, PracticeSessionResultDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var eventId = $"practice_session_{dto.SessionId}";
+        var xpAmount = dto.XpEarned > 0 ? dto.XpEarned : 20;
+
+        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "PRACTICE_SESSION", $"Luyện tập {dto.SessionId}", todayStr, cancellationToken);
+
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.ExercisesCompleted += dto.TotalQuestions;
+        daily.Minutes += Math.Max(2, (int)Math.Round((double)dto.TimeSpentSeconds / 60));
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<Dictionary<string, UserVocabularyStateDto>> GetVocabularyProgressAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var vocabularies = await _context.StudentVocabularyProgresses
+            .Where(v => v.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        var todayStr = GetLocalDateString();
+        var result = new Dictionary<string, UserVocabularyStateDto>();
+
+        foreach (var v in vocabularies)
+        {
+            var nextReviewStr = GetLocalDateString(v.NextReviewAt);
+            result[v.VocabularyId] = new UserVocabularyStateDto
+            {
+                VocabularyId = v.VocabularyId,
+                Status = v.Status,
+                FirstLearnedAt = GetLocalDateString(v.FirstLearnedAt),
+                LastReviewedAt = GetLocalDateString(v.LastReviewedAt),
+                NextReviewAt = nextReviewStr,
+                ReviewCount = v.ReviewCount,
+                CorrectCount = v.CorrectCount,
+                IsDueToday = nextReviewStr.CompareTo(todayStr) <= 0
+            };
+        }
+
+        return result;
+    }
+
+    public async Task<StudentLearningStateDto> RecordSrsReviewAsync(Guid userId, SrsReviewRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var vocab = _context.StudentVocabularyProgresses.Local
+            .FirstOrDefault(v => v.UserId == userId && v.VocabularyId == dto.VocabularyId)
+            ?? await _context.StudentVocabularyProgresses
+                .FirstOrDefaultAsync(v => v.UserId == userId && v.VocabularyId == dto.VocabularyId, cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var rating = dto.Rating.ToLowerInvariant();
+        var isCorrect = rating != "again";
+
+        if (vocab == null)
+        {
+            vocab = new StudentVocabularyProgress
+            {
+                UserId = userId,
+                VocabularyId = dto.VocabularyId,
+                Status = "learning",
+                FirstLearnedAt = now,
+                LastReviewedAt = now,
+                NextReviewAt = now.AddDays(1),
+                ReviewCount = 0,
+                CorrectCount = 0,
+                SrsStage = 0,
+                Stability = 1.0,
+                Difficulty = 5.0,
+                IntervalDays = 1,
+                Repetitions = 0,
+                EaseFactor = 2.5
+            };
+            _context.StudentVocabularyProgresses.Add(vocab);
+        }
+
+        // SRS SM-2 / Leitner progression
+        var currentInterval = Math.Max(1, vocab.IntervalDays);
+        var ease = vocab.EaseFactor > 1.3 ? vocab.EaseFactor : 2.5;
+        int nextIntervalDays;
+
+        switch (rating)
+        {
+            case "again":
+                nextIntervalDays = 1;
+                vocab.Repetitions = 0;
+                vocab.EaseFactor = Math.Max(1.3, ease - 0.2);
+                break;
+            case "hard":
+                nextIntervalDays = vocab.Repetitions == 0 ? 1 : (int)Math.Round(currentInterval * 1.2);
+                vocab.Repetitions += 1;
+                vocab.EaseFactor = Math.Max(1.3, ease - 0.15);
+                break;
+            case "easy":
+                nextIntervalDays = vocab.Repetitions == 0 ? 4 : (int)Math.Round(currentInterval * ease * 1.4);
+                vocab.Repetitions += 1;
+                vocab.EaseFactor = Math.Min(3.0, ease + 0.15);
+                break;
+            case "good":
+            default:
+                if (vocab.Repetitions == 0) nextIntervalDays = 1;
+                else if (vocab.Repetitions == 1) nextIntervalDays = 3;
+                else nextIntervalDays = (int)Math.Round(currentInterval * ease);
+                vocab.Repetitions += 1;
+                break;
+        }
+
+        vocab.IntervalDays = Math.Max(1, nextIntervalDays);
+        vocab.ReviewCount += 1;
+        if (isCorrect) vocab.CorrectCount += 1;
+        vocab.LastReviewedAt = now;
+        vocab.NextReviewAt = now.AddDays(vocab.IntervalDays);
+
+        if (vocab.Repetitions >= 5 && vocab.IntervalDays >= 14)
+        {
+            vocab.Status = "mastered";
+        }
+        else if (vocab.Repetitions >= 2)
+        {
+            vocab.Status = "reviewing";
+        }
+        else
+        {
+            vocab.Status = "learning";
+        }
+
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.ReviewsCompleted += 1;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<StudentLearningStateDto> CompleteSrsSessionAsync(Guid userId, CompleteSrsSessionDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var todayStr = GetLocalDateString();
+        var yesterdayStr = GetYesterdayDateString();
+
+        var eventId = $"srs_session_{todayStr}_{DateTime.UtcNow.Ticks}";
+        var xpAmount = dto.SessionXp > 0 ? dto.SessionXp : 30;
+
+        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "SRS_SESSION", "Ôn tập thẻ từ vựng SRS", todayStr, cancellationToken);
+
+        UpdateStreak(profile, todayStr, yesterdayStr);
+
+        var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
+        daily.ReviewsCompleted += dto.WordsReviewedCount;
+        daily.Minutes += Math.Max(3, (int)Math.Round(dto.WordsReviewedCount * 0.5));
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+
+    public async Task<StudentLearningStateDto> AddVocabularyAsync(Guid userId, AddVocabularyRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
+        var vocabId = !string.IsNullOrWhiteSpace(dto.VocabularyId)
+            ? dto.VocabularyId
+            : $"vocab-custom-{Uri.EscapeDataString(dto.Hanzi.Trim())}";
+
+        var existing = _context.StudentVocabularyProgresses.Local
+            .FirstOrDefault(v => v.UserId == userId && v.VocabularyId == vocabId)
+            ?? await _context.StudentVocabularyProgresses
+                .FirstOrDefaultAsync(v => v.UserId == userId && v.VocabularyId == vocabId, cancellationToken);
+
+        if (existing == null)
+        {
+            var now = DateTime.UtcNow;
+            var vocab = new StudentVocabularyProgress
+            {
+                UserId = userId,
+                VocabularyId = vocabId,
+                Hanzi = dto.Hanzi.Trim(),
+                Pinyin = dto.Pinyin,
+                Status = "learning",
+                FirstLearnedAt = now,
+                LastReviewedAt = now,
+                NextReviewAt = now, // due today
+                ReviewCount = 0,
+                CorrectCount = 0,
+                SrsStage = 0,
+                Stability = 1.0,
+                Difficulty = 4.0,
+                IntervalDays = 1,
+                Repetitions = 0,
+                EaseFactor = 2.5
+            };
+            _context.StudentVocabularyProgresses.Add(vocab);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return await GetStudentLearningStateAsync(userId, cancellationToken);
+    }
+}

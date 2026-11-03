@@ -52,6 +52,7 @@ export interface LearningStateContextType {
   isVocabularySaved: (vocabularyIdOrHanzi: string) => boolean;
   resetDemoProgress: () => void;
   switchStudent: (studentId: string) => void;
+  syncWithServer?: () => Promise<StudentLearningState>;
 }
 
 const LearningStateContext = createContext<LearningStateContextType | null>(null);
@@ -129,6 +130,10 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const switchStudent = useCallback((newStudentId: string) => {
     learningStateService.switchStudent(newStudentId);
+  }, []);
+
+  const syncWithServer = useCallback(() => {
+    return learningStateService.syncWithServer();
   }, []);
 
   // Computed values
@@ -215,6 +220,7 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       isVocabularySaved,
       resetDemoProgress,
       switchStudent,
+      syncWithServer,
     }),
     [
       state,
@@ -238,6 +244,7 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       isVocabularySaved,
       resetDemoProgress,
       switchStudent,
+      syncWithServer,
     ]
   );
 

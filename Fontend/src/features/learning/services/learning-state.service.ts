@@ -24,6 +24,7 @@ import {
   type AddVocabularyResult,
 } from './learning-srs.service';
 import { findLessonMetadata, findNextLessonId } from '../data/curriculumData';
+import { learningApiService } from './learning-api.service';
 
 export class LearningStateService {
   private activeState: StudentLearningState;
@@ -84,6 +85,33 @@ export class LearningStateService {
     this.activeState = learningStorageService.loadLearningState(studentId);
     this.refreshCalculatedFields();
     this.notifyListeners();
+    if (learningApiService.isRealUser(studentId)) {
+      this.syncWithServer();
+    }
+    return this.getState();
+  }
+
+  /**
+   * Pull latest learning state from server if user is authenticated
+   */
+  public async syncWithServer(): Promise<StudentLearningState> {
+    if (!learningApiService.isRealUser(this.activeState.studentId)) {
+      return this.getState();
+    }
+    try {
+      const serverState = await learningApiService.fetchLearningState();
+      if (serverState && serverState.studentId === this.activeState.studentId) {
+        this.activeState = {
+          ...this.activeState,
+          ...serverState,
+        };
+        this.refreshCalculatedFields();
+        learningStorageService.saveLearningState(this.activeState);
+        this.notifyListeners();
+      }
+    } catch (err) {
+      console.warn('[LearningStateService] syncWithServer failed:', err);
+    }
     return this.getState();
   }
 
@@ -97,6 +125,9 @@ export class LearningStateService {
       selectedHskLevel: level,
     };
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.updatePreferences({ selectedHskLevel: level });
+    }
     return updated;
   }
 
@@ -131,6 +162,9 @@ export class LearningStateService {
     };
 
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.updatePreferences({ currentLessonId: lessonId });
+    }
     return updated;
   }
 
@@ -176,6 +210,9 @@ export class LearningStateService {
     };
 
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.updateLessonStep(payload);
+    }
     return updated;
   }
 
@@ -265,6 +302,32 @@ export class LearningStateService {
     };
 
     this.commitState(updated);
+
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.completeLesson(payload).then((serverState) => {
+        if (serverState) {
+          this.activeState = {
+            ...this.activeState,
+            xpTotal: serverState.xpTotal,
+            streakDays: serverState.streakDays,
+            completedLessonIds: serverState.completedLessonIds,
+            rewardedEventIds: serverState.rewardedEventIds,
+            lessonProgress: {
+              ...this.activeState.lessonProgress,
+              ...serverState.lessonProgress,
+            },
+            dailyActivityHistory: {
+              ...this.activeState.dailyActivityHistory,
+              ...serverState.dailyActivityHistory,
+            },
+          };
+          this.refreshCalculatedFields();
+          learningStorageService.saveLearningState(this.activeState);
+          this.notifyListeners();
+        }
+      });
+    }
+
     return updated;
   }
 
@@ -329,6 +392,9 @@ export class LearningStateService {
     updated.weakKnowledgePoints = analyzeWeakKnowledge(updated.exerciseAttempts);
 
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.recordPracticeAttempt(attempt);
+    }
     return updated;
   }
 
@@ -369,6 +435,9 @@ export class LearningStateService {
     };
 
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.recordPracticeSession(result);
+    }
     return updated;
   }
 
@@ -378,6 +447,9 @@ export class LearningStateService {
   public recordSrsReview(vocabId: string, rating: SRSRating): StudentLearningState {
     const updated = recordWordReview(this.activeState, vocabId, rating);
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.recordSrsReview(vocabId, rating);
+    }
     return updated;
   }
 
@@ -388,6 +460,9 @@ export class LearningStateService {
     let updated = updateLearningStreak(this.activeState);
     updated = completeSrsSession(updated, sessionXp, count);
     this.commitState(updated);
+    if (learningApiService.isRealUser(this.activeState.studentId)) {
+      learningApiService.completeSrsSession(sessionXp, count);
+    }
     return updated;
   }
 
@@ -399,6 +474,9 @@ export class LearningStateService {
     const result = addVocabularyToSrs(this.activeState, payload);
     if (result.isNew) {
       this.commitState(result.updatedState);
+      if (learningApiService.isRealUser(this.activeState.studentId)) {
+        learningApiService.addVocabularyWord(payload);
+      }
     }
     return result;
   }

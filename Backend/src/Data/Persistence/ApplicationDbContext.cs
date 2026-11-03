@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.Learning;
 
 namespace ZhongWenHub.Data.Persistence;
 
@@ -16,6 +17,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AuthAuditRecord> AuthAuditRecords => Set<AuthAuditRecord>();
+    public DbSet<StudentLearningProfile> StudentLearningProfiles => Set<StudentLearningProfile>();
+    public DbSet<StudentLessonProgress> StudentLessonProgresses => Set<StudentLessonProgress>();
+    public DbSet<StudentPracticeAttempt> StudentPracticeAttempts => Set<StudentPracticeAttempt>();
+    public DbSet<StudentDailyActivity> StudentDailyActivities => Set<StudentDailyActivity>();
+    public DbSet<StudentVocabularyProgress> StudentVocabularyProgresses => Set<StudentVocabularyProgress>();
+    public DbSet<StudentXpTransaction> StudentXpTransactions => Set<StudentXpTransaction>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -112,6 +119,135 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
             b.HasIndex(a => a.UserId).HasDatabaseName("idx_audit_records_user_id");
             b.HasIndex(a => a.CreatedAt).HasDatabaseName("idx_audit_records_created_at");
+        });
+
+        // StudentLearningProfile Configuration
+        builder.Entity<StudentLearningProfile>(b =>
+        {
+            b.ToTable("student_learning_profiles");
+            b.HasKey(p => p.Id);
+            b.Property(p => p.CurrentLessonId).HasMaxLength(50).IsRequired();
+            b.Property(p => p.LastActivityDate).HasMaxLength(10).IsRequired();
+            b.Property(p => p.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(p => p.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(p => p.UserId).IsUnique().HasDatabaseName("idx_student_learning_profiles_user_id");
+        });
+
+        // StudentLessonProgress Configuration
+        builder.Entity<StudentLessonProgress>(b =>
+        {
+            b.ToTable("student_lesson_progress");
+            b.HasKey(p => p.Id);
+            b.Property(p => p.LessonId).HasMaxLength(50).IsRequired();
+            b.Property(p => p.Status).HasMaxLength(20).IsRequired();
+            b.Property(p => p.CompletedAt).HasColumnType("datetime2");
+            b.Property(p => p.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(p => p.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(p => new { p.UserId, p.LessonId })
+                .IsUnique()
+                .HasDatabaseName("idx_student_lesson_progress_user_lesson");
+        });
+
+        // StudentPracticeAttempt Configuration
+        builder.Entity<StudentPracticeAttempt>(b =>
+        {
+            b.ToTable("student_practice_attempts");
+            b.HasKey(p => p.Id);
+            b.Property(p => p.ExerciseId).HasMaxLength(100).IsRequired();
+            b.Property(p => p.QuestionId).HasMaxLength(100);
+            b.Property(p => p.KnowledgePointId).HasMaxLength(100).IsRequired();
+            b.Property(p => p.TopicTitle).HasMaxLength(200).IsRequired();
+            b.Property(p => p.Category).HasMaxLength(50).IsRequired();
+            b.Property(p => p.UserAnswer).HasMaxLength(500).IsRequired();
+            b.Property(p => p.AttemptedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(p => p.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(p => p.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(p => new { p.UserId, p.AttemptedAt })
+                .HasDatabaseName("idx_practice_attempts_user_attempted");
+        });
+
+        // StudentDailyActivity Configuration
+        builder.Entity<StudentDailyActivity>(b =>
+        {
+            b.ToTable("student_daily_activities");
+            b.HasKey(a => a.Id);
+            b.Property(a => a.ActivityDate).HasMaxLength(10).IsRequired();
+            b.Property(a => a.CompletedLessonsJson).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(a => a.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(a => a.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(a => new { a.UserId, a.ActivityDate })
+                .IsUnique()
+                .HasDatabaseName("idx_daily_activities_user_date");
+        });
+
+        // StudentVocabularyProgress Configuration
+        builder.Entity<StudentVocabularyProgress>(b =>
+        {
+            b.ToTable("student_vocabulary_progress");
+            b.HasKey(v => v.Id);
+            b.Property(v => v.VocabularyId).HasMaxLength(100).IsRequired();
+            b.Property(v => v.Hanzi).HasMaxLength(50);
+            b.Property(v => v.Pinyin).HasMaxLength(100);
+            b.Property(v => v.Status).HasMaxLength(20).IsRequired();
+            b.Property(v => v.FirstLearnedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(v => v.LastReviewedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(v => v.NextReviewAt).HasColumnType("datetime2").IsRequired();
+            b.Property(v => v.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(v => v.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(v => v.User)
+                .WithMany()
+                .HasForeignKey(v => v.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(v => new { v.UserId, v.VocabularyId })
+                .IsUnique()
+                .HasDatabaseName("idx_vocabulary_progress_user_vocab");
+        });
+
+        // StudentXpTransaction Configuration
+        builder.Entity<StudentXpTransaction>(b =>
+        {
+            b.ToTable("student_xp_transactions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.EventId).HasMaxLength(150).IsRequired();
+            b.Property(x => x.Source).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(255);
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => new { x.UserId, x.EventId })
+                .IsUnique()
+                .HasDatabaseName("idx_xp_transactions_user_event");
         });
     }
 

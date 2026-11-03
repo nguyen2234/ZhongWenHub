@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
 using ZhongWenHub.Business.Common;
+using ZhongWenHub.Business.Learning;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
 
@@ -89,6 +90,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ILearningService, LearningService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         return services;
