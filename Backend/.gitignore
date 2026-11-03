@@ -17,6 +17,10 @@ publish/
 .env
 *.local.json
 appsettings.*.local.json
+*.sql
+*.bak
+*.dump
+zhongwenhub_dev_postgres_backup.sql
 
 ## Testing & Coverage
 TestResults/
@@ -27,3 +31,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 .DS_Store
+
+# Local helper scripts
+run.bat
+run.ps1

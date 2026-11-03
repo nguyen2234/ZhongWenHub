@@ -11,7 +11,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddData(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure Database (PostgreSQL)
+        // Configure Database (SQL Server)
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -22,10 +22,10 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
+            options.UseSqlServer(connectionString, sqlOptions =>
             {
-                npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null);
+                sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
             });
         });
 

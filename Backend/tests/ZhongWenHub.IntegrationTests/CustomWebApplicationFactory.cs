@@ -13,7 +13,7 @@ namespace ZhongWenHub.IntegrationTests;
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     public const string TestConnectionString =
-        "Host=localhost;Port=5432;Database=zhongwenhub_test;Username=postgres;Password=postgres";
+        "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -38,10 +38,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(dbContextDescriptor);
             }
 
-            // Register PostgreSQL with test database
+            // Register SQL Server with test database
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseNpgsql(TestConnectionString);
+                options.UseSqlServer(TestConnectionString);
             });
         });
     }

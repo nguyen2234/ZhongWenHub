@@ -38,9 +38,9 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
                 "Vui lòng cấu hình trong appsettings.json của project Api hoặc thiết lập biến môi trường ConnectionStrings__DefaultConnection.");
         }
 
-        optionsBuilder.UseNpgsql(connectionString, npgsqlOptions =>
+        optionsBuilder.UseSqlServer(connectionString, sqlOptions =>
         {
-            npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+            sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
         });
 
         return new ApplicationDbContext(optionsBuilder.Options);

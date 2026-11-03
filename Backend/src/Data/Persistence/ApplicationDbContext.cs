@@ -21,12 +21,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
         base.OnModelCreating(builder);
 
-        // Customize Identity Table Names for PostgreSQL
+        // Customize Identity Table Names for SQL Server
         builder.Entity<ApplicationUser>(b =>
         {
             b.ToTable("users");
             b.Property(u => u.DisplayName).HasMaxLength(100).IsRequired();
-            b.Property(u => u.AvatarUrl).HasColumnType("text");
+            b.Property(u => u.AvatarUrl).HasColumnType("nvarchar(max)");
             b.Property(u => u.Status)
                 .HasConversion(
                     v => v.ToString(),
@@ -34,13 +34,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .HasMaxLength(30)
                 .IsRequired();
             b.Property(u => u.LockReason).HasMaxLength(500);
-            b.Property(u => u.LockedAt).HasColumnType("timestamptz");
+            b.Property(u => u.LockedAt).HasColumnType("datetime2");
             b.Property(u => u.Notes).HasMaxLength(1000);
             b.Property(u => u.CurrentHskLevel).HasMaxLength(20).HasDefaultValue("HSK 1");
-            b.Property(u => u.CreatedAt).HasColumnType("timestamptz").IsRequired();
-            b.Property(u => u.UpdatedAt).HasColumnType("timestamptz");
-            b.Property(u => u.LastLoginAt).HasColumnType("timestamptz");
-            b.Property(u => u.DeletedAt).HasColumnType("timestamptz");
+            b.Property(u => u.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(u => u.UpdatedAt).HasColumnType("datetime2");
+            b.Property(u => u.LastLoginAt).HasColumnType("datetime2");
+            b.Property(u => u.DeletedAt).HasColumnType("datetime2");
             b.Property(u => u.IsDeleted).HasDefaultValue(false);
 
             b.HasQueryFilter(u => !u.IsDeleted);
@@ -83,10 +83,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.ToTable("refresh_tokens");
             b.HasKey(rt => rt.Id);
             b.Property(rt => rt.TokenHash).HasMaxLength(128).IsRequired();
-            b.Property(rt => rt.CreatedAt).HasColumnType("timestamptz").IsRequired();
-            b.Property(rt => rt.ExpiresAt).HasColumnType("timestamptz").IsRequired();
-            b.Property(rt => rt.RevokedAt).HasColumnType("timestamptz");
-            b.Property(rt => rt.UpdatedAt).HasColumnType("timestamptz");
+            b.Property(rt => rt.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(rt => rt.ExpiresAt).HasColumnType("datetime2").IsRequired();
+            b.Property(rt => rt.RevokedAt).HasColumnType("datetime2");
+            b.Property(rt => rt.UpdatedAt).HasColumnType("datetime2");
             b.Property(rt => rt.CreatedByIp).HasMaxLength(50);
             b.Property(rt => rt.RevokedByIp).HasMaxLength(50);
             b.Property(rt => rt.RevocationReason).HasMaxLength(255);
@@ -107,8 +107,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(a => a.IpAddress).HasMaxLength(50);
             b.Property(a => a.UserAgent).HasMaxLength(500);
             b.Property(a => a.Details).HasMaxLength(1000);
-            b.Property(a => a.CreatedAt).HasColumnType("timestamptz").IsRequired();
-            b.Property(a => a.UpdatedAt).HasColumnType("timestamptz");
+            b.Property(a => a.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(a => a.UpdatedAt).HasColumnType("datetime2");
 
             b.HasIndex(a => a.UserId).HasDatabaseName("idx_audit_records_user_id");
             b.HasIndex(a => a.CreatedAt).HasDatabaseName("idx_audit_records_created_at");

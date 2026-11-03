@@ -1,10 +1,10 @@
 # ZhongWenHub Backend — BE-1 Foundation
 
-ASP.NET Core Web API 8.0 + PostgreSQL + Entity Framework Core + ASP.NET Core Identity + JWT + RBAC.
+ASP.NET Core Web API 8.0 + Microsoft SQL Server + Entity Framework Core + ASP.NET Core Identity + JWT + RBAC.
 
 ## 1. Yêu Cầu Môi Trường
 * .NET SDK 8.0 LTS (`dotnet --version`)
-* PostgreSQL 16+ hoặc Docker Compose
+* Microsoft SQL Server (hoặc SQL Server Express / Docker)
 * Công cụ EF Core CLI (`dotnet tool install --global dotnet-ef` hoặc đã có sẵn)
 
 ## 2. Cấu Trúc Solution & 3-Tier Layered Architecture
@@ -13,25 +13,22 @@ ZhongWenHub.sln
 ├── src/
 │   ├── Api/                           # ZhongWenHub.Api: Controllers, Middleware, Auth/Health Endpoints, OpenAPI/Swagger
 │   ├── Business/                      # ZhongWenHub.Business: Authentication, Services, Authorization Policies, DTOs
-│   └── Data/                          # ZhongWenHub.Data: PostgreSQL EF DbContext, Identity Entities, Migrations, Seeding
+│   └── Data/                          # ZhongWenHub.Data: SQL Server EF DbContext, Identity Entities, Migrations, Seeding
 ├── tests/
 │   ├── ZhongWenHub.UnitTests/         # Unit Tests (JWT, Token, Pagination, Policies)
-│   └── ZhongWenHub.IntegrationTests/  # Integration Tests (PostgreSQL, Identity, Login, Refresh, RBAC)
+│   └── ZhongWenHub.IntegrationTests/  # Integration Tests (SQL Server, Identity, Login, Refresh, RBAC)
 ├── docs/                              # Kiến trúc, Bảo mật, Ma trận phân quyền, Báo cáo
-├── docker-compose.yml                 # PostgreSQL container orchestration
+├── docker-compose.yml                 # Database container orchestration
 ├── .env.example                       # Biến môi trường mẫu an toàn
 └── README.md
 ```
 
 ## 3. Khởi Chạy Database
-Sử dụng Docker Compose:
-```bash
-docker compose up -d
-```
-Hoặc kết nối trực tiếp PostgreSQL cục bộ (port 5432).
+Kết nối trực tiếp SQL Server cục bộ (`.\SQLEXPRESS` hoặc `localhost`).
+Database phát triển mặc định: `ZhongWenHub_Dev`.
 
 ## 4. Chạy Migrations
-Áp dụng migrations vào PostgreSQL:
+Áp dụng migrations vào SQL Server:
 ```bash
 dotnet ef database update --project src/Data/ZhongWenHub.Data.csproj --startup-project src/Api/ZhongWenHub.Api.csproj
 ```

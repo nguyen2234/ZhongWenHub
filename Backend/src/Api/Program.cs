@@ -13,7 +13,7 @@ using ZhongWenHub.Data.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Data (PostgreSQL DbContext, Identity) and Business Services (JWT, Policies, Services)
+// Add Data (SQL Server DbContext, Identity) and Business Services (JWT, Policies, Services)
 builder.Services.AddData(builder.Configuration);
 builder.Services.AddBusiness(builder.Configuration);
 

@@ -1,0 +1,30 @@
+# Database dumps & backups
+*.sql
+*.bak
+*.dump
+zhongwenhub_dev_postgres_backup.sql
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+*.local.json
+appsettings.*.local.json
+
+# Dependencies & Build outputs
+node_modules/
+dist/
+build/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Pp]ublish/
+publish/
+
+# IDE & OS
+.vs/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
