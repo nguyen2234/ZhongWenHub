@@ -147,4 +147,83 @@ public static class DbInitializer
             Semaphore.Release();
         }
     }
+
+    public static async Task SeedDevelopmentAdminAsync(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager,
+        Microsoft.Extensions.Configuration.IConfiguration configuration,
+        Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment,
+        ILogger logger)
+    {
+        if (!environment.EnvironmentName.Equals("Development", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        await Semaphore.WaitAsync();
+        try
+        {
+            var adminEmail = Environment.GetEnvironmentVariable("DEV_ADMIN_EMAIL")
+                ?? configuration["DevAdmin:Email"]
+                ?? "admin@gmail.com";
+
+            var adminPassword = Environment.GetEnvironmentVariable("DEV_ADMIN_PASSWORD")
+                ?? configuration["DevAdmin:Password"]
+                ?? "admin";
+
+            // Ensure Admin role exists
+            if (!await roleManager.RoleExistsAsync(RoleConstants.Admin))
+            {
+                await roleManager.CreateAsync(new ApplicationRole(RoleConstants.Admin, "Quản trị viên vận hành hệ thống"));
+            }
+
+            var existingUser = await userManager.FindByEmailAsync(adminEmail);
+            if (existingUser != null)
+            {
+                logger.LogInformation("Development admin user '{Email}' already exists in SQL Server. Skipping seed.", adminEmail);
+                return;
+            }
+
+            var adminUser = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                DisplayName = "Quản Trị Viên (Dev Admin)",
+                Status = UserStatus.ACTIVE,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Hash password using Identity PasswordHasher without degrading production password policies
+            adminUser.PasswordHash = userManager.PasswordHasher.HashPassword(adminUser, adminPassword);
+
+            var createResult = await userManager.CreateAsync(adminUser);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                logger.LogWarning("Failed to seed development admin user '{Email}': {Errors}", adminEmail, errors);
+                return;
+            }
+
+            var roleResult = await userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
+            if (roleResult.Succeeded)
+            {
+                logger.LogInformation("Development admin user '{Email}' successfully seeded into SQL Server with role '{Role}'.", adminEmail, RoleConstants.Admin);
+            }
+            else
+            {
+                logger.LogWarning("Failed to assign role '{Role}' to development admin user '{Email}'.", RoleConstants.Admin, adminEmail);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while seeding development admin user into SQL Server.");
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
 }

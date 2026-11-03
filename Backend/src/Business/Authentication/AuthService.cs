@@ -316,6 +316,31 @@ public class AuthService : IAuthService
         return MapToUserDto(user, roles);
     }
 
+    public async Task<UserDto?> UpdateCurrentUserProfileAsync(Guid userId, UpdateProfileRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null || user.IsDeleted)
+        {
+            return null;
+        }
+
+        user.DisplayName = request.DisplayName.Trim();
+        if (request.AvatarUrl != null)
+        {
+            user.AvatarUrl = request.AvatarUrl.Trim();
+        }
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return null;
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        return MapToUserDto(user, roles);
+    }
+
     private static UserDto MapToUserDto(ApplicationUser user, IEnumerable<string> roles)
     {
         return new UserDto

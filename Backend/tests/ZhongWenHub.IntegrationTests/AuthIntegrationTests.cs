@@ -240,6 +240,87 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateCurrentUser_WithValidDisplayName_Returns200AndUpdatesUser()
+    {
+        // 1. Login as student
+        var loginResponse = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = "student@zhongwenhub.edu.vn",
+            Password = "StudentPassword123!"
+        });
+        loginResponse.EnsureSuccessStatusCode();
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        var token = loginBody!.AccessToken;
+
+        // 2. Update profile
+        var updateDto = new UpdateProfileRequestDto
+        {
+            DisplayName = "Nguyễn Học Viên Mới"
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, "/api/v1/auth/me")
+        {
+            Content = JsonContent.Create(updateDto)
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var updateResponse = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        var updatedUser = await updateResponse.Content.ReadFromJsonAsync<UserDto>(_jsonOptions);
+        Assert.NotNull(updatedUser);
+        Assert.Equal("Nguyễn Học Viên Mới", updatedUser.DisplayName);
+
+        // 3. Verify GET /me returns the updated name
+        using var getReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/auth/me");
+        getReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var getRes = await _client.SendAsync(getReq);
+        Assert.Equal(HttpStatusCode.OK, getRes.StatusCode);
+        var verifyUser = await getRes.Content.ReadFromJsonAsync<UserDto>(_jsonOptions);
+        Assert.NotNull(verifyUser);
+        Assert.Equal("Nguyễn Học Viên Mới", verifyUser.DisplayName);
+    }
+
+    [Fact]
+    public async Task DevAdmin_LoginWithAdminGmail_Returns200AndAdminRole()
+    {
+        var loginRequest = new LoginRequestDto
+        {
+            UsernameOrEmail = "admin@gmail.com",
+            Password = "admin"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", loginRequest);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        Assert.NotNull(body);
+        Assert.NotEmpty(body.AccessToken);
+        Assert.NotNull(body.User);
+        Assert.Equal("admin@gmail.com", body.User.Email);
+        Assert.Contains("ADMIN", body.User.Roles);
+
+        // Access Admin Users API
+        using var adminReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/users");
+        adminReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", body.AccessToken);
+        var adminRes = await _client.SendAsync(adminReq);
+        Assert.Equal(HttpStatusCode.OK, adminRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task DevAdmin_LoginWithWrongPassword_Returns401Unauthorized()
+    {
+        var loginRequest = new LoginRequestDto
+        {
+            UsernameOrEmail = "admin@gmail.com",
+            Password = "WrongPassword999!"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", loginRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private static string ExtractRefreshTokenFromCookie(string cookieHeader)
     {
         var part = cookieHeader.Split(';').FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));

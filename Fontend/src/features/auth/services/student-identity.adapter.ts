@@ -35,7 +35,7 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
 } {
   try {
     const session = managementAuthService.getSession();
-    if (session && session.id && (session.role === 'STUDENT' || !session.role)) {
+    if (session && session.id) {
       const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.id);
       if (isRealUser) {
         return {
@@ -57,9 +57,26 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
 
   if (typeof window !== 'undefined' && window.localStorage) {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && MOCK_STUDENTS_STORE.some((s) => s.id === saved)) {
-      activeId = saved;
+    if (saved) {
+      const isRealSaved = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saved);
+      if (isRealSaved || MOCK_STUDENTS_STORE.some((s) => s.id === saved)) {
+        activeId = saved;
+      }
     }
+  }
+
+  const isRealActive = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeId);
+  if (isRealActive) {
+    const session = managementAuthService.getSession();
+    return {
+      id: activeId,
+      name: session?.name || 'Học viên',
+      email: session?.email || '',
+      avatarUrl: session?.avatarUrl,
+      fullName: session?.name || 'Học viên',
+      enrolledClassIds: [],
+      activeClassIds: [],
+    };
   }
 
   const student = MOCK_STUDENTS_STORE.find((s) => s.id === activeId) || MOCK_STUDENTS_STORE[0];

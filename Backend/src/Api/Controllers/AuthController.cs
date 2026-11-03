@@ -176,6 +176,41 @@ public class AuthController : BaseApiController
         return Ok(user);
     }
 
+    [HttpPut("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateProfileRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Dữ liệu không hợp lệ", "Vui lòng kiểm tra lại thông tin hồ sơ.", errors);
+        }
+
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue)
+        {
+            return ProblemDetailsResult(StatusCodes.Status401Unauthorized, "Chưa xác thực", "Không thể xác định danh tính người dùng.");
+        }
+
+        var updatedUser = await _authService.UpdateCurrentUserProfileAsync(userId.Value, request, cancellationToken);
+        if (updatedUser == null)
+        {
+            return ProblemDetailsResult(StatusCodes.Status404NotFound, "Không tìm thấy", "Thông tin tài khoản không tồn tại trên hệ thống.");
+        }
+
+        return Ok(updatedUser);
+    }
+
     private void SetRefreshTokenCookie(string token, DateTime expiresAt)
     {
         var cookieOptions = new CookieOptions

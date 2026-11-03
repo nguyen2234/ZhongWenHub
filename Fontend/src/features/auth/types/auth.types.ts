@@ -31,6 +31,7 @@ export interface AuthUser {
   xpPoints: number;
   roles?: string[];
   role?: string;
+  createdAt?: string;
 }
 
 export interface AuthResponse {

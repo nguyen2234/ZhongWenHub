@@ -45,6 +45,7 @@ interface BackendUserPayload {
   currentHskLevel?: string | number;
   streakDays?: number;
   xpPoints?: number;
+  createdAt?: string;
 }
 
 function mapBackendUserToAuthUser(user: BackendUserPayload): AuthUser {
@@ -69,6 +70,7 @@ function mapBackendUserToAuthUser(user: BackendUserPayload): AuthUser {
     xpPoints: typeof user.xpPoints === 'number' ? user.xpPoints : 0,
     roles,
     role: primaryRole,
+    createdAt: user.createdAt,
   };
 }
 
@@ -269,7 +271,71 @@ export const authService = {
       // Ignore network errors on logout
     } finally {
       authTokenService.clearTokens();
+      managementAuthService.reset('STUDENT');
+      if (typeof window !== 'undefined') {
+        try {
+          window.sessionStorage.removeItem('zwh_management_session');
+          window.localStorage.removeItem('zh_active_student_id');
+        } catch {
+          // ignore
+        }
+      }
     }
+  },
+
+  /**
+   * Real ASP.NET Core Update Current Profile
+   */
+  async updateProfile(payload: { displayName: string; avatarUrl?: string }): Promise<AuthUser> {
+    let token = authTokenService.getAccessToken();
+    if (!token) {
+      const refreshed = await this.refreshSession();
+      token = refreshed?.accessToken || null;
+    }
+
+    if (!token) {
+      throw new Error('Chưa xác thực. Vui lòng đăng nhập lại.');
+    }
+
+    const response = await fetch(getApiUrl('auth/me'), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json, application/problem+json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let errorDetail = 'Cập nhật thông tin không thành công.';
+      try {
+        const problem = await response.json();
+        if (problem.detail) errorDetail = problem.detail;
+        else if (problem.title) errorDetail = problem.title;
+        if (problem.errors && typeof problem.errors === 'object') {
+          const firstErr = Object.values(problem.errors).flat()[0];
+          if (firstErr) errorDetail = String(firstErr);
+        }
+      } catch {
+        // ignore json parse error
+      }
+      throw new Error(errorDetail);
+    }
+
+    const data = await response.json();
+    const updatedUser = mapBackendUserToAuthUser(data);
+
+    // Sync management session
+    const session = managementAuthService.getSession();
+    managementAuthService.setSession({
+      ...session,
+      name: updatedUser.fullName,
+      avatarUrl: updatedUser.avatarUrl,
+    });
+
+    return updatedUser;
   },
 
   /**

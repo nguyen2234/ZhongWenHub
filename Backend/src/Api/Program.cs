@@ -101,6 +101,11 @@ if (!app.Environment.IsEnvironment("Testing"))
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
 
         await DbInitializer.SeedAsync(dbContext, userManager, roleManager, logger);
+
+        if (app.Environment.IsDevelopment())
+        {
+            await DbInitializer.SeedDevelopmentAdminAsync(dbContext, userManager, roleManager, app.Configuration, app.Environment, logger);
+        }
     }
     catch (Exception ex)
     {
