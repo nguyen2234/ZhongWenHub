@@ -64,6 +64,43 @@ public class AuthController : BaseApiController
         return Ok(result.LoginResponse);
     }
 
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Dữ liệu không hợp lệ", "Vui lòng kiểm tra lại thông tin đăng ký.", errors);
+        }
+
+        var ipAddress = GetClientIpAddress();
+        var userAgent = Request.Headers.UserAgent.ToString();
+
+        var result = await _authService.RegisterAsync(request, ipAddress, userAgent, cancellationToken);
+
+        if (!result.Success)
+        {
+            return ProblemDetailsResult(result.StatusCode, result.ErrorTitle ?? "Lỗi đăng ký", result.ErrorDetail ?? "Không thể hoàn tất đăng ký.", result.ValidationErrors);
+        }
+
+        if (!string.IsNullOrEmpty(result.RawRefreshToken) && result.RefreshTokenExpiresAt.HasValue)
+        {
+            SetRefreshTokenCookie(result.RawRefreshToken, result.RefreshTokenExpiresAt.Value);
+        }
+
+        return StatusCode(StatusCodes.Status201Created, result.LoginResponse);
+    }
+
     [HttpPost("refresh")]
     [HttpPost("refresh-token")]
     [AllowAnonymous]

@@ -4,10 +4,9 @@ namespace ZhongWenHub.Business.Authentication.DTOs;
 
 public class RegisterRequestDto
 {
-    [Required(ErrorMessage = "Tên đăng nhập không được để trống.")]
     [StringLength(50, MinimumLength = 3, ErrorMessage = "Tên đăng nhập phải có từ 3 đến 50 ký tự.")]
     [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Tên đăng nhập chỉ được chứa chữ cái, chữ số, dấu gạch dưới hoặc gạch nối.")]
-    public string Username { get; set; } = string.Empty;
+    public string? Username { get; set; }
 
     [Required(ErrorMessage = "Email không được để trống.")]
     [EmailAddress(ErrorMessage = "Địa chỉ email không đúng định dạng.")]

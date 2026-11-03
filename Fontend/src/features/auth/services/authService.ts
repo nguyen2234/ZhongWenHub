@@ -27,6 +27,51 @@ function resolvePrimaryRole(roles?: string[]): UserRole {
   return 'STUDENT';
 }
 
+function getSystemRoleCode(role: string): 'ADMIN' | 'CONTENT_MANAGER' | 'TEACHER' | 'SUPPORT' | 'STUDENT' {
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN') return 'ADMIN';
+  if (role === 'CONTENT_MANAGER') return 'CONTENT_MANAGER';
+  if (role === 'TEACHER') return 'TEACHER';
+  if (role === 'SUPPORT') return 'SUPPORT';
+  return 'STUDENT';
+}
+
+interface BackendUserPayload {
+  id: string;
+  username?: string;
+  email: string;
+  displayName?: string;
+  avatarUrl?: string;
+  roles?: string[];
+  currentHskLevel?: string | number;
+  streakDays?: number;
+  xpPoints?: number;
+}
+
+function mapBackendUserToAuthUser(user: BackendUserPayload): AuthUser {
+  const roles: string[] = user?.roles || ['STUDENT'];
+  const primaryRole = resolvePrimaryRole(roles);
+
+  let hskLevel = 1;
+  if (typeof user?.currentHskLevel === 'number') {
+    hskLevel = user.currentHskLevel;
+  } else if (typeof user?.currentHskLevel === 'string') {
+    const match = user.currentHskLevel.match(/\d+/);
+    if (match) hskLevel = parseInt(match[0], 10);
+  }
+
+  return {
+    id: user.id,
+    fullName: user.displayName || user.username || 'Người dùng',
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+    currentHskLevel: hskLevel,
+    streakDays: typeof user.streakDays === 'number' ? user.streakDays : 0,
+    xpPoints: typeof user.xpPoints === 'number' ? user.xpPoints : 0,
+    roles,
+    role: primaryRole,
+  };
+}
+
 export const authService = {
   /**
    * Real ASP.NET Core login
@@ -90,33 +135,20 @@ export const authService = {
         });
       }
 
-      const roles: string[] = data.user?.roles || ['STUDENT'];
-      const primaryRole = resolvePrimaryRole(roles);
+      const authUser = mapBackendUserToAuthUser(data.user);
 
       // Sync management session
       managementAuthService.setSession({
         id: data.user.id,
         name: data.user.displayName || data.user.username || 'Người dùng',
         email: data.user.email,
-        role: primaryRole,
-        permissions: adminRolePermissionService.getRoleByCode(primaryRole === 'SUPER_ADMIN' ? 'ADMIN' : primaryRole)?.permissions || [],
+        role: authUser.role as UserRole,
+        permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
         avatarUrl: data.user.avatarUrl,
       });
 
-      // Sync dev student identity
+      // Sync student identity
       setDevStudentIdentity(data.user.id || DEFAULT_DEMO_STUDENT_ID);
-
-      const authUser: AuthUser = {
-        id: data.user.id,
-        fullName: data.user.displayName || data.user.username,
-        email: data.user.email,
-        avatarUrl: data.user.avatarUrl,
-        currentHskLevel: 2,
-        streakDays: 8,
-        xpPoints: 2180,
-        roles,
-        role: primaryRole,
-      };
 
       return {
         success: true,
@@ -128,7 +160,7 @@ export const authService = {
       if (err instanceof Error) {
         throw err;
       }
-      throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.');
+      throw new Error('Không thể kết nối đến máy chủ Backend (http://127.0.0.1:5000). Vui lòng đảm bảo Backend ASP.NET Core đang chạy.');
     }
   },
 
@@ -158,31 +190,18 @@ export const authService = {
         });
       }
 
-      const roles: string[] = data.user?.roles || ['STUDENT'];
-      const primaryRole = resolvePrimaryRole(roles);
+      const authUser = mapBackendUserToAuthUser(data.user);
 
       managementAuthService.setSession({
         id: data.user.id,
         name: data.user.displayName || data.user.username || 'Người dùng',
         email: data.user.email,
-        role: primaryRole,
-        permissions: adminRolePermissionService.getRoleByCode(primaryRole === 'SUPER_ADMIN' ? 'ADMIN' : primaryRole)?.permissions || [],
+        role: authUser.role as UserRole,
+        permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
         avatarUrl: data.user.avatarUrl,
       });
 
       setDevStudentIdentity(data.user.id || DEFAULT_DEMO_STUDENT_ID);
-
-      const authUser: AuthUser = {
-        id: data.user.id,
-        fullName: data.user.displayName || data.user.username,
-        email: data.user.email,
-        avatarUrl: data.user.avatarUrl,
-        currentHskLevel: 2,
-        streakDays: 8,
-        xpPoints: 2180,
-        roles,
-        role: primaryRole,
-      };
 
       return {
         success: true,
@@ -219,7 +238,6 @@ export const authService = {
       });
 
       if (response.status === 401) {
-        // Try refresh
         const refreshResult = await this.refreshSession();
         return refreshResult?.user ?? null;
       }
@@ -229,20 +247,7 @@ export const authService = {
       }
 
       const data = await response.json();
-      const roles: string[] = data.roles || ['STUDENT'];
-      const primaryRole = resolvePrimaryRole(roles);
-
-      return {
-        id: data.id,
-        fullName: data.displayName || data.username,
-        email: data.email,
-        avatarUrl: data.avatarUrl,
-        currentHskLevel: 2,
-        streakDays: 8,
-        xpPoints: 2180,
-        roles,
-        role: primaryRole,
-      };
+      return mapBackendUserToAuthUser(data);
     } catch {
       return null;
     }
@@ -268,53 +273,107 @@ export const authService = {
   },
 
   /**
-   * Registration
+   * Real ASP.NET Core Registration with SQL Server
    */
   async register(request: RegisterRequest): Promise<AuthResponse> {
     const emailTrimmed = request.email.trim().toLowerCase();
+    if (!emailTrimmed) {
+      throw new Error('Email không được để trống.');
+    }
+    if (!request.fullName?.trim()) {
+      throw new Error('Họ và tên không được để trống.');
+    }
+    if (!request.password) {
+      throw new Error('Mật khẩu không được để trống.');
+    }
     if (request.password !== request.confirmPassword) {
       throw new Error('Mật khẩu xác nhận không khớp.');
     }
 
-    const mockUser: AuthUser = {
-      id: 'usr_' + Math.random().toString(36).substring(2, 9),
-      fullName: request.fullName.trim(),
-      email: emailTrimmed,
-      currentHskLevel: 1,
-      streakDays: 1,
-      xpPoints: 50,
-      roles: ['STUDENT'],
-      role: 'STUDENT',
-    };
+    try {
+      const response = await fetch(getApiUrl('auth/register'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, application/problem+json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fullName: request.fullName.trim(),
+          email: emailTrimmed,
+          username: emailTrimmed.split('@')[0],
+          password: request.password,
+          confirmPassword: request.confirmPassword,
+        }),
+      });
 
-    return {
-      success: true,
-      message: 'Đăng ký tài khoản thành công! Đang chuyển đến bước thiết lập...',
-      user: mockUser,
-    };
+      if (!response.ok) {
+        let errorDetail = 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.';
+        try {
+          const problem = await response.json();
+          if (problem.detail) {
+            errorDetail = problem.detail;
+          } else if (problem.title) {
+            errorDetail = problem.title;
+          }
+          if (problem.errors && typeof problem.errors === 'object') {
+            const firstErr = Object.values(problem.errors).flat()[0];
+            if (firstErr) errorDetail = String(firstErr);
+          }
+        } catch {
+          // ignore json parse error
+        }
+
+        if (response.status === 409) {
+          throw new Error('Email này đã được sử dụng. Vui lòng đăng nhập hoặc sử dụng email khác.');
+        }
+
+        throw new Error(errorDetail);
+      }
+
+      const data = await response.json();
+
+      if (data.accessToken) {
+        authTokenService.setSession({
+          accessToken: data.accessToken,
+          expiresAt: Date.now() + ((data.expiresIn || 900) * 1000),
+        });
+      }
+
+      const authUser = mapBackendUserToAuthUser(data.user);
+
+      // Sync management session
+      managementAuthService.setSession({
+        id: data.user.id,
+        name: data.user.displayName || data.user.username || 'Người dùng',
+        email: data.user.email,
+        role: authUser.role as UserRole,
+        permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
+        avatarUrl: data.user.avatarUrl,
+      });
+
+      // Sync student identity
+      setDevStudentIdentity(data.user.id || DEFAULT_DEMO_STUDENT_ID);
+
+      return {
+        success: true,
+        message: 'Đăng ký tài khoản thành công! Đang chuyển hướng đến bảng điều khiển...',
+        user: authUser,
+        accessToken: data.accessToken,
+      };
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error('Không thể kết nối đến máy chủ Backend (http://127.0.0.1:5000). Vui lòng đảm bảo Backend ASP.NET Core đang chạy.');
+    }
   },
 
   /**
    * Google OAuth login
    */
   async loginWithGoogle(): Promise<AuthResponse> {
-    const mockUser: AuthUser = {
-      id: 'usr_g_' + Math.random().toString(36).substring(2, 9),
-      fullName: 'Học viên Google',
-      email: 'student.google@gmail.com',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      currentHskLevel: 1,
-      streakDays: 1,
-      xpPoints: 100,
-      roles: ['STUDENT'],
-      role: 'STUDENT',
-    };
-
-    return {
-      success: true,
-      message: 'Đăng nhập bằng Google thành công!',
-      user: mockUser,
-    };
+    throw new Error('Tính năng đăng nhập với Google hiện đang được hoàn thiện và chưa khả dụng trên máy chủ.');
   },
 
   /**
@@ -325,10 +384,6 @@ export const authService = {
     if (!emailTrimmed || !emailTrimmed.includes('@')) {
       throw new Error('Vui lòng cung cấp địa chỉ email hợp lệ.');
     }
-
-    return {
-      success: true,
-      message: 'Hướng dẫn đặt lại mật khẩu đã được gửi đến ' + emailTrimmed + '. Vui lòng kiểm tra hòm thư của bạn.',
-    };
+    throw new Error('Tính năng tự đặt lại mật khẩu qua email đang được bảo trì. Vui lòng liên hệ bộ phận hỗ trợ (support@zhongwenhub.edu.vn) để được cấp lại mật khẩu.');
   },
 };

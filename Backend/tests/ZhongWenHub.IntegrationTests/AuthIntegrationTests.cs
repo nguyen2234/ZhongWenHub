@@ -173,6 +173,73 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
     }
 
+    [Fact]
+    public async Task Register_WithValidStudentData_Returns201CreatedAndSavesToDatabase()
+    {
+        var uniqueEmail = $"newstudent_{Guid.NewGuid():N}@zhongwenhub.edu.vn";
+        var registerRequest = new RegisterRequestDto
+        {
+            FullName = "Nguyễn Văn Học Viên Mới",
+            Email = uniqueEmail,
+            Username = $"student_{Guid.NewGuid():N}"[..18],
+            Password = "StudentNewPass123!",
+            ConfirmPassword = "StudentNewPass123!"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        Assert.NotNull(body);
+        Assert.NotEmpty(body.AccessToken);
+        Assert.Equal("Bearer", body.TokenType);
+        Assert.NotNull(body.User);
+        Assert.Equal(uniqueEmail, body.User.Email);
+        Assert.Equal("Nguyễn Văn Học Viên Mới", body.User.DisplayName);
+        Assert.Contains("STUDENT", body.User.Roles);
+
+        // Verify HttpOnly cookie is set
+        Assert.True(response.Headers.Contains("Set-Cookie"));
+        var cookies = response.Headers.GetValues("Set-Cookie");
+        Assert.Contains(cookies, c => c.Contains("refreshToken=") && c.Contains("httponly", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Register_WithExistingEmail_Returns409Conflict()
+    {
+        var registerRequest = new RegisterRequestDto
+        {
+            FullName = "Trùng Email",
+            Email = "student@zhongwenhub.edu.vn", // Existing seeded student email
+            Password = "StudentNewPass123!",
+            ConfirmPassword = "StudentNewPass123!"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ApiProblemDetailsDto>(_jsonOptions);
+        Assert.NotNull(problem);
+        Assert.Equal(409, problem.Status);
+        Assert.Contains("Email", problem.Title);
+    }
+
+    [Fact]
+    public async Task Register_WithPasswordMismatch_Returns400BadRequest()
+    {
+        var registerRequest = new RegisterRequestDto
+        {
+            FullName = "Mật khẩu lệch",
+            Email = $"mismatch_{Guid.NewGuid():N}@zhongwenhub.edu.vn",
+            Password = "Password123!",
+            ConfirmPassword = "DifferentPassword123!"
+        };
+
+        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", registerRequest);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private static string ExtractRefreshTokenFromCookie(string cookieHeader)
     {
         var part = cookieHeader.Split(';').FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));

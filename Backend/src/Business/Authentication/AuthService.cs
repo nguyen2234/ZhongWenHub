@@ -116,6 +116,86 @@ public class AuthService : IAuthService
         return AuthResultDto.Succeeded(loginResponse, rawRefreshToken, expiresAt);
     }
 
+    public async Task<AuthResultDto> RegisterAsync(RegisterRequestDto request, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var existingUserByEmail = await _userManager.FindByEmailAsync(email);
+        if (existingUserByEmail != null)
+        {
+            await RecordAuditAsync(null, email, "REGISTER_FAILED_EMAIL_EXISTS", ipAddress, userAgent, false, "Email đã được sử dụng.", cancellationToken);
+            return AuthResultDto.Failed(409, "Email đã tồn tại", "Địa chỉ email này đã được đăng ký tài khoản trên hệ thống.");
+        }
+
+        var username = (!string.IsNullOrWhiteSpace(request.Username) ? request.Username.Trim() : email.Split('@')[0]).ToLowerInvariant();
+        username = System.Text.RegularExpressions.Regex.Replace(username, @"[^a-z0-9_-]", "");
+        if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
+        {
+            username = "user_" + Guid.NewGuid().ToString("N")[..8];
+        }
+
+        var existingUserByName = await _userManager.FindByNameAsync(username);
+        if (existingUserByName != null)
+        {
+            username = $"{username}_{Guid.NewGuid().ToString("N")[..4]}";
+        }
+
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = username,
+            Email = email,
+            DisplayName = request.FullName.Trim(),
+            Status = UserStatus.ACTIVE,
+            CurrentHskLevel = "HSK 1",
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors
+                .GroupBy(e => e.Code)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.Description).ToArray());
+
+            await RecordAuditAsync(null, username, "REGISTER_FAILED", ipAddress, userAgent, false, "Lỗi tạo tài khoản Identity.", cancellationToken);
+            return AuthResultDto.Failed(400, "Đăng ký không thành công", "Thông tin đăng ký không đáp ứng yêu cầu bảo mật.", errors);
+        }
+
+        // Mặc định gán vai trò STUDENT
+        await _userManager.AddToRoleAsync(user, ZhongWenHub.Data.Constants.RoleConstants.Student);
+
+        var roles = new List<string> { ZhongWenHub.Data.Constants.RoleConstants.Student };
+        var userDto = MapToUserDto(user, roles);
+
+        var accessToken = _jwtTokenService.GenerateAccessToken(userDto, roles);
+        var (rawRefreshToken, tokenHash, expiresAt) = _jwtTokenService.GenerateRefreshToken();
+
+        var refreshToken = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = expiresAt,
+            CreatedByIp = ipAddress
+        };
+
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await RecordAuditAsync(user.Id, user.UserName, "REGISTER_SUCCESS", ipAddress, userAgent, true, "Đăng ký tài khoản mới thành công (vai trò STUDENT).", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var loginResponse = new LoginResponseDto
+        {
+            AccessToken = accessToken,
+            ExpiresIn = _jwtSettings.AccessTokenExpirationMinutes * 60,
+            TokenType = "Bearer",
+            User = userDto,
+            RefreshTokenExpiry = expiresAt
+        };
+
+        return AuthResultDto.Succeeded(loginResponse, rawRefreshToken, expiresAt);
+    }
+
     public async Task<AuthResultDto> RefreshTokenAsync(string rawRefreshToken, string? ipAddress, string? userAgent, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(rawRefreshToken))
