@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader, Pagination, ConfirmDialog } from '../../../shared/components';
 import type {
   CreateUserDTO,
@@ -65,17 +65,33 @@ export const AdminUsersPage: React.FC = () => {
   const [targetLockUser, setTargetLockUser] = useState<UserListItem | UserDetail | null>(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
 
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
+
   const triggerRefresh = useCallback(() => {
-    adminUserService.syncFromBackend().finally(() => {
-      setUsersVersion((v) => v + 1);
-    });
+    setIsSyncing(true);
+    setSyncError(null);
+    adminUserService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải dữ liệu người dùng.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setUsersVersion((v) => v + 1);
+      });
   }, []);
 
   useEffect(() => {
-    adminUserService.syncFromBackend().finally(() => {
-      setUsersVersion((v) => v + 1);
-    });
-  }, []);
+    triggerRefresh();
+  }, [triggerRefresh]);
 
   // Handle Toolbar filters change
   const handleFilterChange = (newFilters: UserFilters) => {
@@ -243,6 +259,52 @@ export const AdminUsersPage: React.FC = () => {
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
       />
+
+      {/* Error Alert with Retry Action */}
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-lg)',
+            color: '#dc2626',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              color: '#dc2626',
+              borderRadius: '6px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              flexShrink: 0,
+            }}
+          >
+            <RefreshCw size={14} />
+            <span>Thử lại</span>
+          </button>
+        </div>
+      )}
 
       {/* 4. Data Table (Desktop >=768px) */}
       <UserTable
