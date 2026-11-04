@@ -24,3 +24,4 @@ public class ExerciseEntity : BaseEntity
     public Guid? GrammarPointId { get; set; }
     public GrammarPointEntity? GrammarPoint { get; set; }
 }
+

@@ -41,3 +41,4 @@ public interface IContentService
     Task<ExerciseDto?> UpdateExerciseAsync(Guid id, UpdateExerciseDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteExerciseAsync(Guid id, CancellationToken cancellationToken = default);
 }
+

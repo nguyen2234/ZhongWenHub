@@ -11,3 +11,4 @@ public class CourseEntity : BaseEntity
 
     public ICollection<LessonEntity> Lessons { get; set; } = new List<LessonEntity>();
 }
+

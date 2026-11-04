@@ -19,3 +19,4 @@ public class LessonEntity : BaseEntity
     public ICollection<GrammarPointEntity> GrammarPoints { get; set; } = new List<GrammarPointEntity>();
     public ICollection<ExerciseEntity> Exercises { get; set; } = new List<ExerciseEntity>();
 }
+

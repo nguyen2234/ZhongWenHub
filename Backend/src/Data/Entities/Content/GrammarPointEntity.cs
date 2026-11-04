@@ -17,3 +17,4 @@ public class GrammarPointEntity : BaseEntity
     public Guid? LessonId { get; set; }
     public LessonEntity? Lesson { get; set; }
 }
+

@@ -16,3 +16,4 @@ public class VocabularyEntity : BaseEntity
     public Guid? LessonId { get; set; }
     public LessonEntity? Lesson { get; set; }
 }
+
