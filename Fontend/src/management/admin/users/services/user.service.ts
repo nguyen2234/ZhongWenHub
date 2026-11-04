@@ -31,7 +31,9 @@ class AdminUserService {
   private lastError: string | null = null;
 
   constructor() {
-    const isUnitTest = typeof (globalThis as any).Bun !== 'undefined' || (globalThis as any).process?.env?.NODE_ENV === 'test';
+    const isUnitTest =
+      typeof (globalThis as any).Bun !== 'undefined' ||
+      (globalThis as any).process?.env?.NODE_ENV === 'test';
     if (isUnitTest && !authTokenService.isAuthenticated()) {
       this.users = [...INITIAL_USERS];
       this.kpis = { ...INITIAL_USER_KPIS };
@@ -84,6 +86,8 @@ class AdminUserService {
           name: b.name || b.displayName || 'Người dùng',
           email: b.email,
           avatarUrl: b.avatarUrl,
+          roles: b.roles || ['STUDENT'],
+          role: (b.roles && b.roles[0]) || 'STUDENT',
           hskLevel: b.hskLevel || 'HSK 1',
           status: b.status === 'SUSPENDED' ? 'LOCKED' : (b.status || 'ACTIVE'),
           progressPercentage: b.progressPercentage || 0,
@@ -137,7 +141,8 @@ class AdminUserService {
 
       return { success: true };
     } catch (err: any) {
-      const errorMsg = err?.message || 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra dịch vụ ASP.NET Core.';
+      const errorMsg =
+        err?.message || 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra dịch vụ ASP.NET Core.';
       this.lastError = errorMsg;
       this.users = [];
       this.hasSynced = true;
@@ -197,7 +202,15 @@ class AdminUserService {
       result = result.filter((u) => u.hskLevel === filters.hskLevel);
     }
 
-    // 4. Sorting
+    // 4. Role filter
+    if (filters.role && filters.role !== 'ALL') {
+      const targetRole = filters.role;
+      result = result.filter(
+        (u) => u.roles?.includes(targetRole) || u.role === targetRole
+      );
+    }
+
+    // 5. Sorting
     if (sort) {
       result.sort((a, b) => {
         let cmp = 0;
@@ -224,7 +237,7 @@ class AdminUserService {
       });
     }
 
-    // 5. Pagination
+    // 6. Pagination
     const totalItems = result.length;
     const totalPages = Math.max(1, Math.ceil(totalItems / pagination.pageSize));
     const currentPage = Math.min(Math.max(1, pagination.page), totalPages);
@@ -246,12 +259,87 @@ class AdminUserService {
     return user ? JSON.parse(JSON.stringify(user)) : null;
   }
 
-  public createUser(dto: CreateUserDTO): UserDetail {
-    const existing = this.users.find((u) => u.email.toLowerCase() === dto.email.trim().toLowerCase());
+  public async createUser(dto: CreateUserDTO): Promise<UserDetail> {
+    const existing = this.users.find(
+      (u) => u.email.toLowerCase() === dto.email.trim().toLowerCase()
+    );
     if (existing) {
-      throw new Error('Email này đã được sử dụng bởi học viên khác.');
+      throw new Error('Email này đã được sử dụng bởi người dùng khác.');
     }
 
+    const assignedRoles = dto.roles && dto.roles.length > 0
+      ? dto.roles
+      : [dto.role || 'STUDENT'];
+
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      const res = await fetch(getApiUrl('admin/users'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          initialHsk: dto.initialHsk || 'HSK 1',
+          status: dto.status || 'ACTIVE',
+          password: dto.password || 'UserPassword123!',
+          roles: assignedRoles,
+          notes: dto.notes,
+          phone: dto.phone,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errorMsg =
+          errorData?.detail ||
+          errorData?.message ||
+          (errorData?.errors ? Object.values(errorData.errors).flat().join('; ') : null) ||
+          'Không thể tạo tài khoản người dùng.';
+        throw new Error(errorMsg);
+      }
+
+      const created = await res.json();
+      const newUser: UserDetail = {
+        id: created.id,
+        name: created.name || dto.name.trim(),
+        email: created.email || dto.email.trim().toLowerCase(),
+        roles: created.roles || assignedRoles,
+        role: (created.roles && created.roles[0]) || assignedRoles[0],
+        hskLevel: created.hskLevel || dto.initialHsk || 'HSK 1',
+        status: created.status || dto.status || 'ACTIVE',
+        progressPercentage: created.progressPercentage || 0,
+        joinedAt: created.joinedAt || new Date().toLocaleDateString('vi-VN'),
+        joinedDateRaw: created.joinedDateRaw || new Date().toISOString().slice(0, 10),
+        lastActiveAt: created.lastActiveAt || 'Vừa mới tạo',
+        lastActiveDateRaw: created.lastActiveDateRaw || new Date().toISOString(),
+        phone: created.phone || dto.phone,
+        notes: created.notes || dto.notes,
+        learningSummary: created.learningSummary || {
+          currentHsk: dto.initialHsk || 'HSK 1',
+          totalXp: 0,
+          streakDays: 0,
+          completedLessons: 0,
+          totalLessons: 35,
+          progressPercentage: 0,
+          vocabularyMastered: 0,
+          srsReviewDue: 0,
+          lastStudySession: 'Chưa có hoạt động học tập',
+        },
+      };
+
+      this.users.unshift(newUser);
+      this.kpis.totalLearners += 1;
+      this.kpis.newLearners30d += 1;
+      if (newUser.status === 'ACTIVE') this.kpis.activeLearners += 1;
+
+      return JSON.parse(JSON.stringify(newUser));
+    }
+
+    // Local fallback for offline unit tests
     const newId = `u-${Date.now().toString().slice(-4)}`;
     const now = new Date();
     const joinedAt = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
@@ -261,6 +349,8 @@ class AdminUserService {
       id: newId,
       name: dto.name.trim(),
       email: dto.email.trim().toLowerCase(),
+      roles: assignedRoles,
+      role: assignedRoles[0],
       hskLevel: dto.initialHsk,
       status: dto.status,
       progressPercentage: 0,
@@ -268,6 +358,7 @@ class AdminUserService {
       joinedDateRaw,
       lastActiveAt: 'Vừa mới tạo',
       lastActiveDateRaw: now.toISOString(),
+      phone: dto.phone,
       notes: dto.notes,
       learningSummary: {
         currentHsk: dto.initialHsk,
@@ -287,57 +378,29 @@ class AdminUserService {
     this.kpis.newLearners30d += 1;
     if (dto.status === 'ACTIVE') this.kpis.activeLearners += 1;
 
-    // Send async create request to backend in background
-    const token = authTokenService.getAccessToken();
-    if (token) {
-      fetch(getApiUrl('admin/users'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          initialHsk: dto.initialHsk,
-          status: dto.status,
-          notes: dto.notes,
-        }),
-      }).catch(() => {
-        // Log or handle background error
-      });
-    }
-
     return JSON.parse(JSON.stringify(newUser));
   }
 
-  public updateUser(id: string, dto: UpdateUserDTO): UserDetail {
+  public async updateUser(id: string, dto: UpdateUserDTO): Promise<UserDetail> {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
-      throw new Error('Không tìm thấy học viên.');
+      throw new Error('Không tìm thấy người dùng.');
     }
 
     const emailDuplicate = this.users.find(
       (u) => u.id !== id && u.email.toLowerCase() === dto.email.trim().toLowerCase()
     );
     if (emailDuplicate) {
-      throw new Error('Email này đã được sử dụng bởi học viên khác.');
+      throw new Error('Email này đã được sử dụng bởi người dùng khác.');
     }
 
-    user.name = dto.name.trim();
-    user.email = dto.email.trim().toLowerCase();
-    user.hskLevel = dto.hskLevel;
-    user.status = dto.status;
-    if (dto.notes !== undefined) {
-      user.notes = dto.notes;
-    }
-    user.learningSummary.currentHsk = dto.hskLevel;
+    const targetRoles = dto.roles && dto.roles.length > 0
+      ? dto.roles
+      : dto.role ? [dto.role] : user.roles;
 
-    // Send update request to backend if valid guid
     const token = authTokenService.getAccessToken();
     if (token && id.length > 20) {
-      fetch(getApiUrl(`admin/users/${id}`), {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -349,10 +412,37 @@ class AdminUserService {
           email: dto.email.trim().toLowerCase(),
           hskLevel: dto.hskLevel,
           status: dto.status,
+          roles: targetRoles,
           notes: dto.notes,
+          phone: dto.phone,
         }),
-      }).catch(() => {});
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        const errorMsg =
+          errorData?.detail ||
+          errorData?.message ||
+          'Không thể cập nhật thông tin người dùng.';
+        throw new Error(errorMsg);
+      }
     }
+
+    user.name = dto.name.trim();
+    user.email = dto.email.trim().toLowerCase();
+    user.hskLevel = dto.hskLevel;
+    user.status = dto.status;
+    if (targetRoles) {
+      user.roles = targetRoles;
+      user.role = targetRoles[0];
+    }
+    if (dto.notes !== undefined) {
+      user.notes = dto.notes;
+    }
+    if (dto.phone !== undefined) {
+      user.phone = dto.phone;
+    }
+    user.learningSummary.currentHsk = dto.hskLevel;
 
     return JSON.parse(JSON.stringify(user));
   }
@@ -360,7 +450,7 @@ class AdminUserService {
   public async lockUser(id: string, reason?: string): Promise<UserDetail> {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
-      throw new Error('Không tìm thấy học viên.');
+      throw new Error('Không tìm thấy người dùng.');
     }
 
     const lockReason = reason || 'Tài khoản tạm thời bị khóa bởi Quản trị viên.';
@@ -377,7 +467,7 @@ class AdminUserService {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => null);
-        throw new Error(errData?.message || 'Không thể khóa tài khoản này.');
+        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản này.');
       }
     }
 
@@ -391,7 +481,7 @@ class AdminUserService {
   public async unlockUser(id: string): Promise<UserDetail> {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
-      throw new Error('Không tìm thấy học viên.');
+      throw new Error('Không tìm thấy người dùng.');
     }
 
     const token = authTokenService.getAccessToken();
@@ -405,7 +495,7 @@ class AdminUserService {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => null);
-        throw new Error(errData?.message || 'Không thể mở khóa tài khoản này.');
+        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản này.');
       }
     }
 
@@ -422,6 +512,8 @@ class AdminUserService {
       name: u.name,
       email: u.email,
       avatarUrl: u.avatarUrl,
+      roles: u.roles,
+      role: u.role || (u.roles && u.roles[0]),
       hskLevel: u.hskLevel,
       status: u.status,
       progressPercentage: u.progressPercentage,

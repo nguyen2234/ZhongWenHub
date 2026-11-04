@@ -12,6 +12,24 @@ export interface UserCardListProps {
   onResetFilters?: () => void;
 }
 
+const getRoleBadgeInfo = (roles?: string[]) => {
+  const primaryRole = roles && roles.length > 0 ? roles[0].toUpperCase() : 'STUDENT';
+  switch (primaryRole) {
+    case 'ADMIN':
+    case 'SUPER_ADMIN':
+      return { label: 'Quản trị viên', bg: 'rgba(239, 68, 68, 0.1)', color: '#dc2626' };
+    case 'TEACHER':
+      return { label: 'Giáo viên', bg: 'rgba(59, 130, 246, 0.1)', color: '#2563eb' };
+    case 'CONTENT_MANAGER':
+      return { label: 'Quản lý ND', bg: 'rgba(245, 158, 11, 0.1)', color: '#d97706' };
+    case 'SUPPORT':
+      return { label: 'Hỗ trợ viên', bg: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' };
+    case 'STUDENT':
+    default:
+      return { label: 'Học viên', bg: 'rgba(100, 116, 139, 0.1)', color: '#475569' };
+  }
+};
+
 export const UserCardList: React.FC<UserCardListProps> = ({
   users,
   selectedUserId,
@@ -49,7 +67,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
       <div className="user-cards-mobile" style={{ padding: '16px 0' }}>
         <EmptyState
           title="Không tìm thấy người dùng"
-          description="Không có học viên phù hợp với bộ lọc hiện tại."
+          description="Không có tài khoản phù hợp với bộ lọc hiện tại."
           action={
             onResetFilters && (
               <button
@@ -71,6 +89,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
       {users.map((user) => {
         const isSelected = selectedUserId === user.id;
         const statusInfo = getStatusVariant(user.status);
+        const roleInfo = getRoleBadgeInfo(user.roles || (user.role ? [user.role] : undefined));
         const isMenuOpen = activeMenuId === user.id;
 
         return (
@@ -153,6 +172,18 @@ export const UserCardList: React.FC<UserCardListProps> = ({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  backgroundColor: roleInfo.bg,
+                  color: roleInfo.color,
+                }}
+              >
+                {roleInfo.label}
+              </span>
               <span
                 style={{
                   fontWeight: 700,

@@ -190,4 +190,54 @@ test.describe('Real Admin & RBAC Acceptance Tests (Live Backend & SQL Server - N
     await expect(page).toHaveURL(/.*\/login/, { timeout: 10000 });
   });
 
+  test('6. Real Admin Dashboard KPIs & Staff Role Assignment', async ({ page, request }) => {
+    // 6.1 Verify Real Backend Dashboard Stats API
+    const loginApiRes = await request.post('/api/v1/auth/login', {
+      data: { usernameOrEmail: 'admin@gmail.com', password: 'admin' },
+    });
+    const { accessToken } = await loginApiRes.json();
+    const statsRes = await request.get('/api/v1/admin/dashboard/stats', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    expect(statsRes.status()).toBe(200);
+    const stats = await statsRes.json();
+    expect(stats.totalStudents).toBeGreaterThan(0);
+    expect(stats.totalCourses).toBe(6);
+
+    // 6.2 Create a staff account (Teacher) via Admin API
+    const uniqueId = Date.now().toString().slice(-4);
+    const createStaffRes = await request.post('/api/v1/admin/users', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      data: {
+        name: `Giáo Viên Nghiệm Thu ${uniqueId}`,
+        email: `teacher_acc_${uniqueId}@zhongwenhub.edu.vn`,
+        password: 'TeacherPassword123!',
+        roles: ['TEACHER'],
+        initialHsk: 'HSK 3',
+        status: 'ACTIVE',
+      },
+    });
+    expect(createStaffRes.status()).toBe(201);
+    const createdStaff = await createStaffRes.json();
+    expect(createdStaff.roles).toContain('TEACHER');
+
+    // 6.3 Login to Admin Dashboard in browser and verify real KPIs are rendered
+    await page.goto('/ZhongWenHub/login');
+    await page.fill('#login-email', 'admin@gmail.com');
+    await page.fill('#login-password', 'admin');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL(/.*management\/admin\/dashboard/, { timeout: 12000 });
+
+    // Verify Real KPI cards
+    await expect(page.getByText('Tổng số học viên')).toBeVisible();
+    await expect(page.getByText('Tổng số giáo viên')).toBeVisible();
+    await expect(page.getByText('Tổng số nhân viên')).toBeVisible();
+    await expect(page.getByText('Tổng số khóa học')).toBeVisible();
+
+    // 6.4 Open Admin Users and verify Teacher role badge is visible
+    await page.goto('/ZhongWenHub/management/admin/users');
+    await expect(page.locator('.user-table-desktop').getByText(`teacher_acc_${uniqueId}@zhongwenhub.edu.vn`)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.user-table-desktop').getByText('Giáo viên').first()).toBeVisible();
+  });
+
 });

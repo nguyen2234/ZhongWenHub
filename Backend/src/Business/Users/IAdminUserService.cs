@@ -9,6 +9,8 @@ public interface IAdminUserService
 
     Task<AdminUserKpisDto> GetKpisAsync(CancellationToken cancellationToken = default);
 
+    Task<AdminDashboardStatsDto> GetDashboardStatsAsync(CancellationToken cancellationToken = default);
+
     Task<AdminUserDetailDto?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<(bool Success, AdminUserDetailDto? User, string? ErrorMessage, int StatusCode)> CreateUserAsync(

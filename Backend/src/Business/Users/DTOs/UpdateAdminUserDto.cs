@@ -19,4 +19,6 @@ public class UpdateAdminUserDto
     public string? Notes { get; set; }
 
     public string? Phone { get; set; }
+
+    public List<string>? Roles { get; set; }
 }

@@ -19,11 +19,20 @@ const HSK_OPTIONS: HskLevelCode[] = [
 ];
 
 const STATUS_OPTIONS: Array<{ value: 'ALL' | UserStatus; label: string }> = [
-  { value: 'ALL', label: 'Tất cả' },
+  { value: 'ALL', label: 'Tất cả trạng thái' },
   { value: 'ACTIVE', label: 'Hoạt động' },
   { value: 'INACTIVE', label: 'Ngưng hoạt động' },
   { value: 'PENDING', label: 'Chờ duyệt' },
   { value: 'LOCKED', label: 'Bị khóa' },
+];
+
+const ROLE_FILTER_OPTIONS: Array<{ value: 'ALL' | string; label: string }> = [
+  { value: 'ALL', label: 'Tất cả vai trò' },
+  { value: 'STUDENT', label: 'Học viên' },
+  { value: 'TEACHER', label: 'Giáo viên' },
+  { value: 'CONTENT_MANAGER', label: 'Quản lý nội dung' },
+  { value: 'SUPPORT', label: 'Hỗ trợ viên' },
+  { value: 'ADMIN', label: 'Quản trị viên' },
 ];
 
 export const UserToolbar: React.FC<UserToolbarProps> = ({
@@ -49,7 +58,8 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
   const isFiltered =
     filters.search.trim() !== '' ||
     filters.status !== 'ALL' ||
-    filters.hskLevel !== 'ALL';
+    filters.hskLevel !== 'ALL' ||
+    (filters.role && filters.role !== 'ALL');
 
   return (
     <div className="user-toolbar-container">
@@ -66,6 +76,22 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
             aria-label="Tìm theo tên hoặc email"
           />
         </div>
+
+        {/* Role Filter */}
+        <select
+          className="user-filter-select"
+          value={filters.role || 'ALL'}
+          onChange={(e) =>
+            onFilterChange({ ...filters, role: e.target.value })
+          }
+          aria-label="Lọc theo vai trò người dùng"
+        >
+          {ROLE_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
         {/* Status Filter */}
         <select

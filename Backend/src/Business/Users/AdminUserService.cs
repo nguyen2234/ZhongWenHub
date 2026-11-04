@@ -134,6 +134,58 @@ public class AdminUserService : IAdminUserService
         };
     }
 
+    public async Task<AdminDashboardStatsDto> GetDashboardStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var thirtyDaysAgo = now.AddDays(-30);
+
+        var studentRole = await _roleManager.FindByNameAsync(RoleConstants.Student);
+        var teacherRole = await _roleManager.FindByNameAsync(RoleConstants.Teacher);
+        var staffRoleNames = new[] { RoleConstants.Admin, RoleConstants.SuperAdmin, RoleConstants.ContentManager, RoleConstants.Support };
+        var staffRoleIds = await _roleManager.Roles
+            .Where(r => staffRoleNames.Contains(r.Name))
+            .Select(r => r.Id)
+            .ToListAsync(cancellationToken);
+
+        var totalStudents = studentRole != null
+            ? await (from ur in _dbContext.UserRoles
+                     join u in _dbContext.Users on ur.UserId equals u.Id
+                     where ur.RoleId == studentRole.Id && !u.IsDeleted
+                     select ur.UserId).CountAsync(cancellationToken)
+            : 0;
+
+        var totalTeachers = teacherRole != null
+            ? await (from ur in _dbContext.UserRoles
+                     join u in _dbContext.Users on ur.UserId equals u.Id
+                     where ur.RoleId == teacherRole.Id && !u.IsDeleted
+                     select ur.UserId).CountAsync(cancellationToken)
+            : 0;
+
+        var totalStaff = await (from ur in _dbContext.UserRoles
+                                join u in _dbContext.Users on ur.UserId equals u.Id
+                                where staffRoleIds.Contains(ur.RoleId) && !u.IsDeleted
+                                select ur.UserId)
+                               .Distinct()
+                               .CountAsync(cancellationToken);
+
+        var totalActive = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && u.Status == UserStatus.ACTIVE, cancellationToken);
+        var totalLocked = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && (u.Status == UserStatus.LOCKED || u.Status == UserStatus.SUSPENDED), cancellationToken);
+        var new30d = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && u.CreatedAt >= thirtyDaysAgo, cancellationToken);
+
+        return new AdminDashboardStatsDto
+        {
+            TotalStudents = totalStudents,
+            TotalTeachers = totalTeachers,
+            TotalStaff = totalStaff,
+            TotalCourses = 6, // 6 Khóa học chuẩn HSK 1 -> HSK 6
+            TotalClasses = 0, // Chuẩn bị cho Giai đoạn 3 (Teacher / Class)
+            PendingSupportTickets = 0, // Chuẩn bị cho Giai đoạn 4 (Support Ticket)
+            ActiveUsers = totalActive,
+            LockedUsers = totalLocked,
+            NewUsers30d = new30d
+        };
+    }
+
     public async Task<AdminUserDetailDto?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
@@ -285,6 +337,15 @@ public class AdminUserService : IAdminUserService
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             return (false, null, $"Cập nhật thất bại: {errors}", 400);
+        }
+
+        if (dto.Roles != null && dto.Roles.Count > 0)
+        {
+            var (roleSuccess, _, roleError, roleStatus) = await UpdateRolesAsync(id, dto.Roles, currentUserId, ipAddress, cancellationToken);
+            if (!roleSuccess)
+            {
+                return (false, null, roleError, roleStatus);
+            }
         }
 
         await RecordAuditAsync(currentUserId, null, "USER_UPDATED", ipAddress, null, true,

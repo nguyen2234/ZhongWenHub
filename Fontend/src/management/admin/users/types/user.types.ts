@@ -1,5 +1,13 @@
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED' | 'PENDING';
 
+export type UserRole =
+  | 'STUDENT'
+  | 'TEACHER'
+  | 'CONTENT_MANAGER'
+  | 'SUPPORT'
+  | 'ADMIN'
+  | 'SUPER_ADMIN';
+
 export type HskLevelCode =
   | 'HSK 1'
   | 'HSK 2'
@@ -26,6 +34,8 @@ export interface UserListItem {
   name: string;
   email: string;
   avatarUrl?: string;
+  roles?: string[];
+  role?: string;
   hskLevel: HskLevelCode;
   status: UserStatus;
   progressPercentage: number;
@@ -54,6 +64,7 @@ export interface UserFilters {
   search: string;
   status: 'ALL' | UserStatus;
   hskLevel: 'ALL' | HskLevelCode;
+  role?: 'ALL' | string;
 }
 
 export type UserSortField = 'name' | 'joinedDate' | 'lastActive' | 'hskLevel' | 'progress';
@@ -71,6 +82,10 @@ export interface CreateUserDTO {
   email: string;
   initialHsk: HskLevelCode;
   status: UserStatus;
+  role?: string;
+  roles?: string[];
+  password?: string;
+  phone?: string;
   notes?: string;
 }
 
@@ -79,5 +94,8 @@ export interface UpdateUserDTO {
   email: string;
   hskLevel: HskLevelCode;
   status: UserStatus;
+  role?: string;
+  roles?: string[];
+  phone?: string;
   notes?: string;
 }

@@ -27,6 +27,7 @@ export const AdminUsersPage: React.FC = () => {
     search: '',
     status: 'ALL',
     hskLevel: 'ALL',
+    role: 'ALL',
   });
 
   // 2. Pagination state (default: 20 per specification)
@@ -45,7 +46,6 @@ export const AdminUsersPage: React.FC = () => {
   const [usersVersion, setUsersVersion] = useState(0);
 
   const paginatedData = useMemo(() => {
-    // Reference usersVersion to re-evaluate when mock service data changes
     if (usersVersion < 0) return adminUserService.getUsers(filters, pagination, sort);
     return adminUserService.getUsers(filters, pagination, sort);
   }, [filters, pagination, sort, usersVersion]);
@@ -104,6 +104,7 @@ export const AdminUsersPage: React.FC = () => {
       search: '',
       status: 'ALL',
       hskLevel: 'ALL',
+      role: 'ALL',
     });
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
@@ -157,8 +158,8 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   // Save edit in Drawer
-  const handleSaveEdit = (id: string, dto: UpdateUserDTO) => {
-    const updated = adminUserService.updateUser(id, dto);
+  const handleSaveEdit = async (id: string, dto: UpdateUserDTO) => {
+    const updated = await adminUserService.updateUser(id, dto);
     setSelectedUser(updated);
     triggerRefresh();
   };
@@ -196,8 +197,8 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   // Create User
-  const handleCreateUser = (dto: CreateUserDTO) => {
-    const created = adminUserService.createUser(dto);
+  const handleCreateUser = async (dto: CreateUserDTO) => {
+    const created = await adminUserService.createUser(dto);
     triggerRefresh();
     setSelectedUser(created);
     setIsDrawerOpen(true);
@@ -217,7 +218,7 @@ export const AdminUsersPage: React.FC = () => {
     if (isLocked) {
       return {
         title: `Mở khóa tài khoản ${targetLockUser.name}?`,
-        message: `Học viên sẽ có thể đăng nhập trở lại và tiếp tục truy cập các bài học trên ZhongWenHub.`,
+        message: `Người dùng sẽ có thể đăng nhập trở lại và tiếp tục sử dụng hệ thống đào tạo ZhongWenHub.`,
         confirmLabel: 'Mở khóa tài khoản',
         isDestructive: false,
       };
@@ -225,7 +226,7 @@ export const AdminUsersPage: React.FC = () => {
 
     return {
       title: `Khóa tài khoản ${targetLockUser.name}?`,
-      message: `Học viên sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa lại. Toàn bộ tiến độ học tập và SRS vẫn được bảo lưu an toàn.`,
+      message: `Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa lại. Toàn bộ tiến độ học tập và dữ liệu vẫn được bảo lưu an toàn.`,
       confirmLabel: 'Khóa tài khoản',
       isDestructive: true,
     };
@@ -236,13 +237,13 @@ export const AdminUsersPage: React.FC = () => {
       {/* 1. Page Header */}
       <PageHeader
         title="Quản lý người dùng"
-        subtitle="Quản lý tài khoản học viên và trạng thái sử dụng hệ thống đào tạo ZhongWenHub."
+        subtitle="Quản lý tài khoản học viên, giáo viên và nhân sự vận hành hệ thống đào tạo ZhongWenHub."
         actions={
           <button
             type="button"
             className="ds-btn ds-btn-primary ds-btn-sm"
             onClick={() => setIsCreateModalOpen(true)}
-            aria-label="Thêm học viên mới"
+            aria-label="Thêm người dùng mới"
           >
             <Plus size={16} style={{ marginRight: '6px' }} />
             Thêm người dùng
@@ -342,7 +343,7 @@ export const AdminUsersPage: React.FC = () => {
         onPageSizeChange={(newSize) =>
           setPagination((prev) => ({ ...prev, pageSize: newSize, page: 1 }))
         }
-        itemLabel="học viên"
+        itemLabel="người dùng"
       />
 
       {/* 7. Slide-over User Detail Drawer */}
