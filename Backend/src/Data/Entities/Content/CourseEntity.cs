@@ -9,6 +9,7 @@ public class CourseEntity : BaseEntity
     public string Status { get; set; } = "PUBLISHED";
     public int OrderIndex { get; set; } = 1;
 
+    public ICollection<UnitEntity> Units { get; set; } = new List<UnitEntity>();
     public ICollection<LessonEntity> Lessons { get; set; } = new List<LessonEntity>();
 }
 

@@ -173,9 +173,171 @@ public class ContentService : IContentService
 
     #endregion
 
+    #region Units
+
+    public async Task<List<UnitDto>> GetUnitsAsync(Guid? courseId = null, string? status = null, bool publishedOnly = false, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Units.AsNoTracking().AsQueryable();
+
+        if (publishedOnly)
+        {
+            query = query.Where(u => u.Status == "PUBLISHED");
+        }
+        else if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
+        {
+            query = query.Where(u => u.Status == status);
+        }
+
+        if (courseId.HasValue && courseId.Value != Guid.Empty)
+        {
+            query = query.Where(u => u.CourseId == courseId.Value);
+        }
+
+        var units = await query.OrderBy(u => u.OrderIndex).ToListAsync(cancellationToken);
+        var unitIds = units.Select(u => u.Id).ToList();
+
+        var lessonStats = await _dbContext.Lessons.AsNoTracking()
+            .Where(l => l.UnitId.HasValue && unitIds.Contains(l.UnitId.Value))
+            .GroupBy(l => l.UnitId!.Value)
+            .Select(g => new
+            {
+                UnitId = g.Key,
+                Total = g.Count(),
+                Published = g.Count(l => l.Status == "PUBLISHED")
+            })
+            .ToListAsync(cancellationToken);
+
+        var statsMap = lessonStats.ToDictionary(s => s.UnitId);
+
+        return units.Select(u =>
+        {
+            statsMap.TryGetValue(u.Id, out var s);
+            return new UnitDto
+            {
+                Id = u.Id,
+                CourseId = u.CourseId,
+                UnitNumber = u.UnitNumber,
+                TitleZh = u.TitleZh,
+                TitleVi = u.TitleVi,
+                Description = u.Description,
+                OrderIndex = u.OrderIndex,
+                Status = u.Status,
+                LessonCount = s?.Total ?? 0,
+                PublishedLessonCount = s?.Published ?? 0,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            };
+        }).ToList();
+    }
+
+    public async Task<UnitDto?> GetUnitByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default)
+    {
+        var unit = await _dbContext.Units.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (unit == null || (publishedOnly && unit.Status != "PUBLISHED")) return null;
+
+        var total = await _dbContext.Lessons.CountAsync(l => l.UnitId == id, cancellationToken);
+        var published = await _dbContext.Lessons.CountAsync(l => l.UnitId == id && l.Status == "PUBLISHED", cancellationToken);
+
+        return new UnitDto
+        {
+            Id = unit.Id,
+            CourseId = unit.CourseId,
+            UnitNumber = unit.UnitNumber,
+            TitleZh = unit.TitleZh,
+            TitleVi = unit.TitleVi,
+            Description = unit.Description,
+            OrderIndex = unit.OrderIndex,
+            Status = unit.Status,
+            LessonCount = total,
+            PublishedLessonCount = published,
+            CreatedAt = unit.CreatedAt,
+            UpdatedAt = unit.UpdatedAt
+        };
+    }
+
+    public async Task<UnitDto> CreateUnitAsync(CreateUnitDto dto, CancellationToken cancellationToken = default)
+    {
+        var unit = new UnitEntity
+        {
+            Id = Guid.NewGuid(),
+            CourseId = dto.CourseId,
+            UnitNumber = dto.UnitNumber,
+            TitleZh = dto.TitleZh.Trim(),
+            TitleVi = dto.TitleVi.Trim(),
+            Description = dto.Description?.Trim(),
+            OrderIndex = dto.OrderIndex,
+            Status = dto.Status
+        };
+
+        _dbContext.Units.Add(unit);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new UnitDto
+        {
+            Id = unit.Id,
+            CourseId = unit.CourseId,
+            UnitNumber = unit.UnitNumber,
+            TitleZh = unit.TitleZh,
+            TitleVi = unit.TitleVi,
+            Description = unit.Description,
+            OrderIndex = unit.OrderIndex,
+            Status = unit.Status,
+            LessonCount = 0,
+            PublishedLessonCount = 0,
+            CreatedAt = unit.CreatedAt,
+            UpdatedAt = unit.UpdatedAt
+        };
+    }
+
+    public async Task<UnitDto?> UpdateUnitAsync(Guid id, UpdateUnitDto dto, CancellationToken cancellationToken = default)
+    {
+        var unit = await _dbContext.Units.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (unit == null) return null;
+
+        unit.UnitNumber = dto.UnitNumber;
+        unit.TitleZh = dto.TitleZh.Trim();
+        unit.TitleVi = dto.TitleVi.Trim();
+        unit.Description = dto.Description?.Trim();
+        unit.OrderIndex = dto.OrderIndex;
+        unit.Status = dto.Status;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var total = await _dbContext.Lessons.CountAsync(l => l.UnitId == id, cancellationToken);
+        var published = await _dbContext.Lessons.CountAsync(l => l.UnitId == id && l.Status == "PUBLISHED", cancellationToken);
+
+        return new UnitDto
+        {
+            Id = unit.Id,
+            CourseId = unit.CourseId,
+            UnitNumber = unit.UnitNumber,
+            TitleZh = unit.TitleZh,
+            TitleVi = unit.TitleVi,
+            Description = unit.Description,
+            OrderIndex = unit.OrderIndex,
+            Status = unit.Status,
+            LessonCount = total,
+            PublishedLessonCount = published,
+            CreatedAt = unit.CreatedAt,
+            UpdatedAt = unit.UpdatedAt
+        };
+    }
+
+    public async Task<bool> DeleteUnitAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var unit = await _dbContext.Units.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+        if (unit == null) return false;
+
+        _dbContext.Units.Remove(unit);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    #endregion
+
     #region Lessons
 
-    public async Task<PagedResponse<LessonDto>> GetLessonsAsync(Guid? courseId = null, string? status = null, string? search = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<LessonDto>> GetLessonsAsync(Guid? courseId = null, Guid? unitId = null, string? status = null, string? search = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Lessons.AsNoTracking().Include(l => l.Course).AsQueryable();
 
@@ -191,6 +353,11 @@ public class ContentService : IContentService
         if (courseId.HasValue && courseId.Value != Guid.Empty)
         {
             query = query.Where(l => l.CourseId == courseId.Value);
+        }
+
+        if (unitId.HasValue && unitId.Value != Guid.Empty)
+        {
+            query = query.Where(l => l.UnitId == unitId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -212,6 +379,7 @@ public class ContentService : IContentService
             {
                 Id = l.Id,
                 CourseId = l.CourseId,
+                UnitId = l.UnitId,
                 CourseTitle = l.Course != null ? l.Course.Title : string.Empty,
                 LessonNumber = l.LessonNumber,
                 TitleZh = l.TitleZh,
@@ -318,6 +486,7 @@ public class ContentService : IContentService
         {
             Id = lesson.Id,
             CourseId = lesson.CourseId,
+            UnitId = lesson.UnitId,
             CourseTitle = lesson.Course?.Title ?? string.Empty,
             LessonNumber = lesson.LessonNumber,
             TitleZh = lesson.TitleZh,
@@ -350,6 +519,7 @@ public class ContentService : IContentService
         var lesson = new LessonEntity
         {
             CourseId = dto.CourseId,
+            UnitId = dto.UnitId.HasValue && dto.UnitId.Value != Guid.Empty ? dto.UnitId.Value : null,
             LessonNumber = dto.LessonNumber,
             TitleZh = dto.TitleZh.Trim(),
             TitleVi = dto.TitleVi.Trim(),
@@ -368,6 +538,7 @@ public class ContentService : IContentService
         {
             Id = lesson.Id,
             CourseId = lesson.CourseId,
+            UnitId = lesson.UnitId,
             CourseTitle = course.Title,
             LessonNumber = lesson.LessonNumber,
             TitleZh = lesson.TitleZh,
@@ -391,6 +562,10 @@ public class ContentService : IContentService
         var lesson = await _dbContext.Lessons.Include(l => l.Course).FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         if (lesson == null) return null;
 
+        if (dto.UnitId.HasValue)
+        {
+            lesson.UnitId = dto.UnitId.Value == Guid.Empty ? null : dto.UnitId.Value;
+        }
         lesson.LessonNumber = dto.LessonNumber;
         lesson.TitleZh = dto.TitleZh.Trim();
         lesson.TitleVi = dto.TitleVi.Trim();
@@ -407,6 +582,7 @@ public class ContentService : IContentService
         {
             Id = lesson.Id,
             CourseId = lesson.CourseId,
+            UnitId = lesson.UnitId,
             CourseTitle = lesson.Course?.Title ?? string.Empty,
             LessonNumber = lesson.LessonNumber,
             TitleZh = lesson.TitleZh,
@@ -814,6 +990,35 @@ public class ContentService : IContentService
         return true;
     }
 
+    public async Task<AdminGrammarStatsDto> GetGrammarStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var total = await _dbContext.GrammarPoints.CountAsync(cancellationToken);
+        var published = await _dbContext.GrammarPoints.CountAsync(g => g.Status == "PUBLISHED", cancellationToken);
+        var draft = await _dbContext.GrammarPoints.CountAsync(g => g.Status == "DRAFT", cancellationToken);
+        var pending = await _dbContext.GrammarPoints.CountAsync(g => g.Status == "PENDING_REVIEW", cancellationToken);
+        var archived = await _dbContext.GrammarPoints.CountAsync(g => g.Status == "ARCHIVED", cancellationToken);
+
+        var byHskList = await _dbContext.GrammarPoints.GroupBy(g => g.HskLevel)
+            .Select(g => new { HskLevel = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var byHsk = byHskList.ToDictionary(x => x.HskLevel, x => x.Count);
+        for (int i = 1; i <= 6; i++)
+        {
+            if (!byHsk.ContainsKey(i)) byHsk[i] = 0;
+        }
+
+        return new AdminGrammarStatsDto
+        {
+            Total = total,
+            Published = published,
+            Draft = draft,
+            Pending = pending,
+            Archived = archived,
+            ByHsk = byHsk
+        };
+    }
+
     #endregion
 
     #region Exercises
@@ -1033,6 +1238,46 @@ public class ContentService : IContentService
         _dbContext.Exercises.Remove(e);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<AdminExerciseStatsDto> GetExerciseStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var total = await _dbContext.Exercises.CountAsync(cancellationToken);
+        var published = await _dbContext.Exercises.CountAsync(e => e.Status == "PUBLISHED", cancellationToken);
+        var draft = await _dbContext.Exercises.CountAsync(e => e.Status == "DRAFT", cancellationToken);
+        var pending = await _dbContext.Exercises.CountAsync(e => e.Status == "PENDING_REVIEW", cancellationToken);
+        var archived = await _dbContext.Exercises.CountAsync(e => e.Status == "ARCHIVED", cancellationToken);
+
+        var byHskList = await _dbContext.Exercises.GroupBy(e => e.HskLevel)
+            .Select(g => new { HskLevel = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+        var byHsk = byHskList.ToDictionary(x => x.HskLevel, x => x.Count);
+        for (int i = 1; i <= 6; i++)
+        {
+            if (!byHsk.ContainsKey(i)) byHsk[i] = 0;
+        }
+
+        var bySkillList = await _dbContext.Exercises.GroupBy(e => e.Skill)
+            .Select(g => new { Skill = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+        var bySkill = bySkillList.ToDictionary(x => x.Skill, x => x.Count);
+
+        var byTypeList = await _dbContext.Exercises.GroupBy(e => e.Type)
+            .Select(g => new { Type = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+        var byType = byTypeList.ToDictionary(x => x.Type, x => x.Count);
+
+        return new AdminExerciseStatsDto
+        {
+            Total = total,
+            Published = published,
+            Draft = draft,
+            Pending = pending,
+            Archived = archived,
+            ByHsk = byHsk,
+            BySkill = bySkill,
+            ByType = byType
+        };
     }
 
     #endregion

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { UploadCloud, Plus } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
@@ -31,6 +31,18 @@ type ContentTab = 'VOCABULARY' | 'CHARACTER' | 'GRAMMAR' | 'HSK_LEVEL';
 
 export const AdminHskRepositoryPage: React.FC = () => {
   const [dataVersion, setDataVersion] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    hskRepositoryService.syncVocabulariesFromApi().then(() => {
+      if (mounted) {
+        setDataVersion((v) => v + 1);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // 1. Data-driven HSK Levels
   const levels = useMemo(() => {
@@ -103,17 +115,22 @@ export const AdminHskRepositoryPage: React.FC = () => {
     setIsVocabDrawerOpen(true);
   }, [selectedLevelId, levels]);
 
-  const handleSaveVocab = useCallback((id: string, dto: UpdateVocabularyDTO) => {
-    if (id.startsWith('voc-new-')) {
-      const createDto: CreateVocabularyDTO = {
-        ...dto,
-      };
-      hskRepositoryService.createVocabulary(createDto);
-    } else {
-      hskRepositoryService.updateVocabulary(id, dto);
+  const handleSaveVocab = useCallback(async (id: string, dto: UpdateVocabularyDTO) => {
+    try {
+      if (id.startsWith('voc-new-')) {
+        const createDto: CreateVocabularyDTO = {
+          ...dto,
+        };
+        await hskRepositoryService.createVocabularyAsync(createDto);
+      } else {
+        await hskRepositoryService.updateVocabularyAsync(id, dto);
+      }
+      setDataVersion((v) => v + 1);
+      setIsVocabDrawerOpen(false);
+    } catch (err: any) {
+      console.error('Lỗi lưu từ vựng:', err);
+      alert(err?.message || 'Không thể lưu từ vựng vào máy chủ.');
     }
-    setDataVersion((v) => v + 1);
-    setIsVocabDrawerOpen(false);
   }, []);
 
   // Handlers for Characters

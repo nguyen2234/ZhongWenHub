@@ -10,6 +10,7 @@ import {
   Clock,
   FileText,
   AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   PageHeader,
@@ -32,6 +33,7 @@ import type {
 } from '../types/admin-content.types';
 import type { TableColumn } from '../../../shared/types';
 import type { ContentStatus } from '../types/common-content.types';
+import type { AdminGrammarStats } from '../../../../core/repositories';
 
 const CATEGORIES: GrammarCategory[] = [
   'cơ bản',
@@ -65,25 +67,51 @@ export const AdminGrammarManagementPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // 2. Fetch all data with filters
-  const grammarList = useMemo(() => {
-    void version;
-    return adminGrammarService.getAll(filters);
-  }, [filters, version]);
+  // Real async state from SQL Server backend
+  const [grammarList, setGrammarList] = useState<AdminGrammarPoint[]>([]);
+  const [stats, setStats] = useState<AdminGrammarStats>({
+    total: 0,
+    published: 0,
+    draft: 0,
+    pending: 0,
+    archived: 0,
+    byHsk: {} as any,
+    byCategory: {} as any,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    void version;
-    return adminGrammarService.getStats();
-  }, [version]);
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [list, statsData] = await Promise.all([
+        adminGrammarService.getAllAsync(filters),
+        adminGrammarService.getStatsAsync(),
+      ]);
+      setGrammarList(list);
+      setStats(statsData);
+    } catch (err: any) {
+      console.error('[AdminGrammarPage] Load error:', err);
+      setErrorMessage(err?.message || 'Không thể kết nối đến máy chủ để tải dữ liệu ngữ pháp.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData, version]);
 
   // Deep linking: auto-open drawer if `id` parameter is in URL
   useEffect(() => {
     if (urlId) {
-      const found = adminGrammarService.getById(urlId);
-      if (found) {
-        setSelectedGrammar(found);
-        setIsDrawerOpen(true);
-      }
+      adminGrammarService.getByIdAsync(urlId).then((found) => {
+        if (found) {
+          setSelectedGrammar(found);
+          setIsDrawerOpen(true);
+        }
+      });
     }
   }, [urlId]);
 
@@ -116,34 +144,52 @@ export const AdminGrammarManagementPage: React.FC = () => {
     setSearchParams({});
   }, [setSearchParams]);
 
-  const handleSaveGrammar = useCallback((id: string, dto: UpdateAdminGrammarDTO) => {
-    adminGrammarService.update(id, dto);
-    setVersion((v) => v + 1);
-    const updated = adminGrammarService.getById(id);
-    if (updated) setSelectedGrammar(updated);
+  const handleSaveGrammar = useCallback(async (id: string, dto: UpdateAdminGrammarDTO) => {
+    try {
+      const updated = await adminGrammarService.updateAsync(id, dto);
+      setVersion((v) => v + 1);
+      if (updated) setSelectedGrammar(updated);
+    } catch (err: any) {
+      console.error('Lỗi cập nhật điểm ngữ pháp:', err);
+      alert(err?.message || 'Không thể lưu điểm ngữ pháp lên máy chủ.');
+    }
   }, []);
 
   const handleDeleteGrammar = useCallback(
-    (id: string) => {
-      adminGrammarService.delete(id);
-      setVersion((v) => v + 1);
-      handleCloseDrawer();
+    async (id: string) => {
+      try {
+        await adminGrammarService.deleteAsync(id);
+        setVersion((v) => v + 1);
+        handleCloseDrawer();
+      } catch (err: any) {
+        console.error('Lỗi xóa điểm ngữ pháp:', err);
+        alert(err?.message || 'Không thể xóa điểm ngữ pháp trên máy chủ.');
+      }
     },
     [handleCloseDrawer]
   );
 
-  const handleCreateGrammar = useCallback((dto: CreateAdminGrammarDTO) => {
-    const created = adminGrammarService.create(dto);
-    setVersion((v) => v + 1);
-    setSelectedGrammar(created);
-    setIsDrawerOpen(true);
+  const handleCreateGrammar = useCallback(async (dto: CreateAdminGrammarDTO) => {
+    try {
+      const created = await adminGrammarService.createAsync(dto);
+      setVersion((v) => v + 1);
+      setSelectedGrammar(created);
+      setIsDrawerOpen(true);
+      setIsCreateModalOpen(false);
+    } catch (err: any) {
+      console.error('Lỗi tạo điểm ngữ pháp:', err);
+      alert(err?.message || 'Không thể tạo điểm ngữ pháp trên máy chủ.');
+    }
   }, []);
 
-  const handleResetData = useCallback(() => {
-    adminGrammarService.resetToDefault();
-    setVersion((v) => v + 1);
-    setIsResetConfirmOpen(false);
-    handleCloseDrawer();
+  const handleResetData = useCallback(async () => {
+    try {
+      await adminGrammarService.resetToDefault();
+      setVersion((v) => v + 1);
+    } finally {
+      setIsResetConfirmOpen(false);
+      handleCloseDrawer();
+    }
   }, [handleCloseDrawer]);
 
   const location = useLocation();
@@ -358,27 +404,35 @@ export const AdminGrammarManagementPage: React.FC = () => {
         }
       />
 
-      {/* Demo Transparent Disclaimer Banner */}
-      <div
-        style={{
-          padding: '10px 14px',
-          backgroundColor: '#FFFBEB',
-          border: '1px solid #FCD34D',
-          borderRadius: 'var(--radius-md)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          fontSize: 'var(--text-xs)',
-          color: '#92400E',
-        }}
-      >
-        <AlertCircle size={16} style={{ flexShrink: 0 }} />
-        <span>
-          <strong>Lưu ý quản trị:</strong> Dữ liệu ngữ pháp được lưu trữ bền vững trong bộ nhớ phiên làm việc trình duyệt
-          cục bộ (<code>zhongwenhub_admin_grammar_v1</code>). Nội dung tạo mới sẽ ở trạng thái Bản nháp và không tự động
-          đưa vào thư viện học viên nếu chưa qua luồng xuất bản thực tế từ máy chủ.
-        </span>
-      </div>
+      {/* Error banner with Retry */}
+      {errorMessage && (
+        <div
+          style={{
+            padding: '10px 14px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: 'var(--text-xs)',
+            color: 'var(--danger, #ef4444)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={loadData}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+        </div>
+      )}
 
       {/* Metric Cards */}
       <div
@@ -400,7 +454,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
         />
         <StatCard
           title="Đang chờ duyệt"
-          value={stats.pending}
+          value={stats.pending ?? 0}
           icon={<Clock size={20} color="#EAB308" />}
         />
         <StatCard
@@ -508,57 +562,66 @@ export const AdminGrammarManagementPage: React.FC = () => {
           }
         />
 
-        {/* Data Table with Evondev Mobile Card Support (R9 & R11) */}
-        <DataTable
-          columns={columns}
-          data={paginatedData}
-          keyExtractor={(item) => item.id}
-          onRowClick={handleOpenDetail}
-          emptyText="Không tìm thấy điểm ngữ pháp nào phù hợp với bộ lọc."
-          enableMobileCards
-          mobileTitleExtractor={(item) => (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  fontWeight: 700,
-                  fontSize: '11px',
-                  padding: '1px 6px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'var(--primary-subtle, rgba(2, 132, 199, 0.08))',
-                  color: 'var(--primary)',
-                }}
-              >
-                HSK {item.hskLevel}
-              </span>
-              <span style={{ fontWeight: 600 }}>{item.title}</span>
-            </div>
-          )}
-          mobileSubtitleExtractor={(item) => (
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--primary)' }}>
-              {item.structureFormula}
-            </span>
-          )}
-          mobileBadgeExtractor={(item) => <ContentStatusBadge status={item.status} />}
-          mobileFields={[
-            {
-              label: 'Danh mục',
-              render: (item) => (
-                <span style={{ textTransform: 'capitalize' }}>{item.category}</span>
-              ),
-            },
-            {
-              label: 'Ví dụ',
-              render: (item) => (
-                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                  {item.examples[0]?.zh || 'Chưa có'}
+        {/* Loading state */}
+        {isLoading && (
+          <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--muted)' }}>
+            Đang tải dữ liệu ngữ pháp từ máy chủ...
+          </div>
+        )}
+
+        {/* Data Table */}
+        {!isLoading && (
+          <DataTable
+            columns={columns}
+            data={paginatedData}
+            keyExtractor={(item) => item.id}
+            onRowClick={handleOpenDetail}
+            emptyText="Không tìm thấy điểm ngữ pháp nào phù hợp với bộ lọc."
+            enableMobileCards
+            mobileTitleExtractor={(item) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    padding: '1px 6px',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--primary-subtle, rgba(2, 132, 199, 0.08))',
+                    color: 'var(--primary)',
+                  }}
+                >
+                  HSK {item.hskLevel}
                 </span>
-              ),
-            },
-          ]}
-        />
+                <span style={{ fontWeight: 600 }}>{item.title}</span>
+              </div>
+            )}
+            mobileSubtitleExtractor={(item) => (
+              <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--primary)' }}>
+                {item.structureFormula}
+              </span>
+            )}
+            mobileBadgeExtractor={(item) => <ContentStatusBadge status={item.status} />}
+            mobileFields={[
+              {
+                label: 'Danh mục',
+                render: (item) => (
+                  <span style={{ textTransform: 'capitalize' }}>{item.category}</span>
+                ),
+              },
+              {
+                label: 'Ví dụ',
+                render: (item) => (
+                  <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+                    {item.examples[0]?.zh || 'Chưa có'}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        )}
 
         {/* Pagination */}
-        {grammarList.length > pageSize && (
+        {!isLoading && grammarList.length > pageSize && (
           <div style={{ marginTop: 'var(--space-4)' }}>
             <Pagination
               currentPage={currentPage}
@@ -593,7 +656,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
       <ConfirmDialog
         isOpen={isResetConfirmOpen}
         title="Khôi phục dữ liệu Ngữ pháp gốc"
-        message="Hành động này sẽ thiết lập lại toàn bộ danh mục 13 điểm ngữ pháp chuẩn HSK 1 - 6 và xóa bỏ các thay đổi cục bộ trong phiên làm việc. Bạn có chắc chắn muốn thực hiện?"
+        message="Hành động này sẽ thiết lập lại toàn bộ danh mục các điểm ngữ pháp chuẩn HSK 1 - 6 và xóa bỏ các thay đổi cục bộ trong phiên làm việc. Bạn có chắc chắn muốn thực hiện?"
         confirmLabel="Đồng ý khôi phục"
         cancelLabel="Hủy bỏ"
         onConfirm={handleResetData}

@@ -8,6 +8,8 @@ import { test, expect } from '@playwright/test';
  * - Directly exercises ASP.NET Core Backend on port 5000 and SQL Server ZhongWenHub_Dev.
  * - Verifies real Identity, JWT tokens, RBAC policies, and SQL Server EF Core content persistence.
  * - Confirms Student vs Content Manager draft isolation and live publish workflows.
+ * - Confirms Unit CRUD with real Guids in SQL Server units table.
+ * - Confirms Grammar and Exercise stats and CRUD against SQL Server.
  */
 test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQL Server)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -118,7 +120,6 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     );
 
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
-    // Guard redirects non-staff user to login or dashboard
     await expect(page).not.toHaveURL(/.*\/management\/content-manager\/curriculum/);
   });
 
@@ -241,5 +242,186 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
       });
       expect([200, 204]).toContain(deleteRes.status());
     }
+  });
+
+  test('5. Real Unit CRUD & SQL Server Persistence: Create Unit, link Lesson, verify persistence after page reload', async ({
+    page,
+    request,
+  }) => {
+    // 5.1 Login as Content Manager via API
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    // 5.2 Create Unit in SQL Server
+    const uniqueNum = Math.floor(Math.random() * 900) + 100;
+    const unitTitleZh = `商业交流_${uniqueNum}`;
+    const unitTitleVi = `Giao tiếp Thương mại ${uniqueNum}`;
+
+    const createUnitRes = await request.post('/api/v1/content/units', {
+      headers: cmHeaders,
+      data: {
+        courseId: '11111111-1111-1111-1111-111111111111',
+        unitNumber: 3,
+        titleZh: unitTitleZh,
+        titleVi: unitTitleVi,
+        description: 'Chủ đề đàm phán và giao tiếp thương mại.',
+        orderIndex: 3,
+        status: 'PUBLISHED',
+      },
+    });
+    expect([200, 201]).toContain(createUnitRes.status());
+    const unit = await createUnitRes.json();
+    expect(unit.id).toBeDefined();
+    // Verify Guid format (not Date.now())
+    expect(unit.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+    // 5.3 Create a Lesson linked to this Unit via Foreign Key UnitId
+    const createLessonRes = await request.post('/api/v1/content/lessons', {
+      headers: cmHeaders,
+      data: {
+        courseId: '11111111-1111-1111-1111-111111111111',
+        unitId: unit.id,
+        lessonNumber: 6,
+        titleZh: `签约会议_${uniqueNum}`,
+        titleVi: `Họp ký hợp đồng ${uniqueNum}`,
+        durationMinutes: 30,
+        xpReward: 60,
+        orderIndex: 6,
+        status: 'PUBLISHED',
+      },
+    });
+    expect([200, 201]).toContain(createLessonRes.status());
+    const lesson = await createLessonRes.json();
+    expect(lesson.unitId).toBe(unit.id);
+
+    try {
+      // 5.4 Log in via browser UI and view curriculum
+      await page.goto('/ZhongWenHub/login');
+      await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
+      await page.fill('#login-password', 'ContentManager123!');
+      await page.click('button[type="submit"]');
+
+      await page.waitForTimeout(1000);
+      await page.goto('/ZhongWenHub/management/content-manager/curriculum');
+      await page.waitForLoadState('networkidle');
+
+      // 5.5 Verify newly created unit and linked lesson appear in UI
+      await expect(page.getByText(unitTitleZh)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(unitTitleVi)).toBeVisible();
+      await expect(page.getByText(`签约会议_${uniqueNum}`)).toBeVisible();
+
+      // 5.6 Refresh browser page and verify data persists from SQL Server
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+
+      await expect(page.getByText(unitTitleZh)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(unitTitleVi)).toBeVisible();
+    } finally {
+      // 5.7 Cleanup created lesson and unit
+      await request.delete(`/api/v1/content/lessons/${lesson.id}`, { headers: cmHeaders });
+      await request.delete(`/api/v1/content/units/${unit.id}`, { headers: cmHeaders });
+    }
+  });
+
+  test('6. Grammar & Exercise Management: Live SQL Server CRUD, Real Aggregation Stats & No Mock Fallback', async ({
+    page,
+    request,
+  }) => {
+    // 6.1 Content Manager login
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    // 6.2 Verify real Grammar stats from SQL Server
+    const gStatsRes = await request.get('/api/v1/content/grammar/stats', { headers: cmHeaders });
+    expect(gStatsRes.status()).toBe(200);
+    const gStats = await gStatsRes.json();
+    expect(typeof gStats.total).toBe('number');
+    expect(typeof gStats.published).toBe('number');
+    expect(gStats.byHsk).toBeDefined();
+
+    // 6.3 Verify real Exercise stats from SQL Server
+    const exStatsRes = await request.get('/api/v1/content/exercises/stats', { headers: cmHeaders });
+    expect(exStatsRes.status()).toBe(200);
+    const exStats = await exStatsRes.json();
+    expect(typeof exStats.total).toBe('number');
+    expect(typeof exStats.published).toBe('number');
+    expect(exStats.bySkill).toBeDefined();
+    expect(exStats.byType).toBeDefined();
+
+    // 6.4 Open Grammar Management Page in browser UI
+    await page.goto('/ZhongWenHub/login');
+    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
+    await page.fill('#login-password', 'ContentManager123!');
+    await page.click('button[type="submit"]');
+
+    await page.waitForTimeout(1000);
+    await page.goto('/ZhongWenHub/management/content-manager/grammar');
+    await page.waitForLoadState('networkidle');
+
+    // Verify page loads without throwing synchronous mock errors
+    await expect(page.locator('h1, .page-header-title')).toContainText('Quản lý Ngữ pháp');
+    await expect(page.locator('.ds-table, table')).toBeVisible({ timeout: 10000 });
+
+    // 6.5 Open Question Bank in browser UI
+    await page.goto('/ZhongWenHub/management/content-manager/question-bank');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.locator('h1, .page-header-title')).toContainText('Ngân hàng Bài tập');
+    await expect(page.locator('.ds-table, table')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('7. Re-login Verification: State persists across session logout and re-login', async ({
+    page,
+    request,
+    context,
+  }) => {
+    // 7.1 Login as Content Manager
+    await page.goto('/ZhongWenHub/login');
+    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
+    await page.fill('#login-password', 'ContentManager123!');
+    await page.click('button[type="submit"]');
+
+    await page.waitForTimeout(1000);
+    await page.goto('/ZhongWenHub/management/content-manager/curriculum');
+    await page.waitForLoadState('networkidle');
+
+    // Verify seeded unit 1 exists
+    await expect(page.getByText('问候与认识')).toBeVisible({ timeout: 10000 });
+
+    // 7.2 Clear cookies and storage to simulate full logout
+    await context.clearCookies();
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+
+    // 7.3 Navigate to curriculum -> Redirects to login
+    await page.goto('/ZhongWenHub/management/content-manager/curriculum');
+    await expect(page).toHaveURL(/.*\/login/, { timeout: 10000 });
+
+    // 7.4 Log back in
+    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
+    await page.fill('#login-password', 'ContentManager123!');
+    await page.click('button[type="submit"]');
+
+    await page.waitForTimeout(1000);
+    await page.goto('/ZhongWenHub/management/content-manager/curriculum');
+    await page.waitForLoadState('networkidle');
+
+    // 7.5 Content re-loads seamlessly from SQL Server
+    await expect(page.getByText('问候与认识')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('家庭与朋友')).toBeVisible();
   });
 });

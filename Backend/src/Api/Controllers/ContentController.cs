@@ -105,6 +105,79 @@ public class ContentController : BaseApiController
     }
 
     // ==========================================
+    // UNITS
+    // ==========================================
+
+    [HttpGet("units")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(List<UnitDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUnits(
+        [FromQuery] Guid? courseId,
+        [FromQuery] string? status,
+        CancellationToken cancellationToken)
+    {
+        var publishedOnly = !IsStaff();
+        var units = await _contentService.GetUnitsAsync(courseId, status, publishedOnly, cancellationToken);
+        return Ok(units);
+    }
+
+    [HttpGet("units/{id:guid}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(UnitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUnitById(Guid id, CancellationToken cancellationToken)
+    {
+        var publishedOnly = !IsStaff();
+        var unit = await _contentService.GetUnitByIdAsync(id, publishedOnly, cancellationToken);
+        if (unit == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy Unit với ID {id}." });
+        }
+        return Ok(unit);
+    }
+
+    [HttpPost("units")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(UnitDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> CreateUnit([FromBody] CreateUnitDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var created = await _contentService.CreateUnitAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetUnitById), new { id = created.Id }, created);
+    }
+
+    [HttpPut("units/{id:guid}")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(UnitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateUnit(Guid id, [FromBody] UpdateUnitDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var updated = await _contentService.UpdateUnitAsync(id, dto, cancellationToken);
+        if (updated == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy Unit với ID {id}." });
+        }
+        return Ok(updated);
+    }
+
+    [HttpDelete("units/{id:guid}")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUnit(Guid id, CancellationToken cancellationToken)
+    {
+        var deleted = await _contentService.DeleteUnitAsync(id, cancellationToken);
+        if (!deleted)
+        {
+            return NotFound(new { message = $"Không tìm thấy Unit với ID {id}." });
+        }
+        return NoContent();
+    }
+
+    // ==========================================
     // LESSONS
     // ==========================================
 
@@ -113,6 +186,7 @@ public class ContentController : BaseApiController
     [ProducesResponseType(typeof(PagedResponse<LessonDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLessons(
         [FromQuery] Guid? courseId,
+        [FromQuery] Guid? unitId,
         [FromQuery] string? status,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
@@ -120,7 +194,7 @@ public class ContentController : BaseApiController
         CancellationToken cancellationToken = default)
     {
         var publishedOnly = !IsStaff();
-        var lessons = await _contentService.GetLessonsAsync(courseId, status, search, page, pageSize, publishedOnly, cancellationToken);
+        var lessons = await _contentService.GetLessonsAsync(courseId, unitId, status, search, page, pageSize, publishedOnly, cancellationToken);
         return Ok(lessons);
     }
 
@@ -202,6 +276,7 @@ public class ContentController : BaseApiController
     // ==========================================
 
     [HttpGet("vocabularies")]
+    [HttpGet("/api/v1/admin/vocabularies")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResponse<VocabularyDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetVocabularies(
@@ -219,6 +294,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpGet("vocabularies/{id:guid}")]
+    [HttpGet("/api/v1/admin/vocabularies/{id:guid}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -234,6 +310,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPost("vocabularies")]
+    [HttpPost("/api/v1/admin/vocabularies")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateVocabulary([FromBody] CreateVocabularyDto dto, CancellationToken cancellationToken)
@@ -245,6 +322,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("vocabularies/{id:guid}")]
+    [HttpPut("/api/v1/admin/vocabularies/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -261,6 +339,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpDelete("vocabularies/{id:guid}")]
+    [HttpDelete("/api/v1/admin/vocabularies/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -294,6 +373,16 @@ public class ContentController : BaseApiController
         var publishedOnly = !IsStaff();
         var items = await _contentService.GetGrammarPointsAsync(hskLevel, category, search, status, page, pageSize, publishedOnly, cancellationToken);
         return Ok(items);
+    }
+
+    [HttpGet("grammar/stats")]
+    [HttpGet("/api/v1/admin/grammar/stats")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AdminGrammarStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetGrammarStats(CancellationToken cancellationToken)
+    {
+        var stats = await _contentService.GetGrammarStatsAsync(cancellationToken);
+        return Ok(stats);
     }
 
     [HttpGet("grammar/{id:guid}")]
@@ -380,6 +469,16 @@ public class ContentController : BaseApiController
         return Ok(items);
     }
 
+    [HttpGet("exercises/stats")]
+    [HttpGet("/api/v1/admin/exercises/stats")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AdminExerciseStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetExerciseStats(CancellationToken cancellationToken)
+    {
+        var stats = await _contentService.GetExerciseStatsAsync(cancellationToken);
+        return Ok(stats);
+    }
+
     [HttpGet("exercises/{id:guid}")]
     [HttpGet("/api/v1/admin/exercises/{id:guid}")]
     [AllowAnonymous]
@@ -440,4 +539,3 @@ public class ContentController : BaseApiController
         return NoContent();
     }
 }
-

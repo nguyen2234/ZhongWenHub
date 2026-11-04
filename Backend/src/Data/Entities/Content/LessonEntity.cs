@@ -5,6 +5,9 @@ public class LessonEntity : BaseEntity
     public Guid CourseId { get; set; }
     public CourseEntity? Course { get; set; }
 
+    public Guid? UnitId { get; set; }
+    public UnitEntity? Unit { get; set; }
+
     public int LessonNumber { get; set; } = 1;
     public string TitleZh { get; set; } = string.Empty;
     public string TitleVi { get; set; } = string.Empty;

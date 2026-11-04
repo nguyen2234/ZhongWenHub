@@ -60,6 +60,8 @@ export const AdminLessonEditorPage: React.FC = () => {
   // Responsive layout mode for < 1280px
   const [mobileTab, setMobileTab] = useState<'AUTHORING' | 'PREVIEW'>('AUTHORING');
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Determine if draft is dirty
   const isDirty = useMemo(() => {
@@ -147,35 +149,60 @@ export const AdminLessonEditorPage: React.FC = () => {
   };
 
   // Explicit Save Draft action
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!draftLesson) return;
-    const persisted = curriculumService.saveLessonDraft(lessonId, draftLesson);
-    setSavedLesson(JSON.parse(JSON.stringify(persisted)));
-    setDraftLesson(JSON.parse(JSON.stringify(persisted)));
-    setSaveSuccessMessage('Đã lưu bản nháp thành công!');
-    setTimeout(() => setSaveSuccessMessage(null), 3000);
+    setIsSaving(true);
+    setSaveErrorMessage(null);
+    try {
+      const persisted = await curriculumService.saveLessonDraft(lessonId, draftLesson);
+      setSavedLesson(JSON.parse(JSON.stringify(persisted)));
+      setDraftLesson(JSON.parse(JSON.stringify(persisted)));
+      setSaveSuccessMessage('Đã lưu bản nháp thành công!');
+      setTimeout(() => setSaveSuccessMessage(null), 3000);
+    } catch (err: any) {
+      setSaveErrorMessage(err?.message || 'Lỗi khi lưu bài học lên máy chủ.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Publish action
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!draftLesson) return;
-    const updated = { ...draftLesson, status: 'PUBLISHED' as const };
-    const persisted = curriculumService.saveLessonDraft(lessonId, updated);
-    setSavedLesson(JSON.parse(JSON.stringify(persisted)));
-    setDraftLesson(JSON.parse(JSON.stringify(persisted)));
-    setSaveSuccessMessage('Đã xuất bản bài học thành công!');
-    setTimeout(() => setSaveSuccessMessage(null), 3500);
+    setIsSaving(true);
+    setSaveErrorMessage(null);
+    try {
+      const updated = { ...draftLesson, status: 'PUBLISHED' as const };
+      const persisted = await curriculumService.saveLessonDraft(lessonId, updated);
+      await curriculumService.publishLesson(lessonId);
+      setSavedLesson(JSON.parse(JSON.stringify(persisted)));
+      setDraftLesson(JSON.parse(JSON.stringify(persisted)));
+      setSaveSuccessMessage('Đã xuất bản bài học thành công!');
+      setTimeout(() => setSaveSuccessMessage(null), 3500);
+    } catch (err: any) {
+      setSaveErrorMessage(err?.message || 'Lỗi khi xuất bản bài học.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Submit for review action
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (!draftLesson) return;
-    const updated = { ...draftLesson, status: 'PENDING_REVIEW' as const };
-    const persisted = curriculumService.saveLessonDraft(lessonId, updated);
-    setSavedLesson(JSON.parse(JSON.stringify(persisted)));
-    setDraftLesson(JSON.parse(JSON.stringify(persisted)));
-    setSaveSuccessMessage('Đã gửi duyệt bài học thành công!');
-    setTimeout(() => setSaveSuccessMessage(null), 3500);
+    setIsSaving(true);
+    setSaveErrorMessage(null);
+    try {
+      const updated = { ...draftLesson, status: 'PENDING_REVIEW' as const };
+      const persisted = await curriculumService.saveLessonDraft(lessonId, updated);
+      setSavedLesson(JSON.parse(JSON.stringify(persisted)));
+      setDraftLesson(JSON.parse(JSON.stringify(persisted)));
+      setSaveSuccessMessage('Đã gửi duyệt bài học thành công!');
+      setTimeout(() => setSaveSuccessMessage(null), 3500);
+    } catch (err: any) {
+      setSaveErrorMessage(err?.message || 'Lỗi khi gửi duyệt bài học.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!draftLesson) {
@@ -353,13 +380,19 @@ export const AdminLessonEditorPage: React.FC = () => {
             <Sparkles size={14} /> Kiểm tra nội dung
           </button>
 
+          {saveErrorMessage && (
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--danger, #ef4444)', fontWeight: 600 }}>
+              {saveErrorMessage}
+            </span>
+          )}
           <button
             type="button"
             className="ds-btn ds-btn-primary ds-btn-sm"
             onClick={handleSaveDraft}
+            disabled={isSaving}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            <Save size={14} /> Lưu bản nháp
+            <Save size={14} /> {isSaving ? 'Đang lưu...' : 'Lưu bản nháp'}
           </button>
         </div>
       </div>

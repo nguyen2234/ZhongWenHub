@@ -16,82 +16,98 @@ import type {
 } from '../types';
 import { httpClient } from '../../../../core/api/client/http-client';
 
-let courses = [...MOCK_COURSES];
-let courseLevels = [...MOCK_COURSE_LEVELS];
-let units = [...MOCK_UNITS];
-let lessons = [...MOCK_LESSONS];
+// Real runtime: state is loaded exclusively from live Backend SQL Server API.
+// Fixtures are reserved only for testing environments.
+let courses: Course[] = [];
+let courseLevels: CourseLevel[] = [];
+let units: Unit[] = [];
+let lessons: Lesson[] = [];
+
+let lessonDrafts: Record<string, LessonEditorDraft> = {};
 
 class CurriculumService {
   /**
-   * Syncs curriculum courses and lessons with the live Backend SQL Server API
+   * Resets local stores with fixture data (used exclusively for tests)
+   */
+  loadFixturesForTesting(): void {
+    courses = [...MOCK_COURSES];
+    courseLevels = [...MOCK_COURSE_LEVELS];
+    units = [...MOCK_UNITS];
+    lessons = [...MOCK_LESSONS];
+    lessonDrafts = {
+      'les-8': JSON.parse(JSON.stringify(MOCK_LESSON_8_DRAFT)),
+    };
+  }
+
+  /**
+   * Synchronizes curriculum courses, units, and lessons with the live Backend SQL Server API.
+   * Throws on network failure so UI can surface error states and retry buttons.
    */
   async syncFromApi(): Promise<void> {
-    try {
-      const apiCourses = await httpClient.get<any[]>('/content/courses');
-      if (Array.isArray(apiCourses) && apiCourses.length > 0) {
-        courses = apiCourses.map((c: any) => ({
-          id: c.id,
-          code: c.code,
-          name: c.title,
-          description: c.description || '',
-          status: c.status,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt || c.createdAt,
-        }));
+    const [apiCourses, apiUnits, apiLessons] = await Promise.all([
+      httpClient.get<any[]>('/content/courses'),
+      httpClient.get<any[]>('/content/units'),
+      httpClient.get<any>('/content/lessons', { params: { pageSize: 100 } }),
+    ]);
 
-        courseLevels = courses.map((c: any, idx: number) => ({
-          id: `cl-${c.id}`,
-          courseId: c.id,
-          hskLevelId: `level-hsk-${c.hskLevel || idx + 1}`,
-          name: c.name || `HSK ${c.hskLevel || idx + 1}`,
-          orderIndex: c.orderIndex || idx + 1,
-        }));
-      }
+    if (Array.isArray(apiCourses)) {
+      courses = apiCourses.map((c: any) => ({
+        id: c.id,
+        code: c.code,
+        name: c.title,
+        description: c.description || '',
+        status: c.status,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt || c.createdAt,
+      }));
 
-      const apiLessons = await httpClient.get<{ items: any[] }>('/content/lessons', {
-        params: { pageSize: 100 },
-      });
-      if (apiLessons && Array.isArray(apiLessons.items) && apiLessons.items.length > 0) {
-        const primaryCourseLevelId = courseLevels[0]?.id || 'cl-1';
-
-        // Ensure Unit 1 exists for live lessons
-        if (!units.some((u) => u.id === 'unit-1')) {
-          units.push({
-            id: 'unit-1',
-            courseLevelId: primaryCourseLevelId,
-            unitNumber: 1,
-            titleZh: '问候与认识',
-            titleVi: 'Chào hỏi & Làm quen',
-            description: 'Các mẫu câu chào hỏi căn bản, giới thiệu bản thân và xưng hô lịch sự.',
-            orderIndex: 1,
-            status: 'PUBLISHED',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-        }
-
-        lessons = apiLessons.items.map((l: any) => ({
-          id: l.id,
-          unitId: 'unit-1',
-          lessonNumber: l.lessonNumber,
-          titleZh: l.titleZh,
-          titleVi: l.titleVi,
-          durationMinutes: l.durationMinutes,
-          xpReward: l.xpReward,
-          orderIndex: l.orderIndex,
-          status: l.status,
-          summary: l.summary || '',
-          linkedVocabularyCount: l.vocabularyCount ?? 0,
-          linkedGrammarCount: l.grammarCount ?? 0,
-          exerciseCount: l.exerciseCount ?? 0,
-          createdAt: l.createdAt,
-          updatedAt: l.updatedAt || l.createdAt,
-        }));
-      }
-    } catch (err) {
-      console.warn('[CurriculumService] Failed to sync from live backend API, using cached state:', err);
+      courseLevels = courses.map((c: any, idx: number) => ({
+        id: c.id,
+        courseId: c.id,
+        hskLevelId: `level-hsk-${c.hskLevel || idx + 1}`,
+        name: c.name || `HSK ${c.hskLevel || idx + 1}`,
+        orderIndex: c.orderIndex || idx + 1,
+      }));
     }
+
+    if (Array.isArray(apiUnits)) {
+      units = apiUnits.map((u: any) => ({
+        id: u.id,
+        courseLevelId: u.courseId,
+        unitNumber: u.unitNumber,
+        titleZh: u.titleZh,
+        titleVi: u.titleVi,
+        description: u.description || '',
+        orderIndex: u.orderIndex,
+        status: u.status,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt || u.createdAt,
+        lessonCount: u.lessonCount ?? 0,
+        publishedLessonCount: u.publishedLessonCount ?? 0,
+      }));
+    }
+
+    const lessonItems = Array.isArray(apiLessons) ? apiLessons : (apiLessons?.items || []);
+    lessons = lessonItems.map((l: any) => ({
+      id: l.id,
+      unitId: l.unitId || '',
+      lessonNumber: l.lessonNumber,
+      titleZh: l.titleZh,
+      titleVi: l.titleVi,
+      durationMinutes: l.durationMinutes,
+      xpReward: l.xpReward,
+      orderIndex: l.orderIndex,
+      status: l.status,
+      summary: l.summary || '',
+      linkedVocabularyCount: l.vocabularyCount ?? 0,
+      linkedGrammarCount: l.grammarCount ?? 0,
+      exerciseCount: l.exerciseCount ?? 0,
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt || l.createdAt,
+    }));
   }
+
+  // --- Read operations against loaded state ---
 
   getCourses(): Course[] {
     return courses.map((c) => ({ ...c }));
@@ -113,7 +129,7 @@ class CurriculumService {
     let list = courseLevelId ? units.filter((u) => u.courseLevelId === courseLevelId) : units;
     list = list.sort((a, b) => a.orderIndex - b.orderIndex);
 
-    // Compute aggregated lesson counts
+    // Compute live aggregated lesson counts
     return list.map((u) => {
       const unitLessons = lessons.filter((l) => l.unitId === u.id);
       return {
@@ -135,41 +151,6 @@ class CurriculumService {
     };
   }
 
-  updateUnit(id: string, dto: UpdateUnitDTO): Unit {
-    const index = units.findIndex((u) => u.id === id);
-    if (index === -1) throw new Error(`Không tìm thấy Unit: ${id}`);
-
-    const updated: Unit = {
-      ...units[index],
-      titleZh: dto.titleZh.trim(),
-      titleVi: dto.titleVi.trim(),
-      description: dto.description.trim(),
-      orderIndex: dto.orderIndex,
-      status: dto.status,
-      updatedAt: new Date().toISOString(),
-    };
-
-    units[index] = updated;
-    return this.getUnitById(id)!;
-  }
-
-  createUnit(courseLevelId: string, dto: UpdateUnitDTO): Unit {
-    const newUnit: Unit = {
-      id: `unit-${Date.now()}`,
-      courseLevelId,
-      unitNumber: units.filter((u) => u.courseLevelId === courseLevelId).length + 1,
-      titleZh: dto.titleZh.trim(),
-      titleVi: dto.titleVi.trim(),
-      description: dto.description.trim(),
-      orderIndex: dto.orderIndex,
-      status: dto.status,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    units = [...units, newUnit];
-    return this.getUnitById(newUnit.id)!;
-  }
-
   getLessons(unitId?: string): Lesson[] {
     const list = unitId ? lessons.filter((l) => l.unitId === unitId) : lessons;
     return list.sort((a, b) => a.orderIndex - b.orderIndex).map((l) => ({ ...l }));
@@ -180,93 +161,183 @@ class CurriculumService {
     return found ? { ...found } : undefined;
   }
 
-  updateLesson(id: string, dto: UpdateLessonDTO): Lesson {
-    const index = lessons.findIndex((l) => l.id === id);
-    if (index === -1) throw new Error(`Không tìm thấy bài học: ${id}`);
+  // --- Unit Real CRUD Persistence ---
 
-    const updated: Lesson = {
-      ...lessons[index],
+  async createUnit(courseLevelId: string, dto: UpdateUnitDTO): Promise<Unit> {
+    const courseId = courseLevels.find((cl) => cl.id === courseLevelId)?.courseId || courseLevelId;
+    const existingUnitsForCourse = units.filter((u) => u.courseLevelId === courseId);
+    const unitNumber = existingUnitsForCourse.length + 1;
+
+    const payload = {
+      courseId,
+      unitNumber,
       titleZh: dto.titleZh.trim(),
       titleVi: dto.titleVi.trim(),
-      durationMinutes: dto.durationMinutes,
-      xpReward: dto.xpReward,
-      orderIndex: dto.orderIndex,
+      description: dto.description.trim(),
+      orderIndex: dto.orderIndex ?? unitNumber,
       status: dto.status,
-      summary: dto.summary.trim(),
-      updatedAt: new Date().toISOString(),
     };
 
-    lessons[index] = updated;
+    const res = await httpClient.post<any>('/content/units', payload);
+    const newUnit: Unit = {
+      id: res.id,
+      courseLevelId: res.courseId,
+      unitNumber: res.unitNumber,
+      titleZh: res.titleZh,
+      titleVi: res.titleVi,
+      description: res.description || '',
+      orderIndex: res.orderIndex,
+      status: res.status,
+      createdAt: res.createdAt,
+      updatedAt: res.updatedAt || res.createdAt,
+      lessonCount: 0,
+      publishedLessonCount: 0,
+    };
 
-    // Async persist to Backend API
-    httpClient
-      .put(`/content/lessons/${id}`, {
-        lessonNumber: updated.lessonNumber,
-        titleZh: updated.titleZh,
-        titleVi: updated.titleVi,
-        durationMinutes: updated.durationMinutes,
-        xpReward: updated.xpReward,
-        orderIndex: updated.orderIndex,
-        status: updated.status,
-        summary: updated.summary,
-      })
-      .catch((err) => {
-        console.warn('[CurriculumService] Live update failed:', err);
-      });
-
-    return { ...updated };
+    units = [...units, newUnit];
+    return newUnit;
   }
 
-  createLesson(unitId: string, dto: UpdateLessonDTO): Lesson {
+  async updateUnit(id: string, dto: UpdateUnitDTO): Promise<Unit> {
+    const existing = units.find((u) => u.id === id);
+    const payload = {
+      unitNumber: existing?.unitNumber ?? 1,
+      titleZh: dto.titleZh.trim(),
+      titleVi: dto.titleVi.trim(),
+      description: dto.description.trim(),
+      orderIndex: dto.orderIndex,
+      status: dto.status,
+    };
+
+    const res = await httpClient.put<any>(`/content/units/${id}`, payload);
+    const updatedUnit: Unit = {
+      id: res.id,
+      courseLevelId: res.courseId,
+      unitNumber: res.unitNumber,
+      titleZh: res.titleZh,
+      titleVi: res.titleVi,
+      description: res.description || '',
+      orderIndex: res.orderIndex,
+      status: res.status,
+      createdAt: res.createdAt,
+      updatedAt: res.updatedAt || res.createdAt,
+      lessonCount: existing?.lessonCount ?? 0,
+      publishedLessonCount: existing?.publishedLessonCount ?? 0,
+    };
+
+    units = units.map((u) => (u.id === id ? updatedUnit : u));
+    return updatedUnit;
+  }
+
+  async deleteUnit(id: string): Promise<boolean> {
+    await httpClient.delete(`/content/units/${id}`);
+    units = units.filter((u) => u.id !== id);
+    return true;
+  }
+
+  // --- Lesson Real CRUD Persistence ---
+
+  async createLesson(unitId: string, dto: UpdateLessonDTO): Promise<Lesson> {
+    const unit = units.find((u) => u.id === unitId);
+    const courseId = unit ? (courseLevels.find((cl) => cl.id === unit.courseLevelId)?.courseId || unit.courseLevelId) : courses[0]?.id;
+    if (!courseId) {
+      throw new Error('Không tìm thấy thông tin khóa học hợp lệ cho bài học.');
+    }
+
     const unitLessons = lessons.filter((l) => l.unitId === unitId);
-    const newLesson: Lesson = {
-      id: `les-${Date.now()}`,
+    const lessonNumber = unitLessons.length + 1;
+
+    const payload = {
+      courseId,
       unitId,
-      lessonNumber: unitLessons.length + 1,
+      lessonNumber,
       titleZh: dto.titleZh.trim(),
       titleVi: dto.titleVi.trim(),
       durationMinutes: dto.durationMinutes,
       xpReward: dto.xpReward,
-      orderIndex: dto.orderIndex,
+      orderIndex: dto.orderIndex ?? lessonNumber,
       status: dto.status,
       summary: dto.summary.trim(),
+    };
+
+    const res = await httpClient.post<any>('/content/lessons', payload);
+    const newLesson: Lesson = {
+      id: res.id,
+      unitId: res.unitId || unitId,
+      lessonNumber: res.lessonNumber,
+      titleZh: res.titleZh,
+      titleVi: res.titleVi,
+      durationMinutes: res.durationMinutes,
+      xpReward: res.xpReward,
+      orderIndex: res.orderIndex,
+      status: res.status,
+      summary: res.summary || '',
       linkedVocabularyCount: 0,
       linkedGrammarCount: 0,
       exerciseCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: res.createdAt,
+      updatedAt: res.updatedAt || res.createdAt,
     };
+
     lessons = [...lessons, newLesson];
+    return newLesson;
+  }
 
-    // Async persist to Backend API if course exists
-    const primaryCourseId = courses[0]?.id;
-    if (primaryCourseId) {
-      httpClient
-        .post<any>('/content/lessons', {
-          courseId: primaryCourseId,
-          lessonNumber: newLesson.lessonNumber,
-          titleZh: newLesson.titleZh,
-          titleVi: newLesson.titleVi,
-          durationMinutes: newLesson.durationMinutes,
-          xpReward: newLesson.xpReward,
-          orderIndex: newLesson.orderIndex,
-          status: newLesson.status,
-          summary: newLesson.summary,
-        })
-        .then((res) => {
-          if (res?.id) {
-            newLesson.id = res.id;
-          }
-        })
-        .catch((err) => {
-          console.warn('[CurriculumService] Live create failed:', err);
-        });
+  async updateLesson(id: string, dto: UpdateLessonDTO): Promise<Lesson> {
+    const existing = lessons.find((l) => l.id === id);
+    const payload = {
+      lessonNumber: existing?.lessonNumber ?? 1,
+      titleZh: dto.titleZh.trim(),
+      titleVi: dto.titleVi.trim(),
+      durationMinutes: dto.durationMinutes,
+      xpReward: dto.xpReward,
+      orderIndex: dto.orderIndex,
+      status: dto.status,
+      summary: dto.summary.trim(),
+    };
+
+    const res = await httpClient.put<any>(`/content/lessons/${id}`, payload);
+    const updatedLesson: Lesson = {
+      id: res.id,
+      unitId: res.unitId || existing?.unitId || '',
+      lessonNumber: res.lessonNumber,
+      titleZh: res.titleZh,
+      titleVi: res.titleVi,
+      durationMinutes: res.durationMinutes,
+      xpReward: res.xpReward,
+      orderIndex: res.orderIndex,
+      status: res.status,
+      summary: res.summary || '',
+      linkedVocabularyCount: existing?.linkedVocabularyCount ?? 0,
+      linkedGrammarCount: existing?.linkedGrammarCount ?? 0,
+      exerciseCount: existing?.exerciseCount ?? 0,
+      createdAt: res.createdAt,
+      updatedAt: res.updatedAt || res.createdAt,
+    };
+
+    lessons = lessons.map((l) => (l.id === id ? updatedLesson : l));
+    return updatedLesson;
+  }
+
+  async deleteLesson(id: string): Promise<boolean> {
+    await httpClient.delete(`/content/lessons/${id}`);
+    lessons = lessons.filter((l) => l.id !== id);
+    return true;
+  }
+
+  async publishLesson(lessonId: string): Promise<Lesson> {
+    await httpClient.put<any>(`/content/lessons/${lessonId}/status`, {
+      status: 'PUBLISHED',
+    });
+    lessons = lessons.map((l) => (l.id === lessonId ? { ...l, status: 'PUBLISHED' } : l));
+    if (lessonDrafts[lessonId]) {
+      lessonDrafts[lessonId].status = 'PUBLISHED';
     }
-
-    return { ...newLesson };
+    return lessons.find((l) => l.id === lessonId)!;
   }
 
   // --- Lesson Editor Aggregate Storage & Operations ---
+
   getLessonEditorData(lessonId: string): LessonEditorDraft {
     if (lessonDrafts[lessonId]) {
       return JSON.parse(JSON.stringify(lessonDrafts[lessonId]));
@@ -274,11 +345,9 @@ class CurriculumService {
 
     const lesson = this.getLessonById(lessonId);
     if (!lesson) {
-      // Fallback for demo if id not found
       return JSON.parse(JSON.stringify(MOCK_LESSON_8_DRAFT));
     }
 
-    // Generate baseline draft for any lesson
     const newDraft: LessonEditorDraft = {
       lessonId: lesson.id,
       unitId: lesson.unitId,
@@ -320,69 +389,53 @@ class CurriculumService {
     return JSON.parse(JSON.stringify(newDraft));
   }
 
-  saveLessonDraft(lessonId: string, draft: LessonEditorDraft): LessonEditorDraft {
+  async saveLessonDraft(lessonId: string, draft: LessonEditorDraft): Promise<LessonEditorDraft> {
     const updatedDraft: LessonEditorDraft = {
       ...JSON.parse(JSON.stringify(draft)),
       updatedAt: new Date().toISOString(),
     };
     lessonDrafts[lessonId] = updatedDraft;
 
-    // Sync lesson metadata to parent curriculum
-    const index = lessons.findIndex((l) => l.id === lessonId);
-    if (index !== -1) {
-      lessons[index] = {
-        ...lessons[index],
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (lesson) {
+      await httpClient.put(`/content/lessons/${lessonId}`, {
+        lessonNumber: lesson.lessonNumber,
         titleZh: draft.intro.titleZh,
         titleVi: draft.intro.titleVi,
         durationMinutes: draft.intro.durationMinutes,
         xpReward: draft.intro.xpReward,
-        summary: draft.intro.summary,
+        orderIndex: lesson.orderIndex,
         status: draft.status,
-        linkedVocabularyCount: draft.vocabularies.length,
-        linkedGrammarCount: draft.grammars.length,
-        exerciseCount: draft.exercises.length,
-        updatedAt: updatedDraft.updatedAt,
-      };
+        summary: draft.intro.summary,
+      });
 
-      httpClient
-        .put(`/content/lessons/${lessonId}`, {
-          lessonNumber: lessons[index].lessonNumber,
-          titleZh: lessons[index].titleZh,
-          titleVi: lessons[index].titleVi,
-          durationMinutes: lessons[index].durationMinutes,
-          xpReward: lessons[index].xpReward,
-          orderIndex: lessons[index].orderIndex,
-          status: lessons[index].status,
-          summary: lessons[index].summary,
-        })
-        .catch(console.warn);
+      lessons = lessons.map((l) =>
+        l.id === lessonId
+          ? {
+              ...l,
+              titleZh: draft.intro.titleZh,
+              titleVi: draft.intro.titleVi,
+              durationMinutes: draft.intro.durationMinutes,
+              xpReward: draft.intro.xpReward,
+              summary: draft.intro.summary,
+              status: draft.status,
+              linkedVocabularyCount: draft.vocabularies.length,
+              linkedGrammarCount: draft.grammars.length,
+              exerciseCount: draft.exercises.length,
+              updatedAt: updatedDraft.updatedAt,
+            }
+          : l
+      );
     }
 
     return JSON.parse(JSON.stringify(updatedDraft));
   }
 
-  publishLesson(lessonId: string): LessonEditorDraft {
-    const draft = this.getLessonEditorData(lessonId);
-    draft.status = 'PUBLISHED';
-
-    httpClient
-      .put(`/content/lessons/${lessonId}/status`, {
-        status: 'PUBLISHED',
-      })
-      .catch(console.warn);
-
-    return this.saveLessonDraft(lessonId, draft);
-  }
-
-  submitLessonForReview(lessonId: string): LessonEditorDraft {
+  async submitLessonForReview(lessonId: string): Promise<LessonEditorDraft> {
     const draft = this.getLessonEditorData(lessonId);
     draft.status = 'PENDING_REVIEW';
     return this.saveLessonDraft(lessonId, draft);
   }
 }
-
-let lessonDrafts: Record<string, LessonEditorDraft> = {
-  'les-8': JSON.parse(JSON.stringify(MOCK_LESSON_8_DRAFT)),
-};
 
 export const curriculumService = new CurriculumService();

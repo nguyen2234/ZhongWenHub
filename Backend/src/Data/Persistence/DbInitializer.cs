@@ -154,17 +154,61 @@ public static class DbInitializer
 
     private static async Task SeedContentAsync(ApplicationDbContext context, ILogger logger)
     {
-        if (await context.Courses.AnyAsync())
-        {
-            return;
-        }
-
         var hsk1CourseId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var hsk2CourseId = Guid.Parse("22222222-2222-2222-2222-222222222222");
         var hsk3CourseId = Guid.Parse("33333333-3333-3333-3333-333333333333");
         var hsk4CourseId = Guid.Parse("44444444-4444-4444-4444-444444444444");
         var hsk5CourseId = Guid.Parse("55555555-5555-5555-5555-555555555555");
         var hsk6CourseId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+
+        var unit1Id = Guid.Parse("bbbbbbbb-1111-1111-1111-111111111111");
+        var unit2Id = Guid.Parse("bbbbbbbb-2222-2222-2222-222222222222");
+
+        if (await context.Courses.AnyAsync())
+        {
+            if (!await context.Units.AnyAsync())
+            {
+                var initialUnits = new List<UnitEntity>
+                {
+                    new()
+                    {
+                        Id = unit1Id,
+                        CourseId = hsk1CourseId,
+                        UnitNumber = 1,
+                        TitleZh = "问候与认识",
+                        TitleVi = "Chào hỏi & Làm quen",
+                        Description = "Các mẫu câu chào hỏi căn bản, giới thiệu bản thân và xưng hô lịch sự.",
+                        OrderIndex = 1,
+                        Status = "PUBLISHED"
+                    },
+                    new()
+                    {
+                        Id = unit2Id,
+                        CourseId = hsk1CourseId,
+                        UnitNumber = 2,
+                        TitleZh = "家庭与朋友",
+                        TitleVi = "Gia đình & Bạn bè",
+                        Description = "Giới thiệu thành viên trong gia đình, tuổi tác và nghề nghiệp.",
+                        OrderIndex = 2,
+                        Status = "PUBLISHED"
+                    }
+                };
+                await context.Units.AddRangeAsync(initialUnits);
+                await context.SaveChangesAsync();
+
+                var l1 = await context.Lessons.FindAsync(Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111"));
+                if (l1 != null) l1.UnitId = unit1Id;
+                var l2 = await context.Lessons.FindAsync(Guid.Parse("aaaaaaaa-2222-2222-2222-222222222222"));
+                if (l2 != null) l2.UnitId = unit1Id;
+                var l3 = await context.Lessons.FindAsync(Guid.Parse("aaaaaaaa-3333-3333-3333-333333333333"));
+                if (l3 != null) l3.UnitId = unit2Id;
+                var l4 = await context.Lessons.FindAsync(Guid.Parse("aaaaaaaa-4444-4444-4444-444444444444"));
+                if (l4 != null) l4.UnitId = unit2Id;
+                await context.SaveChangesAsync();
+                logger.LogInformation("Linked existing lessons to newly seeded Units in SQL Server.");
+            }
+            return;
+        }
 
         var courses = new List<CourseEntity>
         {
@@ -185,12 +229,44 @@ public static class DbInitializer
         var les3Id = Guid.Parse("aaaaaaaa-3333-3333-3333-333333333333");
         var lesDraftId = Guid.Parse("aaaaaaaa-4444-4444-4444-444444444444");
 
+        if (!await context.Units.AnyAsync())
+        {
+            var units = new List<UnitEntity>
+            {
+                new()
+                {
+                    Id = unit1Id,
+                    CourseId = hsk1CourseId,
+                    UnitNumber = 1,
+                    TitleZh = "问候与认识",
+                    TitleVi = "Chào hỏi & Làm quen",
+                    Description = "Các mẫu câu chào hỏi căn bản, giới thiệu bản thân và xưng hô lịch sự.",
+                    OrderIndex = 1,
+                    Status = "PUBLISHED"
+                },
+                new()
+                {
+                    Id = unit2Id,
+                    CourseId = hsk1CourseId,
+                    UnitNumber = 2,
+                    TitleZh = "家庭与朋友",
+                    TitleVi = "Gia đình & Bạn bè",
+                    Description = "Giới thiệu thành viên trong gia đình, tuổi tác và nghề nghiệp.",
+                    OrderIndex = 2,
+                    Status = "PUBLISHED"
+                }
+            };
+            await context.Units.AddRangeAsync(units);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Seeded initial units for HSK 1 into SQL Server.");
+        }
+
         var lessons = new List<LessonEntity>
         {
-            new() { Id = les1Id, CourseId = hsk1CourseId, LessonNumber = 1, TitleZh = "你好", TitleVi = "Chào bạn", Pinyin = "Nǐ hǎo", Summary = "Học cách chào hỏi cơ bản trong tiếng Trung và giới thiệu bản thân.", DurationMinutes = 20, XpReward = 50, OrderIndex = 1, Status = "PUBLISHED" },
-            new() { Id = les2Id, CourseId = hsk1CourseId, LessonNumber = 2, TitleZh = "谢谢你", TitleVi = "Cảm ơn bạn", Pinyin = "Xièxie nǐ", Summary = "Học cách nói lời cảm ơn, xin lỗi và đáp lại một cách lịch sự.", DurationMinutes = 25, XpReward = 50, OrderIndex = 2, Status = "PUBLISHED" },
-            new() { Id = les3Id, CourseId = hsk1CourseId, LessonNumber = 3, TitleZh = "你叫什么名字", TitleVi = "Bạn tên là gì", Pinyin = "Nǐ jiào shénme míngzi", Summary = "Học cách hỏi và trả lời về họ tên, quốc tịch trong giao tiếp.", DurationMinutes = 30, XpReward = 60, OrderIndex = 3, Status = "PUBLISHED" },
-            new() { Id = lesDraftId, CourseId = hsk1CourseId, LessonNumber = 4, TitleZh = "他是我的汉语老师", TitleVi = "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)", Pinyin = "Tā shì wǒ de hànyǔ lǎoshī", Summary = "Bài học đang được biên soạn bởi Content Manager, học viên chưa thể thấy.", DurationMinutes = 35, XpReward = 60, OrderIndex = 4, Status = "DRAFT" },
+            new() { Id = les1Id, CourseId = hsk1CourseId, UnitId = unit1Id, LessonNumber = 1, TitleZh = "你好", TitleVi = "Chào bạn", Pinyin = "Nǐ hǎo", Summary = "Học cách chào hỏi cơ bản trong tiếng Trung và giới thiệu bản thân.", DurationMinutes = 20, XpReward = 50, OrderIndex = 1, Status = "PUBLISHED" },
+            new() { Id = les2Id, CourseId = hsk1CourseId, UnitId = unit1Id, LessonNumber = 2, TitleZh = "谢谢你", TitleVi = "Cảm ơn bạn", Pinyin = "Xièxie nǐ", Summary = "Học cách nói lời cảm ơn, xin lỗi và đáp lại một cách lịch sự.", DurationMinutes = 25, XpReward = 50, OrderIndex = 2, Status = "PUBLISHED" },
+            new() { Id = les3Id, CourseId = hsk1CourseId, UnitId = unit2Id, LessonNumber = 3, TitleZh = "你叫什么名字", TitleVi = "Bạn tên là gì", Pinyin = "Nǐ jiào shénme míngzi", Summary = "Học cách hỏi và trả lời về họ tên, quốc tịch trong giao tiếp.", DurationMinutes = 30, XpReward = 60, OrderIndex = 3, Status = "PUBLISHED" },
+            new() { Id = lesDraftId, CourseId = hsk1CourseId, UnitId = unit2Id, LessonNumber = 4, TitleZh = "他是我的汉语老师", TitleVi = "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)", Pinyin = "Tā shì wǒ de hànyǔ lǎoshī", Summary = "Bài học đang được biên soạn bởi Content Manager, học viên chưa thể thấy.", DurationMinutes = 35, XpReward = 60, OrderIndex = 4, Status = "DRAFT" },
         };
 
         await context.Lessons.AddRangeAsync(lessons);

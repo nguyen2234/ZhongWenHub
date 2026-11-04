@@ -27,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     // Content Management DbSets
     public DbSet<CourseEntity> Courses => Set<CourseEntity>();
+    public DbSet<UnitEntity> Units => Set<UnitEntity>();
     public DbSet<LessonEntity> Lessons => Set<LessonEntity>();
     public DbSet<VocabularyEntity> Vocabularies => Set<VocabularyEntity>();
     public DbSet<GrammarPointEntity> GrammarPoints => Set<GrammarPointEntity>();
@@ -274,6 +275,27 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(c => c.HskLevel).HasDatabaseName("idx_courses_hsk_level");
         });
 
+        // Unit Configuration
+        builder.Entity<UnitEntity>(b =>
+        {
+            b.ToTable("units");
+            b.HasKey(u => u.Id);
+            b.Property(u => u.TitleZh).HasMaxLength(150).IsRequired();
+            b.Property(u => u.TitleVi).HasMaxLength(150).IsRequired();
+            b.Property(u => u.Description).HasMaxLength(1000);
+            b.Property(u => u.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(u => u.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(u => u.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(u => u.Course)
+                .WithMany(c => c.Units)
+                .HasForeignKey(u => u.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(u => new { u.CourseId, u.UnitNumber }).HasDatabaseName("idx_units_course_number");
+            b.HasIndex(u => u.Status).HasDatabaseName("idx_units_status");
+        });
+
         // Lesson Configuration
         builder.Entity<LessonEntity>(b =>
         {
@@ -291,6 +313,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany(c => c.Lessons)
                 .HasForeignKey(l => l.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(l => l.Unit)
+                .WithMany(u => u.Lessons)
+                .HasForeignKey(l => l.UnitId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             b.HasIndex(l => new { l.CourseId, l.LessonNumber }).HasDatabaseName("idx_lessons_course_number");
             b.HasIndex(l => l.Status).HasDatabaseName("idx_lessons_status");

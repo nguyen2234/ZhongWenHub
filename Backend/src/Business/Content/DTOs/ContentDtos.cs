@@ -51,10 +51,66 @@ public class UpdateCourseDto
     public int OrderIndex { get; set; } = 1;
 }
 
+public class UnitDto
+{
+    public Guid Id { get; set; }
+    public Guid CourseId { get; set; }
+    public int UnitNumber { get; set; }
+    public string TitleZh { get; set; } = string.Empty;
+    public string TitleVi { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; }
+    public string Status { get; set; } = "PUBLISHED";
+    public int LessonCount { get; set; }
+    public int PublishedLessonCount { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class CreateUnitDto
+{
+    [Required]
+    public Guid CourseId { get; set; }
+
+    [Range(1, 100)]
+    public int UnitNumber { get; set; } = 1;
+
+    [Required(ErrorMessage = "Tiêu đề tiếng Trung không được để trống.")]
+    [StringLength(150)]
+    public string TitleZh { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Tiêu đề tiếng Việt không được để trống.")]
+    [StringLength(150)]
+    public string TitleVi { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; } = 1;
+    public string Status { get; set; } = "PUBLISHED";
+}
+
+public class UpdateUnitDto
+{
+    [Range(1, 100)]
+    public int UnitNumber { get; set; } = 1;
+
+    [Required(ErrorMessage = "Tiêu đề tiếng Trung không được để trống.")]
+    [StringLength(150)]
+    public string TitleZh { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Tiêu đề tiếng Việt không được để trống.")]
+    [StringLength(150)]
+    public string TitleVi { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+    public int OrderIndex { get; set; } = 1;
+    public string Status { get; set; } = "PUBLISHED";
+}
+
 public class LessonDto
 {
     public Guid Id { get; set; }
     public Guid CourseId { get; set; }
+    public Guid? UnitId { get; set; }
     public string CourseTitle { get; set; } = string.Empty;
     public int LessonNumber { get; set; }
     public string TitleZh { get; set; } = string.Empty;
@@ -84,6 +140,8 @@ public class CreateLessonDto
     [Required]
     public Guid CourseId { get; set; }
 
+    public Guid? UnitId { get; set; }
+
     [Range(1, 100)]
     public int LessonNumber { get; set; } = 1;
 
@@ -105,6 +163,8 @@ public class CreateLessonDto
 
 public class UpdateLessonDto
 {
+    public Guid? UnitId { get; set; }
+
     [Range(1, 100)]
     public int LessonNumber { get; set; } = 1;
 
@@ -319,4 +379,26 @@ public class UpdateContentStatusDto
 {
     [Required(ErrorMessage = "Trạng thái không được để trống.")]
     public string Status { get; set; } = "PUBLISHED";
+}
+
+public class AdminGrammarStatsDto
+{
+    public int Total { get; set; }
+    public int Published { get; set; }
+    public int Draft { get; set; }
+    public int Pending { get; set; }
+    public int Archived { get; set; }
+    public Dictionary<int, int> ByHsk { get; set; } = new();
+}
+
+public class AdminExerciseStatsDto
+{
+    public int Total { get; set; }
+    public int Published { get; set; }
+    public int Draft { get; set; }
+    public int Pending { get; set; }
+    public int Archived { get; set; }
+    public Dictionary<int, int> ByHsk { get; set; } = new();
+    public Dictionary<string, int> BySkill { get; set; } = new();
+    public Dictionary<string, int> ByType { get; set; } = new();
 }

@@ -599,6 +599,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<Guid?>("UnitId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -610,10 +613,65 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("idx_lessons_status");
 
+                    b.HasIndex("UnitId");
+
                     b.HasIndex("CourseId", "LessonNumber")
                         .HasDatabaseName("idx_lessons_course_number");
 
                     b.ToTable("lessons", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.UnitEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("TitleVi")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("TitleZh")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UnitNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_units_status");
+
+                    b.HasIndex("CourseId", "UnitNumber")
+                        .HasDatabaseName("idx_units_course_number");
+
+                    b.ToTable("units", (string)null);
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
@@ -1156,6 +1214,24 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.UnitEntity", "Unit")
+                        .WithMany("Lessons")
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Unit");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.UnitEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.CourseEntity", "Course")
+                        .WithMany("Units")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Course");
                 });
 
@@ -1238,6 +1314,8 @@ namespace ZhongWenHub.Data.Persistence.Migrations
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.CourseEntity", b =>
                 {
                     b.Navigation("Lessons");
+
+                    b.Navigation("Units");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>
@@ -1247,6 +1325,11 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("GrammarPoints");
 
                     b.Navigation("Vocabularies");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.UnitEntity", b =>
+                {
+                    b.Navigation("Lessons");
                 });
 #pragma warning restore 612, 618
         }

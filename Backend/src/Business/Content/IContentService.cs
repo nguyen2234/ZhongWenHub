@@ -12,8 +12,15 @@ public interface IContentService
     Task<CourseDto?> UpdateCourseAsync(Guid id, UpdateCourseDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteCourseAsync(Guid id, CancellationToken cancellationToken = default);
 
+    // Units
+    Task<List<UnitDto>> GetUnitsAsync(Guid? courseId = null, string? status = null, bool publishedOnly = false, CancellationToken cancellationToken = default);
+    Task<UnitDto?> GetUnitByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default);
+    Task<UnitDto> CreateUnitAsync(CreateUnitDto dto, CancellationToken cancellationToken = default);
+    Task<UnitDto?> UpdateUnitAsync(Guid id, UpdateUnitDto dto, CancellationToken cancellationToken = default);
+    Task<bool> DeleteUnitAsync(Guid id, CancellationToken cancellationToken = default);
+
     // Lessons
-    Task<PagedResponse<LessonDto>> GetLessonsAsync(Guid? courseId = null, string? status = null, string? search = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default);
+    Task<PagedResponse<LessonDto>> GetLessonsAsync(Guid? courseId = null, Guid? unitId = null, string? status = null, string? search = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default);
     Task<LessonDetailDto?> GetLessonByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default);
     Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, CancellationToken cancellationToken = default);
     Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, CancellationToken cancellationToken = default);
@@ -33,6 +40,7 @@ public interface IContentService
     Task<GrammarPointDto> CreateGrammarPointAsync(CreateGrammarPointDto dto, CancellationToken cancellationToken = default);
     Task<GrammarPointDto?> UpdateGrammarPointAsync(Guid id, UpdateGrammarPointDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteGrammarPointAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<AdminGrammarStatsDto> GetGrammarStatsAsync(CancellationToken cancellationToken = default);
 
     // Exercises
     Task<PagedResponse<ExerciseDto>> GetExercisesAsync(int? hskLevel = null, string? type = null, string? skill = null, Guid? lessonId = null, string? search = null, string? status = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default);
@@ -40,5 +48,5 @@ public interface IContentService
     Task<ExerciseDto> CreateExerciseAsync(CreateExerciseDto dto, CancellationToken cancellationToken = default);
     Task<ExerciseDto?> UpdateExerciseAsync(Guid id, UpdateExerciseDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteExerciseAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<AdminExerciseStatsDto> GetExerciseStatsAsync(CancellationToken cancellationToken = default);
 }
-

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BookOpen } from 'lucide-react';
+import { Plus, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CurriculumUnitCard,
@@ -21,22 +21,30 @@ import '../components/learning-content.css';
 export const AdminCurriculumPage: React.FC = () => {
   const navigate = useNavigate();
   const [dataVersion, setDataVersion] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      await curriculumService.syncFromApi();
+      setDataVersion((v) => v + 1);
+      const updatedCourses = curriculumService.getCourses();
+      if (updatedCourses.length > 0) {
+        setSelectedCourseId((prev) => prev || updatedCourses[0].id);
+      }
+    } catch (err: any) {
+      console.error('[AdminCurriculumPage] Sync error:', err);
+      setErrorMessage(err?.message || 'Không thể đồng bộ dữ liệu giáo trình từ máy chủ.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    curriculumService.syncFromApi().then(() => {
-      if (mounted) {
-        setDataVersion((v) => v + 1);
-        const updatedCourses = curriculumService.getCourses();
-        if (updatedCourses.length > 0) {
-          setSelectedCourseId(updatedCourses[0].id);
-        }
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    loadData();
+  }, [loadData]);
 
   // 1. Courses
   const courses = useMemo(() => {
@@ -97,14 +105,13 @@ export const AdminCurriculumPage: React.FC = () => {
     setIsUnitModalOpen(true);
   }, []);
 
-  const handleSaveUnit = useCallback((dto: UpdateUnitDTO) => {
+  const handleSaveUnit = useCallback(async (dto: UpdateUnitDTO) => {
     if (selectedUnitForEdit) {
-      curriculumService.updateUnit(selectedUnitForEdit.id, dto);
+      await curriculumService.updateUnit(selectedUnitForEdit.id, dto);
     } else if (activeCourseLevel) {
-      curriculumService.createUnit(activeCourseLevel.id, dto);
+      await curriculumService.createUnit(activeCourseLevel.id, dto);
     }
     setDataVersion((v) => v + 1);
-    setIsUnitModalOpen(false);
   }, [selectedUnitForEdit, activeCourseLevel]);
 
   // Lesson handlers
@@ -136,14 +143,13 @@ export const AdminCurriculumPage: React.FC = () => {
     setIsLessonDrawerOpen(true);
   }, []);
 
-  const handleSaveLesson = useCallback((id: string, dto: UpdateLessonDTO) => {
+  const handleSaveLesson = useCallback(async (id: string, dto: UpdateLessonDTO) => {
     if (id.startsWith('les-new-') && currentUnitForLesson) {
-      curriculumService.createLesson(currentUnitForLesson.id, dto);
+      await curriculumService.createLesson(currentUnitForLesson.id, dto);
     } else {
-      curriculumService.updateLesson(id, dto);
+      await curriculumService.updateLesson(id, dto);
     }
     setDataVersion((v) => v + 1);
-    setIsLessonDrawerOpen(false);
   }, [currentUnitForLesson]);
 
   const activeCourse = courses.find((c) => c.id === selectedCourseId) || courses[0];
@@ -192,84 +198,126 @@ export const AdminCurriculumPage: React.FC = () => {
         }
       />
 
-      {/* Course Selector Card */}
-      <div className="lcm-course-header-card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <div style={{ padding: '8px', backgroundColor: 'var(--primary-light)', borderRadius: 'var(--radius-lg)', color: 'var(--primary)' }}>
-            <BookOpen size={20} />
+      {/* Error Banner with Retry button */}
+      {errorMessage && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 'var(--space-3) var(--space-4)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: 'var(--radius-lg)',
+            color: 'var(--danger, #ef4444)',
+            fontSize: 'var(--text-sm)',
+            marginBottom: 'var(--space-4)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <AlertCircle size={18} />
+            <span>{errorMessage}</span>
           </div>
-          <div>
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, margin: '0 0 2px 0' }}>
-              {activeCourse?.name}
-            </h3>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>
-              {activeCourse?.description}
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>Khóa học:</span>
-          <select
-            className="lcm-select-filter"
-            value={selectedCourseId}
-            onChange={(e) => setSelectedCourseId(e.target.value)}
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={loadData}
+            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
           >
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.code})
-              </option>
-            ))}
-          </select>
+            <RefreshCw size={14} /> Thử lại
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Course Level / HSK Selector */}
-      <LevelFilterBar
-        levels={levels}
-        selectedLevelId={selectedLevelId}
-        onSelectLevel={setSelectedLevelId}
-        showAllOption={false}
-      />
+      {/* Loading state indicator */}
+      {isLoading && (
+        <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--muted)' }}>
+          Đang tải dữ liệu giáo trình từ máy chủ...
+        </div>
+      )}
 
-      {/* Unit Statistics Summary */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-        <span>
-          Đang hiển thị <strong>{units.length}</strong> Unit thuộc cấp độ <strong>{levels.find((l) => l.id === selectedLevelId)?.name}</strong>
-        </span>
-      </div>
+      {!isLoading && (
+        <>
+          {/* Course Selector Card */}
+          <div className="lcm-course-header-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+              <div style={{ padding: '8px', backgroundColor: 'var(--primary-light)', borderRadius: 'var(--radius-lg)', color: 'var(--primary)' }}>
+                <BookOpen size={20} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, margin: '0 0 2px 0' }}>
+                  {activeCourse?.name || 'Chưa có khóa học'}
+                </h3>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>
+                  {activeCourse?.description}
+                </p>
+              </div>
+            </div>
 
-      {/* Units Accordion List */}
-      <div className="lcm-units-stack">
-        {units.length === 0 ? (
-          <div style={{ padding: 'var(--space-8)', textAlign: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)' }}>
-            <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)', margin: '0 0 var(--space-3) 0' }}>
-              Chưa có Unit nào cho cấp độ này.
-            </p>
-            <button
-              type="button"
-              className="ds-btn ds-btn-primary ds-btn-sm"
-              onClick={handleOpenAddUnit}
-            >
-              <Plus size={14} /> Khởi tạo Unit đầu tiên
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--muted)' }}>Khóa học:</span>
+              <select
+                className="lcm-select-filter"
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+              >
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        ) : (
-          units.map((unit) => {
-            const unitLessons = allLessons.filter((l) => l.unitId === unit.id);
-            return (
-              <CurriculumUnitCard
-                key={unit.id}
-                unit={unit}
-                lessons={unitLessons}
-                onEditUnit={handleOpenEditUnit}
-                onAddLesson={handleOpenAddLesson}
-                onSelectLesson={handleSelectLesson}
-              />
-            );
-          })
-        )}
-      </div>
+
+          {/* Course Level / HSK Selector */}
+          <LevelFilterBar
+            levels={levels}
+            selectedLevelId={selectedLevelId}
+            onSelectLevel={setSelectedLevelId}
+            showAllOption={false}
+          />
+
+          {/* Unit Statistics Summary */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+            <span>
+              Đang hiển thị <strong>{units.length}</strong> Unit thuộc cấp độ <strong>{levels.find((l) => l.id === selectedLevelId)?.name}</strong>
+            </span>
+          </div>
+
+          {/* Units Accordion List */}
+          <div className="lcm-units-stack">
+            {units.length === 0 ? (
+              <div style={{ padding: 'var(--space-8)', textAlign: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)' }}>
+                <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)', margin: '0 0 var(--space-3) 0' }}>
+                  Chưa có Unit nào cho cấp độ này.
+                </p>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-primary ds-btn-sm"
+                  onClick={handleOpenAddUnit}
+                >
+                  <Plus size={14} /> Khởi tạo Unit đầu tiên
+                </button>
+              </div>
+            ) : (
+              units.map((unit) => {
+                const unitLessons = allLessons.filter((l) => l.unitId === unit.id);
+                return (
+                  <CurriculumUnitCard
+                    key={unit.id}
+                    unit={unit}
+                    lessons={unitLessons}
+                    onEditUnit={handleOpenEditUnit}
+                    onAddLesson={handleOpenAddLesson}
+                    onSelectLesson={handleSelectLesson}
+                  />
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
 
       {/* Lesson Detail Drawer */}
       <LessonDetailDrawer

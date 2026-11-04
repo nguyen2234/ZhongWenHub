@@ -5,6 +5,7 @@ import {
   MOCK_STANDARDS,
   MOCK_VOCABULARIES,
 } from '../data/mockHskRepositoryData';
+import { httpClient } from '../../../../core/api/client/http-client';
 import type {
   CharacterFilters,
   ChineseCharacter,
@@ -56,6 +57,113 @@ class HskRepositoryService {
   }
 
   // --- Vocabulary ---
+  async syncVocabulariesFromApi(): Promise<void> {
+    try {
+      const res = await httpClient.get<any>('/content/vocabularies', {
+        params: { pageSize: 200 },
+      });
+      const items = Array.isArray(res) ? res : (res?.items || []);
+      if (items.length > 0) {
+        vocabularies = items.map((v: any) => ({
+          id: v.id,
+          hskLevelId: `level-hsk-${v.hskLevel || 1}`,
+          simplified: v.hanzi,
+          traditional: v.traditional || v.hanzi,
+          pinyin: v.pinyin,
+          meaningVi: v.meaningVi,
+          meaningEn: v.meaningEn || '',
+          partOfSpeech: v.partOfSpeech || 'danh từ',
+          audioUrl: v.audioUrl || '',
+          status: v.status || 'PUBLISHED',
+          examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
+          source: 'Live SQL Server',
+          createdAt: v.createdAt || new Date().toISOString(),
+          updatedAt: v.updatedAt || v.createdAt || new Date().toISOString(),
+        }));
+      }
+    } catch (err) {
+      console.warn('[HskRepositoryService] Failed to sync vocabularies from live api:', err);
+    }
+  }
+
+  async createVocabularyAsync(dto: CreateVocabularyDTO): Promise<Vocabulary> {
+    const hskLevel = Number(dto.hskLevelId.replace('level-hsk-', '')) || 1;
+    const payload = {
+      hskLevel,
+      hanzi: dto.simplified.trim(),
+      traditional: dto.traditional?.trim() || dto.simplified.trim(),
+      pinyin: dto.pinyin.trim(),
+      meaningVi: dto.meaningVi.trim(),
+      meaningEn: dto.meaningEn?.trim() || '',
+      partOfSpeech: dto.partOfSpeech.trim(),
+      audioUrl: dto.audioUrl?.trim() || '',
+      examplesJson: JSON.stringify(dto.examples || []),
+      status: dto.status || 'PUBLISHED',
+    };
+
+    const res = await httpClient.post<any>('/content/vocabularies', payload);
+    const newVocab: Vocabulary = {
+      id: res.id,
+      hskLevelId: `level-hsk-${res.hskLevel || hskLevel}`,
+      simplified: res.hanzi,
+      traditional: res.traditional || res.hanzi,
+      pinyin: res.pinyin,
+      meaningVi: res.meaningVi,
+      meaningEn: res.meaningEn || '',
+      partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
+      audioUrl: res.audioUrl || '',
+      status: res.status || 'PUBLISHED',
+      examples: (dto.examples || []).map((ex, idx) => ({ id: `ex-${res.id}-${idx}`, ...ex })),
+      source: 'Tạo từ CMS',
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || res.createdAt || new Date().toISOString(),
+    };
+    vocabularies = [newVocab, ...vocabularies];
+    return newVocab;
+  }
+
+  async updateVocabularyAsync(id: string, dto: UpdateVocabularyDTO): Promise<Vocabulary> {
+    const hskLevel = Number(dto.hskLevelId.replace('level-hsk-', '')) || 1;
+    const payload = {
+      hskLevel,
+      hanzi: dto.simplified.trim(),
+      traditional: dto.traditional?.trim() || dto.simplified.trim(),
+      pinyin: dto.pinyin.trim(),
+      meaningVi: dto.meaningVi.trim(),
+      meaningEn: dto.meaningEn?.trim() || '',
+      partOfSpeech: dto.partOfSpeech.trim(),
+      audioUrl: dto.audioUrl?.trim() || '',
+      examplesJson: JSON.stringify(dto.examples || []),
+      status: dto.status || 'PUBLISHED',
+    };
+
+    const res = await httpClient.put<any>(`/content/vocabularies/${id}`, payload);
+    const updated: Vocabulary = {
+      id: res.id,
+      hskLevelId: `level-hsk-${res.hskLevel || hskLevel}`,
+      simplified: res.hanzi,
+      traditional: res.traditional || res.hanzi,
+      pinyin: res.pinyin,
+      meaningVi: res.meaningVi,
+      meaningEn: res.meaningEn || '',
+      partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
+      audioUrl: res.audioUrl || '',
+      status: res.status || 'PUBLISHED',
+      examples: dto.examples || [],
+      source: 'Cập nhật từ CMS',
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || new Date().toISOString(),
+    };
+
+    vocabularies = vocabularies.map((v) => (v.id === id ? updated : v));
+    return updated;
+  }
+
+  async deleteVocabularyAsync(id: string): Promise<boolean> {
+    await httpClient.delete(`/content/vocabularies/${id}`);
+    vocabularies = vocabularies.filter((v) => v.id !== id);
+    return true;
+  }
   getVocabularies(filters?: VocabularyFilters): Vocabulary[] {
     let result = [...vocabularies];
 
