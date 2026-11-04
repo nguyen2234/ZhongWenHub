@@ -284,12 +284,13 @@ public class ContentController : BaseApiController
         [FromQuery] Guid? lessonId,
         [FromQuery] string? search,
         [FromQuery] string? status,
+        [FromQuery] bool? missingMeaningVi,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
     {
         var publishedOnly = !IsStaff();
-        var items = await _contentService.GetVocabulariesAsync(hskLevel, lessonId, search, status, page, pageSize, publishedOnly, cancellationToken);
+        var items = await _contentService.GetVocabulariesAsync(hskLevel, lessonId, search, status, page, pageSize, publishedOnly, missingMeaningVi, cancellationToken);
         return Ok(items);
     }
 
@@ -313,29 +314,95 @@ public class ContentController : BaseApiController
     [HttpPost("/api/v1/admin/vocabularies")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateVocabulary([FromBody] CreateVocabularyDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var created = await _contentService.CreateVocabularyAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetVocabularyById), new { id = created.Id }, created);
+        try
+        {
+            var created = await _contentService.CreateVocabularyAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetVocabularyById), new { id = created.Id }, created);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("vocabularies/{id:guid}")]
     [HttpPut("/api/v1/admin/vocabularies/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateVocabulary(Guid id, [FromBody] UpdateVocabularyDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var updated = await _contentService.UpdateVocabularyAsync(id, dto, cancellationToken);
-        if (updated == null)
+        try
         {
-            return NotFound(new { message = $"Không tìm thấy từ vựng với ID {id}." });
+            var updated = await _contentService.UpdateVocabularyAsync(id, dto, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy từ vựng với ID {id}." });
+            }
+            return Ok(updated);
         }
-        return Ok(updated);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("vocabularies/import-csv")]
+    [HttpPost("/api/v1/admin/vocabularies/import-csv")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<IActionResult> ImportVocabulariesCsv(
+        IFormFile? file,
+        [FromQuery] bool dryRun = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Vui lòng chọn file CSV để tải lên." });
+        }
+
+        if (!file.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "Định dạng file không hợp lệ. Vui lòng chọn file .csv." });
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var result = await _contentService.ImportVocabulariesFromCsvAsync(stream, dryRun, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("vocabularies/import-preview")]
+    [HttpPost("/api/v1/admin/vocabularies/import-preview")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<IActionResult> PreviewVocabulariesCsv(
+        IFormFile? file,
+        CancellationToken cancellationToken = default)
+    {
+        return await ImportVocabulariesCsv(file, dryRun: true, cancellationToken);
     }
 
     [HttpDelete("vocabularies/{id:guid}")]

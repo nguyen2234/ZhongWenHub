@@ -333,7 +333,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.Hanzi).HasMaxLength(50).IsRequired();
             b.Property(v => v.Traditional).HasMaxLength(50);
             b.Property(v => v.Pinyin).HasMaxLength(100).IsRequired();
-            b.Property(v => v.MeaningVi).HasMaxLength(255).IsRequired();
+            b.Property(v => v.MeaningVi).HasMaxLength(255).IsRequired(false);
             b.Property(v => v.MeaningEn).HasMaxLength(255);
             b.Property(v => v.PartOfSpeech).HasMaxLength(50);
             b.Property(v => v.AudioUrl).HasMaxLength(500);
@@ -341,6 +341,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
             b.Property(v => v.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(v => v.UpdatedAt).HasColumnType("datetime2");
+
+            b.Property(v => v.SourceDataset).HasMaxLength(100);
+            b.Property(v => v.SourceEntryId).HasMaxLength(50);
+            b.Property(v => v.SourceId).HasMaxLength(50);
+            b.Property(v => v.Entry).HasMaxLength(100);
+            b.Property(v => v.Homograph).HasMaxLength(20);
+            b.Property(v => v.LevelLabel).HasMaxLength(50);
+            b.Property(v => v.SourcePdfPage).HasColumnType("int");
 
             b.HasOne(v => v.Lesson)
                 .WithMany(l => l.Vocabularies)
@@ -350,6 +358,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(v => v.HskLevel).HasDatabaseName("idx_vocabularies_hsk_level");
             b.HasIndex(v => v.Hanzi).HasDatabaseName("idx_vocabularies_hanzi");
             b.HasIndex(v => v.Status).HasDatabaseName("idx_vocabularies_status");
+            b.HasIndex(v => v.SourceId).HasDatabaseName("idx_vocabularies_source_id");
+            b.HasIndex(v => new { v.SourceDataset, v.SourceEntryId }).HasDatabaseName("idx_vocabularies_source_dataset_entry");
+            b.HasIndex(v => new { v.HskLevel, v.Hanzi, v.Pinyin, v.Homograph }).HasDatabaseName("idx_vocabularies_lookup");
         });
 
         // GrammarPoint Configuration

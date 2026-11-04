@@ -565,11 +565,17 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("DialogueJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
                     b.Property<int>("LessonNumber")
                         .HasColumnType("int");
+
+                    b.Property<string>("ListeningJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
@@ -584,12 +590,6 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("PUBLISHED");
-
-                    b.Property<string>("DialogueJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ListeningJson")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Summary")
                         .HasMaxLength(1000)
@@ -693,6 +693,10 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Entry")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("ExamplesJson")
                         .HasColumnType("nvarchar(max)");
 
@@ -701,18 +705,25 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Homograph")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("HskLevel")
                         .HasColumnType("int");
 
                     b.Property<Guid?>("LessonId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("LevelLabel")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("MeaningEn")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("MeaningVi")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -724,6 +735,21 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SourceDataset")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SourceEntryId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SourceId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("SourcePdfPage")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -749,8 +775,17 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasIndex("LessonId");
 
+                    b.HasIndex("SourceId")
+                        .HasDatabaseName("idx_vocabularies_source_id");
+
                     b.HasIndex("Status")
                         .HasDatabaseName("idx_vocabularies_status");
+
+                    b.HasIndex("SourceDataset", "SourceEntryId")
+                        .HasDatabaseName("idx_vocabularies_source_dataset_entry");
+
+                    b.HasIndex("HskLevel", "Hanzi", "Pinyin", "Homograph")
+                        .HasDatabaseName("idx_vocabularies_lookup");
 
                     b.ToTable("vocabularies", (string)null);
                 });

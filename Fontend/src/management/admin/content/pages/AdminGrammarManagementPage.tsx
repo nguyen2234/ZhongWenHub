@@ -73,7 +73,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
     total: 0,
     published: 0,
     draft: 0,
-    pendingReview: 0,
+    pending: 0,
     archived: 0,
     byHsk: {} as any,
     byCategory: {} as any,
@@ -454,7 +454,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
         />
         <StatCard
           title="Đang chờ duyệt"
-          value={stats.pendingReview ?? 0}
+          value={stats.pending ?? 0}
           icon={<Clock size={20} color="#EAB308" />}
         />
         <StatCard

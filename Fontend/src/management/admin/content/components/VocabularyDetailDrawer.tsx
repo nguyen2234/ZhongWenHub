@@ -62,7 +62,9 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
     const errs: Record<string, string> = {};
     if (!simplified.trim()) errs.simplified = 'Hán tự không được để trống';
     if (!pinyin.trim()) errs.pinyin = 'Pinyin không được để trống';
-    if (!meaningVi.trim()) errs.meaningVi = 'Nghĩa tiếng Việt không được để trống';
+    if (status === 'PUBLISHED' && !meaningVi.trim()) {
+      errs.meaningVi = 'Không thể xuất bản (PUBLISHED) khi chưa có nghĩa tiếng Việt.';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -80,6 +82,11 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
       audioUrl: audioUrl || undefined,
       examples,
       status,
+      sourceId: vocabulary.sourceId,
+      entry: vocabulary.entry,
+      homograph: vocabulary.homograph,
+      levelLabel: vocabulary.levelLabel,
+      sourcePdfPage: vocabulary.sourcePdfPage,
     });
     setIsEditing(false);
   };
@@ -279,6 +286,20 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                 )}
               </div>
             </div>
+
+            {(vocabulary.sourceDataset || vocabulary.sourceEntryId || vocabulary.sourceId || vocabulary.levelLabel || vocabulary.entry || vocabulary.homograph) && (
+              <div style={{ padding: '10px 14px', background: 'var(--background-secondary, #f8fafc)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', marginTop: '6px' }}>
+                <div style={{ fontWeight: 600, color: 'var(--muted)', marginBottom: '6px' }}>THÔNG TIN NGUỒN HSK 3.0</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {vocabulary.sourceDataset && <div>Bộ dữ liệu: <strong>{vocabulary.sourceDataset}</strong></div>}
+                  {(vocabulary.sourceEntryId || vocabulary.sourceId) && <div>Mã mục (ID): <strong>{vocabulary.sourceEntryId || vocabulary.sourceId}</strong></div>}
+                  {vocabulary.levelLabel && <div>Cấp HSK: <strong>{vocabulary.levelLabel}</strong></div>}
+                  {vocabulary.entry && <div>Entry: <strong>{vocabulary.entry}</strong></div>}
+                  {vocabulary.homograph && <div>Đồng âm: <strong>{vocabulary.homograph}</strong></div>}
+                  {vocabulary.sourcePdfPage && <div>Trang PDF: <strong>{vocabulary.sourcePdfPage}</strong></div>}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section: Ví dụ minh họa (Relational Examples) */}

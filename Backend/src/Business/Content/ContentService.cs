@@ -1,3 +1,7 @@
+using System.Globalization;
+using System.Text;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Business.Common.DTOs;
 using ZhongWenHub.Business.Content.DTOs;
@@ -725,7 +729,7 @@ public class ContentService : IContentService
 
     #region Vocabulary
 
-    public async Task<PagedResponse<VocabularyDto>> GetVocabulariesAsync(int? hskLevel = null, Guid? lessonId = null, string? search = null, string? status = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default)
+    public async Task<PagedResponse<VocabularyDto>> GetVocabulariesAsync(int? hskLevel = null, Guid? lessonId = null, string? search = null, string? status = null, int page = 1, int pageSize = 20, bool publishedOnly = false, bool? missingMeaningVi = null, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Vocabularies.AsNoTracking().AsQueryable();
 
@@ -736,6 +740,18 @@ public class ContentService : IContentService
         else if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
         {
             query = query.Where(v => v.Status == status);
+        }
+
+        if (missingMeaningVi.HasValue)
+        {
+            if (missingMeaningVi.Value)
+            {
+                query = query.Where(v => string.IsNullOrWhiteSpace(v.MeaningVi) || v.MeaningVi == "");
+            }
+            else
+            {
+                query = query.Where(v => !string.IsNullOrWhiteSpace(v.MeaningVi));
+            }
         }
 
         if (hskLevel.HasValue && hskLevel.Value > 0)
@@ -751,7 +767,7 @@ public class ContentService : IContentService
         if (!string.IsNullOrWhiteSpace(search))
         {
             var q = search.Trim().ToLower();
-            query = query.Where(v => v.Hanzi.ToLower().Contains(q) || v.Pinyin.ToLower().Contains(q) || v.MeaningVi.ToLower().Contains(q));
+            query = query.Where(v => v.Hanzi.ToLower().Contains(q) || v.Pinyin.ToLower().Contains(q) || (v.MeaningVi != null && v.MeaningVi.ToLower().Contains(q)));
         }
 
         var totalItems = await query.CountAsync(cancellationToken);
@@ -770,12 +786,19 @@ public class ContentService : IContentService
                 Hanzi = v.Hanzi,
                 Traditional = v.Traditional,
                 Pinyin = v.Pinyin,
-                MeaningVi = v.MeaningVi,
+                MeaningVi = v.MeaningVi ?? "",
                 MeaningEn = v.MeaningEn,
                 PartOfSpeech = v.PartOfSpeech,
                 AudioUrl = v.AudioUrl,
                 ExamplesJson = v.ExamplesJson,
                 Status = v.Status,
+                SourceDataset = v.SourceDataset,
+                SourceEntryId = v.SourceEntryId,
+                SourceId = v.SourceId ?? v.SourceEntryId,
+                Entry = v.Entry,
+                Homograph = v.Homograph,
+                LevelLabel = v.LevelLabel,
+                SourcePdfPage = v.SourcePdfPage,
                 LessonId = v.LessonId,
                 CreatedAt = v.CreatedAt,
                 UpdatedAt = v.UpdatedAt
@@ -797,12 +820,19 @@ public class ContentService : IContentService
             Hanzi = v.Hanzi,
             Traditional = v.Traditional,
             Pinyin = v.Pinyin,
-            MeaningVi = v.MeaningVi,
+            MeaningVi = v.MeaningVi ?? "",
             MeaningEn = v.MeaningEn,
             PartOfSpeech = v.PartOfSpeech,
             AudioUrl = v.AudioUrl,
             ExamplesJson = v.ExamplesJson,
             Status = v.Status,
+            SourceDataset = v.SourceDataset,
+            SourceEntryId = v.SourceEntryId,
+            SourceId = v.SourceId ?? v.SourceEntryId,
+            Entry = v.Entry,
+            Homograph = v.Homograph,
+            LevelLabel = v.LevelLabel,
+            SourcePdfPage = v.SourcePdfPage,
             LessonId = v.LessonId,
             CreatedAt = v.CreatedAt,
             UpdatedAt = v.UpdatedAt
@@ -811,18 +841,35 @@ public class ContentService : IContentService
 
     public async Task<VocabularyDto> CreateVocabularyAsync(CreateVocabularyDto dto, CancellationToken cancellationToken = default)
     {
+        if (dto.HskLevel < 1 || dto.HskLevel > 6)
+        {
+            throw new ArgumentException("Cấp độ HSK phải từ 1 đến 6.");
+        }
+
+        if (dto.Status == "PUBLISHED" && string.IsNullOrWhiteSpace(dto.MeaningVi))
+        {
+            throw new ArgumentException("Từ vựng chỉ có thể xuất bản (PUBLISHED) khi đã có nghĩa tiếng Việt hợp lệ.");
+        }
+
         var v = new VocabularyEntity
         {
             HskLevel = dto.HskLevel,
             Hanzi = dto.Hanzi.Trim(),
             Traditional = dto.Traditional?.Trim(),
             Pinyin = dto.Pinyin.Trim(),
-            MeaningVi = dto.MeaningVi.Trim(),
+            MeaningVi = dto.MeaningVi?.Trim() ?? "",
             MeaningEn = dto.MeaningEn?.Trim(),
             PartOfSpeech = dto.PartOfSpeech?.Trim(),
             AudioUrl = dto.AudioUrl?.Trim(),
             ExamplesJson = dto.ExamplesJson,
             Status = dto.Status,
+            SourceDataset = dto.SourceDataset?.Trim(),
+            SourceEntryId = dto.SourceEntryId?.Trim() ?? dto.SourceId?.Trim(),
+            SourceId = dto.SourceId?.Trim() ?? dto.SourceEntryId?.Trim(),
+            Entry = dto.Entry?.Trim(),
+            Homograph = dto.Homograph?.Trim(),
+            LevelLabel = dto.LevelLabel?.Trim(),
+            SourcePdfPage = dto.SourcePdfPage,
             LessonId = dto.LessonId
         };
 
@@ -842,6 +889,13 @@ public class ContentService : IContentService
             AudioUrl = v.AudioUrl,
             ExamplesJson = v.ExamplesJson,
             Status = v.Status,
+            SourceDataset = v.SourceDataset,
+            SourceEntryId = v.SourceEntryId,
+            SourceId = v.SourceId,
+            Entry = v.Entry,
+            Homograph = v.Homograph,
+            LevelLabel = v.LevelLabel,
+            SourcePdfPage = v.SourcePdfPage,
             LessonId = v.LessonId,
             CreatedAt = v.CreatedAt,
             UpdatedAt = v.UpdatedAt
@@ -853,16 +907,35 @@ public class ContentService : IContentService
         var v = await _dbContext.Vocabularies.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (v == null) return null;
 
+        if (dto.HskLevel < 1 || dto.HskLevel > 6)
+        {
+            throw new ArgumentException("Cấp độ HSK phải từ 1 đến 6.");
+        }
+
+        if (dto.Status == "PUBLISHED" && string.IsNullOrWhiteSpace(dto.MeaningVi))
+        {
+            throw new ArgumentException("Từ vựng chỉ có thể xuất bản (PUBLISHED) khi đã có nghĩa tiếng Việt hợp lệ.");
+        }
+
         v.HskLevel = dto.HskLevel;
         v.Hanzi = dto.Hanzi.Trim();
         v.Traditional = dto.Traditional?.Trim();
         v.Pinyin = dto.Pinyin.Trim();
-        v.MeaningVi = dto.MeaningVi.Trim();
+        v.MeaningVi = dto.MeaningVi?.Trim() ?? "";
         v.MeaningEn = dto.MeaningEn?.Trim();
         v.PartOfSpeech = dto.PartOfSpeech?.Trim();
         v.AudioUrl = dto.AudioUrl?.Trim();
         v.ExamplesJson = dto.ExamplesJson;
         v.Status = dto.Status;
+        if (!string.IsNullOrWhiteSpace(dto.SourceDataset)) v.SourceDataset = dto.SourceDataset.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.SourceEntryId)) v.SourceEntryId = dto.SourceEntryId.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.SourceId)) v.SourceId = dto.SourceId.Trim();
+        if (string.IsNullOrWhiteSpace(v.SourceEntryId) && !string.IsNullOrWhiteSpace(v.SourceId)) v.SourceEntryId = v.SourceId;
+        if (string.IsNullOrWhiteSpace(v.SourceId) && !string.IsNullOrWhiteSpace(v.SourceEntryId)) v.SourceId = v.SourceEntryId;
+        if (!string.IsNullOrWhiteSpace(dto.Entry)) v.Entry = dto.Entry.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.Homograph)) v.Homograph = dto.Homograph.Trim();
+        if (!string.IsNullOrWhiteSpace(dto.LevelLabel)) v.LevelLabel = dto.LevelLabel.Trim();
+        if (dto.SourcePdfPage.HasValue) v.SourcePdfPage = dto.SourcePdfPage;
         v.LessonId = dto.LessonId;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -880,9 +953,271 @@ public class ContentService : IContentService
             AudioUrl = v.AudioUrl,
             ExamplesJson = v.ExamplesJson,
             Status = v.Status,
+            SourceDataset = v.SourceDataset,
+            SourceEntryId = v.SourceEntryId,
+            SourceId = v.SourceId,
+            Entry = v.Entry,
+            Homograph = v.Homograph,
+            LevelLabel = v.LevelLabel,
+            SourcePdfPage = v.SourcePdfPage,
             LessonId = v.LessonId,
             CreatedAt = v.CreatedAt,
             UpdatedAt = v.UpdatedAt
+        };
+    }
+
+    public async Task<VocabularyImportResultDto> ImportVocabulariesFromCsvAsync(Stream csvStream, bool dryRun = false, CancellationToken cancellationToken = default)
+    {
+        using var reader = new StreamReader(csvStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = true,
+            TrimOptions = TrimOptions.Trim,
+            BadDataFound = null,
+            MissingFieldFound = null,
+            HeaderValidated = null
+        };
+
+        using var csv = new CsvReader(reader, csvConfig);
+
+        const string datasetName = "HSK 3.0";
+
+        // Fetch existing keys to prevent duplicates
+        var existingSourceEntriesList = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.SourceDataset != null && v.SourceEntryId != null)
+            .Select(v => $"{v.SourceDataset}|{v.SourceEntryId}")
+            .ToListAsync(cancellationToken);
+        var existingSourceEntries = new HashSet<string>(existingSourceEntriesList, StringComparer.OrdinalIgnoreCase);
+
+        var existingSourceIdsList = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.SourceId != null && v.SourceId != "")
+            .Select(v => v.SourceId!)
+            .ToListAsync(cancellationToken);
+        var existingSourceIds = new HashSet<string>(existingSourceIdsList, StringComparer.OrdinalIgnoreCase);
+
+        var existingLookup = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Select(v => new { v.HskLevel, v.Hanzi, v.Pinyin, Homograph = v.Homograph ?? "" })
+            .ToListAsync(cancellationToken);
+
+        var existingLookupSet = existingLookup
+            .Select(x => $"{x.HskLevel}|{x.Hanzi}|{x.Pinyin}|{x.Homograph}")
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var seenInCurrentFile = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        int rowNumber = 1; // Row 1 is header
+        int totalRows = 0;
+        int successCount = 0;
+        int skippedDuplicateCount = 0;
+        var errors = new List<VocabularyImportRowError>();
+        var previewItems = new List<VocabularyImportPreviewItem>();
+        var toInsert = new List<VocabularyEntity>();
+
+        while (await csv.ReadAsync())
+        {
+            rowNumber++;
+            totalRows++;
+
+            Hsk3CsvRow? row;
+            try
+            {
+                row = csv.GetRecord<Hsk3CsvRow>();
+            }
+            catch (Exception ex)
+            {
+                errors.Add(new VocabularyImportRowError
+                {
+                    RowNumber = rowNumber,
+                    Reason = $"Lỗi định dạng dòng CSV: {ex.Message}"
+                });
+                continue;
+            }
+
+            if (row == null)
+            {
+                errors.Add(new VocabularyImportRowError
+                {
+                    RowNumber = rowNumber,
+                    Reason = "Dòng trống hoặc không thể phân tích."
+                });
+                continue;
+            }
+
+            // Validate Hanzi
+            if (string.IsNullOrWhiteSpace(row.Hanzi))
+            {
+                errors.Add(new VocabularyImportRowError
+                {
+                    RowNumber = rowNumber,
+                    SourceDataset = datasetName,
+                    SourceEntryId = row.Id,
+                    SourceId = row.Id,
+                    Hanzi = row.Hanzi,
+                    Reason = "Chữ Hán không được để trống."
+                });
+                continue;
+            }
+
+            // Validate Pinyin
+            if (string.IsNullOrWhiteSpace(row.Pinyin))
+            {
+                errors.Add(new VocabularyImportRowError
+                {
+                    RowNumber = rowNumber,
+                    SourceDataset = datasetName,
+                    SourceEntryId = row.Id,
+                    SourceId = row.Id,
+                    Hanzi = row.Hanzi,
+                    Reason = "Pinyin không được để trống."
+                });
+                continue;
+            }
+
+            // Validate & parse Level: ONLY HSK 1-6 allowed.
+            // Backend rejects file with records outside 1-6.
+            string rawLevel = row.Level?.Trim() ?? "";
+            if (!int.TryParse(rawLevel, out var parsedLevel) || parsedLevel < 1 || parsedLevel > 6)
+            {
+                throw new ArgumentException($"Tệp tin bị từ chối: chứa cấp độ HSK không hợp lệ hoặc không được hỗ trợ ('{rawLevel}' tại dòng {rowNumber}). ZhongWenHub chỉ hỗ trợ chuẩn HSK 3.0 từ cấp 1 đến cấp 6.");
+            }
+
+            int hskLevel = parsedLevel;
+
+            int? sourcePdfPage = null;
+            if (int.TryParse(row.SourcePdfPage, out var p))
+            {
+                sourcePdfPage = p;
+            }
+
+            string sourceEntryId = row.Id?.Trim() ?? "";
+            string sourceKey = !string.IsNullOrEmpty(sourceEntryId) ? $"{datasetName}|{sourceEntryId}" : "";
+            string homograph = row.Homograph?.Trim() ?? "";
+            string naturalKey = $"{hskLevel}|{row.Hanzi.Trim()}|{row.Pinyin.Trim()}|{homograph}";
+            string levelLabel = string.IsNullOrWhiteSpace(row.LevelLabel)
+                ? hskLevel.ToString()
+                : row.LevelLabel.Trim();
+
+            // Check duplicate by SourceDataset & SourceEntryId AND natural compound key (never Hanzi alone)
+            bool isDuplicate = false;
+            if (!string.IsNullOrEmpty(sourceKey) && existingSourceEntries.Contains(sourceKey))
+            {
+                isDuplicate = true;
+            }
+            else if (!string.IsNullOrEmpty(sourceEntryId) && existingSourceIds.Contains(sourceEntryId))
+            {
+                isDuplicate = true;
+            }
+            else if (existingLookupSet.Contains(naturalKey))
+            {
+                isDuplicate = true;
+            }
+            else if (!string.IsNullOrEmpty(sourceKey) && seenInCurrentFile.Contains(sourceKey))
+            {
+                isDuplicate = true;
+            }
+            else if (seenInCurrentFile.Contains(naturalKey))
+            {
+                isDuplicate = true;
+            }
+
+            if (isDuplicate)
+            {
+                skippedDuplicateCount++;
+                if (previewItems.Count < 50)
+                {
+                    previewItems.Add(new VocabularyImportPreviewItem
+                    {
+                        RowNumber = rowNumber,
+                        SourceDataset = datasetName,
+                        SourceEntryId = sourceEntryId,
+                        SourceId = sourceEntryId,
+                        HskLevel = hskLevel,
+                        LevelLabel = levelLabel,
+                        Hanzi = row.Hanzi.Trim(),
+                        Pinyin = row.Pinyin.Trim(),
+                        PartOfSpeech = row.PartOfSpeech?.Trim(),
+                        Entry = row.Entry?.Trim(),
+                        Homograph = homograph,
+                        SourcePdfPage = sourcePdfPage,
+                        IsDuplicate = true,
+                        Status = "DRAFT"
+                    });
+                }
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(sourceKey)) seenInCurrentFile.Add(sourceKey);
+            seenInCurrentFile.Add(naturalKey);
+
+            successCount++;
+
+            if (previewItems.Count < 50)
+            {
+                previewItems.Add(new VocabularyImportPreviewItem
+                {
+                    RowNumber = rowNumber,
+                    SourceDataset = datasetName,
+                    SourceEntryId = sourceEntryId,
+                    SourceId = sourceEntryId,
+                    HskLevel = hskLevel,
+                    LevelLabel = levelLabel,
+                    Hanzi = row.Hanzi.Trim(),
+                    Pinyin = row.Pinyin.Trim(),
+                    PartOfSpeech = row.PartOfSpeech?.Trim(),
+                    Entry = row.Entry?.Trim(),
+                    Homograph = homograph,
+                    SourcePdfPage = sourcePdfPage,
+                    IsDuplicate = false,
+                    Status = "DRAFT"
+                });
+            }
+
+            if (!dryRun)
+            {
+                toInsert.Add(new VocabularyEntity
+                {
+                    HskLevel = hskLevel,
+                    Hanzi = row.Hanzi.Trim(),
+                    Pinyin = row.Pinyin.Trim(),
+                    MeaningVi = "", // MeaningVi empty when DRAFT - NO fake Vietnamese meanings!
+                    PartOfSpeech = row.PartOfSpeech?.Trim(),
+                    Entry = row.Entry?.Trim(),
+                    Homograph = homograph,
+                    LevelLabel = levelLabel,
+                    SourcePdfPage = sourcePdfPage,
+                    SourceDataset = datasetName,
+                    SourceEntryId = string.IsNullOrEmpty(sourceEntryId) ? null : sourceEntryId,
+                    SourceId = string.IsNullOrEmpty(sourceEntryId) ? null : sourceEntryId,
+                    Status = "DRAFT",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        // Batch save to SQL Server
+        if (!dryRun && toInsert.Count > 0)
+        {
+            const int batchSize = 500;
+            for (int i = 0; i < toInsert.Count; i += batchSize)
+            {
+                var batch = toInsert.Skip(i).Take(batchSize).ToList();
+                await _dbContext.Vocabularies.AddRangeAsync(batch, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        return new VocabularyImportResultDto
+        {
+            DryRun = dryRun,
+            TotalRows = totalRows,
+            SuccessCount = successCount,
+            SkippedDuplicateCount = skippedDuplicateCount,
+            ErrorCount = errors.Count,
+            Errors = errors,
+            PreviewItems = previewItems
         };
     }
 

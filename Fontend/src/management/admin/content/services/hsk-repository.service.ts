@@ -20,6 +20,7 @@ import type {
   UpdateVocabularyDTO,
   Vocabulary,
   VocabularyFilters,
+  VocabularyImportResultDto,
 } from '../types';
 
 let standards = [...MOCK_STANDARDS];
@@ -65,9 +66,13 @@ class HskRepositoryService {
   }
 
   // --- Vocabulary ---
-  async syncVocabulariesFromApi(): Promise<void> {
+  async syncVocabulariesFromApi(params?: { hskLevel?: number; missingMeaningVi?: boolean; pageSize?: number }): Promise<void> {
+    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500 };
+    if (params?.hskLevel) queryParams.hskLevel = params.hskLevel;
+    if (params?.missingMeaningVi !== undefined) queryParams.missingMeaningVi = params.missingMeaningVi;
+
     const res = await httpClient.get<any>('/content/vocabularies', {
-      params: { pageSize: 200 },
+      params: queryParams,
     });
     const items = Array.isArray(res) ? res : (res?.items || []);
     vocabularies = items.map((v: any) => ({
@@ -76,16 +81,63 @@ class HskRepositoryService {
       simplified: v.hanzi,
       traditional: v.traditional || v.hanzi,
       pinyin: v.pinyin,
-      meaningVi: v.meaningVi,
+      meaningVi: v.meaningVi || '',
       meaningEn: v.meaningEn || '',
       partOfSpeech: v.partOfSpeech || 'danh từ',
       audioUrl: v.audioUrl || '',
       status: v.status || 'PUBLISHED',
+      sourceDataset: v.sourceDataset,
+      sourceEntryId: v.sourceEntryId,
+      sourceId: v.sourceId || v.sourceEntryId,
+      entry: v.entry,
+      homograph: v.homograph,
+      levelLabel: v.levelLabel,
+      sourcePdfPage: v.sourcePdfPage,
       examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
-      source: 'Live SQL Server',
+      source: (v.sourceDataset && v.sourceEntryId) ? `${v.sourceDataset} (ID: ${v.sourceEntryId})` : (v.sourceId ? `HSK 3.0 (ID: ${v.sourceId})` : 'Live SQL Server'),
       createdAt: v.createdAt || new Date().toISOString(),
       updatedAt: v.updatedAt || v.createdAt || new Date().toISOString(),
     }));
+  }
+
+  async importVocabulariesCsvAsync(file: File, dryRun: boolean): Promise<VocabularyImportResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const raw = await httpClient.post<any>(
+      `/content/vocabularies/${dryRun ? 'import-preview' : 'import-csv'}?dryRun=${dryRun}`,
+      formData
+    );
+    return {
+      totalRows: raw.totalRows ?? 0,
+      importedCount: raw.successCount ?? raw.importedCount ?? 0,
+      skippedCount: raw.skippedDuplicateCount ?? raw.skippedCount ?? 0,
+      failedCount: raw.errorCount ?? raw.failedCount ?? 0,
+      isDryRun: raw.dryRun ?? raw.isDryRun ?? dryRun,
+      errors: (raw.errors || []).map((e: any) => ({
+        rowNumber: e.rowNumber,
+        sourceDataset: e.sourceDataset,
+        sourceEntryId: e.sourceEntryId,
+        sourceId: e.sourceId || e.sourceEntryId,
+        hanzi: e.hanzi,
+        errorMessage: e.reason || e.errorMessage || 'Lỗi định dạng',
+      })),
+      previewSample: (raw.previewItems || raw.previewSample || []).map((p: any) => ({
+        id: p.sourceEntryId || p.sourceId || `${p.rowNumber}`,
+        sourceDataset: p.sourceDataset,
+        sourceEntryId: p.sourceEntryId,
+        level: String(p.hskLevel),
+        hskLevel: p.hskLevel,
+        hanzi: p.hanzi,
+        pinyin: p.pinyin,
+        partOfSpeech: p.partOfSpeech,
+        entry: p.entry,
+        homograph: p.homograph,
+        levelLabel: p.levelLabel,
+        sourcePdfPage: p.sourcePdfPage,
+        isExisting: p.isDuplicate ?? p.isExisting ?? false,
+        status: p.status || 'DRAFT',
+      })),
+    };
   }
 
   async createVocabularyAsync(dto: CreateVocabularyDTO): Promise<Vocabulary> {
@@ -95,12 +147,19 @@ class HskRepositoryService {
       hanzi: dto.simplified.trim(),
       traditional: dto.traditional?.trim() || dto.simplified.trim(),
       pinyin: dto.pinyin.trim(),
-      meaningVi: dto.meaningVi.trim(),
+      meaningVi: dto.meaningVi?.trim() || '',
       meaningEn: dto.meaningEn?.trim() || '',
       partOfSpeech: dto.partOfSpeech.trim(),
       audioUrl: dto.audioUrl?.trim() || '',
       examplesJson: JSON.stringify(dto.examples || []),
       status: dto.status || 'PUBLISHED',
+      sourceDataset: dto.sourceDataset,
+      sourceEntryId: dto.sourceEntryId || dto.sourceId,
+      sourceId: dto.sourceId || dto.sourceEntryId,
+      entry: dto.entry,
+      homograph: dto.homograph,
+      levelLabel: dto.levelLabel,
+      sourcePdfPage: dto.sourcePdfPage,
     };
 
     const res = await httpClient.post<any>('/content/vocabularies', payload);
@@ -110,13 +169,20 @@ class HskRepositoryService {
       simplified: res.hanzi,
       traditional: res.traditional || res.hanzi,
       pinyin: res.pinyin,
-      meaningVi: res.meaningVi,
+      meaningVi: res.meaningVi || '',
       meaningEn: res.meaningEn || '',
       partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
       audioUrl: res.audioUrl || '',
       status: res.status || 'PUBLISHED',
+      sourceDataset: res.sourceDataset,
+      sourceEntryId: res.sourceEntryId,
+      sourceId: res.sourceId || res.sourceEntryId,
+      entry: res.entry,
+      homograph: res.homograph,
+      levelLabel: res.levelLabel,
+      sourcePdfPage: res.sourcePdfPage,
       examples: (dto.examples || []).map((ex, idx) => ({ id: `ex-${res.id}-${idx}`, ...ex })),
-      source: 'Tạo từ CMS',
+      source: (res.sourceDataset && res.sourceEntryId) ? `${res.sourceDataset} (ID: ${res.sourceEntryId})` : (res.sourceId ? `HSK 3.0 (ID: ${res.sourceId})` : 'Tạo từ CMS'),
       createdAt: res.createdAt || new Date().toISOString(),
       updatedAt: res.updatedAt || res.createdAt || new Date().toISOString(),
     };
@@ -131,12 +197,19 @@ class HskRepositoryService {
       hanzi: dto.simplified.trim(),
       traditional: dto.traditional?.trim() || dto.simplified.trim(),
       pinyin: dto.pinyin.trim(),
-      meaningVi: dto.meaningVi.trim(),
+      meaningVi: dto.meaningVi?.trim() || '',
       meaningEn: dto.meaningEn?.trim() || '',
       partOfSpeech: dto.partOfSpeech.trim(),
       audioUrl: dto.audioUrl?.trim() || '',
       examplesJson: JSON.stringify(dto.examples || []),
       status: dto.status || 'PUBLISHED',
+      sourceDataset: dto.sourceDataset,
+      sourceEntryId: dto.sourceEntryId || dto.sourceId,
+      sourceId: dto.sourceId || dto.sourceEntryId,
+      entry: dto.entry,
+      homograph: dto.homograph,
+      levelLabel: dto.levelLabel,
+      sourcePdfPage: dto.sourcePdfPage,
     };
 
     const res = await httpClient.put<any>(`/content/vocabularies/${id}`, payload);
@@ -146,13 +219,20 @@ class HskRepositoryService {
       simplified: res.hanzi,
       traditional: res.traditional || res.hanzi,
       pinyin: res.pinyin,
-      meaningVi: res.meaningVi,
+      meaningVi: res.meaningVi || '',
       meaningEn: res.meaningEn || '',
       partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
       audioUrl: res.audioUrl || '',
       status: res.status || 'PUBLISHED',
+      sourceDataset: res.sourceDataset,
+      sourceEntryId: res.sourceEntryId,
+      sourceId: res.sourceId || res.sourceEntryId,
+      entry: res.entry,
+      homograph: res.homograph,
+      levelLabel: res.levelLabel,
+      sourcePdfPage: res.sourcePdfPage,
       examples: dto.examples || [],
-      source: 'Cập nhật từ CMS',
+      source: (res.sourceDataset && res.sourceEntryId) ? `${res.sourceDataset} (ID: ${res.sourceEntryId})` : (res.sourceId ? `HSK 3.0 (ID: ${res.sourceId})` : 'Cập nhật từ CMS'),
       createdAt: res.createdAt || new Date().toISOString(),
       updatedAt: res.updatedAt || new Date().toISOString(),
     };
@@ -166,6 +246,7 @@ class HskRepositoryService {
     vocabularies = vocabularies.filter((v) => v.id !== id);
     return true;
   }
+
   getVocabularies(filters?: VocabularyFilters): Vocabulary[] {
     let result = [...vocabularies];
 
@@ -179,6 +260,10 @@ class HskRepositoryService {
 
     if (filters?.partOfSpeech && filters.partOfSpeech !== 'ALL') {
       result = result.filter((v) => v.partOfSpeech.toLowerCase().includes(filters.partOfSpeech.toLowerCase()));
+    }
+
+    if (filters?.missingMeaningVi) {
+      result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
     }
 
     if (filters?.search) {

@@ -51,10 +51,15 @@ export const AdminHskRepositoryPage: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  // 1. Data-driven HSK Levels
+  // 1. Data-driven HSK Levels (Chỉ hỗ trợ HSK 3.0 từ cấp 1 đến cấp 6)
   const levels = useMemo(() => {
     void dataVersion;
-    return hskRepositoryService.getLevels();
+    return hskRepositoryService
+      .getLevels()
+      .filter((l) => {
+        const num = Number(l.id.replace('level-hsk-', ''));
+        return !isNaN(num) && num >= 1 && num <= 6;
+      });
   }, [dataVersion]);
 
   // Active level filter ('ALL' or specific level id)
@@ -369,8 +374,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
         levels={levels}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={() => {
-          setIsImportModalOpen(false);
-          setDataVersion((v) => v + 1);
+          loadData();
         }}
       />
     </div>

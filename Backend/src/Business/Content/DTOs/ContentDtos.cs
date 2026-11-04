@@ -207,6 +207,13 @@ public class VocabularyDto
     public string? AudioUrl { get; set; }
     public string? ExamplesJson { get; set; }
     public string Status { get; set; } = "PUBLISHED";
+    public string? SourceDataset { get; set; }
+    public string? SourceEntryId { get; set; }
+    public string? SourceId { get; set; }
+    public string? Entry { get; set; }
+    public string? Homograph { get; set; }
+    public string? LevelLabel { get; set; }
+    public int? SourcePdfPage { get; set; }
     public Guid? LessonId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
@@ -214,7 +221,7 @@ public class VocabularyDto
 
 public class CreateVocabularyDto
 {
-    [Range(1, 6)]
+    [Range(1, 6, ErrorMessage = "Cấp độ HSK phải từ 1 đến 6.")]
     public int HskLevel { get; set; } = 1;
 
     [Required(ErrorMessage = "Chữ Hán không được để trống.")]
@@ -227,20 +234,95 @@ public class CreateVocabularyDto
     [StringLength(100)]
     public string Pinyin { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Nghĩa tiếng Việt không được để trống.")]
     [StringLength(255)]
-    public string MeaningVi { get; set; } = string.Empty;
+    public string? MeaningVi { get; set; }
 
     public string? MeaningEn { get; set; }
     public string? PartOfSpeech { get; set; }
     public string? AudioUrl { get; set; }
     public string? ExamplesJson { get; set; }
     public string Status { get; set; } = "PUBLISHED";
+    public string? SourceDataset { get; set; }
+    public string? SourceEntryId { get; set; }
+    public string? SourceId { get; set; }
+    public string? Entry { get; set; }
+    public string? Homograph { get; set; }
+    public string? LevelLabel { get; set; }
+    public int? SourcePdfPage { get; set; }
     public Guid? LessonId { get; set; }
 }
 
 public class UpdateVocabularyDto : CreateVocabularyDto
 {
+}
+
+public class Hsk3CsvRow
+{
+    [CsvHelper.Configuration.Attributes.Name("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [CsvHelper.Configuration.Attributes.Name("level")]
+    public string Level { get; set; } = string.Empty;
+
+    [CsvHelper.Configuration.Attributes.Name("hanzi")]
+    public string Hanzi { get; set; } = string.Empty;
+
+    [CsvHelper.Configuration.Attributes.Name("pinyin")]
+    public string Pinyin { get; set; } = string.Empty;
+
+    [CsvHelper.Configuration.Attributes.Name("part_of_speech")]
+    public string? PartOfSpeech { get; set; }
+
+    [CsvHelper.Configuration.Attributes.Name("entry")]
+    public string? Entry { get; set; }
+
+    [CsvHelper.Configuration.Attributes.Name("homograph")]
+    public string? Homograph { get; set; }
+
+    [CsvHelper.Configuration.Attributes.Name("level_label")]
+    public string? LevelLabel { get; set; }
+
+    [CsvHelper.Configuration.Attributes.Name("source_pdf_page")]
+    public string? SourcePdfPage { get; set; }
+}
+
+public class VocabularyImportRowError
+{
+    public int RowNumber { get; set; }
+    public string? SourceDataset { get; set; }
+    public string? SourceEntryId { get; set; }
+    public string? SourceId { get; set; }
+    public string? Hanzi { get; set; }
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class VocabularyImportPreviewItem
+{
+    public int RowNumber { get; set; }
+    public string? SourceDataset { get; set; }
+    public string? SourceEntryId { get; set; }
+    public string SourceId { get; set; } = string.Empty;
+    public int HskLevel { get; set; }
+    public string LevelLabel { get; set; } = string.Empty;
+    public string Hanzi { get; set; } = string.Empty;
+    public string Pinyin { get; set; } = string.Empty;
+    public string? PartOfSpeech { get; set; }
+    public string? Entry { get; set; }
+    public string? Homograph { get; set; }
+    public int? SourcePdfPage { get; set; }
+    public bool IsDuplicate { get; set; }
+    public string Status { get; set; } = "DRAFT";
+}
+
+public class VocabularyImportResultDto
+{
+    public bool DryRun { get; set; }
+    public int TotalRows { get; set; }
+    public int SuccessCount { get; set; }
+    public int SkippedDuplicateCount { get; set; }
+    public int ErrorCount { get; set; }
+    public List<VocabularyImportRowError> Errors { get; set; } = new();
+    public List<VocabularyImportPreviewItem> PreviewItems { get; set; } = new();
 }
 
 public class GrammarPointDto

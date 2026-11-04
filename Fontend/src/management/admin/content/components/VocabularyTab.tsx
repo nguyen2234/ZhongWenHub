@@ -21,6 +21,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
   const [search, setSearch] = useState('');
   const [posFilter, setPosFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ContentStatus>('ALL');
+  const [missingMeaningOnly, setMissingMeaningOnly] = useState(false);
 
   const filteredList = useMemo(() => {
     let result = vocabularies;
@@ -37,6 +38,10 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
       result = result.filter((v) => v.partOfSpeech.toLowerCase().includes(posFilter.toLowerCase()));
     }
 
+    if (missingMeaningOnly) {
+      result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       result = result.filter(
@@ -49,7 +54,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
     }
 
     return result;
-  }, [vocabularies, selectedLevelId, statusFilter, posFilter, search]);
+  }, [vocabularies, selectedLevelId, statusFilter, posFilter, missingMeaningOnly, search]);
 
   const levelMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -107,6 +112,15 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
             <option value="PENDING_REVIEW">Chờ duyệt</option>
             <option value="ARCHIVED">Lưu trữ</option>
           </select>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', color: missingMeaningOnly ? '#b45309' : 'inherit', fontWeight: missingMeaningOnly ? 600 : 400 }}>
+            <input
+              type="checkbox"
+              checked={missingMeaningOnly}
+              onChange={(e) => setMissingMeaningOnly(e.target.checked)}
+            />
+            <span>Chưa có nghĩa tiếng Việt</span>
+          </label>
         </div>
 
         <button
@@ -153,7 +167,15 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
                 >
                   <td className="lcm-hanzi-cell">{vocab.simplified}</td>
                   <td className="lcm-pinyin-cell">{vocab.pinyin}</td>
-                  <td>{vocab.meaningVi}</td>
+                  <td>
+                    {vocab.meaningVi ? (
+                      vocab.meaningVi
+                    ) : (
+                      <span style={{ color: '#d97706', fontStyle: 'italic', fontSize: '12px' }}>
+                        Chưa có nghĩa (DRAFT)
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{vocab.partOfSpeech}</span>
                   </td>
@@ -213,7 +235,11 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
             </div>
 
             <p style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-              {vocab.meaningVi}
+              {vocab.meaningVi || (
+                <span style={{ color: '#d97706', fontStyle: 'italic', fontSize: '12px' }}>
+                  Chưa có nghĩa (DRAFT)
+                </span>
+              )}
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted)' }}>

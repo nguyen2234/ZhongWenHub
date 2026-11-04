@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { UploadCloud, CheckCircle2, AlertTriangle, FileSpreadsheet } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  UploadCloud,
+  CheckCircle2,
+  AlertTriangle,
+  FileSpreadsheet,
+  Eye,
+  RefreshCw,
+} from 'lucide-react';
 import { Modal } from '../../../../design-system';
-import type { HskLevel } from '../types';
+import { hskRepositoryService } from '../services/hsk-repository.service';
+import type { HskLevel, VocabularyImportResultDto } from '../types';
 
 export interface ImportDataWizardModalProps {
   isOpen: boolean;
@@ -10,255 +18,297 @@ export interface ImportDataWizardModalProps {
   onSuccess: () => void;
 }
 
-type DataType = 'VOCABULARY' | 'CHARACTER' | 'GRAMMAR';
-
 export const ImportDataWizardModal: React.FC<ImportDataWizardModalProps> = ({
   isOpen,
-  levels,
   onClose,
   onSuccess,
 }) => {
-  const [step, setStep] = useState<number>(1);
-  const [dataType, setDataType] = useState<DataType>('VOCABULARY');
-  const [selectedLevelId, setSelectedLevelId] = useState<string>(levels[0]?.id || '');
-  const [fileName, setFileName] = useState<string>('hsk_standard_dataset_sample.xlsx');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState<VocabularyImportResultDto | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleReset = () => {
-    setStep(1);
+    setSelectedFile(null);
+    setResult(null);
+    setErrorMessage(null);
+    setIsProcessing(false);
     onClose();
   };
 
-  const handleFinish = () => {
-    setStep(1);
-    onSuccess();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        setErrorMessage('Vui lòng chọn tệp định dạng .csv');
+        setSelectedFile(null);
+        return;
+      }
+      setSelectedFile(file);
+      setErrorMessage(null);
+      setResult(null);
+    }
+  };
+
+  const handleRun = async (dryRun: boolean) => {
+    if (!selectedFile) {
+      setErrorMessage('Vui lòng chọn một tệp CSV để tiếp tục.');
+      return;
+    }
+
+    setIsProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await hskRepositoryService.importVocabulariesCsvAsync(selectedFile, dryRun);
+      setResult(res);
+      if (!dryRun && res.importedCount > 0) {
+        onSuccess();
+      }
+    } catch (err: any) {
+      console.error('Import error:', err);
+      setErrorMessage(err?.message || 'Có lỗi xảy ra trong quá trình xử lý tệp CSV.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleReset}
-      title="Nhập dữ liệu chuẩn HSK (Import Wizard - Demo)"
+      title="Nhập dữ liệu từ vựng HSK 3.0 (Cấp 1–6)"
     >
-      <div style={{ padding: 'var(--space-2) 0' }}>
-        {/* Wizard Steps indicator */}
-        <div className="lcm-wizard-steps">
-          <div className={`lcm-step-item ${step >= 1 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">1</span>
-            <span>Loại dữ liệu</span>
-          </div>
-          <div className={`lcm-step-item ${step >= 2 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">2</span>
-            <span>Cấp HSK</span>
-          </div>
-          <div className={`lcm-step-item ${step >= 3 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">3</span>
-            <span>Tải file</span>
-          </div>
-          <div className={`lcm-step-item ${step >= 4 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">4</span>
-            <span>Kiểm tra</span>
-          </div>
-          <div className={`lcm-step-item ${step >= 5 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">5</span>
-            <span>Trùng lặp</span>
-          </div>
-          <div className={`lcm-step-item ${step >= 6 ? 'is-active' : ''}`}>
-            <span className="lcm-step-badge">6</span>
-            <span>Xác nhận</span>
-          </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', padding: 'var(--space-2) 0' }}>
+        {/* Banner information */}
+        <div
+          style={{
+            backgroundColor: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px',
+            fontSize: 'var(--text-xs)',
+            color: '#1e40af',
+            lineHeight: 1.5,
+          }}
+        >
+          <strong>Chuẩn HSK 3.0 (Cấp 1–6):</strong> Hỗ trợ các cột CSV chuẩn:
+          <code style={{ marginLeft: 4, background: '#dbeafe', padding: '1px 4px', borderRadius: 3 }}>
+            id, level, hanzi, pinyin, part_of_speech, entry, homograph, level_label, source_pdf_page
+          </code>
+          <br />
+          Từ vựng nhập mới sẽ ở trạng thái <strong>Bản nháp (DRAFT)</strong> cho đến khi được biên tập nghĩa tiếng Việt và xuất bản. Hệ thống tự động chống nhập trùng dựa trên bộ định danh mã nguồn (SourceDataset + SourceEntryId) và tổ hợp (Cấp độ, Hán tự, Pinyin, Đồng âm).
         </div>
 
-        {/* Notice badge */}
-        <div style={{
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          borderRadius: 'var(--radius-md)',
-          padding: 'var(--space-3)',
-          marginBottom: 'var(--space-4)',
-          fontSize: 'var(--text-xs)',
-          color: '#1e40af',
-        }}>
-          💡 <strong>Giao diện mẫu (Mock Shell):</strong> Quy trình này minh họa cấu trúc nhập dữ liệu hàng loạt từ Excel / CSV chuẩn bị cho Spring Boot backend.
+        {/* File Dropzone / Picker */}
+        <div
+          style={{
+            border: '2px dashed var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: 'var(--space-6)',
+            textAlign: 'center',
+            backgroundColor: 'var(--background)',
+            cursor: 'pointer',
+          }}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+          <FileSpreadsheet
+            size={36}
+            style={{ color: selectedFile ? 'var(--primary)' : 'var(--muted)', margin: '0 auto 8px' }}
+          />
+          {selectedFile ? (
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-sm)' }}>{selectedFile.name}</p>
+              <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 'var(--text-xs)' }}>
+                {(selectedFile.size / 1024).toFixed(1)} KB — Nhấp để thay đổi file
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p style={{ margin: 0, fontWeight: 500, fontSize: 'var(--text-sm)' }}>
+                Nhấp vào đây để chọn tệp CSV (hsk-1.csv, ...)
+              </p>
+              <p style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 'var(--text-xs)' }}>
+                Định dạng hỗ trợ: .csv UTF-8
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Step 1: Chọn loại dữ liệu */}
-        {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', margin: 0 }}>
-              Chọn danh mục dữ liệu cần nhập vào kho lưu trữ:
-            </p>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="dataType"
-                checked={dataType === 'VOCABULARY'}
-                onChange={() => setDataType('VOCABULARY')}
-              />
-              <div>
-                <strong style={{ fontSize: 'var(--text-sm)' }}>Từ vựng chuẩn (Vocabulary)</strong>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>Hán tự, Pinyin, Nghĩa Việt, Nghĩa Anh, Loại từ</p>
-              </div>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="dataType"
-                checked={dataType === 'CHARACTER'}
-                onChange={() => setDataType('CHARACTER')}
-              />
-              <div>
-                <strong style={{ fontSize: 'var(--text-sm)' }}>Chữ Hán (Chinese Characters)</strong>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>Chữ đơn, Hán Việt, Bộ thủ, Số nét</p>
-              </div>
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name="dataType"
-                checked={dataType === 'GRAMMAR'}
-                onChange={() => setDataType('GRAMMAR')}
-              />
-              <div>
-                <strong style={{ fontSize: 'var(--text-sm)' }}>Điểm ngữ pháp (Grammar Points)</strong>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>Mã cấu trúc, Tiêu đề, Công thức, Giải thích</p>
-              </div>
-            </label>
+        {/* Error alert */}
+        {errorMessage && (
+          <div
+            style={{
+              background: '#fee2e2',
+              border: '1px solid #fca5a5',
+              color: '#991b1b',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        {/* Step 2: Chọn cấp HSK */}
-        {step === 2 && (
+        {/* Results summary & Preview */}
+        {result && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', margin: 0 }}>
-              Chỉ định cấp độ HSK áp dụng cho dữ liệu nhập:
-            </p>
-            <select
-              className="lcm-form-input"
-              value={selectedLevelId}
-              onChange={(e) => setSelectedLevelId(e.target.value)}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '8px',
+                textAlign: 'center',
+              }}
             >
-              {levels.map((lvl) => (
-                <option key={lvl.id} value={lvl.id}>
-                  {lvl.name} ({lvl.levelCode})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Step 3: Chọn file */}
-        {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <div className="lcm-upload-dropzone" onClick={() => setFileName('hsk_vocabulary_import_2026.xlsx')}>
-              <UploadCloud size={36} color="var(--primary)" style={{ margin: '0 auto var(--space-2)' }} />
-              <p style={{ fontSize: 'var(--text-sm)', fontWeight: 600, margin: '0 0 4px 0' }}>
-                Kéo thả file Excel (.xlsx) hoặc CSV vào đây
-              </p>
-              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>
-                Hỗ trợ định dạng .xlsx, .csv (tối đa 10MB)
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-              <FileSpreadsheet size={16} />
-              <span>Đã chọn: <strong>{fileName}</strong></span>
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Preview / Validation */}
-        {step === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <div style={{ display: 'flex', gap: 'var(--space-4)', fontSize: 'var(--text-xs)' }}>
-              <span style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckCircle2 size={14} /> 125 dòng hợp lệ
-              </span>
-              <span style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <AlertTriangle size={14} /> 2 dòng lỗi định dạng (sẽ bỏ qua)
-              </span>
-            </div>
-            <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
-              <table className="lcm-table" style={{ fontSize: '12px' }}>
-                <thead>
-                  <tr>
-                    <th>Hán tự</th>
-                    <th>Pinyin</th>
-                    <th>Nghĩa Việt</th>
-                    <th>Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>高兴</td>
-                    <td>gāoxìng</td>
-                    <td>vui vẻ, mừng rỡ</td>
-                    <td><span style={{ color: '#16a34a' }}>Hợp lệ</span></td>
-                  </tr>
-                  <tr>
-                    <td>认识</td>
-                    <td>rènshi</td>
-                    <td>quen biết, nhận biết</td>
-                    <td><span style={{ color: '#16a34a' }}>Hợp lệ</span></td>
-                  </tr>
-                  <tr>
-                    <td>???</td>
-                    <td>-</td>
-                    <td>(Thiếu nghĩa)</td>
-                    <td><span style={{ color: '#dc2626' }}>Lỗi thiếu trường</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Step 5: Duplicate Summary */}
-        {step === 5 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', margin: 0 }}>
-              Phát hiện <strong>3 bản ghi đã tồn tại</strong> trong hệ thống:
-            </p>
-            <div style={{ padding: 'var(--space-3)', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: 'var(--radius-md)', fontSize: 'var(--text-xs)', color: '#b45309' }}>
-              ⚠️ Các từ: <code>喝 (hē)</code>, <code>茶 (chá)</code>, <code>咖啡 (kāfēi)</code> đã có sẵn.
-              <div style={{ marginTop: 'var(--space-2)' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                  <input type="radio" name="dupPolicy" defaultChecked /> Ghi đè cập nhật thông tin mới
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginTop: '4px' }}>
-                  <input type="radio" name="dupPolicy" /> Bỏ qua giữ nguyên dữ liệu cũ
-                </label>
+              <div style={{ background: 'var(--background)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Tổng số dòng</div>
+                <div style={{ fontSize: '18px', fontWeight: 700 }}>{result.totalRows}</div>
+              </div>
+              <div style={{ background: '#ecfdf5', padding: '10px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+                <div style={{ fontSize: '11px', color: '#065f46' }}>
+                  {result.isDryRun ? 'Từ mới dự kiến' : 'Đã nhập thành công'}
+                </div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#059669' }}>
+                  {result.importedCount}
+                </div>
+              </div>
+              <div style={{ background: '#fef3c7', padding: '10px', borderRadius: '6px', border: '1px solid #fde68a' }}>
+                <div style={{ fontSize: '11px', color: '#92400e' }}>Bỏ qua (Trùng lặp)</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#d97706' }}>
+                  {result.skippedCount}
+                </div>
+              </div>
+              <div style={{ background: result.failedCount > 0 ? '#fee2e2' : 'var(--background)', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '11px', color: result.failedCount > 0 ? '#991b1b' : 'var(--muted)' }}>Lỗi</div>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: result.failedCount > 0 ? '#dc2626' : 'inherit' }}>
+                  {result.failedCount}
+                </div>
               </div>
             </div>
+
+            {/* If errors occurred */}
+            {result.errors.length > 0 && (
+              <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '6px', padding: '8px 12px', fontSize: '12px' }}>
+                <strong style={{ color: '#9f1239' }}>Chi tiết dòng lỗi ({result.errors.length}):</strong>
+                <ul style={{ margin: '4px 0 0', paddingLeft: '18px', color: '#be123c' }}>
+                  {result.errors.slice(0, 10).map((err, idx) => (
+                    <li key={idx}>
+                      Dòng {err.rowNumber}: {err.errorMessage} {err.hanzi ? `(${err.hanzi})` : ''}
+                    </li>
+                  ))}
+                  {result.errors.length > 10 && <li>...và {result.errors.length - 10} lỗi khác</li>}
+                </ul>
+              </div>
+            )}
+
+            {/* Preview sample table */}
+            {result.previewSample.length > 0 && (
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', marginBottom: '4px' }}>
+                  Mẫu xem trước ({result.previewSample.length} từ đầu tiên):
+                </div>
+                <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                  <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
+                    <thead style={{ background: 'var(--background)', position: 'sticky', top: 0 }}>
+                      <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                        <th style={{ padding: '6px 8px' }}>Cấp HSK</th>
+                        <th style={{ padding: '6px 8px' }}>Hán tự</th>
+                        <th style={{ padding: '6px 8px' }}>Pinyin</th>
+                        <th style={{ padding: '6px 8px' }}>Đồng âm</th>
+                        <th style={{ padding: '6px 8px' }}>Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.previewSample.map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '6px 8px' }}>HSK {item.levelLabel || item.level}</td>
+                          <td style={{ padding: '6px 8px', fontWeight: 700 }}>{item.hanzi}</td>
+                          <td style={{ padding: '6px 8px' }}>{item.pinyin}</td>
+                          <td style={{ padding: '6px 8px', color: 'var(--muted)' }}>{item.homograph || '-'}</td>
+                          <td style={{ padding: '6px 8px' }}>
+                            {item.isExisting ? (
+                              <span style={{ color: '#d97706', fontSize: '11px', fontWeight: 500 }}>Đã tồn tại</span>
+                            ) : (
+                              <span style={{ color: '#059669', fontSize: '11px', fontWeight: 500 }}>Mới (DRAFT)</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Success banner after actual import */}
+            {!result.isDryRun && (
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  color: '#166534',
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <CheckCircle2 size={16} />
+                <span>
+                  Đã nhập hoàn tất {result.importedCount} từ vựng mới vào kho lưu trữ (bỏ qua {result.skippedCount} từ trùng lặp).
+                </span>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Step 6: Confirm */}
-        {step === 6 && (
-          <div style={{ textAlign: 'center', padding: 'var(--space-4) 0' }}>
-            <CheckCircle2 size={44} color="#16a34a" style={{ margin: '0 auto var(--space-3)' }} />
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 700, margin: '0 0 var(--space-2) 0' }}>
-              Sẵn sàng nhập dữ liệu vào kho HSK
-            </h3>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', margin: 0 }}>
-              Sẽ có <strong>123 mục từ mới</strong> và <strong>3 mục cập nhật</strong> được đưa vào cấp độ HSK đã chọn.
-            </p>
-          </div>
-        )}
-
-        {/* Wizard Footer Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-6)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--border)' }}>
+        {/* Action buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
           <button
             type="button"
             className="ds-btn ds-btn-outline ds-btn-sm"
-            onClick={step === 1 ? handleReset : () => setStep(step - 1)}
+            onClick={handleReset}
+            disabled={isProcessing}
           >
-            {step === 1 ? 'Đóng' : 'Quay lại'}
+            Đóng
           </button>
+
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={() => handleRun(true)}
+            disabled={!selectedFile || isProcessing}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : <Eye size={14} />}
+            Kiểm tra trước (Dry Run)
+          </button>
+
           <button
             type="button"
             className="ds-btn ds-btn-primary ds-btn-sm"
-            onClick={step === 6 ? handleFinish : () => setStep(step + 1)}
+            onClick={() => handleRun(false)}
+            disabled={!selectedFile || isProcessing}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            {step === 6 ? 'Hoàn tất nhập' : 'Tiếp tục'}
+            {isProcessing ? <RefreshCw size={14} className="animate-spin" /> : <UploadCloud size={14} />}
+            Tiến hành nhập dữ liệu
           </button>
         </div>
       </div>
