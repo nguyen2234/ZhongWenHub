@@ -34,6 +34,7 @@ public interface IContentService
     Task<VocabularyDto?> UpdateVocabularyAsync(Guid id, UpdateVocabularyDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteVocabularyAsync(Guid id, CancellationToken cancellationToken = default);
     Task<VocabularyImportResultDto> ImportVocabulariesFromCsvAsync(Stream csvStream, bool dryRun = false, CancellationToken cancellationToken = default);
+    Task<BatchPublishResultDto> BatchPublishVocabulariesAsync(List<Guid> ids, CancellationToken cancellationToken = default);
 
     // Grammar
     Task<PagedResponse<GrammarPointDto>> GetGrammarPointsAsync(int? hskLevel = null, string? category = null, string? search = null, string? status = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default);

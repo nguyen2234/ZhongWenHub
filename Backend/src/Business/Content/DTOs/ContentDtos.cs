@@ -325,6 +325,18 @@ public class VocabularyImportResultDto
     public List<VocabularyImportPreviewItem> PreviewItems { get; set; } = new();
 }
 
+public class BatchPublishRequestDto
+{
+    public List<Guid> Ids { get; set; } = new();
+}
+
+public class BatchPublishResultDto
+{
+    public int PublishedCount { get; set; }
+    public int SkippedCount { get; set; }
+    public List<string> SkippedReasons { get; set; } = new();
+}
+
 public class GrammarPointDto
 {
     public Guid Id { get; set; }

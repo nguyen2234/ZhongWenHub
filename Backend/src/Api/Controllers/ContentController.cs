@@ -420,6 +420,24 @@ public class ContentController : BaseApiController
         return NoContent();
     }
 
+    [HttpPost("vocabularies/batch-publish")]
+    [HttpPost("/api/v1/admin/vocabularies/batch-publish")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchPublishResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchPublishVocabularies(
+        [FromBody] BatchPublishRequestDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (dto == null || dto.Ids == null || dto.Ids.Count == 0)
+        {
+            return BadRequest(new { message = "Vui lòng chọn ít nhất một từ vựng để xuất bản." });
+        }
+
+        var result = await _contentService.BatchPublishVocabulariesAsync(dto.Ids, cancellationToken);
+        return Ok(result);
+    }
+
     // ==========================================
     // GRAMMAR
     // ==========================================

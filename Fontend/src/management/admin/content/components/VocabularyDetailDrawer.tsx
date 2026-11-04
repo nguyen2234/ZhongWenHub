@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit3, Save, Plus, Trash2 } from 'lucide-react';
+import {
+  X,
+  Edit3,
+  Save,
+  Plus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  CheckCircle,
+  ArrowRight,
+} from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
+import { HSK1_DICTIONARY_SUGGESTIONS } from '../data/hsk1-dictionary.data';
 import type {
   ContentStatus,
   HskLevel,
@@ -13,8 +25,12 @@ export interface VocabularyDetailDrawerProps {
   isOpen: boolean;
   vocabulary: Vocabulary | null;
   levels: HskLevel[];
+  currentIndex?: number;
+  totalCount?: number;
+  onNavigatePrev?: () => void;
+  onNavigateNext?: () => void;
   onClose: () => void;
-  onSave: (id: string, dto: UpdateVocabularyDTO) => void;
+  onSave: (id: string, dto: UpdateVocabularyDTO, andNext?: boolean) => Promise<void> | void;
   onDelete?: (id: string) => Promise<void> | void;
 }
 
@@ -22,6 +38,10 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
   isOpen,
   vocabulary,
   levels,
+  currentIndex,
+  totalCount,
+  onNavigatePrev,
+  onNavigateNext,
   onClose,
   onSave,
   onDelete,
@@ -38,6 +58,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
   const [status, setStatus] = useState<ContentStatus>('PUBLISHED');
   const [examples, setExamples] = useState<VocabularyExample[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (vocabulary) {
@@ -51,44 +72,73 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
       setHskLevelId(vocabulary.hskLevelId);
       setStatus(vocabulary.status);
       setExamples(vocabulary.examples.map((e) => ({ ...e })));
-      setIsEditing(vocabulary.id.startsWith('voc-new-'));
+      // If it's a new word or a DRAFT word missing meaning, automatically enter editing mode
+      const isNew = vocabulary.id.startsWith('voc-new-');
+      const isDraftMissingMeaning = vocabulary.status === 'DRAFT' && (!vocabulary.meaningVi || !vocabulary.meaningVi.trim());
+      setIsEditing(isNew || isDraftMissingMeaning);
       setErrors({});
     }
   }, [vocabulary]);
 
   if (!isOpen || !vocabulary) return null;
 
-  const validate = (): boolean => {
+  const suggestion = simplified ? HSK1_DICTIONARY_SUGGESTIONS[simplified.trim()] : undefined;
+
+  const handleApplySuggestion = () => {
+    if (!suggestion) return;
+    setMeaningVi(suggestion.meaningVi);
+    if (!partOfSpeech || partOfSpeech === 'danh từ' || partOfSpeech === 'Chưa phân loại' || partOfSpeech === '') {
+      setPartOfSpeech(suggestion.partOfSpeech);
+    }
+    setErrors((prev) => {
+      const updated = { ...prev };
+      delete updated.meaningVi;
+      return updated;
+    });
+  };
+
+  const handleSaveWithStatus = async (targetStatus?: ContentStatus, andNext: boolean = false) => {
+    const finalStatus = targetStatus || status;
     const errs: Record<string, string> = {};
     if (!simplified.trim()) errs.simplified = 'Hán tự không được để trống';
     if (!pinyin.trim()) errs.pinyin = 'Pinyin không được để trống';
-    if (status === 'PUBLISHED' && !meaningVi.trim()) {
+    if (finalStatus === 'PUBLISHED' && !meaningVi.trim()) {
       errs.meaningVi = 'Không thể xuất bản (PUBLISHED) khi chưa có nghĩa tiếng Việt.';
     }
     setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
+    if (Object.keys(errs).length > 0) return;
 
-  const handleSave = () => {
-    if (!validate()) return;
-    onSave(vocabulary.id, {
-      hskLevelId,
-      simplified,
-      traditional: traditional || simplified,
-      pinyin,
-      meaningVi,
-      meaningEn,
-      partOfSpeech,
-      audioUrl: audioUrl || undefined,
-      examples,
-      status,
-      sourceId: vocabulary.sourceId,
-      entry: vocabulary.entry,
-      homograph: vocabulary.homograph,
-      levelLabel: vocabulary.levelLabel,
-      sourcePdfPage: vocabulary.sourcePdfPage,
-    });
-    setIsEditing(false);
+    try {
+      setIsSaving(true);
+      await onSave(
+        vocabulary.id,
+        {
+          hskLevelId,
+          simplified,
+          traditional: traditional || simplified,
+          pinyin,
+          meaningVi,
+          meaningEn,
+          partOfSpeech,
+          audioUrl: audioUrl || undefined,
+          examples,
+          status: finalStatus,
+          sourceId: vocabulary.sourceId,
+          sourceDataset: vocabulary.sourceDataset,
+          sourceEntryId: vocabulary.sourceEntryId,
+          entry: vocabulary.entry,
+          homograph: vocabulary.homograph,
+          levelLabel: vocabulary.levelLabel,
+          sourcePdfPage: vocabulary.sourcePdfPage,
+        },
+        andNext
+      );
+      if (!andNext) {
+        setIsEditing(false);
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddExample = () => {
@@ -119,26 +169,80 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
   return (
     <div className="lcm-drawer-overlay" onClick={onClose}>
       <div className="lcm-drawer-content" onClick={(e) => e.stopPropagation()}>
+        {/* Header with Sequential Navigation */}
         <div className="lcm-drawer-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <h3 className="lcm-drawer-title">
-              {simplified} <span style={{ fontSize: 'var(--text-sm)', color: 'var(--primary)', fontWeight: 500 }}>({pinyin})</span>
+              {simplified}{' '}
+              <span style={{ fontSize: 'var(--text-sm)', color: 'var(--primary)', fontWeight: 500 }}>
+                ({pinyin})
+              </span>
             </h3>
             <ContentStatusBadge status={status} />
           </div>
-          <button
-            type="button"
-            className="ds-btn ds-btn-ghost ds-btn-sm"
-            onClick={onClose}
-          >
-            <X size={18} />
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {currentIndex !== undefined && totalCount !== undefined && totalCount > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  backgroundColor: 'var(--background-secondary, #f1f5f9)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-ghost ds-btn-sm"
+                  style={{ padding: '2px 4px', height: '24px' }}
+                  disabled={currentIndex <= 0}
+                  onClick={onNavigatePrev}
+                  title="Từ trước đó"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', minWidth: '60px', textAlign: 'center' }}>
+                  {currentIndex + 1} / {totalCount}
+                </span>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-ghost ds-btn-sm"
+                  style={{ padding: '2px 4px', height: '24px' }}
+                  disabled={currentIndex >= totalCount - 1}
+                  onClick={onNavigateNext}
+                  title="Từ kế tiếp"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-ghost ds-btn-sm"
+              onClick={onClose}
+              title="Đóng bảng"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="lcm-drawer-body">
           {/* Section: Thông tin cơ bản */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', margin: 0 }}>
+            <h4
+              style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--muted)',
+                margin: 0,
+              }}
+            >
               1. Thông tin từ vựng
             </h4>
 
@@ -152,10 +256,14 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                       value={simplified}
                       onChange={(e) => setSimplified(e.target.value)}
                     />
-                    {errors.simplified && <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.simplified}</span>}
+                    {errors.simplified && (
+                      <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.simplified}</span>
+                    )}
                   </>
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-hanzi)', fontSize: '1.25rem', fontWeight: 700 }}>{simplified}</span>
+                  <span style={{ fontFamily: 'var(--font-hanzi)', fontSize: '1.25rem', fontWeight: 700 }}>
+                    {simplified}
+                  </span>
                 )}
               </div>
 
@@ -168,7 +276,9 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                     onChange={(e) => setTraditional(e.target.value)}
                   />
                 ) : (
-                  <span style={{ fontFamily: 'var(--font-hanzi)', fontSize: '1.25rem' }}>{traditional || simplified}</span>
+                  <span style={{ fontFamily: 'var(--font-hanzi)', fontSize: '1.25rem' }}>
+                    {traditional || simplified}
+                  </span>
                 )}
               </div>
             </div>
@@ -183,7 +293,9 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                       value={pinyin}
                       onChange={(e) => setPinyin(e.target.value)}
                     />
-                    {errors.pinyin && <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.pinyin}</span>}
+                    {errors.pinyin && (
+                      <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.pinyin}</span>
+                    )}
                   </>
                 ) : (
                   <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{pinyin}</span>
@@ -208,23 +320,108 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
 
           {/* Section: Giải nghĩa */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', margin: 0 }}>
-              2. Giải nghĩa
+            <h4
+              style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--muted)',
+                margin: 0,
+              }}
+            >
+              2. Giải nghĩa tiếng Việt & Gợi ý từ điển
             </h4>
 
+            {/* Dictionary Suggestion Banner */}
+            {suggestion && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#166534', fontWeight: 600, fontSize: '12px' }}>
+                    <Sparkles size={14} color="#16a34a" />
+                    <span>Gợi ý từ điển HSK 1 (Chưa duyệt):</span>
+                  </div>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className="ds-btn ds-btn-sm"
+                      style={{
+                        backgroundColor: '#16a34a',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                      onClick={handleApplySuggestion}
+                    >
+                      Áp dụng gợi ý
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: '13px', color: '#14532d' }}>
+                  <strong>{suggestion.meaningVi}</strong>
+                  {suggestion.partOfSpeech && (
+                    <span style={{ marginLeft: '8px', color: '#4b5563', fontSize: '11px' }}>
+                      ({suggestion.partOfSpeech})
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '11px', color: '#65a30d', fontStyle: 'italic' }}>
+                  Lưu ý: Đây chỉ là gợi ý tham khảo. Người kiểm duyệt cần kiểm tra và xác nhận trước khi lưu/xuất bản.
+                </div>
+              </div>
+            )}
+
             <div className="lcm-form-group">
-              <label className="lcm-form-label">Nghĩa tiếng Việt *</label>
+              <label className="lcm-form-label">
+                Nghĩa tiếng Việt *{' '}
+                {!meaningVi.trim() && (
+                  <span style={{ color: '#d97706', fontWeight: 400, fontSize: '11px' }}>
+                    (Bắt buộc để xuất bản)
+                  </span>
+                )}
+              </label>
               {isEditing ? (
                 <>
                   <input
                     className="lcm-form-input"
                     value={meaningVi}
-                    onChange={(e) => setMeaningVi(e.target.value)}
+                    placeholder="Nhập nghĩa tiếng Việt cho từ..."
+                    onChange={(e) => {
+                      setMeaningVi(e.target.value);
+                      if (errors.meaningVi) {
+                        setErrors((prev) => {
+                          const cp = { ...prev };
+                          delete cp.meaningVi;
+                          return cp;
+                        });
+                      }
+                    }}
                   />
-                  {errors.meaningVi && <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.meaningVi}</span>}
+                  {errors.meaningVi && (
+                    <span style={{ color: '#dc2626', fontSize: '11px' }}>{errors.meaningVi}</span>
+                  )}
                 </>
               ) : (
-                <span style={{ fontWeight: 600 }}>{meaningVi}</span>
+                <span style={{ fontWeight: 600 }}>
+                  {meaningVi || (
+                    <span style={{ color: '#d97706', fontStyle: 'italic' }}>
+                      Chưa có nghĩa tiếng Việt (Bản nháp)
+                    </span>
+                  )}
+                </span>
               )}
             </div>
 
@@ -244,7 +441,15 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
 
           {/* Section: Cấp độ HSK & Trạng thái */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', margin: 0 }}>
+            <h4
+              style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                color: 'var(--muted)',
+                margin: 0,
+              }}
+            >
               3. Cấp độ HSK & Trạng thái
             </h4>
 
@@ -264,7 +469,9 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                     ))}
                   </select>
                 ) : (
-                  <span><strong>{currentLevel?.name || 'HSK'}</strong></span>
+                  <span>
+                    <strong>{currentLevel?.name || 'HSK'}</strong>
+                  </span>
                 )}
               </div>
 
@@ -276,10 +483,12 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                     value={status}
                     onChange={(e) => setStatus(e.target.value as ContentStatus)}
                   >
-                    <option value="DRAFT">Bản nháp</option>
-                    <option value="PENDING_REVIEW">Chờ duyệt</option>
-                    <option value="PUBLISHED">Đã xuất bản</option>
-                    <option value="ARCHIVED">Lưu trữ</option>
+                    <option value="DRAFT">Bản nháp (DRAFT)</option>
+                    <option value="PENDING_REVIEW">Chờ duyệt (PENDING_REVIEW)</option>
+                    <option value="PUBLISHED" disabled={!meaningVi.trim()}>
+                      Đã xuất bản (PUBLISHED) {!meaningVi.trim() ? '- Cần có nghĩa tiếng Việt' : ''}
+                    </option>
+                    <option value="ARCHIVED">Lưu trữ (ARCHIVED)</option>
                   </select>
                 ) : (
                   <ContentStatusBadge status={status} />
@@ -287,25 +496,73 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
               </div>
             </div>
 
-            {(vocabulary.sourceDataset || vocabulary.sourceEntryId || vocabulary.sourceId || vocabulary.levelLabel || vocabulary.entry || vocabulary.homograph) && (
-              <div style={{ padding: '10px 14px', background: 'var(--background-secondary, #f8fafc)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', marginTop: '6px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--muted)', marginBottom: '6px' }}>THÔNG TIN NGUỒN HSK 3.0</div>
+            {(vocabulary.sourceDataset ||
+              vocabulary.sourceEntryId ||
+              vocabulary.sourceId ||
+              vocabulary.levelLabel ||
+              vocabulary.entry ||
+              vocabulary.homograph) && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  background: 'var(--background-secondary, #f8fafc)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  marginTop: '6px',
+                }}
+              >
+                <div style={{ fontWeight: 600, color: 'var(--muted)', marginBottom: '6px' }}>
+                  THÔNG TIN NGUỒN HSK 3.0
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  {vocabulary.sourceDataset && <div>Bộ dữ liệu: <strong>{vocabulary.sourceDataset}</strong></div>}
-                  {(vocabulary.sourceEntryId || vocabulary.sourceId) && <div>Mã mục (ID): <strong>{vocabulary.sourceEntryId || vocabulary.sourceId}</strong></div>}
-                  {vocabulary.levelLabel && <div>Cấp HSK: <strong>{vocabulary.levelLabel}</strong></div>}
-                  {vocabulary.entry && <div>Entry: <strong>{vocabulary.entry}</strong></div>}
-                  {vocabulary.homograph && <div>Đồng âm: <strong>{vocabulary.homograph}</strong></div>}
-                  {vocabulary.sourcePdfPage && <div>Trang PDF: <strong>{vocabulary.sourcePdfPage}</strong></div>}
+                  {vocabulary.sourceDataset && (
+                    <div>
+                      Bộ dữ liệu: <strong>{vocabulary.sourceDataset}</strong>
+                    </div>
+                  )}
+                  {(vocabulary.sourceEntryId || vocabulary.sourceId) && (
+                    <div>
+                      Mã mục (ID): <strong>{vocabulary.sourceEntryId || vocabulary.sourceId}</strong>
+                    </div>
+                  )}
+                  {vocabulary.levelLabel && (
+                    <div>
+                      Cấp HSK: <strong>{vocabulary.levelLabel}</strong>
+                    </div>
+                  )}
+                  {vocabulary.entry && (
+                    <div>
+                      Entry: <strong>{vocabulary.entry}</strong>
+                    </div>
+                  )}
+                  {vocabulary.homograph && (
+                    <div>
+                      Đồng âm: <strong>{vocabulary.homograph}</strong>
+                    </div>
+                  )}
+                  {vocabulary.sourcePdfPage && (
+                    <div>
+                      Trang PDF: <strong>{vocabulary.sourcePdfPage}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Section: Ví dụ minh họa (Relational Examples) */}
+          {/* Section: Ví dụ minh họa */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', margin: 0 }}>
+              <h4
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--muted)',
+                  margin: 0,
+                }}
+              >
                 4. Ví dụ minh họa ({examples.length})
               </h4>
               {isEditing && (
@@ -372,7 +629,16 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                     </>
                   ) : (
                     <div>
-                      <p style={{ fontFamily: 'var(--font-hanzi)', fontWeight: 600, margin: '0 0 2px 0', fontSize: 'var(--text-sm)' }}>{ex.zh}</p>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-hanzi)',
+                          fontWeight: 600,
+                          margin: '0 0 2px 0',
+                          fontSize: 'var(--text-sm)',
+                        }}
+                      >
+                        {ex.zh}
+                      </p>
                       <p style={{ color: 'var(--primary)', fontSize: '12px', margin: '0 0 2px 0' }}>{ex.pinyin}</p>
                       <p style={{ color: 'var(--muted)', fontSize: '12px', margin: 0 }}>{ex.meaningVi}</p>
                     </div>
@@ -383,37 +649,67 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
           </div>
         </div>
 
-        <div className="lcm-drawer-footer">
+        {/* Footer Actions */}
+        <div className="lcm-drawer-footer" style={{ flexWrap: 'wrap', gap: '8px' }}>
           {onDelete && !vocabulary.id.startsWith('voc-new-') && (
             <button
               type="button"
               className="ds-btn ds-btn-danger ds-btn-sm"
               style={{ marginRight: 'auto' }}
+              disabled={isSaving}
               onClick={async () => {
                 if (window.confirm('Bạn có chắc chắn muốn xóa từ vựng này không?')) {
                   await onDelete(vocabulary.id);
                 }
               }}
             >
-              <Trash2 size={14} /> Xóa từ vựng
+              <Trash2 size={14} /> Xóa
             </button>
           )}
+
           {isEditing ? (
             <>
               <button
                 type="button"
                 className="ds-btn ds-btn-outline ds-btn-sm"
+                disabled={isSaving}
                 onClick={() => setIsEditing(false)}
               >
                 Hủy bỏ
               </button>
+
+              <button
+                type="button"
+                className="ds-btn ds-btn-outline ds-btn-sm"
+                disabled={isSaving}
+                style={{ borderColor: 'var(--border)' }}
+                onClick={() => handleSaveWithStatus('DRAFT', false)}
+              >
+                <Save size={14} /> Lưu bản nháp
+              </button>
+
               <button
                 type="button"
                 className="ds-btn ds-btn-primary ds-btn-sm"
-                onClick={handleSave}
+                disabled={isSaving || !meaningVi.trim()}
+                title={!meaningVi.trim() ? 'Phải có nghĩa tiếng Việt mới có thể xuất bản' : 'Lưu và xuất bản từ vựng'}
+                onClick={() => handleSaveWithStatus('PUBLISHED', false)}
               >
-                <Save size={14} /> Lưu thay đổi
+                <CheckCircle size={14} /> Lưu & Xuất bản
               </button>
+
+              {onNavigateNext && currentIndex !== undefined && totalCount !== undefined && currentIndex < totalCount - 1 && (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-secondary ds-btn-sm"
+                  disabled={isSaving}
+                  style={{ backgroundColor: '#4f46e5', color: '#fff', border: 'none' }}
+                  onClick={() => handleSaveWithStatus(meaningVi.trim() ? 'PUBLISHED' : 'DRAFT', true)}
+                  title="Lưu từ hiện tại và tự động chuyển sang từ tiếp theo"
+                >
+                  <span>Lưu & Tiếp theo</span> <ArrowRight size={14} />
+                </button>
+              )}
             </>
           ) : (
             <>
@@ -424,6 +720,18 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
               >
                 Đóng
               </button>
+
+              {vocabulary.status === 'DRAFT' && meaningVi.trim() && (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-primary ds-btn-sm"
+                  disabled={isSaving}
+                  onClick={() => handleSaveWithStatus('PUBLISHED', false)}
+                >
+                  <CheckCircle size={14} /> Xuất bản từ này
+                </button>
+              )}
+
               <button
                 type="button"
                 className="ds-btn ds-btn-primary ds-btn-sm"
@@ -431,6 +739,16 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
               >
                 <Edit3 size={14} /> Chỉnh sửa
               </button>
+
+              {onNavigateNext && currentIndex !== undefined && totalCount !== undefined && currentIndex < totalCount - 1 && (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-ghost ds-btn-sm"
+                  onClick={onNavigateNext}
+                >
+                  <span>Từ kế tiếp</span> <ArrowRight size={14} />
+                </button>
+              )}
             </>
           )}
         </div>

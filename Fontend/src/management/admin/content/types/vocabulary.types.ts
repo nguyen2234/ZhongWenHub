@@ -125,3 +125,9 @@ export interface VocabularyImportResultDto {
   errors: VocabularyImportRowError[];
   previewSample: VocabularyImportPreviewItem[];
 }
+
+export interface BatchPublishResultDto {
+  publishedCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
+}

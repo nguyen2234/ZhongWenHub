@@ -705,7 +705,7 @@ public class LearningService : ILearningService
                 break;
         }
 
-        vocab.IntervalDays = Math.Max(1, nextIntervalDays);
+        vocab.IntervalDays = Math.Min(365, Math.Max(1, nextIntervalDays));
         vocab.ReviewCount += 1;
         if (isCorrect) vocab.CorrectCount += 1;
         vocab.LastReviewedAt = now;

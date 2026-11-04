@@ -86,6 +86,8 @@ export const AdminHskRepositoryPage: React.FC = () => {
 
   // 3. Selection & Drawer states
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
+  const [vocabContextList, setVocabContextList] = useState<Vocabulary[]>([]);
+  const [vocabCurrentIndex, setVocabCurrentIndex] = useState<number>(0);
   const [isVocabDrawerOpen, setIsVocabDrawerOpen] = useState(false);
 
   const [selectedChar, setSelectedChar] = useState<ChineseCharacter | null>(null);
@@ -101,10 +103,33 @@ export const AdminHskRepositoryPage: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Handlers for Vocabulary
-  const handleOpenVocab = useCallback((vocab: Vocabulary) => {
+  const handleOpenVocab = useCallback((vocab: Vocabulary, index?: number, list?: Vocabulary[]) => {
     setSelectedVocab(vocab);
+    if (list && index !== undefined) {
+      setVocabContextList(list);
+      setVocabCurrentIndex(index);
+    } else {
+      setVocabContextList([vocab]);
+      setVocabCurrentIndex(0);
+    }
     setIsVocabDrawerOpen(true);
   }, []);
+
+  const handleNavigateVocabPrev = useCallback(() => {
+    if (vocabCurrentIndex > 0 && vocabContextList.length > 0) {
+      const prevIdx = vocabCurrentIndex - 1;
+      setVocabCurrentIndex(prevIdx);
+      setSelectedVocab(vocabContextList[prevIdx]);
+    }
+  }, [vocabCurrentIndex, vocabContextList]);
+
+  const handleNavigateVocabNext = useCallback(() => {
+    if (vocabCurrentIndex < vocabContextList.length - 1 && vocabContextList.length > 0) {
+      const nextIdx = vocabCurrentIndex + 1;
+      setVocabCurrentIndex(nextIdx);
+      setSelectedVocab(vocabContextList[nextIdx]);
+    }
+  }, [vocabCurrentIndex, vocabContextList]);
 
   const handleOpenCreateVocab = useCallback(() => {
     const defaultLevel = selectedLevelId !== 'ALL' ? selectedLevelId : (levels[0]?.id || 'level-hsk-1');
@@ -124,26 +149,50 @@ export const AdminHskRepositoryPage: React.FC = () => {
       examples: [],
     };
     setSelectedVocab(newDraft);
+    setVocabContextList([]);
+    setVocabCurrentIndex(0);
     setIsVocabDrawerOpen(true);
   }, [selectedLevelId, levels]);
 
-  const handleSaveVocab = useCallback(async (id: string, dto: UpdateVocabularyDTO) => {
+  const handleSaveVocab = useCallback(async (id: string, dto: UpdateVocabularyDTO, andNext: boolean = false) => {
     try {
+      let savedVocab: Vocabulary;
       if (id.startsWith('voc-new-')) {
         const createDto: CreateVocabularyDTO = {
           ...dto,
         };
-        await hskRepositoryService.createVocabularyAsync(createDto);
+        savedVocab = await hskRepositoryService.createVocabularyAsync(createDto);
       } else {
-        await hskRepositoryService.updateVocabularyAsync(id, dto);
+        savedVocab = await hskRepositoryService.updateVocabularyAsync(id, dto);
       }
       setDataVersion((v) => v + 1);
-      setIsVocabDrawerOpen(false);
+
+      if (andNext && vocabContextList.length > 0 && vocabCurrentIndex < vocabContextList.length - 1) {
+        const updatedContext = [...vocabContextList];
+        updatedContext[vocabCurrentIndex] = savedVocab;
+        const nextIdx = vocabCurrentIndex + 1;
+        setVocabContextList(updatedContext);
+        setVocabCurrentIndex(nextIdx);
+        setSelectedVocab(updatedContext[nextIdx]);
+      } else {
+        setIsVocabDrawerOpen(false);
+      }
     } catch (err: any) {
       console.error('Lỗi lưu từ vựng:', err);
       alert(err?.message || 'Không thể lưu từ vựng vào máy chủ.');
     }
-  }, []);
+  }, [vocabContextList, vocabCurrentIndex]);
+
+  const handleBatchPublish = useCallback(async (ids: string[]) => {
+    try {
+      const result = await hskRepositoryService.batchPublishVocabulariesAsync(ids);
+      alert(`Đã xuất bản thành công ${result.publishedCount} từ vựng!${result.skippedCount > 0 ? ` (Bỏ qua ${result.skippedCount} từ chưa có nghĩa tiếng Việt)` : ''}`);
+      await loadData();
+    } catch (err: any) {
+      console.error('Lỗi xuất bản hàng loạt:', err);
+      alert(err?.message || 'Không thể xuất bản hàng loạt từ vựng.');
+    }
+  }, [loadData]);
 
   const handleDeleteVocab = useCallback(async (id: string) => {
     try {
@@ -307,6 +356,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
           selectedLevelId={selectedLevelId}
           onSelectVocabulary={handleOpenVocab}
           onOpenCreate={handleOpenCreateVocab}
+          onBatchPublish={handleBatchPublish}
         />
       )}
 
@@ -340,6 +390,10 @@ export const AdminHskRepositoryPage: React.FC = () => {
         isOpen={isVocabDrawerOpen}
         vocabulary={selectedVocab}
         levels={levels}
+        currentIndex={vocabCurrentIndex}
+        totalCount={vocabContextList.length}
+        onNavigatePrev={handleNavigateVocabPrev}
+        onNavigateNext={handleNavigateVocabNext}
         onClose={() => setIsVocabDrawerOpen(false)}
         onSave={handleSaveVocab}
         onDelete={handleDeleteVocab}

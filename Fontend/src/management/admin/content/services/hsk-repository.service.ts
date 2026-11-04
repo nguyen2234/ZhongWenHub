@@ -21,6 +21,7 @@ import type {
   Vocabulary,
   VocabularyFilters,
   VocabularyImportResultDto,
+  BatchPublishResultDto,
 } from '../types';
 
 let standards = [...MOCK_STANDARDS];
@@ -245,6 +246,11 @@ class HskRepositoryService {
     await httpClient.delete(`/content/vocabularies/${id}`);
     vocabularies = vocabularies.filter((v) => v.id !== id);
     return true;
+  }
+
+  async batchPublishVocabulariesAsync(ids: string[]): Promise<BatchPublishResultDto> {
+    const res = await httpClient.post<BatchPublishResultDto>('/content/vocabularies/batch-publish', { ids });
+    return res;
   }
 
   getVocabularies(filters?: VocabularyFilters): Vocabulary[] {

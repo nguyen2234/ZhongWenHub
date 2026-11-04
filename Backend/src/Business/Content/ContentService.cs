@@ -937,6 +937,7 @@ public class ContentService : IContentService
         if (!string.IsNullOrWhiteSpace(dto.LevelLabel)) v.LevelLabel = dto.LevelLabel.Trim();
         if (dto.SourcePdfPage.HasValue) v.SourcePdfPage = dto.SourcePdfPage;
         v.LessonId = dto.LessonId;
+        v.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -1229,6 +1230,49 @@ public class ContentService : IContentService
         _dbContext.Vocabularies.Remove(v);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<BatchPublishResultDto> BatchPublishVocabulariesAsync(List<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids == null || ids.Count == 0)
+        {
+            return new BatchPublishResultDto();
+        }
+
+        var distinctIds = ids.Distinct().ToList();
+        var vocabs = await _dbContext.Vocabularies
+            .Where(v => distinctIds.Contains(v.Id))
+            .ToListAsync(cancellationToken);
+
+        int publishedCount = 0;
+        int skippedCount = 0;
+        var skippedReasons = new List<string>();
+
+        foreach (var v in vocabs)
+        {
+            if (string.IsNullOrWhiteSpace(v.MeaningVi))
+            {
+                skippedCount++;
+                skippedReasons.Add($"Từ '{v.Hanzi}' ({v.Pinyin}) chưa có nghĩa tiếng Việt, không thể xuất bản.");
+                continue;
+            }
+
+            v.Status = "PUBLISHED";
+            v.UpdatedAt = DateTime.UtcNow;
+            publishedCount++;
+        }
+
+        if (publishedCount > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return new BatchPublishResultDto
+        {
+            PublishedCount = publishedCount,
+            SkippedCount = skippedCount,
+            SkippedReasons = skippedReasons
+        };
     }
 
     #endregion
