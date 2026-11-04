@@ -305,6 +305,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(l => l.TitleVi).HasMaxLength(150).IsRequired();
             b.Property(l => l.Pinyin).HasMaxLength(150);
             b.Property(l => l.Summary).HasMaxLength(1000);
+            b.Property(l => l.DialogueJson).HasColumnType("nvarchar(max)");
+            b.Property(l => l.ListeningJson).HasColumnType("nvarchar(max)");
             b.Property(l => l.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
             b.Property(l => l.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(l => l.UpdatedAt).HasColumnType("datetime2");

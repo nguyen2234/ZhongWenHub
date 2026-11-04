@@ -24,11 +24,19 @@ import type {
 
 let standards = [...MOCK_STANDARDS];
 let levels = [...MOCK_HSK_LEVELS];
-let vocabularies = [...MOCK_VOCABULARIES];
-let characters = [...MOCK_CHARACTERS];
-let grammarPoints = [...MOCK_GRAMMAR_POINTS];
+let vocabularies: Vocabulary[] = [];
+let characters: ChineseCharacter[] = [];
+let grammarPoints: GrammarPoint[] = [];
 
 class HskRepositoryService {
+  loadFixturesForTesting(): void {
+    standards = [...MOCK_STANDARDS];
+    levels = [...MOCK_HSK_LEVELS];
+    vocabularies = [...MOCK_VOCABULARIES];
+    characters = [...MOCK_CHARACTERS];
+    grammarPoints = [...MOCK_GRAMMAR_POINTS];
+  }
+
   getStandards(): HskStandard[] {
     return standards.map((s) => ({ ...s }));
   }
@@ -58,32 +66,26 @@ class HskRepositoryService {
 
   // --- Vocabulary ---
   async syncVocabulariesFromApi(): Promise<void> {
-    try {
-      const res = await httpClient.get<any>('/content/vocabularies', {
-        params: { pageSize: 200 },
-      });
-      const items = Array.isArray(res) ? res : (res?.items || []);
-      if (items.length > 0) {
-        vocabularies = items.map((v: any) => ({
-          id: v.id,
-          hskLevelId: `level-hsk-${v.hskLevel || 1}`,
-          simplified: v.hanzi,
-          traditional: v.traditional || v.hanzi,
-          pinyin: v.pinyin,
-          meaningVi: v.meaningVi,
-          meaningEn: v.meaningEn || '',
-          partOfSpeech: v.partOfSpeech || 'danh từ',
-          audioUrl: v.audioUrl || '',
-          status: v.status || 'PUBLISHED',
-          examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
-          source: 'Live SQL Server',
-          createdAt: v.createdAt || new Date().toISOString(),
-          updatedAt: v.updatedAt || v.createdAt || new Date().toISOString(),
-        }));
-      }
-    } catch (err) {
-      console.warn('[HskRepositoryService] Failed to sync vocabularies from live api:', err);
-    }
+    const res = await httpClient.get<any>('/content/vocabularies', {
+      params: { pageSize: 200 },
+    });
+    const items = Array.isArray(res) ? res : (res?.items || []);
+    vocabularies = items.map((v: any) => ({
+      id: v.id,
+      hskLevelId: `level-hsk-${v.hskLevel || 1}`,
+      simplified: v.hanzi,
+      traditional: v.traditional || v.hanzi,
+      pinyin: v.pinyin,
+      meaningVi: v.meaningVi,
+      meaningEn: v.meaningEn || '',
+      partOfSpeech: v.partOfSpeech || 'danh từ',
+      audioUrl: v.audioUrl || '',
+      status: v.status || 'PUBLISHED',
+      examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
+      source: 'Live SQL Server',
+      createdAt: v.createdAt || new Date().toISOString(),
+      updatedAt: v.updatedAt || v.createdAt || new Date().toISOString(),
+    }));
   }
 
   async createVocabularyAsync(dto: CreateVocabularyDTO): Promise<Vocabulary> {

@@ -585,6 +585,12 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("PUBLISHED");
 
+                    b.Property<string>("DialogueJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ListeningJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Summary")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");

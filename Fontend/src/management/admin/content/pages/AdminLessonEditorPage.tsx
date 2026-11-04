@@ -32,25 +32,39 @@ import { ValidationModal } from '../components/editor/ValidationModal';
 import { ConfirmLeaveDialog } from '../components/editor/ConfirmLeaveDialog';
 
 export const AdminLessonEditorPage: React.FC = () => {
-  const { lessonId = 'les-8' } = useParams<{ lessonId: string }>();
+  const { lessonId = '' } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
 
-  // Draft State Management initialized synchronously
-  const [prevLessonId, setPrevLessonId] = useState(lessonId);
-  const [savedLesson, setSavedLesson] = useState<LessonEditorDraft>(() =>
-    curriculumService.getLessonEditorData(lessonId)
-  );
-  const [draftLesson, setDraftLesson] = useState<LessonEditorDraft>(() =>
-    curriculumService.getLessonEditorData(lessonId)
-  );
+  // Draft State Management initialized asynchronously from API
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [savedLesson, setSavedLesson] = useState<LessonEditorDraft | null>(null);
+  const [draftLesson, setDraftLesson] = useState<LessonEditorDraft | null>(null);
   const [activeSection, setActiveSection] = useState<EditorSectionKey>('intro');
 
-  if (prevLessonId !== lessonId) {
-    setPrevLessonId(lessonId);
-    const data = curriculumService.getLessonEditorData(lessonId);
-    setSavedLesson(JSON.parse(JSON.stringify(data)));
-    setDraftLesson(JSON.parse(JSON.stringify(data)));
-  }
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+    setLoadError(null);
+    curriculumService
+      .fetchLessonEditorData(lessonId)
+      .then((data) => {
+        if (!mounted) return;
+        setSavedLesson(JSON.parse(JSON.stringify(data)));
+        setDraftLesson(JSON.parse(JSON.stringify(data)));
+      })
+      .catch((err: any) => {
+        if (!mounted) return;
+        setLoadError(err?.message || 'Không tìm thấy bài học hoặc không thể tải dữ liệu.');
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [lessonId]);
 
   // Modals & Dialogs
   const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
@@ -205,10 +219,38 @@ export const AdminLessonEditorPage: React.FC = () => {
     }
   };
 
-  if (!draftLesson) {
+  if (isLoading) {
     return (
       <div style={{ padding: 'var(--space-10)', textAlign: 'center', color: 'var(--muted)' }}>
-        Đang tải không gian soạn bài...
+        Đang tải dữ liệu bài học...
+      </div>
+    );
+  }
+
+  if (loadError || !draftLesson) {
+    return (
+      <div style={{ padding: 'var(--space-8)' }}>
+        <div
+          style={{
+            background: 'var(--danger-bg, #fee2e2)',
+            border: '1px solid var(--danger-border, #fca5a5)',
+            color: 'var(--danger-text, #991b1b)',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+          }}
+        >
+          <p style={{ margin: '0 0 12px 0', fontWeight: 600 }}>
+            {loadError || 'Không tìm thấy bài học.'}
+          </p>
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={() => navigate(curriculumBackPath)}
+          >
+            <ArrowLeft size={14} /> Quay lại Giáo trình
+          </button>
+        </div>
       </div>
     );
   }
@@ -478,7 +520,7 @@ export const AdminLessonEditorPage: React.FC = () => {
               <IntroSectionEditor
                 intro={draftLesson.intro}
                 onChange={(updatedIntro) =>
-                  setDraftLesson((prev) => ({ ...prev, intro: updatedIntro }))
+                  setDraftLesson((prev) => (prev ? { ...prev, intro: updatedIntro } : null))
                 }
               />
             )}
@@ -488,7 +530,7 @@ export const AdminLessonEditorPage: React.FC = () => {
                 lessonId={draftLesson.lessonId}
                 vocabularies={draftLesson.vocabularies}
                 onChange={(updatedVocabs) =>
-                  setDraftLesson((prev) => ({ ...prev, vocabularies: updatedVocabs }))
+                  setDraftLesson((prev) => (prev ? { ...prev, vocabularies: updatedVocabs } : null))
                 }
               />
             )}
@@ -498,7 +540,7 @@ export const AdminLessonEditorPage: React.FC = () => {
                 lessonId={draftLesson.lessonId}
                 grammars={draftLesson.grammars}
                 onChange={(updatedGrammars) =>
-                  setDraftLesson((prev) => ({ ...prev, grammars: updatedGrammars }))
+                  setDraftLesson((prev) => (prev ? { ...prev, grammars: updatedGrammars } : null))
                 }
               />
             )}
@@ -507,7 +549,7 @@ export const AdminLessonEditorPage: React.FC = () => {
               <DialogueSectionEditor
                 dialogue={draftLesson.dialogue}
                 onChange={(updatedDialogue) =>
-                  setDraftLesson((prev) => ({ ...prev, dialogue: updatedDialogue }))
+                  setDraftLesson((prev) => (prev ? { ...prev, dialogue: updatedDialogue } : null))
                 }
               />
             )}
@@ -517,7 +559,7 @@ export const AdminLessonEditorPage: React.FC = () => {
                 lessonId={draftLesson.lessonId}
                 listenings={draftLesson.listenings}
                 onChange={(updatedListenings) =>
-                  setDraftLesson((prev) => ({ ...prev, listenings: updatedListenings }))
+                  setDraftLesson((prev) => (prev ? { ...prev, listenings: updatedListenings } : null))
                 }
               />
             )}
@@ -527,7 +569,7 @@ export const AdminLessonEditorPage: React.FC = () => {
                 lessonId={draftLesson.lessonId}
                 exercises={draftLesson.exercises}
                 onChange={(updatedExercises) =>
-                  setDraftLesson((prev) => ({ ...prev, exercises: updatedExercises }))
+                  setDraftLesson((prev) => (prev ? { ...prev, exercises: updatedExercises } : null))
                 }
               />
             )}
@@ -537,7 +579,7 @@ export const AdminLessonEditorPage: React.FC = () => {
                 lessonId={draftLesson.lessonId}
                 exercises={draftLesson.exercises}
                 onChange={(updatedExercises) =>
-                  setDraftLesson((prev) => ({ ...prev, exercises: updatedExercises }))
+                  setDraftLesson((prev) => (prev ? { ...prev, exercises: updatedExercises } : null))
                 }
               />
             )}

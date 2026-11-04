@@ -1,4 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function loginViaUi(
+  page: Page,
+  email = 'contentmanager@zhongwenhub.edu.vn',
+  password = 'ContentManager123!'
+) {
+  await page.goto('/ZhongWenHub/login');
+  await page.fill('#login-email', email);
+  await page.fill('#login-password', password);
+  await Promise.all([
+    page.waitForResponse((res) => res.url().includes('/auth/login') && res.status() === 200),
+    page.click('button[type="submit"]'),
+  ]);
+  await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
+  await page.waitForLoadState('networkidle');
+}
 
 /**
  * Real End-to-End Acceptance Test for Content Manager Module - ZhongWenHub (Phase 2)
@@ -165,12 +181,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     expect(draftDetail.titleZh).toBe('他是我的汉语老师');
 
     // 3.5 Content Manager logs into UI and views the Curriculum page
-    await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'ContentManager123!');
-    await page.click('button[type="submit"]');
-
-    await page.waitForTimeout(1000);
+    await loginViaUi(page);
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
     await expect(page).toHaveURL(/.*\/management\/content-manager\/curriculum/, { timeout: 10000 });
     await expect(page.locator('.lcm-page')).toBeVisible();
@@ -302,12 +313,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
 
     try {
       // 5.4 Log in via browser UI and view curriculum
-      await page.goto('/ZhongWenHub/login');
-      await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
-      await page.fill('#login-password', 'ContentManager123!');
-      await page.click('button[type="submit"]');
-
-      await page.waitForTimeout(1000);
+      await loginViaUi(page);
       await page.goto('/ZhongWenHub/management/content-manager/curriculum');
       await page.waitForLoadState('networkidle');
 
@@ -361,12 +367,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     expect(exStats.byType).toBeDefined();
 
     // 6.4 Open Grammar Management Page in browser UI
-    await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'ContentManager123!');
-    await page.click('button[type="submit"]');
-
-    await page.waitForTimeout(1000);
+    await loginViaUi(page);
     await page.goto('/ZhongWenHub/management/content-manager/grammar');
     await page.waitForLoadState('networkidle');
 
@@ -388,12 +389,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     context,
   }) => {
     // 7.1 Login as Content Manager
-    await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'ContentManager123!');
-    await page.click('button[type="submit"]');
-
-    await page.waitForTimeout(1000);
+    await loginViaUi(page);
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
     await page.waitForLoadState('networkidle');
 
@@ -412,16 +408,398 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     await expect(page).toHaveURL(/.*\/login/, { timeout: 10000 });
 
     // 7.4 Log back in
-    await page.fill('#login-email', 'contentmanager@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'ContentManager123!');
-    await page.click('button[type="submit"]');
-
-    await page.waitForTimeout(1000);
+    await loginViaUi(page);
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
     await page.waitForLoadState('networkidle');
 
     // 7.5 Content re-loads seamlessly from SQL Server
     await expect(page.getByText('问候与认识')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('家庭与朋友')).toBeVisible();
+  });
+
+  test('8. Vocabulary Live CRUD: Create -> Update -> Reload -> Delete from SQL Server', async ({
+    page,
+    request,
+  }) => {
+    // 8.1 Login as Content Manager
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    const uniqueId = Date.now().toString().slice(-5);
+    const hanzi = `电脑_${uniqueId}`;
+
+    // 8.2 Create vocabulary via live API
+    const createRes = await request.post('/api/v1/content/vocabularies', {
+      headers: cmHeaders,
+      data: {
+        hskLevel: 1,
+        hanzi,
+        pinyin: 'diànnǎo',
+        meaningVi: 'Máy vi tính test',
+        partOfSpeech: 'danh từ',
+        status: 'PUBLISHED',
+      },
+    });
+    expect(createRes.status()).toBe(201);
+    const createdVocab = await createRes.json();
+    expect(createdVocab.id).toBeDefined();
+
+    try {
+      // 8.3 Login via browser and navigate to HSK Repository
+      await loginViaUi(page);
+      await page.goto('/ZhongWenHub/management/content-manager/hsk-repository');
+      await page.waitForLoadState('networkidle');
+
+      // Verify created word appears in UI
+      await expect(page.getByText(hanzi).first()).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Máy vi tính test').first()).toBeVisible();
+
+      // 8.4 Update vocabulary
+      const updateRes = await request.put(`/api/v1/content/vocabularies/${createdVocab.id}`, {
+        headers: cmHeaders,
+        data: {
+          hskLevel: 1,
+          hanzi,
+          pinyin: 'diànnǎo',
+          meaningVi: 'Máy tính cập nhật',
+          partOfSpeech: 'danh từ',
+          status: 'PUBLISHED',
+        },
+      });
+      expect(updateRes.status()).toBe(200);
+
+      // 8.5 Reload browser and verify updated meaning
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText('Máy tính cập nhật').first()).toBeVisible({ timeout: 10000 });
+    } finally {
+      // 8.6 Delete vocabulary from SQL Server
+      const deleteRes = await request.delete(`/api/v1/content/vocabularies/${createdVocab.id}`, {
+        headers: cmHeaders,
+      });
+      expect(deleteRes.status()).toBe(204);
+
+      // 8.7 Reload browser and verify deleted word is removed
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText(hanzi)).not.toBeVisible();
+    }
+  });
+
+  test('9. Grammar Point Live CRUD: Create -> Update -> Reload -> Delete from SQL Server', async ({
+    page,
+    request,
+  }) => {
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    const uniqueId = Date.now().toString().slice(-5);
+    const code = `G_TEST_${uniqueId}`;
+    const title = `Câu chữ 把 test ${uniqueId}`;
+
+    // 9.1 Create grammar point
+    const createRes = await request.post('/api/v1/content/grammar', {
+      headers: cmHeaders,
+      data: {
+        code,
+        title,
+        pinyinTitle: 'bǎ',
+        hskLevel: 2,
+        category: 'STRUCTURE',
+        structureFormula: 'S + 把 + O + V',
+        explanation: 'Dùng để nhấn mạnh sự tác động của chủ ngữ lên tân ngữ.',
+        difficulty: 'MEDIUM',
+        status: 'PUBLISHED',
+      },
+    });
+    expect(createRes.status()).toBe(201);
+    const createdGrammar = await createRes.json();
+
+    try {
+      // 9.2 View in browser UI
+      await loginViaUi(page);
+      await page.goto('/ZhongWenHub/management/content-manager/grammar');
+      await page.waitForLoadState('networkidle');
+
+      await page.fill('input[placeholder*="Tìm kiếm"]', uniqueId);
+      await page.waitForTimeout(500);
+      await expect(page.getByText(title).first()).toBeVisible({ timeout: 10000 });
+
+      // 9.3 Update grammar
+      const updatedTitle = `Câu chữ 把 đã sửa ${uniqueId}`;
+      const updateRes = await request.put(`/api/v1/content/grammar/${createdGrammar.id}`, {
+        headers: cmHeaders,
+        data: {
+          code,
+          title: updatedTitle,
+          pinyinTitle: 'bǎ',
+          hskLevel: 2,
+          category: 'STRUCTURE',
+          structureFormula: 'S + 把 + O + V + Kết quả',
+          explanation: 'Dùng để nhấn mạnh sự tác động và kết quả.',
+          difficulty: 'MEDIUM',
+          status: 'PUBLISHED',
+        },
+      });
+      expect(updateRes.status()).toBe(200);
+
+      // 9.4 Reload and verify update
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await page.fill('input[placeholder*="Tìm kiếm"]', uniqueId);
+      await page.waitForTimeout(500);
+      await expect(page.getByText(updatedTitle).first()).toBeVisible({ timeout: 10000 });
+    } finally {
+      // 9.5 Delete grammar point
+      const deleteRes = await request.delete(`/api/v1/content/grammar/${createdGrammar.id}`, {
+        headers: cmHeaders,
+      });
+      expect(deleteRes.status()).toBe(204);
+
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText(title)).not.toBeVisible();
+    }
+  });
+
+  test('10. Exercise Live CRUD: Create -> Update -> Reload -> Delete from SQL Server', async ({
+    page,
+    request,
+  }) => {
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    const uniqueId = Date.now().toString().slice(-5);
+    const title = `Bài tập trắc nghiệm ${uniqueId}`;
+
+    // 10.1 Create exercise
+    const createRes = await request.post('/api/v1/content/exercises', {
+      headers: cmHeaders,
+      data: {
+        type: 'MULTIPLE_CHOICE',
+        skill: 'READING',
+        hskLevel: 1,
+        title,
+        instruction: 'Chọn đáp án đúng nhất',
+        promptHanzi: '这是什么？',
+        promptVietnamese: 'Đây là cái gì?',
+        optionsJson: JSON.stringify(['A. 苹果', 'B. 香蕉']),
+        correctOptionIndex: 0,
+        xpReward: 15,
+        status: 'PUBLISHED',
+      },
+    });
+    expect(createRes.status()).toBe(201);
+    const createdEx = await createRes.json();
+
+    try {
+      // 10.2 View in browser UI
+      await loginViaUi(page);
+      await page.goto('/ZhongWenHub/management/content-manager/question-bank');
+      await page.waitForLoadState('networkidle');
+
+      await page.fill('input[placeholder*="Tìm kiếm"]', uniqueId);
+      await page.waitForTimeout(500);
+      await expect(page.getByText(title).first()).toBeVisible({ timeout: 10000 });
+
+      // 10.3 Update exercise
+      const updatedTitle = `Bài tập đã cập nhật ${uniqueId}`;
+      const updateRes = await request.put(`/api/v1/content/exercises/${createdEx.id}`, {
+        headers: cmHeaders,
+        data: {
+          type: 'MULTIPLE_CHOICE',
+          skill: 'READING',
+          hskLevel: 1,
+          title: updatedTitle,
+          instruction: 'Chọn đáp án đúng nhất',
+          promptHanzi: '这是什么水果？',
+          promptVietnamese: 'Đây là loại quả gì?',
+          optionsJson: JSON.stringify(['A. 苹果', 'B. 葡萄']),
+          correctOptionIndex: 0,
+          xpReward: 20,
+          status: 'PUBLISHED',
+        },
+      });
+      expect(updateRes.status()).toBe(200);
+
+      // 10.4 Reload and verify update
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await page.fill('input[placeholder*="Tìm kiếm"]', uniqueId);
+      await page.waitForTimeout(500);
+      await expect(page.getByText(updatedTitle).first()).toBeVisible({ timeout: 10000 });
+    } finally {
+      // 10.5 Delete exercise
+      const deleteRes = await request.delete(`/api/v1/content/exercises/${createdEx.id}`, {
+        headers: cmHeaders,
+      });
+      expect(deleteRes.status()).toBe(204);
+
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText(title)).not.toBeVisible();
+    }
+  });
+
+  test('11. Lesson Editor Aggregate Persistence: Dialogue and Listening persist to SQL Server', async ({
+    page,
+    request,
+  }) => {
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+    const cmHeaders = { Authorization: `Bearer ${cmToken}` };
+
+    const uniqueId = Date.now().toString().slice(-5);
+    const titleZh = `会话课_${uniqueId}`;
+    const dialogueTitle = `Hội thoại bài học ${uniqueId}`;
+
+    // 11.1 Create lesson with dialogueJson and listeningJson
+    const dialogueData = {
+      id: `diag-${uniqueId}`,
+      lessonId: '',
+      title: dialogueTitle,
+      situationZh: '在商店购物',
+      situationVi: 'Mua sắm tại cửa hàng',
+      lines: [
+        {
+          id: `line-${uniqueId}-1`,
+          dialogueId: `diag-${uniqueId}`,
+          speakerName: '顾客',
+          speakerRole: 'Khách hàng',
+          zh: '这个多少钱？',
+          pinyin: 'Zhège duōshǎo qián?',
+          meaningVi: 'Cái này bao nhiêu tiền?',
+          displayOrder: 1,
+        },
+      ],
+    };
+
+    const listeningData = [
+      {
+        id: `lis-${uniqueId}-1`,
+        lessonId: '',
+        title: 'Nghe đoạn thoại ngắn',
+        audioUrl: 'https://assets.zhongwenhub.com/audio/test.mp3',
+        transcriptZh: '你听到了什么？',
+        transcriptPinyin: 'Nǐ tīngdào le shénme?',
+        transcriptVi: 'Bạn nghe được gì?',
+        prompt: 'Lắng nghe đoạn ghi âm sau và chọn đáp án chính xác:',
+        options: [
+          { id: 1, text: '苹果', isCorrect: true },
+          { id: 2, text: '香蕉', isCorrect: false },
+        ],
+        explanation: 'Đáp án là quả táo.',
+        displayOrder: 1,
+      },
+    ];
+
+    const createRes = await request.post('/api/v1/content/lessons', {
+      headers: cmHeaders,
+      data: {
+        courseId: '11111111-1111-1111-1111-111111111111',
+        lessonNumber: 88,
+        titleZh,
+        titleVi: `Bai hoc hoi thoai ${uniqueId}`,
+        dialogueJson: JSON.stringify(dialogueData),
+        listeningJson: JSON.stringify(listeningData),
+        durationMinutes: 45,
+        xpReward: 60,
+        status: 'PUBLISHED',
+      },
+    });
+    expect(createRes.status()).toBe(201);
+    const lesson = await createRes.json();
+
+    try {
+      // 11.2 Verify detail endpoint returns DialogueJson and ListeningJson
+      const detailRes = await request.get(`/api/v1/content/lessons/${lesson.id}`, {
+        headers: cmHeaders,
+      });
+      expect(detailRes.status()).toBe(200);
+      const detailData = await detailRes.json();
+      expect(detailData.dialogueJson).toBeDefined();
+      expect(detailData.dialogueJson).toContain('这个多少钱？');
+      expect(detailData.listeningJson).toBeDefined();
+      expect(detailData.listeningJson).toContain('你听到了什么？');
+
+      // 11.3 Open lesson editor in browser UI
+      await loginViaUi(page);
+      await page.goto(`/ZhongWenHub/management/content-manager/curriculum/lessons/${lesson.id}/edit`);
+      await page.waitForLoadState('networkidle');
+
+      // 11.4 Verify editor loads title and allows navigating sections
+      await expect(page.getByText(titleZh).first()).toBeVisible({ timeout: 10000 });
+
+      // Click Dialogue section
+      await page.click('button:has-text("Hội thoại")');
+      await expect(page.locator('input[placeholder*="Câu Hán tự"]').first()).toHaveValue('这个多少钱？', { timeout: 5000 });
+
+      // Click Listening section
+      await page.click('button:has-text("Luyện nghe")');
+      await expect(page.getByText('Nghe đoạn thoại ngắn').first()).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('你听到了什么？').first()).toBeVisible({ timeout: 5000 });
+
+      // 11.5 Reload page to verify persistence across page refresh
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByText(titleZh).first()).toBeVisible({ timeout: 10000 });
+    } finally {
+      // 11.6 Clean up lesson
+      await request.delete(`/api/v1/content/lessons/${lesson.id}`, { headers: cmHeaders });
+    }
+  });
+
+  test('12. Error & Access Control: Invalid lesson ID displays not found error; unauthorized cannot access Admin Users', async ({
+    page,
+    request,
+  }) => {
+    // 12.1 Log in as Content Manager
+    await loginViaUi(page);
+
+    // 12.2 Navigate to nonexistent lesson ID -> Displays error state
+    await page.goto(
+      '/ZhongWenHub/management/content-manager/curriculum/lessons/00000000-0000-0000-0000-000000000000/edit'
+    );
+    await page.waitForLoadState('networkidle');
+
+    await expect(page.getByText(/Không tìm thấy bài học/)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Quay lại Giáo trình')).toBeVisible();
+
+    // 12.3 Content Manager attempting to access Admin Users receives 403 Forbidden
+    const cmLogin = await request.post('/api/v1/auth/login', {
+      data: {
+        email: 'contentmanager@zhongwenhub.edu.vn',
+        password: 'ContentManager123!',
+      },
+    });
+    const { accessToken: cmToken } = await cmLogin.json();
+
+    const adminUsersRes = await request.get('/api/v1/admin/users', {
+      headers: { Authorization: `Bearer ${cmToken}` },
+    });
+    expect(adminUsersRes.status()).toBe(403);
   });
 });

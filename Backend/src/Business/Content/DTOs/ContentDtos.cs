@@ -121,6 +121,8 @@ public class LessonDto
     public int XpReward { get; set; }
     public int OrderIndex { get; set; }
     public string Status { get; set; } = "PUBLISHED";
+    public string? DialogueJson { get; set; }
+    public string? ListeningJson { get; set; }
     public int VocabularyCount { get; set; }
     public int GrammarCount { get; set; }
     public int ExerciseCount { get; set; }
@@ -159,6 +161,8 @@ public class CreateLessonDto
     public int XpReward { get; set; } = 50;
     public int OrderIndex { get; set; } = 1;
     public string Status { get; set; } = "PUBLISHED";
+    public string? DialogueJson { get; set; }
+    public string? ListeningJson { get; set; }
 }
 
 public class UpdateLessonDto
@@ -182,6 +186,12 @@ public class UpdateLessonDto
     public int XpReward { get; set; } = 50;
     public int OrderIndex { get; set; } = 1;
     public string Status { get; set; } = "PUBLISHED";
+    public string? DialogueJson { get; set; }
+    public string? ListeningJson { get; set; }
+
+    public List<Guid>? LinkedVocabularyIds { get; set; }
+    public List<Guid>? LinkedGrammarPointIds { get; set; }
+    public List<Guid>? LinkedExerciseIds { get; set; }
 }
 
 public class VocabularyDto

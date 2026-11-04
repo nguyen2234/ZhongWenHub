@@ -15,6 +15,7 @@ export interface VocabularyDetailDrawerProps {
   levels: HskLevel[];
   onClose: () => void;
   onSave: (id: string, dto: UpdateVocabularyDTO) => void;
+  onDelete?: (id: string) => Promise<void> | void;
 }
 
 export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
@@ -23,6 +24,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
   levels,
   onClose,
   onSave,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [simplified, setSimplified] = useState('');
@@ -49,7 +51,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
       setHskLevelId(vocabulary.hskLevelId);
       setStatus(vocabulary.status);
       setExamples(vocabulary.examples.map((e) => ({ ...e })));
-      setIsEditing(false);
+      setIsEditing(vocabulary.id.startsWith('voc-new-'));
       setErrors({});
     }
   }, [vocabulary]);
@@ -361,6 +363,20 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
         </div>
 
         <div className="lcm-drawer-footer">
+          {onDelete && !vocabulary.id.startsWith('voc-new-') && (
+            <button
+              type="button"
+              className="ds-btn ds-btn-danger ds-btn-sm"
+              style={{ marginRight: 'auto' }}
+              onClick={async () => {
+                if (window.confirm('Bạn có chắc chắn muốn xóa từ vựng này không?')) {
+                  await onDelete(vocabulary.id);
+                }
+              }}
+            >
+              <Trash2 size={14} /> Xóa từ vựng
+            </button>
+          )}
           {isEditing ? (
             <>
               <button

@@ -386,6 +386,8 @@ public class ContentService : IContentService
                 TitleVi = l.TitleVi,
                 Pinyin = l.Pinyin,
                 Summary = l.Summary,
+                DialogueJson = l.DialogueJson,
+                ListeningJson = l.ListeningJson,
                 DurationMinutes = l.DurationMinutes,
                 XpReward = l.XpReward,
                 OrderIndex = l.OrderIndex,
@@ -493,6 +495,8 @@ public class ContentService : IContentService
             TitleVi = lesson.TitleVi,
             Pinyin = lesson.Pinyin,
             Summary = lesson.Summary,
+            DialogueJson = lesson.DialogueJson,
+            ListeningJson = lesson.ListeningJson,
             DurationMinutes = lesson.DurationMinutes,
             XpReward = lesson.XpReward,
             OrderIndex = lesson.OrderIndex,
@@ -528,7 +532,9 @@ public class ContentService : IContentService
             DurationMinutes = dto.DurationMinutes,
             XpReward = dto.XpReward,
             OrderIndex = dto.OrderIndex,
-            Status = dto.Status
+            Status = dto.Status,
+            DialogueJson = dto.DialogueJson,
+            ListeningJson = dto.ListeningJson
         };
 
         _dbContext.Lessons.Add(lesson);
@@ -545,6 +551,8 @@ public class ContentService : IContentService
             TitleVi = lesson.TitleVi,
             Pinyin = lesson.Pinyin,
             Summary = lesson.Summary,
+            DialogueJson = lesson.DialogueJson,
+            ListeningJson = lesson.ListeningJson,
             DurationMinutes = lesson.DurationMinutes,
             XpReward = lesson.XpReward,
             OrderIndex = lesson.OrderIndex,
@@ -575,6 +583,80 @@ public class ContentService : IContentService
         lesson.XpReward = dto.XpReward;
         lesson.OrderIndex = dto.OrderIndex;
         lesson.Status = dto.Status;
+        if (dto.DialogueJson != null)
+        {
+            lesson.DialogueJson = dto.DialogueJson;
+        }
+        if (dto.ListeningJson != null)
+        {
+            lesson.ListeningJson = dto.ListeningJson;
+        }
+
+        if (dto.LinkedVocabularyIds != null)
+        {
+            var existingVocabs = await _dbContext.Vocabularies
+                .Where(v => v.LessonId == id)
+                .ToListAsync(cancellationToken);
+            foreach (var v in existingVocabs)
+            {
+                if (!dto.LinkedVocabularyIds.Contains(v.Id))
+                {
+                    v.LessonId = null;
+                }
+            }
+
+            var toLinkVocabs = await _dbContext.Vocabularies
+                .Where(v => dto.LinkedVocabularyIds.Contains(v.Id))
+                .ToListAsync(cancellationToken);
+            foreach (var v in toLinkVocabs)
+            {
+                v.LessonId = id;
+            }
+        }
+
+        if (dto.LinkedGrammarPointIds != null)
+        {
+            var existingGrammars = await _dbContext.GrammarPoints
+                .Where(g => g.LessonId == id)
+                .ToListAsync(cancellationToken);
+            foreach (var g in existingGrammars)
+            {
+                if (!dto.LinkedGrammarPointIds.Contains(g.Id))
+                {
+                    g.LessonId = null;
+                }
+            }
+
+            var toLinkGrammars = await _dbContext.GrammarPoints
+                .Where(g => dto.LinkedGrammarPointIds.Contains(g.Id))
+                .ToListAsync(cancellationToken);
+            foreach (var g in toLinkGrammars)
+            {
+                g.LessonId = id;
+            }
+        }
+
+        if (dto.LinkedExerciseIds != null)
+        {
+            var existingExercises = await _dbContext.Exercises
+                .Where(e => e.LessonId == id)
+                .ToListAsync(cancellationToken);
+            foreach (var e in existingExercises)
+            {
+                if (!dto.LinkedExerciseIds.Contains(e.Id))
+                {
+                    e.LessonId = null;
+                }
+            }
+
+            var toLinkExercises = await _dbContext.Exercises
+                .Where(e => dto.LinkedExerciseIds.Contains(e.Id))
+                .ToListAsync(cancellationToken);
+            foreach (var e in toLinkExercises)
+            {
+                e.LessonId = id;
+            }
+        }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -589,6 +671,8 @@ public class ContentService : IContentService
             TitleVi = lesson.TitleVi,
             Pinyin = lesson.Pinyin,
             Summary = lesson.Summary,
+            DialogueJson = lesson.DialogueJson,
+            ListeningJson = lesson.ListeningJson,
             DurationMinutes = lesson.DurationMinutes,
             XpReward = lesson.XpReward,
             OrderIndex = lesson.OrderIndex,
@@ -616,6 +700,8 @@ public class ContentService : IContentService
             TitleVi = lesson.TitleVi,
             Pinyin = lesson.Pinyin,
             Summary = lesson.Summary,
+            DialogueJson = lesson.DialogueJson,
+            ListeningJson = lesson.ListeningJson,
             DurationMinutes = lesson.DurationMinutes,
             XpReward = lesson.XpReward,
             OrderIndex = lesson.OrderIndex,

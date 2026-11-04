@@ -73,7 +73,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
     total: 0,
     published: 0,
     draft: 0,
-    pending: 0,
+    pendingReview: 0,
     archived: 0,
     byHsk: {} as any,
     byCategory: {} as any,
@@ -454,7 +454,7 @@ export const AdminGrammarManagementPage: React.FC = () => {
         />
         <StatCard
           title="Đang chờ duyệt"
-          value={stats.pending ?? 0}
+          value={stats.pendingReview ?? 0}
           icon={<Clock size={20} color="#EAB308" />}
         />
         <StatCard
@@ -546,18 +546,18 @@ export const AdminGrammarManagementPage: React.FC = () => {
                 filters.hskLevel !== 'ALL' ||
                 filters.category !== 'ALL' ||
                 filters.status !== 'ALL') && (
-                <button
-                  type="button"
-                  className="ds-btn ds-btn-ghost"
-                  onClick={() => {
-                    setFilters({ search: '', hskLevel: 'ALL', category: 'ALL', status: 'ALL' });
-                    setCurrentPage(1);
-                  }}
-                  style={{ height: '36px', fontSize: 'var(--text-xs)', color: 'var(--primary)' }}
-                >
-                  Xóa bộ lọc
-                </button>
-              )}
+                  <button
+                    type="button"
+                    className="ds-btn ds-btn-ghost"
+                    onClick={() => {
+                      setFilters({ search: '', hskLevel: 'ALL', category: 'ALL', status: 'ALL' });
+                      setCurrentPage(1);
+                    }}
+                    style={{ height: '36px', fontSize: 'var(--text-xs)', color: 'var(--primary)' }}
+                  >
+                    Xóa bộ lọc
+                  </button>
+                )}
             </div>
           }
         />

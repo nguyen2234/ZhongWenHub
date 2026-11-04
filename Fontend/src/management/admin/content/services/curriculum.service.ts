@@ -338,6 +338,128 @@ class CurriculumService {
 
   // --- Lesson Editor Aggregate Storage & Operations ---
 
+  async fetchLessonEditorData(lessonId: string): Promise<LessonEditorDraft> {
+    const res = await httpClient.get<any>(`/content/lessons/${lessonId}`);
+    if (!res || !res.id) {
+      throw new Error(`Không tìm thấy dữ liệu bài học ${lessonId}`);
+    }
+
+    let dialogue = {
+      id: `diag-${res.id}`,
+      lessonId: res.id,
+      title: `Hội thoại bài ${res.lessonNumber}`,
+      situationZh: '',
+      situationVi: '',
+      lines: [],
+    };
+    if (res.dialogueJson) {
+      try {
+        dialogue = typeof res.dialogueJson === 'string' ? JSON.parse(res.dialogueJson) : res.dialogueJson;
+      } catch (e) {
+        console.warn('Failed to parse dialogueJson:', e);
+      }
+    }
+
+    let listenings = [];
+    if (res.listeningJson) {
+      try {
+        listenings = typeof res.listeningJson === 'string' ? JSON.parse(res.listeningJson) : res.listeningJson;
+      } catch (e) {
+        console.warn('Failed to parse listeningJson:', e);
+      }
+    }
+
+    const vocabularies = (res.vocabularies || []).map((v: any) => ({
+      id: v.id,
+      hskLevelId: `level-hsk-${v.hskLevel || 1}`,
+      simplified: v.hanzi,
+      traditional: v.traditional || v.hanzi,
+      pinyin: v.pinyin,
+      meaningVi: v.meaningVi,
+      meaningEn: v.meaningEn || '',
+      partOfSpeech: v.partOfSpeech || 'danh từ',
+      audioUrl: v.audioUrl || '',
+      status: v.status || 'PUBLISHED',
+      examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
+      source: 'Live SQL Server',
+      createdAt: v.createdAt || new Date().toISOString(),
+      updatedAt: v.updatedAt || new Date().toISOString(),
+    }));
+
+    const grammars = (res.grammarPoints || []).map((g: any) => ({
+      id: g.id,
+      code: g.code,
+      title: g.title,
+      pinyinTitle: g.pinyinTitle || '',
+      hskLevel: g.hskLevel || 1,
+      category: g.category || 'STRUCTURE',
+      structureFormula: g.structureFormula || '',
+      explanation: g.explanation || '',
+      difficulty: g.difficulty || 'EASY',
+      status: g.status || 'PUBLISHED',
+      examples: typeof g.examplesJson === 'string' && g.examplesJson ? JSON.parse(g.examplesJson) : (g.examples || []),
+      practiceQuestions: typeof g.practiceJson === 'string' && g.practiceJson ? JSON.parse(g.practiceJson) : (g.practiceQuestions || []),
+      createdAt: g.createdAt || new Date().toISOString(),
+      updatedAt: g.updatedAt || new Date().toISOString(),
+    }));
+
+    const exercises = (res.exercises || []).map((e: any) => ({
+      id: e.id,
+      type: e.type,
+      skill: e.skill,
+      hskLevel: e.hskLevel || 1,
+      title: e.title,
+      instruction: e.instruction,
+      promptHanzi: e.promptHanzi,
+      promptPinyin: e.promptPinyin,
+      promptVietnamese: e.promptVietnamese,
+      audioUrl: e.audioUrl,
+      options: typeof e.optionsJson === 'string' && e.optionsJson ? JSON.parse(e.optionsJson) : (e.options || []),
+      correctOptionIndex: e.correctOptionIndex,
+      correctAnswer: e.correctAnswer,
+      explanation: e.explanation,
+      xpReward: e.xpReward,
+      status: e.status || 'PUBLISHED',
+      lessonId: e.lessonId,
+      grammarPointId: e.grammarPointId,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    }));
+
+    const draft: LessonEditorDraft = {
+      lessonId: res.id,
+      unitId: res.unitId,
+      lessonNumber: res.lessonNumber,
+      status: res.status,
+      intro: {
+        titleZh: res.titleZh,
+        titleVi: res.titleVi,
+        pinyinTitle: res.pinyin || '',
+        summary: res.summary || '',
+        durationMinutes: res.durationMinutes || 30,
+        xpReward: res.xpReward || 50,
+        objectives: [
+          'Nắm vững các mẫu câu giao tiếp chính trong bài',
+          'Áp dụng từ vựng vào ngữ cảnh thực tế hàng ngày',
+        ],
+        contextDialogueSnippet: {
+          hanzi: '',
+          pinyin: '',
+          meaningVi: '',
+        },
+      },
+      vocabularies,
+      grammars,
+      dialogue,
+      listenings,
+      exercises,
+      updatedAt: res.updatedAt || res.createdAt || new Date().toISOString(),
+    };
+
+    lessonDrafts[lessonId] = draft;
+    return JSON.parse(JSON.stringify(draft));
+  }
+
   getLessonEditorData(lessonId: string): LessonEditorDraft {
     if (lessonDrafts[lessonId]) {
       return JSON.parse(JSON.stringify(lessonDrafts[lessonId]));
@@ -345,7 +467,7 @@ class CurriculumService {
 
     const lesson = this.getLessonById(lessonId);
     if (!lesson) {
-      return JSON.parse(JSON.stringify(MOCK_LESSON_8_DRAFT));
+      throw new Error(`Không tìm thấy bài học: ${lessonId}`);
     }
 
     const newDraft: LessonEditorDraft = {
@@ -394,21 +516,30 @@ class CurriculumService {
       ...JSON.parse(JSON.stringify(draft)),
       updatedAt: new Date().toISOString(),
     };
-    lessonDrafts[lessonId] = updatedDraft;
 
     const lesson = lessons.find((l) => l.id === lessonId);
-    if (lesson) {
-      await httpClient.put(`/content/lessons/${lessonId}`, {
-        lessonNumber: lesson.lessonNumber,
-        titleZh: draft.intro.titleZh,
-        titleVi: draft.intro.titleVi,
-        durationMinutes: draft.intro.durationMinutes,
-        xpReward: draft.intro.xpReward,
-        orderIndex: lesson.orderIndex,
-        status: draft.status,
-        summary: draft.intro.summary,
-      });
+    const payload = {
+      unitId: draft.unitId,
+      lessonNumber: draft.lessonNumber || lesson?.lessonNumber || 1,
+      titleZh: draft.intro.titleZh,
+      titleVi: draft.intro.titleVi,
+      pinyin: draft.intro.pinyinTitle || '',
+      summary: draft.intro.summary || '',
+      durationMinutes: draft.intro.durationMinutes,
+      xpReward: draft.intro.xpReward,
+      orderIndex: lesson?.orderIndex || draft.lessonNumber || 1,
+      status: draft.status,
+      dialogueJson: JSON.stringify(draft.dialogue),
+      listeningJson: JSON.stringify(draft.listenings),
+      linkedVocabularyIds: draft.vocabularies.map((v) => v.id),
+      linkedGrammarPointIds: draft.grammars.map((g) => g.id),
+      linkedExerciseIds: draft.exercises.map((e) => e.id),
+    };
 
+    await httpClient.put(`/content/lessons/${lessonId}`, payload);
+    lessonDrafts[lessonId] = updatedDraft;
+
+    if (lesson) {
       lessons = lessons.map((l) =>
         l.id === lessonId
           ? {

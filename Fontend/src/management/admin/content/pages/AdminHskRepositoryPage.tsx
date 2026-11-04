@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { UploadCloud, Plus } from 'lucide-react';
+import { UploadCloud, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CharacterDetailDrawer,
@@ -31,18 +31,25 @@ type ContentTab = 'VOCABULARY' | 'CHARACTER' | 'GRAMMAR' | 'HSK_LEVEL';
 
 export const AdminHskRepositoryPage: React.FC = () => {
   const [dataVersion, setDataVersion] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      await hskRepositoryService.syncVocabulariesFromApi();
+      setDataVersion((v) => v + 1);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Không thể tải danh sách từ vựng từ máy chủ.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    hskRepositoryService.syncVocabulariesFromApi().then(() => {
-      if (mounted) {
-        setDataVersion((v) => v + 1);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    loadData();
+  }, [loadData]);
 
   // 1. Data-driven HSK Levels
   const levels = useMemo(() => {
@@ -133,6 +140,17 @@ export const AdminHskRepositoryPage: React.FC = () => {
     }
   }, []);
 
+  const handleDeleteVocab = useCallback(async (id: string) => {
+    try {
+      await hskRepositoryService.deleteVocabularyAsync(id);
+      setDataVersion((v) => v + 1);
+      setIsVocabDrawerOpen(false);
+    } catch (err: any) {
+      console.error('Lỗi xóa từ vựng:', err);
+      alert(err?.message || 'Không thể xóa từ vựng khỏi máy chủ.');
+    }
+  }, []);
+
   // Handlers for Characters
   const handleOpenChar = useCallback((char: ChineseCharacter) => {
     setSelectedChar(char);
@@ -193,6 +211,42 @@ export const AdminHskRepositoryPage: React.FC = () => {
           </div>
         }
       />
+
+      {errorMessage && (
+        <div
+          style={{
+            background: 'var(--danger-bg, #fee2e2)',
+            border: '1px solid var(--danger-border, #fca5a5)',
+            color: 'var(--danger-text, #991b1b)',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={18} />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={loadData}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+        </div>
+      )}
+
+      {isLoading && (
+        <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--muted)' }}>
+          Đang tải dữ liệu HSK từ máy chủ...
+        </div>
+      )}
 
       {/* Level Selector Bar */}
       <LevelFilterBar
@@ -283,6 +337,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
         levels={levels}
         onClose={() => setIsVocabDrawerOpen(false)}
         onSave={handleSaveVocab}
+        onDelete={handleDeleteVocab}
       />
 
       <CharacterDetailDrawer
