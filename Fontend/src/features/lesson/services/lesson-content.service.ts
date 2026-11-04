@@ -2,19 +2,35 @@ import type { LessonDetailDTO } from '../types/lesson-content.types';
 import { MOCK_LESSON_8_DRAFT } from '../../../management/admin/content/data/mockLessonEditorData';
 import { adaptEditorDraftToDetailDTO } from '../adapters/lesson-player.adapter';
 import { lesson8Data } from '../data/lesson8';
+import { httpClient } from '../../../core/api/client/http-client';
 
 /**
  * Service for fetching normalized lesson content (LessonDetailDTO).
- * Simulates future Spring Boot REST API: GET /api/v1/lessons/{lessonId}
+ * Connects to ASP.NET Core REST API: GET /api/v1/content/lessons/{lessonId}
  */
 class LessonContentService {
   /**
    * Fetch normalized lesson details by ID.
-   * Returns normalized LessonDetailDTO derived from CMS Authoring Draft,
-   * with fallback to legacy lesson8Data if needed.
+   * Connects to live Backend SQL Server API with graceful fallback to mock data.
    */
   async getLessonDetail(lessonId: string = 'les-8'): Promise<LessonDetailDTO> {
-    // In mock mode, resolve Lesson 8 draft or customize based on curriculum metadata
+    // 1. Try fetching from live Backend API
+    if (lessonId && lessonId !== 'les-8') {
+      try {
+        const live = await httpClient.get<any>(`/content/lessons/${lessonId}`);
+        if (live && live.id) {
+          return this.adaptLiveBackendToDetailDTO(live);
+        }
+      } catch (error: any) {
+        // If 404 (e.g. DRAFT lesson hidden from Student, or not found), do not mask it with fake data!
+        if (error?.status === 404 || error?.statusCode === 404) {
+          throw new Error('Bài học không tồn tại hoặc chưa được phát hành (Draft).');
+        }
+        console.warn('[LessonContentService] Live API fetch failed, checking local mocks:', error);
+      }
+    }
+
+    // 2. In mock mode / local dev without API, resolve Lesson 8 draft or customize based on curriculum metadata
     try {
       const detail = adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
       if (lessonId && lessonId !== 'les-8' && lessonId !== '8') {
@@ -42,6 +58,151 @@ class LessonContentService {
       console.warn('[LessonContentService] Error resolving draft, falling back to legacy bridge:', error);
       return this.legacyFallbackBridge(lesson8Data);
     }
+  }
+
+  /**
+   * Adapts live Backend API response to LessonDetailDTO
+   */
+  private adaptLiveBackendToDetailDTO(live: any): LessonDetailDTO {
+    const vocabularies = Array.isArray(live.vocabularies)
+      ? live.vocabularies.map((v: any, idx: number) => {
+          let exampleZh = '';
+          let exampleVi = '';
+          let examplePinyin = '';
+          if (v.examplesJson) {
+            try {
+              const parsed = JSON.parse(v.examplesJson);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                exampleZh = parsed[0].zh || '';
+                examplePinyin = parsed[0].pinyin || '';
+                exampleVi = parsed[0].meaningVi || '';
+              }
+            } catch {
+              // ignore
+            }
+          }
+          return {
+            id: v.id,
+            lessonId: live.id,
+            vocabularyId: v.id,
+            simplified: v.hanzi,
+            traditional: v.traditional,
+            pinyin: v.pinyin,
+            meaningVi: v.meaningVi,
+            partOfSpeech: v.partOfSpeech,
+            audioUrl: v.audioUrl,
+            isCoreWord: true,
+            displayOrder: idx + 1,
+            customExampleZh: exampleZh,
+            customExamplePinyin: examplePinyin,
+            customExampleVi: exampleVi,
+          };
+        })
+      : [];
+
+    const grammars = Array.isArray(live.grammarPoints)
+      ? live.grammarPoints.map((g: any, idx: number) => {
+          let examples: any[] = [];
+          if (g.examplesJson) {
+            try {
+              examples = JSON.parse(g.examplesJson);
+            } catch {
+              examples = [];
+            }
+          }
+          return {
+            id: g.id,
+            lessonId: live.id,
+            grammarPointId: g.id,
+            code: g.code,
+            title: g.title,
+            explanation: g.explanation,
+            structureFormula: g.structureFormula,
+            displayOrder: idx + 1,
+            examples,
+          };
+        })
+      : [];
+
+    const exercises = Array.isArray(live.exercises)
+      ? live.exercises.map((e: any, idx: number) => {
+          let options: string[] = [];
+          if (e.optionsJson) {
+            try {
+              options = JSON.parse(e.optionsJson);
+            } catch {
+              options = [];
+            }
+          }
+          return {
+            id: e.id,
+            lessonId: live.id,
+            exerciseId: e.id,
+            section: 'PRACTICE' as const,
+            displayOrder: idx + 1,
+            exercise: {
+              id: e.id,
+              type: e.type,
+              title: e.title,
+              instruction: e.instruction,
+              promptHanzi: e.promptHanzi,
+              promptPinyin: e.promptPinyin,
+              promptVietnamese: e.promptVietnamese,
+              options,
+              correctOptionIndex: e.correctOptionIndex ?? 0,
+              explanation: e.explanation,
+            },
+          };
+        })
+      : [];
+
+    return {
+      id: live.id,
+      courseLevelId: 'level-hsk-1',
+      unitId: 'unit-1',
+      unitNumber: 1,
+      lessonNumber: live.lessonNumber,
+      status: live.status,
+      hskLevel: {
+        id: 'level-hsk-1',
+        code: 'HSK1',
+        name: 'HSK 1',
+        standardCode: 'HSK_3_0',
+        standardVersion: '3.0',
+      },
+      intro: {
+        titleZh: live.titleZh,
+        titleVi: live.titleVi,
+        pinyinTitle: live.pinyin || '',
+        summary: live.summary || '',
+        durationMinutes: live.durationMinutes || 20,
+        xpReward: live.xpReward || 50,
+        objectives: [
+          'Nắm vững từ vựng và câu giao tiếp chuẩn trong bài học',
+          'Luyện tập phát âm và áp dụng ngữ pháp vào hội thoại thực tế',
+        ],
+      },
+      vocabularies,
+      grammars,
+      dialogue: {
+        id: `diag-${live.id}`,
+        title: `Hội thoại bài ${live.lessonNumber}`,
+        situationVi: live.summary || 'Tình huống giao tiếp hàng ngày',
+        lines: [
+          {
+            id: '1',
+            speakerName: '王明',
+            speakerRole: 'Học sinh',
+            zh: live.titleZh,
+            pinyin: live.pinyin || '',
+            meaningVi: live.titleVi,
+            displayOrder: 1,
+          },
+        ],
+      },
+      listenings: [],
+      exercises,
+    };
   }
 
   /**

@@ -12,9 +12,9 @@ export interface AdminDashboardStats {
   totalStudents: number;
   totalTeachers: number;
   totalStaff: number;
-  totalCourses: number;
-  totalClasses: number;
-  pendingSupportTickets: number;
+  totalCourses?: number | null;
+  totalClasses?: number | null;
+  pendingSupportTickets?: number | null;
   activeUsers: number;
   lockedUsers: number;
   newUsers30d: number;

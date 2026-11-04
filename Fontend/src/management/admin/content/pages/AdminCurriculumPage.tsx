@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, BookOpen } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
@@ -21,6 +21,22 @@ import '../components/learning-content.css';
 export const AdminCurriculumPage: React.FC = () => {
   const navigate = useNavigate();
   const [dataVersion, setDataVersion] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    curriculumService.syncFromApi().then(() => {
+      if (mounted) {
+        setDataVersion((v) => v + 1);
+        const updatedCourses = curriculumService.getCourses();
+        if (updatedCourses.length > 0) {
+          setSelectedCourseId(updatedCourses[0].id);
+        }
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // 1. Courses
   const courses = useMemo(() => {

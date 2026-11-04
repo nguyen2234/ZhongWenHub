@@ -177,9 +177,9 @@ public class AdminUserService : IAdminUserService
             TotalStudents = totalStudents,
             TotalTeachers = totalTeachers,
             TotalStaff = totalStaff,
-            TotalCourses = 6, // 6 Khóa học chuẩn HSK 1 -> HSK 6
-            TotalClasses = 0, // Chuẩn bị cho Giai đoạn 3 (Teacher / Class)
-            PendingSupportTickets = 0, // Chuẩn bị cho Giai đoạn 4 (Support Ticket)
+            TotalCourses = await _dbContext.Courses.CountAsync(cancellationToken),
+            TotalClasses = null,
+            PendingSupportTickets = null,
             ActiveUsers = totalActive,
             LockedUsers = totalLocked,
             NewUsers30d = new30d

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 
 namespace ZhongWenHub.Data.Persistence;
@@ -23,6 +24,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<StudentDailyActivity> StudentDailyActivities => Set<StudentDailyActivity>();
     public DbSet<StudentVocabularyProgress> StudentVocabularyProgresses => Set<StudentVocabularyProgress>();
     public DbSet<StudentXpTransaction> StudentXpTransactions => Set<StudentXpTransaction>();
+
+    // Content Management DbSets
+    public DbSet<CourseEntity> Courses => Set<CourseEntity>();
+    public DbSet<LessonEntity> Lessons => Set<LessonEntity>();
+    public DbSet<VocabularyEntity> Vocabularies => Set<VocabularyEntity>();
+    public DbSet<GrammarPointEntity> GrammarPoints => Set<GrammarPointEntity>();
+    public DbSet<ExerciseEntity> Exercises => Set<ExerciseEntity>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -248,6 +256,134 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(x => new { x.UserId, x.EventId })
                 .IsUnique()
                 .HasDatabaseName("idx_xp_transactions_user_event");
+        });
+
+        // Course Configuration
+        builder.Entity<CourseEntity>(b =>
+        {
+            b.ToTable("courses");
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Code).HasMaxLength(50).IsRequired();
+            b.Property(c => c.Title).HasMaxLength(150).IsRequired();
+            b.Property(c => c.Description).HasMaxLength(1000);
+            b.Property(c => c.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(c => c.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(c => c.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasIndex(c => c.Code).IsUnique().HasDatabaseName("idx_courses_code");
+            b.HasIndex(c => c.HskLevel).HasDatabaseName("idx_courses_hsk_level");
+        });
+
+        // Lesson Configuration
+        builder.Entity<LessonEntity>(b =>
+        {
+            b.ToTable("lessons");
+            b.HasKey(l => l.Id);
+            b.Property(l => l.TitleZh).HasMaxLength(150).IsRequired();
+            b.Property(l => l.TitleVi).HasMaxLength(150).IsRequired();
+            b.Property(l => l.Pinyin).HasMaxLength(150);
+            b.Property(l => l.Summary).HasMaxLength(1000);
+            b.Property(l => l.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(l => l.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(l => l.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(l => l.Course)
+                .WithMany(c => c.Lessons)
+                .HasForeignKey(l => l.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(l => new { l.CourseId, l.LessonNumber }).HasDatabaseName("idx_lessons_course_number");
+            b.HasIndex(l => l.Status).HasDatabaseName("idx_lessons_status");
+        });
+
+        // Vocabulary Configuration
+        builder.Entity<VocabularyEntity>(b =>
+        {
+            b.ToTable("vocabularies");
+            b.HasKey(v => v.Id);
+            b.Property(v => v.Hanzi).HasMaxLength(50).IsRequired();
+            b.Property(v => v.Traditional).HasMaxLength(50);
+            b.Property(v => v.Pinyin).HasMaxLength(100).IsRequired();
+            b.Property(v => v.MeaningVi).HasMaxLength(255).IsRequired();
+            b.Property(v => v.MeaningEn).HasMaxLength(255);
+            b.Property(v => v.PartOfSpeech).HasMaxLength(50);
+            b.Property(v => v.AudioUrl).HasMaxLength(500);
+            b.Property(v => v.ExamplesJson).HasColumnType("nvarchar(max)");
+            b.Property(v => v.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(v => v.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(v => v.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(v => v.Lesson)
+                .WithMany(l => l.Vocabularies)
+                .HasForeignKey(v => v.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(v => v.HskLevel).HasDatabaseName("idx_vocabularies_hsk_level");
+            b.HasIndex(v => v.Hanzi).HasDatabaseName("idx_vocabularies_hanzi");
+            b.HasIndex(v => v.Status).HasDatabaseName("idx_vocabularies_status");
+        });
+
+        // GrammarPoint Configuration
+        builder.Entity<GrammarPointEntity>(b =>
+        {
+            b.ToTable("grammar_points");
+            b.HasKey(g => g.Id);
+            b.Property(g => g.Code).HasMaxLength(50).IsRequired();
+            b.Property(g => g.Title).HasMaxLength(150).IsRequired();
+            b.Property(g => g.PinyinTitle).HasMaxLength(150).IsRequired();
+            b.Property(g => g.Category).HasMaxLength(50).IsRequired();
+            b.Property(g => g.StructureFormula).HasMaxLength(255).IsRequired();
+            b.Property(g => g.Explanation).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(g => g.Difficulty).HasMaxLength(30).IsRequired();
+            b.Property(g => g.ExamplesJson).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(g => g.PracticeJson).HasColumnType("nvarchar(max)");
+            b.Property(g => g.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(g => g.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(g => g.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(g => g.Lesson)
+                .WithMany(l => l.GrammarPoints)
+                .HasForeignKey(g => g.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(g => g.Code).IsUnique().HasDatabaseName("idx_grammar_points_code");
+            b.HasIndex(g => g.HskLevel).HasDatabaseName("idx_grammar_points_hsk_level");
+            b.HasIndex(g => g.Status).HasDatabaseName("idx_grammar_points_status");
+        });
+
+        // Exercise Configuration
+        builder.Entity<ExerciseEntity>(b =>
+        {
+            b.ToTable("exercises");
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Type).HasMaxLength(50).IsRequired();
+            b.Property(e => e.Skill).HasMaxLength(50).IsRequired();
+            b.Property(e => e.Title).HasMaxLength(255).IsRequired();
+            b.Property(e => e.Instruction).HasMaxLength(500).IsRequired();
+            b.Property(e => e.PromptHanzi).HasMaxLength(500);
+            b.Property(e => e.PromptPinyin).HasMaxLength(500);
+            b.Property(e => e.PromptVietnamese).HasMaxLength(500);
+            b.Property(e => e.AudioUrl).HasMaxLength(500);
+            b.Property(e => e.OptionsJson).HasColumnType("nvarchar(max)");
+            b.Property(e => e.CorrectAnswer).HasMaxLength(500);
+            b.Property(e => e.Explanation).HasMaxLength(1000);
+            b.Property(e => e.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(e => e.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(e => e.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(e => e.Lesson)
+                .WithMany(l => l.Exercises)
+                .HasForeignKey(e => e.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasOne(e => e.GrammarPoint)
+                .WithMany()
+                .HasForeignKey(e => e.GrammarPointId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(e => e.HskLevel).HasDatabaseName("idx_exercises_hsk_level");
+            b.HasIndex(e => e.Skill).HasDatabaseName("idx_exercises_skill");
+            b.HasIndex(e => e.Status).HasDatabaseName("idx_exercises_status");
         });
     }
 

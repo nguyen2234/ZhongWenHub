@@ -320,6 +320,377 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("auth_audit_records", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.CourseEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("idx_courses_code");
+
+                    b.HasIndex("HskLevel")
+                        .HasDatabaseName("idx_courses_hsk_level");
+
+                    b.ToTable("courses", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExerciseEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AudioUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CorrectAnswer")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("CorrectOptionIndex")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid?>("GrammarPointId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Instruction")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OptionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PromptHanzi")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PromptPinyin")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PromptVietnamese")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Skill")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("XpReward")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrammarPointId");
+
+                    b.HasIndex("HskLevel")
+                        .HasDatabaseName("idx_exercises_hsk_level");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("Skill")
+                        .HasDatabaseName("idx_exercises_skill");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_exercises_status");
+
+                    b.ToTable("exercises", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.GrammarPointEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Difficulty")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ExamplesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PinyinTitle")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("PracticeJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("StructureFormula")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("idx_grammar_points_code");
+
+                    b.HasIndex("HskLevel")
+                        .HasDatabaseName("idx_grammar_points_hsk_level");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_grammar_points_status");
+
+                    b.ToTable("grammar_points", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LessonNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Pinyin")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TitleVi")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("TitleZh")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("XpReward")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_lessons_status");
+
+                    b.HasIndex("CourseId", "LessonNumber")
+                        .HasDatabaseName("idx_lessons_course_number");
+
+                    b.ToTable("lessons", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AudioUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExamplesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Hanzi")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MeaningEn")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("MeaningVi")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PartOfSpeech")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Pinyin")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PUBLISHED");
+
+                    b.Property<string>("Traditional")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Hanzi")
+                        .HasDatabaseName("idx_vocabularies_hanzi");
+
+                    b.HasIndex("HskLevel")
+                        .HasDatabaseName("idx_vocabularies_hsk_level");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_vocabularies_status");
+
+                    b.ToTable("vocabularies", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentDailyActivity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -750,6 +1121,54 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExerciseEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.GrammarPointEntity", "GrammarPoint")
+                        .WithMany()
+                        .HasForeignKey("GrammarPointId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany("Exercises")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("GrammarPoint");
+
+                    b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.GrammarPointEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany("GrammarPoints")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.CourseEntity", "Course")
+                        .WithMany("Lessons")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany("Vocabularies")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Lesson");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentDailyActivity", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
@@ -814,6 +1233,20 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.CourseEntity", b =>
+                {
+                    b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>
+                {
+                    b.Navigation("Exercises");
+
+                    b.Navigation("GrammarPoints");
+
+                    b.Navigation("Vocabularies");
                 });
 #pragma warning restore 612, 618
         }

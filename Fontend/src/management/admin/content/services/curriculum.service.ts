@@ -14,6 +14,7 @@ import type {
   UpdateLessonDTO,
   UpdateUnitDTO,
 } from '../types';
+import { httpClient } from '../../../../core/api/client/http-client';
 
 let courses = [...MOCK_COURSES];
 let courseLevels = [...MOCK_COURSE_LEVELS];
@@ -21,6 +22,77 @@ let units = [...MOCK_UNITS];
 let lessons = [...MOCK_LESSONS];
 
 class CurriculumService {
+  /**
+   * Syncs curriculum courses and lessons with the live Backend SQL Server API
+   */
+  async syncFromApi(): Promise<void> {
+    try {
+      const apiCourses = await httpClient.get<any[]>('/content/courses');
+      if (Array.isArray(apiCourses) && apiCourses.length > 0) {
+        courses = apiCourses.map((c: any) => ({
+          id: c.id,
+          code: c.code,
+          name: c.title,
+          description: c.description || '',
+          status: c.status,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt || c.createdAt,
+        }));
+
+        courseLevels = courses.map((c: any, idx: number) => ({
+          id: `cl-${c.id}`,
+          courseId: c.id,
+          hskLevelId: `level-hsk-${c.hskLevel || idx + 1}`,
+          name: c.name || `HSK ${c.hskLevel || idx + 1}`,
+          orderIndex: c.orderIndex || idx + 1,
+        }));
+      }
+
+      const apiLessons = await httpClient.get<{ items: any[] }>('/content/lessons', {
+        params: { pageSize: 100 },
+      });
+      if (apiLessons && Array.isArray(apiLessons.items) && apiLessons.items.length > 0) {
+        const primaryCourseLevelId = courseLevels[0]?.id || 'cl-1';
+
+        // Ensure Unit 1 exists for live lessons
+        if (!units.some((u) => u.id === 'unit-1')) {
+          units.push({
+            id: 'unit-1',
+            courseLevelId: primaryCourseLevelId,
+            unitNumber: 1,
+            titleZh: '问候与认识',
+            titleVi: 'Chào hỏi & Làm quen',
+            description: 'Các mẫu câu chào hỏi căn bản, giới thiệu bản thân và xưng hô lịch sự.',
+            orderIndex: 1,
+            status: 'PUBLISHED',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+
+        lessons = apiLessons.items.map((l: any) => ({
+          id: l.id,
+          unitId: 'unit-1',
+          lessonNumber: l.lessonNumber,
+          titleZh: l.titleZh,
+          titleVi: l.titleVi,
+          durationMinutes: l.durationMinutes,
+          xpReward: l.xpReward,
+          orderIndex: l.orderIndex,
+          status: l.status,
+          summary: l.summary || '',
+          linkedVocabularyCount: l.vocabularyCount ?? 0,
+          linkedGrammarCount: l.grammarCount ?? 0,
+          exerciseCount: l.exerciseCount ?? 0,
+          createdAt: l.createdAt,
+          updatedAt: l.updatedAt || l.createdAt,
+        }));
+      }
+    } catch (err) {
+      console.warn('[CurriculumService] Failed to sync from live backend API, using cached state:', err);
+    }
+  }
+
   getCourses(): Course[] {
     return courses.map((c) => ({ ...c }));
   }
@@ -125,6 +197,23 @@ class CurriculumService {
     };
 
     lessons[index] = updated;
+
+    // Async persist to Backend API
+    httpClient
+      .put(`/content/lessons/${id}`, {
+        lessonNumber: updated.lessonNumber,
+        titleZh: updated.titleZh,
+        titleVi: updated.titleVi,
+        durationMinutes: updated.durationMinutes,
+        xpReward: updated.xpReward,
+        orderIndex: updated.orderIndex,
+        status: updated.status,
+        summary: updated.summary,
+      })
+      .catch((err) => {
+        console.warn('[CurriculumService] Live update failed:', err);
+      });
+
     return { ...updated };
   }
 
@@ -148,6 +237,32 @@ class CurriculumService {
       updatedAt: new Date().toISOString(),
     };
     lessons = [...lessons, newLesson];
+
+    // Async persist to Backend API if course exists
+    const primaryCourseId = courses[0]?.id;
+    if (primaryCourseId) {
+      httpClient
+        .post<any>('/content/lessons', {
+          courseId: primaryCourseId,
+          lessonNumber: newLesson.lessonNumber,
+          titleZh: newLesson.titleZh,
+          titleVi: newLesson.titleVi,
+          durationMinutes: newLesson.durationMinutes,
+          xpReward: newLesson.xpReward,
+          orderIndex: newLesson.orderIndex,
+          status: newLesson.status,
+          summary: newLesson.summary,
+        })
+        .then((res) => {
+          if (res?.id) {
+            newLesson.id = res.id;
+          }
+        })
+        .catch((err) => {
+          console.warn('[CurriculumService] Live create failed:', err);
+        });
+    }
+
     return { ...newLesson };
   }
 
@@ -228,6 +343,19 @@ class CurriculumService {
         exerciseCount: draft.exercises.length,
         updatedAt: updatedDraft.updatedAt,
       };
+
+      httpClient
+        .put(`/content/lessons/${lessonId}`, {
+          lessonNumber: lessons[index].lessonNumber,
+          titleZh: lessons[index].titleZh,
+          titleVi: lessons[index].titleVi,
+          durationMinutes: lessons[index].durationMinutes,
+          xpReward: lessons[index].xpReward,
+          orderIndex: lessons[index].orderIndex,
+          status: lessons[index].status,
+          summary: lessons[index].summary,
+        })
+        .catch(console.warn);
     }
 
     return JSON.parse(JSON.stringify(updatedDraft));
@@ -236,6 +364,13 @@ class CurriculumService {
   publishLesson(lessonId: string): LessonEditorDraft {
     const draft = this.getLessonEditorData(lessonId);
     draft.status = 'PUBLISHED';
+
+    httpClient
+      .put(`/content/lessons/${lessonId}/status`, {
+        status: 'PUBLISHED',
+      })
+      .catch(console.warn);
+
     return this.saveLessonDraft(lessonId, draft);
   }
 

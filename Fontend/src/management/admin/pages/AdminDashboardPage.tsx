@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '../../shared/components';
 import type { DateRangeOption, RecentUser, StatMetricItem } from '../types/dashboard.types';
-import { getAdminDashboardData } from '../data/mockDashboardData';
 import {
   ActionPriorityBanner,
   DashboardDateRangeSelect,
@@ -16,40 +15,38 @@ import {
 import '../components/dashboard.css';
 
 import { contentModerationService } from '../../content-manager/services/content-moderation.service';
-import { supportTicketService } from '../../support/services/support-ticket.service';
 import { adminDashboardService, type AdminDashboardStats } from '../services/admin-dashboard.service';
 
 export const AdminDashboardPage: React.FC = () => {
   const [range, setRange] = useState<DateRangeOption>('30d');
   const [realStats, setRealStats] = useState<AdminDashboardStats | null>(null);
-  const [realRecentUsers, setRealRecentUsers] = useState<RecentUser[] | null>(null);
+  const [realRecentUsers, setRealRecentUsers] = useState<RecentUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    adminDashboardService.fetchDashboardStats().then((stats) => {
+    setIsLoading(true);
+    Promise.all([
+      adminDashboardService.fetchDashboardStats(),
+      adminDashboardService.fetchRecentUsers(5),
+    ]).then(([stats, users]) => {
       if (stats) setRealStats(stats);
-    });
-    adminDashboardService.fetchRecentUsers(5).then((users) => {
-      if (users && users.length > 0) setRealRecentUsers(users);
+      if (users) setRealRecentUsers(users);
+    }).finally(() => {
+      setIsLoading(false);
     });
   }, []);
 
-  const dashboardData = useMemo(() => {
-    return getAdminDashboardData(range);
-  }, [range]);
-
-  // Compute 6 Real SQL Server KPIs when realStats are available
+  // Compute 6 Real SQL Server KPIs
   const displayMetrics: StatMetricItem[] = useMemo(() => {
-    if (!realStats) return dashboardData.metrics;
-
     return [
       {
         id: 'total-students',
         title: 'Tổng số học viên',
-        currentTotal: realStats.totalStudents,
+        currentTotal: realStats ? realStats.totalStudents : (isLoading ? '...' : 0),
         totalLabel: 'Học viên trong hệ thống',
         deltaInRange: {
-          value: realStats.newUsers30d,
-          percentageText: `+${realStats.newUsers30d}`,
+          value: realStats?.newUsers30d ?? 0,
+          percentageText: realStats ? `+${realStats.newUsers30d}` : '+0',
           trend: 'positive',
           timeContext: 'mới đăng ký trong 30 ngày',
         },
@@ -59,11 +56,11 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'total-teachers',
         title: 'Tổng số giáo viên',
-        currentTotal: realStats.totalTeachers,
+        currentTotal: realStats ? realStats.totalTeachers : (isLoading ? '...' : 0),
         totalLabel: 'Giảng viên chuyên môn',
         deltaInRange: {
           value: 0,
-          percentageText: `${realStats.totalTeachers} active`,
+          percentageText: realStats ? `${realStats.totalTeachers} active` : '0 active',
           trend: 'neutral',
           timeContext: 'đội ngũ giảng viên hiện hành',
         },
@@ -73,11 +70,11 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'total-staff',
         title: 'Tổng số nhân viên',
-        currentTotal: realStats.totalStaff,
+        currentTotal: realStats ? realStats.totalStaff : (isLoading ? '...' : 0),
         totalLabel: 'Admin, Content & Support',
         deltaInRange: {
-          value: realStats.totalStaff,
-          percentageText: `${realStats.totalStaff} tài khoản`,
+          value: realStats?.totalStaff ?? 0,
+          percentageText: realStats ? `${realStats.totalStaff} tài khoản` : '0 tài khoản',
           trend: 'neutral',
           timeContext: 'nhân sự vận hành hệ thống',
         },
@@ -87,13 +84,13 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'total-courses',
         title: 'Tổng số khóa học',
-        currentTotal: realStats.totalCourses,
+        currentTotal: realStats?.totalCourses ?? 'Chưa triển khai',
         totalLabel: 'Lộ trình chuẩn HSK 1 - 6',
         deltaInRange: {
-          value: 6,
-          percentageText: 'HSK 1 - HSK 6',
-          trend: 'positive',
-          timeContext: 'chương trình đào tạo chính quy',
+          value: 0,
+          percentageText: realStats?.totalCourses != null ? `${realStats.totalCourses} khóa` : 'Chưa triển khai',
+          trend: realStats?.totalCourses != null ? 'positive' : 'neutral',
+          timeContext: realStats?.totalCourses != null ? 'chương trình chính quy' : 'Chưa có bảng dữ liệu',
         },
         deltaLabel: 'Khóa học',
         iconType: 'lessons',
@@ -101,13 +98,13 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'total-classes',
         title: 'Tổng số lớp học',
-        currentTotal: realStats.totalClasses,
+        currentTotal: realStats?.totalClasses ?? 'Chưa triển khai',
         totalLabel: 'Lớp học đang mở',
         deltaInRange: {
-          value: realStats.totalClasses,
-          percentageText: `${realStats.totalClasses} lớp`,
+          value: 0,
+          percentageText: 'Chưa triển khai',
           trend: 'neutral',
-          timeContext: 'lớp học trực tuyến',
+          timeContext: 'Dành cho Giai đoạn 3 (Teacher)',
         },
         deltaLabel: 'Lớp học',
         iconType: 'classes',
@@ -115,31 +112,25 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'pending-tickets',
         title: 'Hỗ trợ chưa xử lý',
-        currentTotal: realStats.pendingSupportTickets,
+        currentTotal: realStats?.pendingSupportTickets ?? 'Chưa triển khai',
         totalLabel: 'Ticket cần phản hồi',
         deltaInRange: {
-          value: realStats.pendingSupportTickets,
-          percentageText: realStats.pendingSupportTickets === 0 ? '0 ticket' : `${realStats.pendingSupportTickets} chờ`,
-          trend: realStats.pendingSupportTickets === 0 ? 'positive' : 'negative',
-          timeContext: 'yêu cầu từ học viên',
+          value: 0,
+          percentageText: 'Chưa triển khai',
+          trend: 'neutral',
+          timeContext: 'Dành cho Giai đoạn 4 (Support)',
         },
         deltaLabel: 'Hỗ trợ',
         iconType: 'support',
       },
     ];
-  }, [realStats, dashboardData.metrics]);
-
-  const recentUsers = useMemo(() => {
-    return realRecentUsers || dashboardData.recentUsers;
-  }, [realRecentUsers, dashboardData.recentUsers]);
+  }, [realStats, isLoading]);
 
   const pendingModerationCount = useMemo(() => {
     return contentModerationService.getModerationItems({ status: 'PENDING_REVIEW' }).length;
   }, []);
 
-  const urgentTicketsCount = useMemo(() => {
-    return realStats?.pendingSupportTickets ?? supportTicketService.getMetrics().urgent;
-  }, [realStats]);
+  const urgentTicketsCount = realStats?.pendingSupportTickets ?? 0;
 
   return (
     <div className="admin-dashboard">
@@ -164,30 +155,68 @@ export const AdminDashboardPage: React.FC = () => {
       {/* Row 2: 6 Key Real SQL Server KPIs */}
       <DashboardMetricsGrid metrics={displayMetrics} />
 
-      {/* Row 3: Analytics Row (65% Learning Activity + 35% HSK Distribution) */}
+      {/* Row 3: Analytics Row (Learning Activity + Role / HSK Distribution) */}
       <div className="dashboard-analytics-row">
         <LearningActivityChart
-          data={dashboardData.learningActivity}
-          rangeLabel={dashboardData.rangeLabel}
+          data={[]}
+          rangeLabel={range}
         />
-        <HskDistributionCard distribution={dashboardData.hskDistribution} />
+        <HskDistributionCard distribution={[
+          {
+            levelId: 'students',
+            label: 'Học viên',
+            learnerCount: realStats?.totalStudents ?? 0,
+            percentage: 100,
+            colorVar: '#3b82f6',
+            stageNote: 'Học tập',
+          },
+          {
+            levelId: 'teachers',
+            label: 'Giáo viên',
+            learnerCount: realStats?.totalTeachers ?? 0,
+            percentage: 0,
+            colorVar: '#10b981',
+            stageNote: 'Giảng dạy',
+          },
+          {
+            levelId: 'staff',
+            label: 'Nhân sự vận hành',
+            learnerCount: realStats?.totalStaff ?? 0,
+            percentage: 0,
+            colorVar: '#f59e0b',
+            stageNote: 'Quản trị',
+          },
+        ]} />
       </div>
 
-      {/* Row 4: Academic Scale & System Operations Row */}
+      {/* Row 4: Operations Row */}
       <div className="dashboard-operations-row">
-        {/* Left Column: Academic Content Scale & Recent Users */}
+        {/* Left Column: Recent Users */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
           <ContentScaleCard
-            contentScale={dashboardData.contentScale}
-            rangeLabel={dashboardData.rangeLabel}
+            contentScale={{
+              vocabulary: { key: 'vocab', label: 'Từ vựng', totalCount: 0, addedInRange: 0, unit: 'từ' },
+              grammar: { key: 'grammar', label: 'Ngữ pháp', totalCount: 0, addedInRange: 0, unit: 'điểm' },
+              characters: { key: 'chars', label: 'Chữ Hán', totalCount: 0, addedInRange: 0, unit: 'chữ' },
+              lessons: { key: 'lessons', label: 'Bài học', totalCount: 0, addedInRange: 0, unit: 'bài' },
+              exercises: { key: 'exercises', label: 'Bài tập', totalCount: 0, addedInRange: 0, unit: 'câu' },
+            }}
+            rangeLabel={range}
           />
-          <RecentUsersCard users={recentUsers} />
+          <RecentUsersCard users={realRecentUsers} />
         </div>
 
         {/* Right Column: Support SLA Overview & Operations Activity Timeline */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-          <SupportOverviewCard overview={dashboardData.supportOverview} />
-          <RecentActivityFeed activities={dashboardData.recentActivities} />
+          <SupportOverviewCard overview={{
+            openCount: 0,
+            pendingCount: 0,
+            urgentCount: 0,
+            avgResponseTime: '—',
+            resolvedRate: 100,
+            urgentTickets: [],
+          }} />
+          <RecentActivityFeed activities={[]} />
         </div>
       </div>
     </div>

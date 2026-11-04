@@ -69,7 +69,9 @@ export const DashboardMetricsGrid: React.FC<DashboardMetricsGridProps> = ({ metr
   return (
     <div className="dashboard-metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
       {metrics.map((item) => {
-        const trendClass = item.deltaInRange.trend;
+        const isNotImplemented = item.currentTotal === null || item.currentTotal === undefined || item.currentTotal === 'Chưa triển khai';
+        const trendClass = isNotImplemented ? 'neutral' : item.deltaInRange.trend;
+        
         return (
           <div key={item.id} className="admin-metric-card">
             <div>
@@ -79,26 +81,32 @@ export const DashboardMetricsGrid: React.FC<DashboardMetricsGridProps> = ({ metr
                   {renderIcon(item.iconType)}
                 </div>
               </div>
-              <div className="admin-metric-value">{item.currentTotal}</div>
+              {isNotImplemented ? (
+                <div className="admin-metric-value" style={{ fontSize: '15px', color: 'var(--muted)', fontWeight: 600, margin: '8px 0' }}>
+                  Chưa triển khai
+                </div>
+              ) : (
+                <div className="admin-metric-value">{item.currentTotal}</div>
+              )}
               <div className="admin-metric-total-label">{item.totalLabel}</div>
             </div>
 
             <div className="admin-metric-delta-row">
               <span className={`admin-metric-delta-tag ${trendClass}`}>
-                {trendClass === 'positive' && (
+                {!isNotImplemented && trendClass === 'positive' && (
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="18 15 12 9 6 15" />
                   </svg>
                 )}
-                {trendClass === 'negative' && (
+                {!isNotImplemented && trendClass === 'negative' && (
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 )}
-                {item.deltaInRange.percentageText}
+                {isNotImplemented ? 'Chưa triển khai' : item.deltaInRange.percentageText}
               </span>
               <span className="admin-metric-delta-context">
-                {item.deltaInRange.timeContext}
+                {isNotImplemented ? 'Chức năng đang phát triển' : item.deltaInRange.timeContext}
               </span>
             </div>
           </div>

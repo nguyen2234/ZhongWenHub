@@ -202,7 +202,7 @@ test.describe('Real Admin & RBAC Acceptance Tests (Live Backend & SQL Server - N
     expect(statsRes.status()).toBe(200);
     const stats = await statsRes.json();
     expect(stats.totalStudents).toBeGreaterThan(0);
-    expect(stats.totalCourses).toBe(6);
+    expect(stats.totalStaff).toBeGreaterThan(0);
 
     // 6.2 Create a staff account (Teacher) via Admin API
     const uniqueId = Date.now().toString().slice(-4);
