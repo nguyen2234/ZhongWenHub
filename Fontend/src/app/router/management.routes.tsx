@@ -36,7 +36,11 @@ import {
 export const managementRoutes: RouteObject[] = [
   {
     path: '/management',
-    element: <ManagementLayout />,
+    element: (
+      <ManagementRouteGuard requiredRole={['ADMIN', 'SUPER_ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT']}>
+        <ManagementLayout />
+      </ManagementRouteGuard>
+    ),
     children: [
       {
         index: true,

@@ -314,52 +314,61 @@ class AdminUserService {
     return JSON.parse(JSON.stringify(user));
   }
 
-  public lockUser(id: string, reason?: string): UserDetail {
+  public async lockUser(id: string, reason?: string): Promise<UserDetail> {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
       throw new Error('Không tìm thấy học viên.');
     }
 
-    user.status = 'LOCKED';
-    user.lockReason = reason || 'Tài khoản tạm thời bị khóa bởi Quản trị viên.';
-    user.lockedAt = new Date().toLocaleString('vi-VN');
-
+    const lockReason = reason || 'Tài khoản tạm thời bị khóa bởi Quản trị viên.';
     const token = authTokenService.getAccessToken();
     if (token && id.length > 20) {
-      fetch(getApiUrl(`admin/users/${id}/lock`), {
+      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         credentials: 'include',
-        body: JSON.stringify({ reason: user.lockReason }),
-      }).catch(() => {});
+        body: JSON.stringify({ reason: lockReason }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Không thể khóa tài khoản này.');
+      }
     }
+
+    user.status = 'LOCKED';
+    user.lockReason = lockReason;
+    user.lockedAt = new Date().toLocaleString('vi-VN');
 
     return JSON.parse(JSON.stringify(user));
   }
 
-  public unlockUser(id: string): UserDetail {
+  public async unlockUser(id: string): Promise<UserDetail> {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
       throw new Error('Không tìm thấy học viên.');
     }
 
-    user.status = 'ACTIVE';
-    delete user.lockReason;
-    delete user.lockedAt;
-
     const token = authTokenService.getAccessToken();
     if (token && id.length > 20) {
-      fetch(getApiUrl(`admin/users/${id}/unlock`), {
+      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
         credentials: 'include',
-      }).catch(() => {});
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || 'Không thể mở khóa tài khoản này.');
+      }
     }
+
+    user.status = 'ACTIVE';
+    delete user.lockReason;
+    delete user.lockedAt;
 
     return JSON.parse(JSON.stringify(user));
   }

@@ -153,26 +153,30 @@ export const AdminUsersPage: React.FC = () => {
     setIsConfirmLockOpen(true);
   };
 
-  const handleExecuteLockToggle = () => {
+  const handleExecuteLockToggle = async () => {
     if (!targetLockUser) return;
 
-    let updated: UserDetail;
-    if (targetLockUser.status === 'LOCKED') {
-      updated = adminUserService.unlockUser(targetLockUser.id);
-    } else {
-      updated = adminUserService.lockUser(
-        targetLockUser.id,
-        'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
-      );
-    }
+    try {
+      let updated: UserDetail;
+      if (targetLockUser.status === 'LOCKED') {
+        updated = await adminUserService.unlockUser(targetLockUser.id);
+      } else {
+        updated = await adminUserService.lockUser(
+          targetLockUser.id,
+          'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
+        );
+      }
 
-    if (selectedUser?.id === targetLockUser.id) {
-      setSelectedUser(updated);
-    }
+      if (selectedUser?.id === targetLockUser.id) {
+        setSelectedUser(updated);
+      }
 
-    setIsConfirmLockOpen(false);
-    setTargetLockUser(null);
-    triggerRefresh();
+      setIsConfirmLockOpen(false);
+      setTargetLockUser(null);
+      triggerRefresh();
+    } catch (err: any) {
+      alert(err.message || 'Không thể thực hiện thao tác.');
+    }
   };
 
   // Create User

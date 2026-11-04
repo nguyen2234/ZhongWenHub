@@ -5,6 +5,9 @@ export * from './types/auth.types';
 export * from './services/authService';
 export * from './services/student-identity.adapter';
 
+// Context
+export * from './context/AuthContext';
+
 // Hooks
 export * from './hooks/useAuth';
 export * from './hooks/usePasswordStrength';

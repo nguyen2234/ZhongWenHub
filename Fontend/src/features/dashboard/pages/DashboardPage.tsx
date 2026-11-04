@@ -26,6 +26,7 @@ import { useLearningState, HSK_CURRICULUM } from '../../learning';
 import { HSKLevel, ProgressBar, StickerIllustration } from '../../../design-system';
 import { DEMO_VIDEOS } from '../../videos';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import { useAuthContext } from '../../auth/context/AuthContext';
 import '../dashboard.css';
 
 export interface DashboardProps {
@@ -42,7 +43,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   const currentStudent = useCurrentStudent();
-  const studentName = currentStudent?.studentName || currentStudent?.student?.fullName || 'Học viên';
+  const { user, isAuthenticated } = useAuthContext();
+  const studentName = (isAuthenticated && user?.fullName) || currentStudent?.studentName || currentStudent?.student?.fullName || 'Học viên';
 
   const {
     currentHskLevel,
@@ -1167,7 +1169,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </button>
         </div>
 
-        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN (Clearly Badged as Demo) */}
+        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN */}
         <div className="dashboard-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1179,95 +1181,49 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <span
               style={{
                 fontSize: '10px',
-                fontWeight: 800,
+                fontWeight: 700,
                 padding: '2px 6px',
                 borderRadius: '4px',
-                backgroundColor: 'var(--primary-light, #FFF0F1)',
-                color: 'var(--primary, #E60012)',
+                backgroundColor: '#f1f5f9',
+                color: '#64748b',
               }}
             >
-              MÔ PHỎNG (DEMO)
+              SẮP RA MẮT
             </span>
           </div>
 
-          <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#94a3b8' }}>
-            Dữ liệu mô phỏng trước khi mở tính năng kết nối mạng xã hội
+          <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#94a3b8' }}>
+            Tính năng bảng xếp hạng toàn hệ thống đang được phát triển.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* Rank 1: Current Real User */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
+                padding: '10px 12px',
                 borderRadius: '8px',
                 backgroundColor: 'var(--primary-light, #FFF0F1)',
                 border: '1px solid #fed7da',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary, #E60012)', width: '16px' }}>
-                  1
+                <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary, #E60012)' }}>
+                  ★
                 </span>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>
                   {studentName} (Bạn)
                 </span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
-                {xpTotal} XP
-              </span>
-            </div>
-
-            {/* Rank 2 (Demo) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #f1f5f9',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
-                  2
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
+                  {xpTotal} XP
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                  Trần Hoàng Nam
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b' }}>
+                  🔥 {streakDays} ngày
                 </span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
-                1,420 XP
-              </span>
-            </div>
-
-            {/* Rank 3 (Demo) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #f1f5f9',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
-                  3
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                  Lê Phương Linh
-                </span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
-                1,180 XP
-              </span>
             </div>
           </div>
         </div>

@@ -308,8 +308,15 @@ public class AdminUserService : IAdminUserService
             return (false, null, "Không tìm thấy người dùng.", 404);
         }
 
+        // Security check 0: Cannot lock own account
+        if (user.Id == currentUserId)
+        {
+            return (false, null, "Không thể tự khóa tài khoản quản trị của chính mình.", 400);
+        }
+
         var (isActorSuperAdmin, isActorAdmin) = await GetActorPrivilegesAsync(currentUserId);
         var targetIsSuperAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.SuperAdmin);
+        var targetIsAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.Admin);
 
         // Security check 1: Admin cannot lock Super Admin
         if (targetIsSuperAdmin && !isActorSuperAdmin)
@@ -319,23 +326,24 @@ public class AdminUserService : IAdminUserService
             return (false, null, "Chỉ Super Admin mới có quyền khóa tài khoản Super Admin.", 403);
         }
 
-        // Security check 2: Cannot lock the last Super Admin
-        if (targetIsSuperAdmin)
+        // Security check 2: Cannot lock the last administrative account in the system
+        if (targetIsSuperAdmin || targetIsAdmin)
         {
-            var superAdminRole = await _roleManager.FindByNameAsync(RoleConstants.SuperAdmin);
-            if (superAdminRole != null)
-            {
-                var activeSuperAdminCount = await (
-                    from ur in _dbContext.UserRoles
-                    join u in _dbContext.Users on ur.UserId equals u.Id
-                    where ur.RoleId == superAdminRole.Id && !u.IsDeleted && u.Status == UserStatus.ACTIVE
-                    select u.Id
-                ).CountAsync(cancellationToken);
+            var adminRoleIds = await _dbContext.Roles
+                .Where(r => r.Name == RoleConstants.Admin || r.Name == RoleConstants.SuperAdmin)
+                .Select(r => r.Id)
+                .ToListAsync(cancellationToken);
 
-                if (activeSuperAdminCount <= 1)
-                {
-                    return (false, null, "Không thể khóa Super Admin đang hoạt động duy nhất trong hệ thống.", 400);
-                }
+            var activeAdminTotalCount = await (
+                from ur in _dbContext.UserRoles
+                join u in _dbContext.Users on ur.UserId equals u.Id
+                where adminRoleIds.Contains(ur.RoleId) && !u.IsDeleted && u.Status == UserStatus.ACTIVE
+                select u.Id
+            ).Distinct().CountAsync(cancellationToken);
+
+            if (activeAdminTotalCount <= 1)
+            {
+                return (false, null, "Không thể khóa tài khoản quản trị viên đang hoạt động duy nhất trong hệ thống.", 400);
             }
         }
 

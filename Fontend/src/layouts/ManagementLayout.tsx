@@ -17,7 +17,7 @@ export const ManagementLayout: React.FC = () => {
     return managementAuthService.subscribe((updated) => setSession(updated));
   }, []);
 
-  const currentRole: UserRole = session.role;
+  const currentRole: UserRole = session?.role || 'ADMIN';
 
   // Sidebar expanded / collapsed state (persisted or auto-collapsed on tablet)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -124,8 +124,8 @@ export const ManagementLayout: React.FC = () => {
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onMobileToggle={() => setIsMobileOpen((prev) => !prev)}
-          userName={session.name}
-          userEmail={session.email}
+          userName={session?.name || 'Quản trị viên'}
+          userEmail={session?.email || 'admin@zhongwenhub.edu.vn'}
         />
 
         {/* Content Viewport */}

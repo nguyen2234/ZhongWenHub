@@ -34,15 +34,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     const newErrors: { email?: string; password?: string } = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Vui lòng nhập email.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Vui lòng nhập email hoặc tên đăng nhập.';
+    } else if (formData.email.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = 'Email không đúng định dạng.';
     }
 
     if (!formData.password) {
       newErrors.password = 'Vui lòng nhập mật khẩu.';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự.';
     }
 
     setErrors(newErrors);
@@ -126,10 +124,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         <AuthInput
           id="login-email"
-          label="Email"
-          type="email"
+          label="Email hoặc tên đăng nhập"
+          type="text"
           isRequired
-          placeholder="ban@example.com"
+          placeholder="ban@example.com hoặc tên đăng nhập"
           value={formData.email}
           onChange={(e) => {
             setFormData({ ...formData, email: e.target.value });
@@ -167,7 +165,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           <PasswordInput
             id="login-password"
             label=""
-            placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
+            placeholder="Nhập mật khẩu"
             value={formData.password}
             onChange={(e) => {
               setFormData({ ...formData, password: e.target.value });

@@ -81,7 +81,7 @@ export const authService = {
   async login(request: LoginRequest): Promise<AuthResponse> {
     const emailTrimmed = request.email.trim();
     if (!emailTrimmed) {
-      throw new Error('Email không được để trống.');
+      throw new Error('Email hoặc tên đăng nhập không được để trống.');
     }
     if (!request.password) {
       throw new Error('Mật khẩu không được để trống.');
@@ -329,11 +329,14 @@ export const authService = {
 
     // Sync management session
     const session = managementAuthService.getSession();
-    managementAuthService.setSession({
-      ...session,
-      name: updatedUser.fullName,
-      avatarUrl: updatedUser.avatarUrl,
-    });
+    if (session) {
+      managementAuthService.setSession({
+        ...session,
+        id: session.id || updatedUser.id,
+        name: updatedUser.fullName,
+        avatarUrl: updatedUser.avatarUrl,
+      });
+    }
 
     return updatedUser;
   },
@@ -344,7 +347,7 @@ export const authService = {
   async register(request: RegisterRequest): Promise<AuthResponse> {
     const emailTrimmed = request.email.trim().toLowerCase();
     if (!emailTrimmed) {
-      throw new Error('Email không được để trống.');
+      throw new Error('Email hoặc tên đăng nhập không được để trống.');
     }
     if (!request.fullName?.trim()) {
       throw new Error('Họ và tên không được để trống.');
