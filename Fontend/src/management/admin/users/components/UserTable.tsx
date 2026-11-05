@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Eye, Edit3, ShieldAlert, ShieldCheck, Trash2, KeyRound, CreditCard, Sparkles } from 'lucide-react';
+import { Eye, Edit3, ShieldAlert, ShieldCheck } from 'lucide-react';
 import type { UserListItem, UserSort, UserSortField } from '../types/user.types';
 import type { TableColumn, RowAction } from '../../../shared/types';
 import { ManagementDataTable, StatusBadge } from '../../../shared/components';
@@ -13,10 +13,6 @@ export interface UserTableProps {
   onSelectUser: (user: UserListItem) => void;
   onEditUser: (user: UserListItem) => void;
   onLockUnlockUser: (user: UserListItem) => void;
-  onDeleteUser?: (user: UserListItem) => void;
-  onResetPassword?: (user: UserListItem) => void;
-  onAdjustWallet?: (user: UserListItem) => void;
-  onUpdateSubscription?: (user: UserListItem) => void;
   sort?: UserSort;
   onSortChange?: (field: UserSortField) => void;
   onResetFilters?: () => void;
@@ -44,6 +40,14 @@ const isWalletAndPlanEligible = (user: UserListItem) => {
   return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
 };
 
+const isSoleAdmin = (user: UserListItem) => {
+  return (
+    user.email.toLowerCase() === 'admin@gmail.com' ||
+    user.roles?.includes('ADMIN') ||
+    user.role === 'ADMIN'
+  );
+};
+
 export const UserTable: React.FC<UserTableProps> = ({
   users,
   selectedUserId: _selectedUserId,
@@ -53,10 +57,6 @@ export const UserTable: React.FC<UserTableProps> = ({
   onSelectUser,
   onEditUser,
   onLockUnlockUser,
-  onDeleteUser,
-  onResetPassword,
-  onAdjustWallet,
-  onUpdateSubscription,
   sort,
   onSortChange,
   onResetFilters,
@@ -249,57 +249,32 @@ export const UserTable: React.FC<UserTableProps> = ({
     () => [
       {
         key: 'view',
-        label: 'Xem chi tiết',
+        label: 'Xem',
         icon: <Eye size={15} />,
         onClick: (user: UserListItem) => onSelectUser(user),
       },
       {
-        key: 'reset_password',
-        label: 'Đặt lại mật khẩu',
-        icon: <KeyRound size={15} style={{ color: '#2563eb' }} />,
-        onClick: (user: UserListItem) => onResetPassword && onResetPassword(user),
-      },
-      {
-        key: 'adjust_wallet',
-        label: 'Điều chỉnh số dư',
-        icon: <CreditCard size={15} style={{ color: '#16a34a' }} />,
-        hidden: (user: UserListItem) => !isWalletAndPlanEligible(user),
-        onClick: (user: UserListItem) => onAdjustWallet && onAdjustWallet(user),
-      },
-      {
-        key: 'update_subscription',
-        label: 'Thay đổi gói',
-        icon: <Sparkles size={15} style={{ color: '#d97706' }} />,
-        hidden: (user: UserListItem) => !isWalletAndPlanEligible(user),
-        onClick: (user: UserListItem) => onUpdateSubscription && onUpdateSubscription(user),
-      },
-      {
         key: 'edit',
-        label: 'Chỉnh sửa',
+        label: 'Sửa',
         icon: <Edit3 size={15} />,
         onClick: (user: UserListItem) => onEditUser(user),
       },
       {
-        key: 'toggle_lock',
-        label: (u: UserListItem) => (u.status === 'LOCKED' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'),
+        key: 'toggle_status',
+        label: (u: UserListItem) =>
+          u.status === 'LOCKED' || u.status === 'INACTIVE' ? 'Kích hoạt lại' : 'Vô hiệu hóa',
         icon: (u: UserListItem) =>
-          u.status === 'LOCKED' ? (
+          u.status === 'LOCKED' || u.status === 'INACTIVE' ? (
             <ShieldCheck size={15} style={{ color: '#16a34a' }} />
           ) : (
             <ShieldAlert size={15} style={{ color: '#dc2626' }} />
           ),
         variant: 'danger',
+        disabled: (u: UserListItem) => isSoleAdmin(u),
         onClick: (user: UserListItem) => onLockUnlockUser(user),
       },
-      {
-        key: 'delete_user',
-        label: 'Vô hiệu hóa tài khoản',
-        icon: <Trash2 size={15} style={{ color: '#dc2626' }} />,
-        variant: 'danger',
-        onClick: (user: UserListItem) => onDeleteUser && onDeleteUser(user),
-      },
     ],
-    [onSelectUser, onResetPassword, onAdjustWallet, onUpdateSubscription, onEditUser, onLockUnlockUser, onDeleteUser]
+    [onSelectUser, onEditUser, onLockUnlockUser]
   );
 
   return (

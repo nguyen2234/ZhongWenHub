@@ -1,10 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader, Pagination, ConfirmDialog, ToastNotification, type ToastMessage } from '../../../shared/components';
 import type {
   CreateUserDTO,
-  UpdateUserDTO,
-  UserDetail,
   UserFilters,
   UserListItem,
   UserSort,
@@ -16,15 +15,21 @@ import {
   UserToolbar,
   UserTable,
   UserCardList,
-  UserDetailDrawer,
   CreateUserModal,
-  ResetPasswordModal,
-  AdjustWalletModal,
-  UpdateSubscriptionModal,
 } from '../components';
 import '../components/user-management.css';
 
+const isSoleAdmin = (user: UserListItem) => {
+  return (
+    user.email.toLowerCase() === 'admin@gmail.com' ||
+    user.roles?.includes('ADMIN') ||
+    user.role === 'ADMIN'
+  );
+};
+
 export const AdminUsersPage: React.FC = () => {
+  const navigate = useNavigate();
+
   // 1. Filter and search state
   const [filters, setFilters] = useState<UserFilters>({
     search: '',
@@ -60,25 +65,11 @@ export const AdminUsersPage: React.FC = () => {
 
   // 5. Selection states
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // 6. Modal and notification states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [targetLockUser, setTargetLockUser] = useState<UserListItem | UserDetail | null>(null);
+  const [targetLockUser, setTargetLockUser] = useState<UserListItem | null>(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
-  const [targetDeleteUser, setTargetDeleteUser] = useState<UserListItem | UserDetail | null>(null);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-
-  // New Upgrade Modals
-  const [targetResetUser, setTargetResetUser] = useState<UserListItem | UserDetail | null>(null);
-  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
-
-  const [targetWalletUser, setTargetWalletUser] = useState<UserListItem | UserDetail | null>(null);
-  const [isAdjustWalletOpen, setIsAdjustWalletOpen] = useState(false);
-
-  const [targetSubUser, setTargetSubUser] = useState<UserListItem | UserDetail | null>(null);
-  const [isUpdateSubOpen, setIsUpdateSubOpen] = useState(false);
 
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -152,76 +143,56 @@ export const AdminUsersPage: React.FC = () => {
     }
   };
 
-  // Drawer interactions
-  const handleSelectUser = async (user: UserListItem) => {
-    // Attempt to load rich details with transactions from backend
-    try {
-      const detailed = await adminUserService.getUserDetailAsync(user.id);
-      setSelectedUser(detailed);
-    } catch {
-      const local = adminUserService.getUserById(user.id);
-      setSelectedUser(local || null);
-    }
-    setIsDrawerOpen(true);
+  // Page-based Navigation (Separate Pages instead of Drawer)
+  const handleSelectUser = (user: UserListItem) => {
+    navigate(`/management/admin/users/${user.id}`);
   };
 
   const handleEditFromTable = (user: UserListItem) => {
-    handleSelectUser(user);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-  };
-
-  // Save edit in Drawer
-  const handleSaveEdit = async (id: string, dto: UpdateUserDTO) => {
-    try {
-      const updated = await adminUserService.updateUser(id, dto);
-      setToast({
-        type: 'success',
-        message: `Đã cập nhật thông tin người dùng ${updated.name} thành công!`,
-      });
-      setSelectedUser(updated);
-      triggerRefresh();
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err.message || 'Không thể cập nhật người dùng.',
-      });
-      throw err;
-    }
+    navigate(`/management/admin/users/${user.id}/edit`);
   };
 
   // Lock / Unlock Confirmation
-  const handleOpenLockConfirmation = (user: UserListItem | UserDetail) => {
+  const handleOpenLockConfirmation = (user: UserListItem) => {
+    if (isSoleAdmin(user)) {
+      setToast({
+        type: 'error',
+        message: 'Không thể vô hiệu hóa tài khoản Quản trị viên duy nhất trong hệ thống.',
+      });
+      return;
+    }
     setTargetLockUser(user);
     setIsConfirmLockOpen(true);
   };
 
   const handleExecuteLockToggle = async () => {
     if (!targetLockUser) return;
+    if (isSoleAdmin(targetLockUser)) {
+      setToast({
+        type: 'error',
+        message: 'Không thể vô hiệu hóa tài khoản Quản trị viên duy nhất trong hệ thống.',
+      });
+      setIsConfirmLockOpen(false);
+      return;
+    }
 
     try {
-      let updated: UserDetail;
-      if (targetLockUser.status === 'LOCKED') {
-        updated = await adminUserService.unlockUser(targetLockUser.id);
+      const isDeactivated = targetLockUser.status === 'LOCKED' || targetLockUser.status === 'INACTIVE';
+      if (isDeactivated) {
+        await adminUserService.unlockUser(targetLockUser.id);
         setToast({
           type: 'success',
-          message: `Đã mở khóa tài khoản ${targetLockUser.name} thành công.`,
+          message: `Đã kích hoạt lại tài khoản ${targetLockUser.name} thành công.`,
         });
       } else {
-        updated = await adminUserService.lockUser(
+        await adminUserService.lockUser(
           targetLockUser.id,
           'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
         );
         setToast({
           type: 'success',
-          message: `Đã khóa tài khoản ${targetLockUser.name}. Phiên đăng nhập đã bị vô hiệu.`,
+          message: `Đã vô hiệu hóa tài khoản ${targetLockUser.name}.`,
         });
-      }
-
-      if (selectedUser?.id === targetLockUser.id) {
-        setSelectedUser(updated);
       }
 
       setIsConfirmLockOpen(false);
@@ -235,125 +206,6 @@ export const AdminUsersPage: React.FC = () => {
     }
   };
 
-  // Delete / Deactivate Confirmation
-  const handleOpenDeleteConfirmation = (user: UserListItem | UserDetail) => {
-    setTargetDeleteUser(user);
-    setIsConfirmDeleteOpen(true);
-  };
-
-  const handleExecuteDelete = async () => {
-    if (!targetDeleteUser) return;
-
-    try {
-      await adminUserService.deleteUser(targetDeleteUser.id);
-      setToast({
-        type: 'success',
-        message: `Đã vô hiệu hóa tài khoản ${targetDeleteUser.name} thành công.`,
-      });
-      setIsConfirmDeleteOpen(false);
-      setTargetDeleteUser(null);
-      if (selectedUser?.id === targetDeleteUser.id) {
-        setIsDrawerOpen(false);
-        setSelectedUser(null);
-      }
-      triggerRefresh();
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err.message || 'Không thể vô hiệu hóa tài khoản này.',
-      });
-    }
-  };
-
-  // Reset Password Handlers
-  const handleOpenResetPassword = (user: UserListItem | UserDetail) => {
-    setTargetResetUser(user);
-    setIsResetPasswordOpen(true);
-  };
-
-  const handleConfirmResetPassword = async (password: string) => {
-    if (!targetResetUser) return;
-    try {
-      const res = await adminUserService.resetPasswordAsync(targetResetUser.id, {
-        newPassword: password,
-        confirmPassword: password,
-      });
-      setToast({
-        type: 'success',
-        message: res.message || `Đã đặt lại mật khẩu cho tài khoản ${targetResetUser.name} thành công!`,
-      });
-      setIsResetPasswordOpen(false);
-      setTargetResetUser(null);
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err.message || 'Không thể đặt lại mật khẩu.',
-      });
-      throw err;
-    }
-  };
-
-  // Adjust Wallet Handlers
-  const handleOpenAdjustWallet = (user: UserListItem | UserDetail) => {
-    setTargetWalletUser(user);
-    setIsAdjustWalletOpen(true);
-  };
-
-  const handleConfirmAdjustWallet = async (userId: string, amount: number, reason: string) => {
-    try {
-      const res = await adminUserService.adjustWalletBalanceAsync(userId, { amount, reason });
-      setToast({
-        type: 'success',
-        message: res.message || 'Đã điều chỉnh số dư ví thành công!',
-      });
-      setIsAdjustWalletOpen(false);
-      setTargetWalletUser(null);
-      triggerRefresh();
-      if (selectedUser?.id === userId) {
-        const fresh = await adminUserService.getUserDetailAsync(userId);
-        setSelectedUser(fresh);
-      }
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err.message || 'Không thể điều chỉnh số dư.',
-      });
-      throw err;
-    }
-  };
-
-  // Update Subscription Handlers
-  const handleOpenUpdateSubscription = (user: UserListItem | UserDetail) => {
-    setTargetSubUser(user);
-    setIsUpdateSubOpen(true);
-  };
-
-  const handleConfirmUpdateSubscription = async (userId: string, plan: string, durationMonths: number) => {
-    try {
-      const res = await adminUserService.updateSubscriptionPlanAsync(userId, {
-        plan,
-        durationMonths,
-      });
-      setToast({
-        type: 'success',
-        message: res.message || 'Đã cập nhật gói hội viên thành công!',
-      });
-      setIsUpdateSubOpen(false);
-      setTargetSubUser(null);
-      triggerRefresh();
-      if (selectedUser?.id === userId) {
-        const fresh = await adminUserService.getUserDetailAsync(userId);
-        setSelectedUser(fresh);
-      }
-    } catch (err: any) {
-      setToast({
-        type: 'error',
-        message: err.message || 'Không thể cập nhật gói.',
-      });
-      throw err;
-    }
-  };
-
   // Create User
   const handleCreateUser = async (dto: CreateUserDTO) => {
     try {
@@ -362,9 +214,9 @@ export const AdminUsersPage: React.FC = () => {
         type: 'success',
         message: `Đã tạo tài khoản ${created.name} (${created.email}) thành công!`,
       });
+      setIsCreateModalOpen(false);
       triggerRefresh();
-      setSelectedUser(created);
-      setIsDrawerOpen(true);
+      navigate(`/management/admin/users/${created.id}`);
     } catch (err: any) {
       setToast({
         type: 'error',
@@ -384,20 +236,20 @@ export const AdminUsersPage: React.FC = () => {
       };
     }
 
-    const isLocked = targetLockUser.status === 'LOCKED';
-    if (isLocked) {
+    const isDeactivated = targetLockUser.status === 'LOCKED' || targetLockUser.status === 'INACTIVE';
+    if (isDeactivated) {
       return {
-        title: `Mở khóa tài khoản ${targetLockUser.name}?`,
+        title: `Kích hoạt lại tài khoản ${targetLockUser.name}?`,
         message: `Người dùng sẽ có thể đăng nhập trở lại và tiếp tục sử dụng hệ thống đào tạo ZhongWenHub.`,
-        confirmLabel: 'Mở khóa tài khoản',
+        confirmLabel: 'Kích hoạt lại tài khoản',
         isDestructive: false,
       };
     }
 
     return {
-      title: `Khóa tài khoản ${targetLockUser.name}?`,
-      message: `Người dùng sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa lại. Toàn bộ tiến độ học tập và dữ liệu vẫn được bảo lưu an toàn.`,
-      confirmLabel: 'Khóa tài khoản',
+      title: `Vô hiệu hóa tài khoản ${targetLockUser.name}?`,
+      message: `Tài khoản sẽ bị vô hiệu hóa (tạm khóa). Người dùng sẽ không thể đăng nhập cho đến khi được kích hoạt lại.`,
+      confirmLabel: 'Vô hiệu hóa tài khoản',
       isDestructive: true,
     };
   }, [targetLockUser]);
@@ -477,20 +329,15 @@ export const AdminUsersPage: React.FC = () => {
         </div>
       )}
 
-      {/* 4. Data Table (Desktop >=768px) */}
+      {/* 4. Data Table (Desktop >=768px) - Strictly 3 Actions: Xem, Sửa, Vô hiệu hóa / Kích hoạt lại */}
       <UserTable
         users={paginatedData.items}
-        selectedUserId={isDrawerOpen ? selectedUser?.id : undefined}
         selectedIds={selectedIds}
         onToggleSelectAll={handleToggleSelectAll}
         onToggleSelectUser={handleToggleSelectUser}
         onSelectUser={handleSelectUser}
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
-        onDeleteUser={handleOpenDeleteConfirmation}
-        onResetPassword={handleOpenResetPassword}
-        onAdjustWallet={handleOpenAdjustWallet}
-        onUpdateSubscription={handleOpenUpdateSubscription}
         sort={sort}
         onSortChange={handleSortChange}
         onResetFilters={handleResetFilters}
@@ -499,13 +346,9 @@ export const AdminUsersPage: React.FC = () => {
       {/* 5. Mobile Cards View (<768px) */}
       <UserCardList
         users={paginatedData.items}
-        selectedUserId={isDrawerOpen ? selectedUser?.id : undefined}
         onSelectUser={handleSelectUser}
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
-        onResetPassword={handleOpenResetPassword}
-        onAdjustWallet={handleOpenAdjustWallet}
-        onUpdateSubscription={handleOpenUpdateSubscription}
         onResetFilters={handleResetFilters}
       />
 
@@ -523,20 +366,7 @@ export const AdminUsersPage: React.FC = () => {
         itemLabel="người dùng"
       />
 
-      {/* 7. Slide-over User Detail Drawer */}
-      <UserDetailDrawer
-        isOpen={isDrawerOpen}
-        user={selectedUser}
-        onClose={handleCloseDrawer}
-        onSaveEdit={handleSaveEdit}
-        onToggleLock={handleOpenLockConfirmation}
-        onDelete={handleOpenDeleteConfirmation}
-        onResetPassword={handleOpenResetPassword}
-        onAdjustWallet={handleOpenAdjustWallet}
-        onUpdateSubscription={handleOpenUpdateSubscription}
-      />
-
-      {/* 8. Destructive Action Confirmation Dialog */}
+      {/* 7. Destructive Action Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isConfirmLockOpen}
         title={confirmDialogProps.title}
@@ -547,62 +377,14 @@ export const AdminUsersPage: React.FC = () => {
         onCancel={() => setIsConfirmLockOpen(false)}
       />
 
-      {/* 9. Soft-delete / Deactivate Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={isConfirmDeleteOpen}
-        title={`Vô hiệu hóa tài khoản ${targetDeleteUser?.name || ''}?`}
-        message="Tài khoản sẽ bị vô hiệu hóa và chuyển sang trạng thái ngưng hoạt động. Toàn bộ tiến độ học tập và dữ liệu lịch sử được bảo lưu an toàn."
-        confirmLabel="Vô hiệu hóa tài khoản"
-        cancelLabel="Hủy bỏ"
-        isDestructive={true}
-        onConfirm={handleExecuteDelete}
-        onCancel={() => {
-          setIsConfirmDeleteOpen(false);
-          setTargetDeleteUser(null);
-        }}
-      />
-
-      {/* 10. Create User Modal */}
+      {/* 8. Create User Modal */}
       <CreateUserModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateUser}
       />
 
-      {/* 11. Reset Password Modal */}
-      <ResetPasswordModal
-        isOpen={isResetPasswordOpen}
-        user={targetResetUser}
-        onClose={() => {
-          setIsResetPasswordOpen(false);
-          setTargetResetUser(null);
-        }}
-        onConfirm={handleConfirmResetPassword}
-      />
-
-      {/* 12. Adjust Wallet Balance Modal */}
-      <AdjustWalletModal
-        isOpen={isAdjustWalletOpen}
-        user={targetWalletUser}
-        onClose={() => {
-          setIsAdjustWalletOpen(false);
-          setTargetWalletUser(null);
-        }}
-        onConfirm={handleConfirmAdjustWallet}
-      />
-
-      {/* 13. Update Subscription Plan Modal */}
-      <UpdateSubscriptionModal
-        isOpen={isUpdateSubOpen}
-        user={targetSubUser}
-        onClose={() => {
-          setIsUpdateSubOpen(false);
-          setTargetSubUser(null);
-        }}
-        onConfirm={handleConfirmUpdateSubscription}
-      />
-
-      {/* 14. Toast Notification */}
+      {/* 9. Toast Notification */}
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );

@@ -1,4 +1,4 @@
-import type { RouteObject } from 'react-router-dom';
+﻿import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';
@@ -12,7 +12,11 @@ import {
 import { TeacherAIWorkspacePage } from '../../features/ai';
 import { SupportDashboardPage } from '../../management/support/pages/SupportDashboardPage';
 
-import { AdminUsersPage } from '../../management/admin/users/pages/AdminUsersPage';
+import {
+  AdminUsersPage,
+  AdminUserDetailPage,
+  AdminUserEditPage,
+} from '../../management/admin/users';
 import { AdminTeachersPage } from '../../management/admin/teachers/pages/AdminTeachersPage';
 import { AdminSupportStaffPage } from '../../management/admin/support-staff/pages/AdminSupportStaffPage';
 import { AdminRolesPage } from '../../management/admin/roles/pages/AdminRolesPage';
@@ -67,6 +71,22 @@ export const managementRoutes: RouteObject[] = [
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
                 <AdminUsersPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'users/:id',
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminUserDetailPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'users/:id/edit',
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminUserEditPage />
               </ManagementRouteGuard>
             ),
           },

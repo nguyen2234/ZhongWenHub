@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreHorizontal, Eye, Edit3, ShieldAlert, ShieldCheck, KeyRound, CreditCard, Sparkles } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit3, ShieldAlert, ShieldCheck } from 'lucide-react';
 import type { UserListItem } from '../types/user.types';
 import { StatusBadge, EmptyState } from '../../../shared/components';
 
@@ -9,9 +9,6 @@ export interface UserCardListProps {
   onSelectUser: (user: UserListItem) => void;
   onEditUser: (user: UserListItem) => void;
   onLockUnlockUser: (user: UserListItem) => void;
-  onResetPassword?: (user: UserListItem) => void;
-  onAdjustWallet?: (user: UserListItem) => void;
-  onUpdateSubscription?: (user: UserListItem) => void;
   onResetFilters?: () => void;
 }
 
@@ -37,15 +34,20 @@ const isWalletAndPlanEligible = (user: UserListItem) => {
   return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
 };
 
+const isSoleAdmin = (user: UserListItem) => {
+  return (
+    user.email.toLowerCase() === 'admin@gmail.com' ||
+    user.roles?.includes('ADMIN') ||
+    user.role === 'ADMIN'
+  );
+};
+
 export const UserCardList: React.FC<UserCardListProps> = ({
   users,
   selectedUserId,
   onSelectUser,
   onEditUser,
   onLockUnlockUser,
-  onResetPassword,
-  onAdjustWallet,
-  onUpdateSubscription,
   onResetFilters,
 }) => {
   const [activeMenuId, setActiveMenuId] = React.useState<string | null>(null);
@@ -102,6 +104,8 @@ export const UserCardList: React.FC<UserCardListProps> = ({
         const roleInfo = getRoleBadgeInfo(user.roles || (user.role ? [user.role] : undefined));
         const isMenuOpen = activeMenuId === user.id;
         const eligible = isWalletAndPlanEligible(user);
+        const adminUser = isSoleAdmin(user);
+        const isDeactivated = user.status === 'LOCKED' || user.status === 'INACTIVE';
 
         return (
           <div
@@ -143,45 +147,8 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                       }}
                     >
                       <Eye size={13} style={{ color: 'var(--muted)' }} />
-                      Chi tiết
+                      Xem
                     </button>
-                    <button
-                      type="button"
-                      className="action-menu-item"
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        onResetPassword && onResetPassword(user);
-                      }}
-                    >
-                      <KeyRound size={13} style={{ color: '#2563eb' }} />
-                      Đặt lại mật khẩu
-                    </button>
-                    {eligible && (
-                      <>
-                        <button
-                          type="button"
-                          className="action-menu-item"
-                          onClick={() => {
-                            setActiveMenuId(null);
-                            onAdjustWallet && onAdjustWallet(user);
-                          }}
-                        >
-                          <CreditCard size={13} style={{ color: '#16a34a' }} />
-                          Điều chỉnh số dư
-                        </button>
-                        <button
-                          type="button"
-                          className="action-menu-item"
-                          onClick={() => {
-                            setActiveMenuId(null);
-                            onUpdateSubscription && onUpdateSubscription(user);
-                          }}
-                        >
-                          <Sparkles size={13} style={{ color: '#d97706' }} />
-                          Thay đổi gói
-                        </button>
-                      </>
-                    )}
                     <button
                       type="button"
                       className="action-menu-item"
@@ -191,29 +158,33 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                       }}
                     >
                       <Edit3 size={13} style={{ color: 'var(--muted)' }} />
-                      Chỉnh sửa
+                      Sửa
                     </button>
-                    <div className="action-menu-separator" />
-                    <button
-                      type="button"
-                      className={`action-menu-item ${user.status === 'LOCKED' ? '' : 'danger'}`}
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        onLockUnlockUser(user);
-                      }}
-                    >
-                      {user.status === 'LOCKED' ? (
-                        <>
-                          <ShieldCheck size={13} style={{ color: '#16a34a' }} />
-                          Mở khóa
-                        </>
-                      ) : (
-                        <>
-                          <ShieldAlert size={13} />
-                          Khóa tài khoản
-                        </>
-                      )}
-                    </button>
+                    {!adminUser && (
+                      <>
+                        <div className="action-menu-separator" />
+                        <button
+                          type="button"
+                          className={`action-menu-item ${isDeactivated ? '' : 'danger'}`}
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            onLockUnlockUser(user);
+                          }}
+                        >
+                          {isDeactivated ? (
+                            <>
+                              <ShieldCheck size={13} style={{ color: '#16a34a' }} />
+                              Kích hoạt lại
+                            </>
+                          ) : (
+                            <>
+                              <ShieldAlert size={13} style={{ color: '#dc2626' }} />
+                              Vô hiệu hóa
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
