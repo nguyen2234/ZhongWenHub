@@ -1,4 +1,4 @@
-import {
+﻿import {
   LayoutDashboard,
   Users,
   GraduationCap,
@@ -39,7 +39,7 @@ export const ADMIN_NAV_GROUPS: ManagementNavGroup[] = [
     items: [
       {
         id: 'admin-users',
-        label: 'Học viên & Người dùng',
+        label: 'Quản lý người dùng',
         path: '/management/admin/users',
         icon: <Users size={17} />,
         roles: ['ADMIN'],

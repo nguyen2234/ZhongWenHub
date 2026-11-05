@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreHorizontal, Eye, Edit3, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit3, ShieldAlert, ShieldCheck, KeyRound, CreditCard, Sparkles } from 'lucide-react';
 import type { UserListItem } from '../types/user.types';
 import { StatusBadge, EmptyState } from '../../../shared/components';
 
@@ -9,6 +9,9 @@ export interface UserCardListProps {
   onSelectUser: (user: UserListItem) => void;
   onEditUser: (user: UserListItem) => void;
   onLockUnlockUser: (user: UserListItem) => void;
+  onResetPassword?: (user: UserListItem) => void;
+  onAdjustWallet?: (user: UserListItem) => void;
+  onUpdateSubscription?: (user: UserListItem) => void;
   onResetFilters?: () => void;
 }
 
@@ -29,12 +32,20 @@ const getRoleBadgeInfo = (roles?: string[]) => {
   }
 };
 
+const isWalletAndPlanEligible = (user: UserListItem) => {
+  const primaryRole = (user.roles?.[0] || user.role || 'STUDENT').toUpperCase();
+  return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
+};
+
 export const UserCardList: React.FC<UserCardListProps> = ({
   users,
   selectedUserId,
   onSelectUser,
   onEditUser,
   onLockUnlockUser,
+  onResetPassword,
+  onAdjustWallet,
+  onUpdateSubscription,
   onResetFilters,
 }) => {
   const [activeMenuId, setActiveMenuId] = React.useState<string | null>(null);
@@ -90,6 +101,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
         const statusInfo = getStatusVariant(user.status);
         const roleInfo = getRoleBadgeInfo(user.roles || (user.role ? [user.role] : undefined));
         const isMenuOpen = activeMenuId === user.id;
+        const eligible = isWalletAndPlanEligible(user);
 
         return (
           <div
@@ -121,7 +133,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                 </button>
 
                 {isMenuOpen && (
-                  <div className="action-dropdown-popover" style={{ top: '100%', right: 0 }}>
+                  <div className="action-dropdown-popover" style={{ top: '100%', right: 0, zIndex: 10 }}>
                     <button
                       type="button"
                       className="action-menu-item"
@@ -133,6 +145,43 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                       <Eye size={13} style={{ color: 'var(--muted)' }} />
                       Chi tiết
                     </button>
+                    <button
+                      type="button"
+                      className="action-menu-item"
+                      onClick={() => {
+                        setActiveMenuId(null);
+                        onResetPassword && onResetPassword(user);
+                      }}
+                    >
+                      <KeyRound size={13} style={{ color: '#2563eb' }} />
+                      Đặt lại mật khẩu
+                    </button>
+                    {eligible && (
+                      <>
+                        <button
+                          type="button"
+                          className="action-menu-item"
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            onAdjustWallet && onAdjustWallet(user);
+                          }}
+                        >
+                          <CreditCard size={13} style={{ color: '#16a34a' }} />
+                          Điều chỉnh số dư
+                        </button>
+                        <button
+                          type="button"
+                          className="action-menu-item"
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            onUpdateSubscription && onUpdateSubscription(user);
+                          }}
+                        >
+                          <Sparkles size={13} style={{ color: '#d97706' }} />
+                          Thay đổi gói
+                        </button>
+                      </>
+                    )}
                     <button
                       type="button"
                       className="action-menu-item"
@@ -197,17 +246,38 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                 {user.hskLevel}
               </span>
               <StatusBadge label={statusInfo.label} variant={statusInfo.variant} size="sm" />
-              <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: 'auto' }}>
-                Tiến độ: <strong>{user.progressPercentage}%</strong>
-              </span>
             </div>
 
-            {/* Mini Progress Track */}
-            <div className="table-progress-bar" style={{ height: '4px' }}>
-              <div
-                className="table-progress-fill"
-                style={{ width: `${user.progressPercentage}%` }}
-              />
+            {/* Wallet & Plan row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--surface-hover)',
+                fontSize: '11px',
+              }}
+            >
+              <div>
+                <span style={{ color: 'var(--muted)' }}>Số dư: </span>
+                {eligible ? (
+                  <strong style={{ color: (user.walletBalance ?? 0) > 0 ? '#16a34a' : 'inherit' }}>
+                    {(user.walletBalance ?? 0).toLocaleString('vi-VN')} ₫
+                  </strong>
+                ) : (
+                  <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>Không áp dụng</span>
+                )}
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)' }}>Gói: </span>
+                {eligible ? (
+                  <strong style={{ color: '#2563eb' }}>{user.plan || 'Free'}</strong>
+                ) : (
+                  <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>Không áp dụng</span>
+                )}
+              </div>
             </div>
 
             <div className="user-mobile-meta-grid">

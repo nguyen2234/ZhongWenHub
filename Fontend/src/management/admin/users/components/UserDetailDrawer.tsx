@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Unlock, Edit2, ShieldAlert, BookOpen, Clock, Trash2 } from 'lucide-react';
+import {
+  X,
+  Lock,
+  Unlock,
+  Edit2,
+  ShieldAlert,
+  BookOpen,
+  Clock,
+  Trash2,
+  KeyRound,
+  CreditCard,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownLeft,
+} from 'lucide-react';
 import type { HskLevelCode, UpdateUserDTO, UserDetail, UserRole, UserStatus } from '../types/user.types';
 import { StatusBadge } from '../../../shared/components';
 
@@ -10,6 +24,9 @@ export interface UserDetailDrawerProps {
   onSaveEdit: (id: string, dto: UpdateUserDTO) => Promise<void> | void;
   onToggleLock: (user: UserDetail) => void;
   onDelete?: (user: UserDetail) => void;
+  onResetPassword?: (user: UserDetail) => void;
+  onAdjustWallet?: (user: UserDetail) => void;
+  onUpdateSubscription?: (user: UserDetail) => void;
 }
 
 const HSK_OPTIONS: HskLevelCode[] = [
@@ -54,6 +71,11 @@ const getRoleBadgeInfo = (roles?: string[]) => {
   }
 };
 
+const isWalletAndPlanEligible = (user: UserDetail) => {
+  const primaryRole = (user.roles?.[0] || user.role || 'STUDENT').toUpperCase();
+  return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
+};
+
 export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
   isOpen,
   user,
@@ -61,6 +83,9 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
   onSaveEdit,
   onToggleLock,
   onDelete,
+  onResetPassword,
+  onAdjustWallet,
+  onUpdateSubscription,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -91,7 +116,6 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
     }
   };
 
-  // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -128,6 +152,7 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
 
   const statusInfo = getStatusVariant(user.status);
   const roleInfo = getRoleBadgeInfo(user.roles || (user.role ? [user.role] : undefined));
+  const eligible = isWalletAndPlanEligible(user);
 
   const handleSaveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,10 +190,7 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
       aria-modal="true"
       aria-label="Thông tin chi tiết người dùng"
     >
-      <div
-        className="user-detail-drawer"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="user-detail-drawer" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="drawer-header">
           <div className="drawer-header-left">
@@ -392,6 +414,134 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
                 </div>
               </div>
 
+              {/* Wallet Section */}
+              <div className="drawer-learning-card" style={{ borderColor: '#bbf7d0', backgroundColor: '#f0fdf4' }}>
+                <div className="drawer-section-title" style={{ marginBottom: '8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#166534' }}>
+                    <CreditCard size={15} style={{ color: '#16a34a' }} />
+                    Ví & Số dư tài khoản
+                  </span>
+                  {eligible && onAdjustWallet && (
+                    <button
+                      type="button"
+                      className="ds-btn ds-btn-outline ds-btn-sm"
+                      style={{ fontSize: '11px', padding: '2px 8px' }}
+                      onClick={() => onAdjustWallet(user)}
+                    >
+                      Điều chỉnh số dư
+                    </button>
+                  )}
+                </div>
+
+                {eligible ? (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#15803d' }}>Số dư hiện tại:</span>
+                      <strong style={{ fontSize: '18px', color: '#166534', fontVariantNumeric: 'tabular-nums' }}>
+                        {(user.walletBalance ?? 0).toLocaleString('vi-VN')} ₫
+                      </strong>
+                    </div>
+
+                    {user.walletTransactions && user.walletTransactions.length > 0 ? (
+                      <div style={{ marginTop: '10px', borderTop: '1px solid #dcfce7', paddingTop: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#166534', display: 'block', marginBottom: '6px' }}>
+                          Lịch sử giao dịch gần nhất ({user.walletTransactions.length})
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
+                          {user.walletTransactions.map((tx) => (
+                            <div
+                              key={tx.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                fontSize: '11px',
+                                padding: '4px 8px',
+                                backgroundColor: '#ffffff',
+                                borderRadius: '4px',
+                                border: '1px solid #dcfce7',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {tx.amount >= 0 ? (
+                                  <ArrowDownLeft size={13} style={{ color: '#16a34a' }} />
+                                ) : (
+                                  <ArrowUpRight size={13} style={{ color: '#dc2626' }} />
+                                )}
+                                <div>
+                                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{tx.reason || tx.transactionType}</span>
+                                  <span style={{ display: 'block', fontSize: '10px', color: '#64748b' }}>{tx.createdAt}</span>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <strong style={{ color: tx.amount >= 0 ? '#16a34a' : '#dc2626' }}>
+                                  {tx.amount >= 0 ? '+' : ''}{tx.amount.toLocaleString('vi-VN')} ₫
+                                </strong>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '11px', color: '#15803d', margin: 0 }}>Chưa có giao dịch phát sinh.</p>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                    Không áp dụng cho vai trò này (chỉ áp dụng cho Học viên và Giáo viên).
+                  </p>
+                )}
+              </div>
+
+              {/* Subscription Plan Section */}
+              <div className="drawer-learning-card" style={{ borderColor: '#fed7aa', backgroundColor: '#fffbeb' }}>
+                <div className="drawer-section-title" style={{ marginBottom: '8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#9a3412' }}>
+                    <Sparkles size={15} style={{ color: '#ea580c' }} />
+                    Gói sử dụng hiện tại
+                  </span>
+                  {eligible && onUpdateSubscription && (
+                    <button
+                      type="button"
+                      className="ds-btn ds-btn-outline ds-btn-sm"
+                      style={{ fontSize: '11px', padding: '2px 8px' }}
+                      onClick={() => onUpdateSubscription(user)}
+                    >
+                      Thay đổi gói
+                    </button>
+                  )}
+                </div>
+
+                {eligible ? (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#9a3412' }}>Gói kích hoạt:</span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: '12px',
+                          padding: '2px 10px',
+                          borderRadius: '12px',
+                          backgroundColor:
+                            user.plan === 'Premium' ? '#f59e0b' : user.plan === 'Basic' ? '#3b82f6' : '#64748b',
+                          color: '#ffffff',
+                        }}
+                      >
+                        {user.plan || 'Free'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#78350f', display: 'flex', gap: '16px' }}>
+                      <span>Bắt đầu: <strong>{user.planStartDate || 'Chưa thiết lập'}</strong></span>
+                      <span>Hết hạn: <strong>{user.planEndDate || 'Vô thời hạn'}</strong></span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                    Không áp dụng cho vai trò này (chỉ áp dụng cho Học viên và Giáo viên).
+                  </p>
+                )}
+              </div>
+
               {/* Learning Summary (READ-ONLY) */}
               <div className="drawer-learning-card">
                 <div className="drawer-section-title" style={{ marginBottom: '6px' }}>
@@ -496,6 +646,17 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
                 <Edit2 size={13} style={{ marginRight: '5px' }} />
                 Chỉnh sửa
               </button>
+
+              {onResetPassword && (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-outline ds-btn-sm"
+                  onClick={() => onResetPassword(user)}
+                >
+                  <KeyRound size={13} style={{ marginRight: '5px' }} />
+                  Đặt lại mật khẩu
+                </button>
+              )}
 
               <button
                 type="button"

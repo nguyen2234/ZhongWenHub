@@ -1169,6 +1169,137 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.UserSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Free");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("ACTIVE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_user_subscriptions_user_id");
+
+                    b.ToTable("user_subscriptions", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Balance")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("VND");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_user_wallets_user_id");
+
+                    b.ToTable("user_wallets", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.WalletTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("PerformedByAdminId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("WalletId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("idx_wallet_transactions_user_id");
+
+                    b.HasIndex("WalletId")
+                        .HasDatabaseName("idx_wallet_transactions_wallet_id");
+
+                    b.ToTable("wallet_transactions", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationRole", null)
@@ -1352,6 +1483,54 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.UserSubscription", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithOne("Subscription")
+                        .HasForeignKey("ZhongWenHub.Data.Entities.UserSubscription", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithOne("Wallet")
+                        .HasForeignKey("ZhongWenHub.Data.Entities.UserWallet", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.WalletTransaction", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.UserWallet", "Wallet")
+                        .WithMany("Transactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("Subscription");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.CourseEntity", b =>
                 {
                     b.Navigation("Lessons");
@@ -1371,6 +1550,11 @@ namespace ZhongWenHub.Data.Persistence.Migrations
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.UnitEntity", b =>
                 {
                     b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

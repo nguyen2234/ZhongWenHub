@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Eye, Edit3, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react';
+import { Eye, Edit3, ShieldAlert, ShieldCheck, Trash2, KeyRound, CreditCard, Sparkles } from 'lucide-react';
 import type { UserListItem, UserSort, UserSortField } from '../types/user.types';
 import type { TableColumn, RowAction } from '../../../shared/types';
 import { ManagementDataTable, StatusBadge } from '../../../shared/components';
@@ -14,6 +14,9 @@ export interface UserTableProps {
   onEditUser: (user: UserListItem) => void;
   onLockUnlockUser: (user: UserListItem) => void;
   onDeleteUser?: (user: UserListItem) => void;
+  onResetPassword?: (user: UserListItem) => void;
+  onAdjustWallet?: (user: UserListItem) => void;
+  onUpdateSubscription?: (user: UserListItem) => void;
   sort?: UserSort;
   onSortChange?: (field: UserSortField) => void;
   onResetFilters?: () => void;
@@ -36,6 +39,11 @@ const getRoleBadgeInfo = (roles?: string[]) => {
   }
 };
 
+const isWalletAndPlanEligible = (user: UserListItem) => {
+  const primaryRole = (user.roles?.[0] || user.role || 'STUDENT').toUpperCase();
+  return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
+};
+
 export const UserTable: React.FC<UserTableProps> = ({
   users,
   selectedUserId: _selectedUserId,
@@ -46,6 +54,9 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEditUser,
   onLockUnlockUser,
   onDeleteUser,
+  onResetPassword,
+  onAdjustWallet,
+  onUpdateSubscription,
   sort,
   onSortChange,
   onResetFilters,
@@ -113,6 +124,89 @@ export const UserTable: React.FC<UserTableProps> = ({
         },
       },
       {
+        key: 'status',
+        header: 'Trạng thái',
+        width: '110px',
+        render: (user: UserListItem) => {
+          const statusInfo = getStatusVariant(user.status);
+          return (
+            <StatusBadge
+              label={statusInfo.label}
+              variant={statusInfo.variant}
+              size="sm"
+            />
+          );
+        },
+      },
+      {
+        key: 'walletBalance',
+        header: 'Số dư tài khoản',
+        width: '140px',
+        render: (user: UserListItem) => {
+          if (!isWalletAndPlanEligible(user)) {
+            return (
+              <span style={{ color: 'var(--muted)', fontSize: '11px', fontStyle: 'italic' }}>
+                Không áp dụng
+              </span>
+            );
+          }
+          const formatted = (user.walletBalance ?? 0).toLocaleString('vi-VN') + ' ₫';
+          return (
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: '12px',
+                color: (user.walletBalance ?? 0) > 0 ? '#16a34a' : 'var(--foreground)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {formatted}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'plan',
+        header: 'Gói hiện tại',
+        width: '120px',
+        render: (user: UserListItem) => {
+          if (!isWalletAndPlanEligible(user)) {
+            return (
+              <span style={{ color: 'var(--muted)', fontSize: '11px', fontStyle: 'italic' }}>
+                Không áp dụng
+              </span>
+            );
+          }
+          const plan = user.plan || 'Free';
+          let planBg = 'rgba(100, 116, 139, 0.1)';
+          let planColor = '#475569';
+          if (plan === 'Premium') {
+            planBg = 'rgba(245, 158, 11, 0.15)';
+            planColor = '#d97706';
+          } else if (plan === 'Basic') {
+            planBg = 'rgba(59, 130, 246, 0.12)';
+            planColor = '#2563eb';
+          }
+
+          return (
+            <span
+              style={{
+                display: 'inline-block',
+                fontWeight: 700,
+                fontSize: '11px',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                backgroundColor: planBg,
+                color: planColor,
+                border: '1px solid currentColor',
+              }}
+            >
+              {plan}
+            </span>
+          );
+        },
+      },
+      {
         key: 'hskLevel',
         header: 'Trình độ',
         sortable: true,
@@ -136,41 +230,6 @@ export const UserTable: React.FC<UserTableProps> = ({
         ),
       },
       {
-        key: 'status',
-        header: 'Trạng thái',
-        width: '120px',
-        render: (user: UserListItem) => {
-          const statusInfo = getStatusVariant(user.status);
-          return (
-            <StatusBadge
-              label={statusInfo.label}
-              variant={statusInfo.variant}
-              size="sm"
-            />
-          );
-        },
-      },
-      {
-        key: 'progress',
-        header: 'Tiến độ học',
-        sortable: true,
-        sortField: 'progress',
-        width: '140px',
-        render: (user: UserListItem) => (
-          <div className="table-progress-wrap">
-            <div className="table-progress-bar">
-              <div
-                className="table-progress-fill"
-                style={{ width: `${user.progressPercentage}%` }}
-              />
-            </div>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--foreground)' }}>
-              {user.progressPercentage}%
-            </span>
-          </div>
-        ),
-      },
-      {
         key: 'joinedDate',
         header: 'Ngày tham gia',
         sortable: true,
@@ -179,18 +238,6 @@ export const UserTable: React.FC<UserTableProps> = ({
         render: (user: UserListItem) => (
           <span style={{ color: 'var(--muted)', fontSize: '11px', fontVariantNumeric: 'tabular-nums' }}>
             {user.joinedAt}
-          </span>
-        ),
-      },
-      {
-        key: 'lastActive',
-        header: 'Hoạt động gần nhất',
-        sortable: true,
-        sortField: 'lastActive',
-        width: '140px',
-        render: (user: UserListItem) => (
-          <span style={{ color: 'var(--muted)', fontSize: '11px', fontVariantNumeric: 'tabular-nums' }}>
-            {user.lastActiveAt}
           </span>
         ),
       },
@@ -205,6 +252,26 @@ export const UserTable: React.FC<UserTableProps> = ({
         label: 'Xem chi tiết',
         icon: <Eye size={15} />,
         onClick: (user: UserListItem) => onSelectUser(user),
+      },
+      {
+        key: 'reset_password',
+        label: 'Đặt lại mật khẩu',
+        icon: <KeyRound size={15} style={{ color: '#2563eb' }} />,
+        onClick: (user: UserListItem) => onResetPassword && onResetPassword(user),
+      },
+      {
+        key: 'adjust_wallet',
+        label: 'Điều chỉnh số dư',
+        icon: <CreditCard size={15} style={{ color: '#16a34a' }} />,
+        hidden: (user: UserListItem) => !isWalletAndPlanEligible(user),
+        onClick: (user: UserListItem) => onAdjustWallet && onAdjustWallet(user),
+      },
+      {
+        key: 'update_subscription',
+        label: 'Thay đổi gói',
+        icon: <Sparkles size={15} style={{ color: '#d97706' }} />,
+        hidden: (user: UserListItem) => !isWalletAndPlanEligible(user),
+        onClick: (user: UserListItem) => onUpdateSubscription && onUpdateSubscription(user),
       },
       {
         key: 'edit',
@@ -232,7 +299,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         onClick: (user: UserListItem) => onDeleteUser && onDeleteUser(user),
       },
     ],
-    [onSelectUser, onEditUser, onLockUnlockUser, onDeleteUser]
+    [onSelectUser, onResetPassword, onAdjustWallet, onUpdateSubscription, onEditUser, onLockUnlockUser, onDeleteUser]
   );
 
   return (

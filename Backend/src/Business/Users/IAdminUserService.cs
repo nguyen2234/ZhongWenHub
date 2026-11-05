@@ -68,4 +68,25 @@ public interface IAdminUserService
         Guid currentUserId,
         string? ipAddress,
         CancellationToken cancellationToken = default);
+
+    Task<(bool Success, string? ErrorMessage, int StatusCode)> ResetPasswordAsync(
+        Guid id,
+        ResetUserPasswordDto dto,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<(bool Success, AdminUserDetailDto? User, string? ErrorMessage, int StatusCode)> AdjustWalletBalanceAsync(
+        Guid id,
+        AdjustWalletBalanceDto dto,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<(bool Success, AdminUserDetailDto? User, string? ErrorMessage, int StatusCode)> UpdateSubscriptionPlanAsync(
+        Guid id,
+        UpdateSubscriptionPlanDto dto,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
 }

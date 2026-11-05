@@ -33,6 +33,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<GrammarPointEntity> GrammarPoints => Set<GrammarPointEntity>();
     public DbSet<ExerciseEntity> Exercises => Set<ExerciseEntity>();
 
+    // Wallet & Subscription DbSets
+    public DbSet<UserWallet> UserWallets => Set<UserWallet>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -424,6 +429,69 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(e => e.HskLevel).HasDatabaseName("idx_exercises_hsk_level");
             b.HasIndex(e => e.Skill).HasDatabaseName("idx_exercises_skill");
             b.HasIndex(e => e.Status).HasDatabaseName("idx_exercises_status");
+        });
+
+        // Wallet & Subscription Entities Configuration
+        builder.Entity<UserWallet>(b =>
+        {
+            b.ToTable("user_wallets");
+            b.HasKey(w => w.Id);
+            b.Property(w => w.Balance).HasColumnType("decimal(18,2)").HasDefaultValue(0m).IsRequired();
+            b.Property(w => w.Currency).HasMaxLength(10).HasDefaultValue("VND").IsRequired();
+            b.Property(w => w.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(w => w.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(w => w.User)
+                .WithOne(u => u.Wallet)
+                .HasForeignKey<UserWallet>(w => w.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(w => w.UserId).IsUnique().HasDatabaseName("idx_user_wallets_user_id");
+        });
+
+        builder.Entity<WalletTransaction>(b =>
+        {
+            b.ToTable("wallet_transactions");
+            b.HasKey(t => t.Id);
+            b.Property(t => t.Amount).HasColumnType("decimal(18,2)").IsRequired();
+            b.Property(t => t.BalanceBefore).HasColumnType("decimal(18,2)").IsRequired();
+            b.Property(t => t.BalanceAfter).HasColumnType("decimal(18,2)").IsRequired();
+            b.Property(t => t.TransactionType).HasMaxLength(50).IsRequired();
+            b.Property(t => t.Reason).HasMaxLength(500).IsRequired();
+            b.Property(t => t.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(t => t.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(t => t.Wallet)
+                .WithMany(w => w.Transactions)
+                .HasForeignKey(t => t.WalletId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            b.HasIndex(t => t.UserId).HasDatabaseName("idx_wallet_transactions_user_id");
+            b.HasIndex(t => t.WalletId).HasDatabaseName("idx_wallet_transactions_wallet_id");
+        });
+
+        builder.Entity<UserSubscription>(b =>
+        {
+            b.ToTable("user_subscriptions");
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Plan).HasMaxLength(50).HasDefaultValue("Free").IsRequired();
+            b.Property(s => s.Status).HasMaxLength(20).HasDefaultValue("ACTIVE").IsRequired();
+            b.Property(s => s.StartDate).HasColumnType("datetime2").IsRequired();
+            b.Property(s => s.EndDate).HasColumnType("datetime2");
+            b.Property(s => s.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(s => s.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(s => s.User)
+                .WithOne(u => u.Subscription)
+                .HasForeignKey<UserSubscription>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(s => s.UserId).IsUnique().HasDatabaseName("idx_user_subscriptions_user_id");
         });
     }
 

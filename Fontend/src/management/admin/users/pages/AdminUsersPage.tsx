@@ -18,6 +18,9 @@ import {
   UserCardList,
   UserDetailDrawer,
   CreateUserModal,
+  ResetPasswordModal,
+  AdjustWalletModal,
+  UpdateSubscriptionModal,
 } from '../components';
 import '../components/user-management.css';
 
@@ -66,8 +69,18 @@ export const AdminUsersPage: React.FC = () => {
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
   const [targetDeleteUser, setTargetDeleteUser] = useState<UserListItem | UserDetail | null>(null);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
 
+  // New Upgrade Modals
+  const [targetResetUser, setTargetResetUser] = useState<UserListItem | UserDetail | null>(null);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+
+  const [targetWalletUser, setTargetWalletUser] = useState<UserListItem | UserDetail | null>(null);
+  const [isAdjustWalletOpen, setIsAdjustWalletOpen] = useState(false);
+
+  const [targetSubUser, setTargetSubUser] = useState<UserListItem | UserDetail | null>(null);
+  const [isUpdateSubOpen, setIsUpdateSubOpen] = useState(false);
+
+  const [toast, setToast] = useState<ToastMessage | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(true);
 
@@ -140,20 +153,20 @@ export const AdminUsersPage: React.FC = () => {
   };
 
   // Drawer interactions
-  const handleSelectUser = (user: UserListItem) => {
-    const fullDetail = adminUserService.getUserById(user.id);
-    if (fullDetail) {
-      setSelectedUser(fullDetail);
-      setIsDrawerOpen(true);
+  const handleSelectUser = async (user: UserListItem) => {
+    // Attempt to load rich details with transactions from backend
+    try {
+      const detailed = await adminUserService.getUserDetailAsync(user.id);
+      setSelectedUser(detailed);
+    } catch {
+      const local = adminUserService.getUserById(user.id);
+      setSelectedUser(local || null);
     }
+    setIsDrawerOpen(true);
   };
 
   const handleEditFromTable = (user: UserListItem) => {
-    const fullDetail = adminUserService.getUserById(user.id);
-    if (fullDetail) {
-      setSelectedUser(fullDetail);
-      setIsDrawerOpen(true);
-    }
+    handleSelectUser(user);
   };
 
   const handleCloseDrawer = () => {
@@ -249,6 +262,95 @@ export const AdminUsersPage: React.FC = () => {
         type: 'error',
         message: err.message || 'Không thể vô hiệu hóa tài khoản này.',
       });
+    }
+  };
+
+  // Reset Password Handlers
+  const handleOpenResetPassword = (user: UserListItem | UserDetail) => {
+    setTargetResetUser(user);
+    setIsResetPasswordOpen(true);
+  };
+
+  const handleConfirmResetPassword = async (password: string) => {
+    if (!targetResetUser) return;
+    try {
+      const res = await adminUserService.resetPasswordAsync(targetResetUser.id, {
+        newPassword: password,
+        confirmPassword: password,
+      });
+      setToast({
+        type: 'success',
+        message: res.message || `Đã đặt lại mật khẩu cho tài khoản ${targetResetUser.name} thành công!`,
+      });
+      setIsResetPasswordOpen(false);
+      setTargetResetUser(null);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể đặt lại mật khẩu.',
+      });
+      throw err;
+    }
+  };
+
+  // Adjust Wallet Handlers
+  const handleOpenAdjustWallet = (user: UserListItem | UserDetail) => {
+    setTargetWalletUser(user);
+    setIsAdjustWalletOpen(true);
+  };
+
+  const handleConfirmAdjustWallet = async (userId: string, amount: number, reason: string) => {
+    try {
+      const res = await adminUserService.adjustWalletBalanceAsync(userId, { amount, reason });
+      setToast({
+        type: 'success',
+        message: res.message || 'Đã điều chỉnh số dư ví thành công!',
+      });
+      setIsAdjustWalletOpen(false);
+      setTargetWalletUser(null);
+      triggerRefresh();
+      if (selectedUser?.id === userId) {
+        const fresh = await adminUserService.getUserDetailAsync(userId);
+        setSelectedUser(fresh);
+      }
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể điều chỉnh số dư.',
+      });
+      throw err;
+    }
+  };
+
+  // Update Subscription Handlers
+  const handleOpenUpdateSubscription = (user: UserListItem | UserDetail) => {
+    setTargetSubUser(user);
+    setIsUpdateSubOpen(true);
+  };
+
+  const handleConfirmUpdateSubscription = async (userId: string, plan: string, durationMonths: number) => {
+    try {
+      const res = await adminUserService.updateSubscriptionPlanAsync(userId, {
+        plan,
+        durationMonths,
+      });
+      setToast({
+        type: 'success',
+        message: res.message || 'Đã cập nhật gói hội viên thành công!',
+      });
+      setIsUpdateSubOpen(false);
+      setTargetSubUser(null);
+      triggerRefresh();
+      if (selectedUser?.id === userId) {
+        const fresh = await adminUserService.getUserDetailAsync(userId);
+        setSelectedUser(fresh);
+      }
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể cập nhật gói.',
+      });
+      throw err;
     }
   };
 
@@ -386,6 +488,9 @@ export const AdminUsersPage: React.FC = () => {
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
         onDeleteUser={handleOpenDeleteConfirmation}
+        onResetPassword={handleOpenResetPassword}
+        onAdjustWallet={handleOpenAdjustWallet}
+        onUpdateSubscription={handleOpenUpdateSubscription}
         sort={sort}
         onSortChange={handleSortChange}
         onResetFilters={handleResetFilters}
@@ -398,6 +503,9 @@ export const AdminUsersPage: React.FC = () => {
         onSelectUser={handleSelectUser}
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
+        onResetPassword={handleOpenResetPassword}
+        onAdjustWallet={handleOpenAdjustWallet}
+        onUpdateSubscription={handleOpenUpdateSubscription}
         onResetFilters={handleResetFilters}
       />
 
@@ -423,6 +531,9 @@ export const AdminUsersPage: React.FC = () => {
         onSaveEdit={handleSaveEdit}
         onToggleLock={handleOpenLockConfirmation}
         onDelete={handleOpenDeleteConfirmation}
+        onResetPassword={handleOpenResetPassword}
+        onAdjustWallet={handleOpenAdjustWallet}
+        onUpdateSubscription={handleOpenUpdateSubscription}
       />
 
       {/* 8. Destructive Action Confirmation Dialog */}
@@ -458,7 +569,40 @@ export const AdminUsersPage: React.FC = () => {
         onSubmit={handleCreateUser}
       />
 
-      {/* 11. Toast Notification */}
+      {/* 11. Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={isResetPasswordOpen}
+        user={targetResetUser}
+        onClose={() => {
+          setIsResetPasswordOpen(false);
+          setTargetResetUser(null);
+        }}
+        onConfirm={handleConfirmResetPassword}
+      />
+
+      {/* 12. Adjust Wallet Balance Modal */}
+      <AdjustWalletModal
+        isOpen={isAdjustWalletOpen}
+        user={targetWalletUser}
+        onClose={() => {
+          setIsAdjustWalletOpen(false);
+          setTargetWalletUser(null);
+        }}
+        onConfirm={handleConfirmAdjustWallet}
+      />
+
+      {/* 13. Update Subscription Plan Modal */}
+      <UpdateSubscriptionModal
+        isOpen={isUpdateSubOpen}
+        user={targetSubUser}
+        onClose={() => {
+          setIsUpdateSubOpen(false);
+          setTargetSubUser(null);
+        }}
+        onConfirm={handleConfirmUpdateSubscription}
+      />
+
+      {/* 14. Toast Notification */}
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );

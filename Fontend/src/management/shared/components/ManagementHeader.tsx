@@ -74,7 +74,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     if (path.includes('/content-manager/quality-metrics')) return { group: 'Kiểm duyệt & Vận hành', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
 
     // Group: Người dùng & Tổ chức (Admin)
-    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
+    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Quản lý người dùng', link: '/management/admin/users' };
     if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
     if (path.includes('/support-staff')) return { group: 'Người dùng & Tổ chức', title: 'Nhân viên hỗ trợ', link: '/management/admin/support-staff' };
     if (path.includes('/roles')) return { group: 'Người dùng & Tổ chức', title: 'Vai trò & Phân quyền', link: '/management/admin/roles' };

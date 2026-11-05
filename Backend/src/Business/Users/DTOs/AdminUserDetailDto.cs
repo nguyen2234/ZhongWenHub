@@ -7,4 +7,7 @@ public class AdminUserDetailDto : AdminUserListItemDto
     public string? LockReason { get; set; }
     public string? LockedAt { get; set; }
     public UserLearningSummaryDto LearningSummary { get; set; } = new();
+
+    // Wallet transaction history
+    public List<AdminWalletTransactionDto> WalletTransactions { get; set; } = new();
 }

@@ -16,4 +16,8 @@ public class ApplicationUser : IdentityUser<Guid>
     public DateTime? LastLoginAt { get; set; }
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
+
+    // Navigation
+    public UserWallet? Wallet { get; set; }
+    public UserSubscription? Subscription { get; set; }
 }

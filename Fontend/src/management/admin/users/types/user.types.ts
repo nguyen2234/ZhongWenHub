@@ -42,6 +42,21 @@ export interface UserListItem {
   joinedDateRaw: string;
   lastActiveAt: string;
   lastActiveDateRaw: string;
+  walletBalance?: number | null;
+  plan?: string | null;
+  planStartDate?: string | null;
+  planEndDate?: string | null;
+}
+
+export interface WalletTransactionItem {
+  id: string;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  transactionType: string;
+  reason: string;
+  createdAt: string;
+  createdAtFormatted: string;
 }
 
 export interface UserDetail extends UserListItem {
@@ -50,6 +65,7 @@ export interface UserDetail extends UserListItem {
   lockReason?: string;
   lockedAt?: string;
   learningSummary: UserLearningSummary;
+  walletTransactions?: WalletTransactionItem[];
 }
 
 export interface UserSummaryKPIs {
@@ -97,4 +113,19 @@ export interface UpdateUserDTO {
   roles?: string[];
   phone?: string;
   notes?: string;
+}
+
+export interface ResetUserPasswordDto {
+  newPassword: string;
+  confirmPassword?: string;
+}
+
+export interface AdjustWalletBalanceDto {
+  amount: number;
+  reason: string;
+}
+
+export interface UpdateSubscriptionPlanDto {
+  plan: 'Free' | 'Basic' | 'Premium';
+  durationMonths?: number;
 }

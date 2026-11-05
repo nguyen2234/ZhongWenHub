@@ -14,4 +14,10 @@ public class AdminUserListItemDto
     public string JoinedDateRaw { get; set; } = string.Empty;
     public string LastActiveAt { get; set; } = string.Empty;
     public string LastActiveDateRaw { get; set; } = string.Empty;
+
+    // Wallet & Subscription fields (Only applicable for STUDENT and TEACHER)
+    public decimal? WalletBalance { get; set; }
+    public string? Plan { get; set; }
+    public DateTime? PlanStartDate { get; set; }
+    public DateTime? PlanEndDate { get; set; }
 }

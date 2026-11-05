@@ -52,43 +52,197 @@ public static class DbInitializer
                 }
             }
 
-            // Seed Users
+            // Seed 20 Standard Demo Users (5 STUDENT, 5 TEACHER, 5 CONTENT_MANAGER, 5 SUPPORT)
+            var defaultDemoPassword = Environment.GetEnvironmentVariable("DEV_DEMO_PASSWORD") ?? "Demo@2026!ZhongWen";
+
             var seedUsers = new[]
             {
+                // 1. 5 HỌC VIÊN (STUDENT) - Có số dư VND mẫu và gói sử dụng
                 (
-                    Email: "contentmanager@zhongwenhub.edu.vn",
-                    Username: "contentmanager",
-                    DisplayName: "Nguyễn Văn Minh (Content Manager)",
-                    Role: RoleConstants.ContentManager,
-                    Password: "ContentManager123!"
+                    Email: "student.an.demo@zhongwenhub.edu.vn",
+                    Username: "student_an_demo",
+                    DisplayName: "Nguyễn Văn An",
+                    Role: RoleConstants.Student,
+                    Balance: 150000m,
+                    Plan: "Basic",
+                    DurationMonths: 3
                 ),
                 (
-                    Email: "teacher@zhongwenhub.edu.vn",
-                    Username: "teacher",
-                    DisplayName: "Lý Mỹ Linh (Teacher)",
+                    Email: "student.binh.demo@zhongwenhub.edu.vn",
+                    Username: "student_binh_demo",
+                    DisplayName: "Trần Thị Bình",
+                    Role: RoleConstants.Student,
+                    Balance: 500000m,
+                    Plan: "Premium",
+                    DurationMonths: 12
+                ),
+                (
+                    Email: "student.cuong.demo@zhongwenhub.edu.vn",
+                    Username: "student_cuong_demo",
+                    DisplayName: "Lê Hoàng Cường",
+                    Role: RoleConstants.Student,
+                    Balance: 0m,
+                    Plan: "Free",
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "student.dung.demo@zhongwenhub.edu.vn",
+                    Username: "student_dung_demo",
+                    DisplayName: "Phạm Thị Dung",
+                    Role: RoleConstants.Student,
+                    Balance: 250000m,
+                    Plan: "Basic",
+                    DurationMonths: 6
+                ),
+                (
+                    Email: "student.em.demo@zhongwenhub.edu.vn",
+                    Username: "student_em_demo",
+                    DisplayName: "Hoàng Văn Em",
+                    Role: RoleConstants.Student,
+                    Balance: 1200000m,
+                    Plan: "Premium",
+                    DurationMonths: 12
+                ),
+
+                // 2. 5 GIÁO VIÊN (TEACHER) - Có số dư VND mẫu và gói sử dụng
+                (
+                    Email: "teacher.hung.demo@zhongwenhub.edu.vn",
+                    Username: "teacher_hung_demo",
+                    DisplayName: "Trương Quốc Hùng",
                     Role: RoleConstants.Teacher,
-                    Password: "TeacherPassword123!"
+                    Balance: 2500000m,
+                    Plan: "Premium",
+                    DurationMonths: 12
                 ),
                 (
-                    Email: "support@zhongwenhub.edu.vn",
-                    Username: "support",
-                    DisplayName: "Trần Thuỳ Trang (Support)",
+                    Email: "teacher.ha.demo@zhongwenhub.edu.vn",
+                    Username: "teacher_ha_demo",
+                    DisplayName: "Đặng Thu Hà",
+                    Role: RoleConstants.Teacher,
+                    Balance: 1800000m,
+                    Plan: "Premium",
+                    DurationMonths: 12
+                ),
+                (
+                    Email: "teacher.tuan.demo@zhongwenhub.edu.vn",
+                    Username: "teacher_tuan_demo",
+                    DisplayName: "Vũ Minh Tuấn",
+                    Role: RoleConstants.Teacher,
+                    Balance: 3200000m,
+                    Plan: "Basic",
+                    DurationMonths: 6
+                ),
+                (
+                    Email: "teacher.linh.demo@zhongwenhub.edu.vn",
+                    Username: "teacher_linh_demo",
+                    DisplayName: "Đỗ Phương Linh",
+                    Role: RoleConstants.Teacher,
+                    Balance: 500000m,
+                    Plan: "Basic",
+                    DurationMonths: 3
+                ),
+                (
+                    Email: "teacher.son.demo@zhongwenhub.edu.vn",
+                    Username: "teacher_son_demo",
+                    DisplayName: "Bùi Thanh Sơn",
+                    Role: RoleConstants.Teacher,
+                    Balance: 0m,
+                    Plan: "Free",
+                    DurationMonths: 0
+                ),
+
+                // 3. 5 QUẢN LÝ NỘI DUNG (CONTENT_MANAGER) - Không ví, không gói
+                (
+                    Email: "content.lananh.demo@zhongwenhub.edu.vn",
+                    Username: "content_lananh_demo",
+                    DisplayName: "Nguyễn Lan Anh",
+                    Role: RoleConstants.ContentManager,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "content.trong.demo@zhongwenhub.edu.vn",
+                    Username: "content_trong_demo",
+                    DisplayName: "Phan Đức Trọng",
+                    Role: RoleConstants.ContentManager,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "content.thaovy.demo@zhongwenhub.edu.vn",
+                    Username: "content_thaovy_demo",
+                    DisplayName: "Mai Thảo Vy",
+                    Role: RoleConstants.ContentManager,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "content.quanghuy.demo@zhongwenhub.edu.vn",
+                    Username: "content_quanghuy_demo",
+                    DisplayName: "Ngô Quang Huy",
+                    Role: RoleConstants.ContentManager,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "content.hongphuc.demo@zhongwenhub.edu.vn",
+                    Username: "content_hongphuc_demo",
+                    DisplayName: "Đinh Hồng Phúc",
+                    Role: RoleConstants.ContentManager,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+
+                // 4. 5 CHĂM SÓC VIÊN (SUPPORT) - Không ví, không gói
+                (
+                    Email: "support.dieulinh.demo@zhongwenhub.edu.vn",
+                    Username: "support_dieulinh_demo",
+                    DisplayName: "Cao Diệu Linh",
                     Role: RoleConstants.Support,
-                    Password: "SupportPassword123!"
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
                 ),
                 (
-                    Email: "student@zhongwenhub.edu.vn",
-                    Username: "student",
-                    DisplayName: "Trần Minh Quân (Student)",
-                    Role: RoleConstants.Student,
-                    Password: "StudentPassword123!"
+                    Email: "support.tuankiet.demo@zhongwenhub.edu.vn",
+                    Username: "support_tuankiet_demo",
+                    DisplayName: "Trần Tuấn Kiệt",
+                    Role: RoleConstants.Support,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
                 ),
                 (
-                    Email: "demo@zhongwenhub.edu.vn",
-                    Username: "demostudent",
-                    DisplayName: "Học Viên Trải Nghiệm",
-                    Role: RoleConstants.Student,
-                    Password: "DemoPassword123!"
+                    Email: "support.baongoc.demo@zhongwenhub.edu.vn",
+                    Username: "support_baongoc_demo",
+                    DisplayName: "Lê Bảo Ngọc",
+                    Role: RoleConstants.Support,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "support.huunghia.demo@zhongwenhub.edu.vn",
+                    Username: "support_huunghia_demo",
+                    DisplayName: "Vũ Hữu Nghĩa",
+                    Role: RoleConstants.Support,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
+                ),
+                (
+                    Email: "support.kimngan.demo@zhongwenhub.edu.vn",
+                    Username: "support_kimngan_demo",
+                    DisplayName: "Tạ Kim Ngân",
+                    Role: RoleConstants.Support,
+                    Balance: 0m,
+                    Plan: (string?)null,
+                    DurationMonths: 0
                 )
             };
 
@@ -107,13 +261,59 @@ public static class DbInitializer
                             EmailConfirmed = true,
                             DisplayName = userDef.DisplayName,
                             Status = UserStatus.ACTIVE,
-                            CreatedAt = DateTime.UtcNow
+                            CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30))
                         };
 
-                        var result = await userManager.CreateAsync(user, userDef.Password);
+                        var result = await userManager.CreateAsync(user, defaultDemoPassword);
                         if (result.Succeeded)
                         {
                             await userManager.AddToRoleAsync(user, userDef.Role);
+
+                            // Khởi tạo ví và gói sử dụng cho STUDENT & TEACHER
+                            if (userDef.Role == RoleConstants.Student || userDef.Role == RoleConstants.Teacher)
+                            {
+                                var wallet = new UserWallet
+                                {
+                                    Id = Guid.NewGuid(),
+                                    UserId = user.Id,
+                                    Balance = userDef.Balance,
+                                    Currency = "VND",
+                                    CreatedAt = user.CreatedAt
+                                };
+                                context.UserWallets.Add(wallet);
+
+                                if (userDef.Balance > 0)
+                                {
+                                    context.WalletTransactions.Add(new WalletTransaction
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        WalletId = wallet.Id,
+                                        UserId = user.Id,
+                                        Amount = userDef.Balance,
+                                        BalanceBefore = 0m,
+                                        BalanceAfter = userDef.Balance,
+                                        TransactionType = "INITIAL_SEED",
+                                        Reason = "Khởi tạo số dư thử nghiệm tài khoản mẫu",
+                                        CreatedAt = user.CreatedAt
+                                    });
+                                }
+
+                                if (!string.IsNullOrEmpty(userDef.Plan))
+                                {
+                                    context.UserSubscriptions.Add(new UserSubscription
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        UserId = user.Id,
+                                        Plan = userDef.Plan,
+                                        Status = "ACTIVE",
+                                        StartDate = user.CreatedAt,
+                                        EndDate = userDef.DurationMonths > 0 ? user.CreatedAt.AddMonths(userDef.DurationMonths) : null,
+                                        CreatedAt = user.CreatedAt
+                                    });
+                                }
+                            }
+
+                            await context.SaveChangesAsync();
                             logger.LogInformation("Seeded user {Email} with role {Role}", userDef.Email, userDef.Role);
                         }
                     }

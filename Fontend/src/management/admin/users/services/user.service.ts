@@ -106,6 +106,11 @@ class AdminUserService {
           notes: b.notes,
           lockReason: b.lockReason,
           lockedAt: b.lockedAt,
+          walletBalance: b.walletBalance !== undefined ? b.walletBalance : null,
+          plan: b.plan !== undefined ? b.plan : null,
+          planStartDate: b.planStartDate,
+          planEndDate: b.planEndDate,
+          walletTransactions: b.walletTransactions || [],
           learningSummary: b.learningSummary || {
             currentHsk: b.hskLevel || 'HSK 1',
             totalXp: 0,
@@ -509,6 +514,165 @@ class AdminUserService {
     this.kpis.totalLearners = Math.max(0, this.kpis.totalLearners - 1);
   }
 
+  public async resetPasswordAsync(
+    id: string,
+    dto: { newPassword: string; confirmPassword?: string }
+  ): Promise<{ message: string }> {
+    const token = authTokenService.getAccessToken();
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/reset-password`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(dto),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.title || err?.message || 'Không thể đặt lại mật khẩu.');
+    }
+
+    return await res.json().catch(() => ({ message: 'Đặt lại mật khẩu thành công.' }));
+  }
+
+  public async adjustWalletBalanceAsync(
+    id: string,
+    dto: { amount: number; reason: string }
+  ): Promise<{ message: string; newBalance?: number }> {
+    const token = authTokenService.getAccessToken();
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/wallet/adjust`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(dto),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.title || err?.message || 'Không thể điều chỉnh số dư.');
+    }
+
+    const data = await res.json().catch(() => ({ message: 'Thành công' }));
+    const idx = this.users.findIndex((u) => u.id === id);
+    if (idx !== -1 && data.newBalance !== undefined) {
+      this.users[idx].walletBalance = data.newBalance;
+    }
+    return data;
+  }
+
+  public async updateSubscriptionPlanAsync(
+    id: string,
+    dto: { plan: string; durationMonths?: number }
+  ): Promise<{ message: string; plan?: string; startDate?: string; endDate?: string }> {
+    const token = authTokenService.getAccessToken();
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/subscription`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(dto),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.title || err?.message || 'Không thể cập nhật gói sử dụng.');
+    }
+
+    const data = await res.json().catch(() => ({ message: 'Thành công' }));
+    const idx = this.users.findIndex((u) => u.id === id);
+    if (idx !== -1 && data.plan) {
+      this.users[idx].plan = data.plan;
+      if (data.startDate) this.users[idx].planStartDate = data.startDate;
+      if (data.endDate) this.users[idx].planEndDate = data.endDate;
+    }
+    return data;
+  }
+
+  public async getUserDetailAsync(id: string): Promise<UserDetail> {
+    const token = authTokenService.getAccessToken();
+    if (!token) {
+      const cached = this.users.find((u) => u.id === id);
+      if (cached) return cached;
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const cached = this.users.find((u) => u.id === id);
+      if (cached) return cached;
+      throw new Error('Không tìm thấy thông tin người dùng.');
+    }
+
+    const data = await res.json();
+    const detail: UserDetail = {
+      id: data.id,
+      name: data.name || data.displayName || 'Người dùng',
+      email: data.email,
+      avatarUrl: data.avatarUrl,
+      roles: data.roles || ['STUDENT'],
+      role: (data.roles && data.roles[0]) || 'STUDENT',
+      hskLevel: data.hskLevel || 'HSK 1',
+      status: data.status === 'SUSPENDED' ? 'LOCKED' : (data.status || 'ACTIVE'),
+      progressPercentage: data.progressPercentage || 0,
+      joinedAt: data.joinedAt || (data.createdAt ? new Date(data.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+      joinedDateRaw: data.joinedDateRaw || (data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString()),
+      lastActiveAt: data.lastActiveAt || (data.lastLoginAt ? new Date(data.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+      lastActiveDateRaw: data.lastActiveDateRaw || (data.lastLoginAt ? new Date(data.lastLoginAt).toISOString() : new Date().toISOString()),
+      phone: data.phone,
+      notes: data.notes,
+      lockReason: data.lockReason,
+      lockedAt: data.lockedAt,
+      walletBalance: data.walletBalance !== undefined ? data.walletBalance : null,
+      plan: data.plan !== undefined ? data.plan : null,
+      planStartDate: data.planStartDate,
+      planEndDate: data.planEndDate,
+      walletTransactions: data.walletTransactions || [],
+      learningSummary: data.learningSummary || {
+        currentHsk: data.hskLevel || 'HSK 1',
+        totalXp: 0,
+        streakDays: 0,
+        completedLessons: 0,
+        totalLessons: 35,
+        progressPercentage: 0,
+        vocabularyMastered: 0,
+        srsReviewDue: 0,
+        lastStudySession: 'Chưa có hoạt động học tập',
+      },
+    };
+
+    const idx = this.users.findIndex((u) => u.id === id);
+    if (idx !== -1) {
+      this.users[idx] = detail;
+    }
+
+    return detail;
+  }
+
   private toListItem(u: UserDetail): UserListItem {
     return {
       id: u.id,
@@ -524,6 +688,10 @@ class AdminUserService {
       joinedDateRaw: u.joinedDateRaw,
       lastActiveAt: u.lastActiveAt,
       lastActiveDateRaw: u.lastActiveDateRaw,
+      walletBalance: u.walletBalance,
+      plan: u.plan,
+      planStartDate: u.planStartDate,
+      planEndDate: u.planEndDate,
     };
   }
 }

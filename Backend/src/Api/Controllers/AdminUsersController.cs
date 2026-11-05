@@ -260,6 +260,72 @@ public class AdminUsersController : BaseApiController
         return Ok(new { success = true, message = "Đã cập nhật mô tả vai trò thành công." });
     }
 
+    [HttpPost("{id:guid}/reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetPassword([FromRoute] Guid id, [FromBody] ResetUserPasswordDto dto, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, errorMessage, statusCode) = await _adminUserService.ResetPasswordAsync(
+            id, dto, currentUserId, ipAddress, cancellationToken);
+
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Thao tác không thành công", errorMessage ?? "Không thể đặt lại mật khẩu.");
+        }
+
+        return Ok(new { message = "Đặt lại mật khẩu thành công." });
+    }
+
+    [HttpPost("{id:guid}/wallet/adjust")]
+    [ProducesResponseType(typeof(AdminUserDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AdjustWallet([FromRoute] Guid id, [FromBody] AdjustWalletBalanceDto dto, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, user, errorMessage, statusCode) = await _adminUserService.AdjustWalletBalanceAsync(
+            id, dto, currentUserId, ipAddress, cancellationToken);
+
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Điều chỉnh số dư thất bại", errorMessage ?? "Không thể điều chỉnh số dư ví.");
+        }
+
+        return Ok(user);
+    }
+
+    [HttpPut("{id:guid}/subscription")]
+    [ProducesResponseType(typeof(AdminUserDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSubscription([FromRoute] Guid id, [FromBody] UpdateSubscriptionPlanDto dto, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, user, errorMessage, statusCode) = await _adminUserService.UpdateSubscriptionPlanAsync(
+            id, dto, currentUserId, ipAddress, cancellationToken);
+
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Cập nhật gói thất bại", errorMessage ?? "Không thể cập nhật gói sử dụng.");
+        }
+
+        return Ok(user);
+    }
+
     private string? GetClientIpAddress()
     {
         if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
