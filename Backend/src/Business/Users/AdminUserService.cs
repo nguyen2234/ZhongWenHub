@@ -604,6 +604,233 @@ public class AdminUserService : IAdminUserService
         return (true, MapToDetail(user, updatedRoles), null, 200);
     }
 
+    public async Task<(bool Success, string? ErrorMessage, int StatusCode)> DeleteUserAsync(
+        Guid id,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+        if (user == null || user.IsDeleted)
+        {
+            return (false, "Không tìm thấy người dùng.", 404);
+        }
+
+        // Security check: cannot delete own account
+        if (user.Id == currentUserId)
+        {
+            return (false, "Không thể tự xóa hoặc vô hiệu hóa tài khoản quản trị của chính mình.", 400);
+        }
+
+        var (isActorSuperAdmin, isActorAdmin) = await GetActorPrivilegesAsync(currentUserId);
+        if (!isActorSuperAdmin && !isActorAdmin)
+        {
+            return (false, "Bạn không có quyền thực hiện thao tác này.", 403);
+        }
+
+        var targetIsSuperAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.SuperAdmin);
+        var targetIsAdmin = await _userManager.IsInRoleAsync(user, RoleConstants.Admin);
+
+        // Security check: Admin cannot delete Super Admin
+        if (targetIsSuperAdmin && !isActorSuperAdmin)
+        {
+            await RecordAuditAsync(currentUserId, null, "PRIVILEGE_ESCALATION_BLOCKED", ipAddress, null, false,
+                $"Admin cố gắng xóa tài khoản Super Admin {user.Email}.", cancellationToken);
+            return (false, "Chỉ Super Admin mới có quyền xóa tài khoản Super Admin.", 403);
+        }
+
+        // Security check: Cannot delete the last active Super Admin or Admin
+        if (targetIsSuperAdmin)
+        {
+            var superAdminRole = await _roleManager.FindByNameAsync(RoleConstants.SuperAdmin);
+            if (superAdminRole != null)
+            {
+                var activeSuperAdminCount = await (
+                    from ur in _dbContext.UserRoles
+                    join u in _dbContext.Users on ur.UserId equals u.Id
+                    where ur.RoleId == superAdminRole.Id && !u.IsDeleted
+                    select u.Id
+                ).CountAsync(cancellationToken);
+
+                if (activeSuperAdminCount <= 1)
+                {
+                    return (false, "Không thể xóa tài khoản Super Admin duy nhất trong hệ thống.", 400);
+                }
+            }
+        }
+        else if (targetIsAdmin)
+        {
+            var adminRoleIds = await _dbContext.Roles
+                .Where(r => r.Name == RoleConstants.Admin || r.Name == RoleConstants.SuperAdmin)
+                .Select(r => r.Id)
+                .ToListAsync(cancellationToken);
+
+            var activeAdminTotalCount = await (
+                from ur in _dbContext.UserRoles
+                join u in _dbContext.Users on ur.UserId equals u.Id
+                where adminRoleIds.Contains(ur.RoleId) && !u.IsDeleted
+                select u.Id
+            ).Distinct().CountAsync(cancellationToken);
+
+            if (activeAdminTotalCount <= 1)
+            {
+                return (false, "Không thể xóa tài khoản quản trị viên duy nhất trong hệ thống.", 400);
+            }
+        }
+
+        // Soft delete: marks user as deleted, sets status to SUSPENDED
+        user.IsDeleted = true;
+        user.Status = UserStatus.SUSPENDED;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userManager.UpdateAsync(user);
+
+        // Revoke all active refresh tokens immediately
+        var activeTokens = await _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in activeTokens)
+        {
+            token.Revoke(ipAddress, "Tài khoản bị xóa / vô hiệu hóa bởi Quản trị viên.");
+        }
+
+        await RecordAuditAsync(currentUserId, null, "USER_DELETED", ipAddress, null, true,
+            $"Vô hiệu hóa / xóa mềm tài khoản {user.Email}", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (true, null, 200);
+    }
+
+    public async Task<List<AdminRoleItemDto>> GetRolesSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        var dbRoles = await _dbContext.Roles.AsNoTracking().ToListAsync(cancellationToken);
+
+        var userCountsByRole = await (
+            from ur in _dbContext.UserRoles
+            join u in _dbContext.Users on ur.UserId equals u.Id
+            where !u.IsDeleted
+            group ur by ur.RoleId into g
+            select new { RoleId = g.Key, Count = g.Count() }
+        ).ToDictionaryAsync(x => x.RoleId, x => x.Count, cancellationToken);
+
+        var result = new List<AdminRoleItemDto>();
+        foreach (var role in dbRoles)
+        {
+            var count = userCountsByRole.TryGetValue(role.Id, out var c) ? c : 0;
+            var permissions = GetDefaultPermissionsForRole(role.Name ?? string.Empty);
+
+            result.Add(new AdminRoleItemDto
+            {
+                Id = role.Id.ToString(),
+                Name = role.Name ?? string.Empty,
+                Description = role.Description ?? string.Empty,
+                UserCount = count,
+                IsSystemRole = true,
+                Permissions = permissions
+            });
+        }
+
+        // Order by known hierarchy: SUPER_ADMIN, ADMIN, CONTENT_MANAGER, TEACHER, SUPPORT, STUDENT
+        var order = new List<string>
+        {
+            RoleConstants.SuperAdmin,
+            RoleConstants.Admin,
+            RoleConstants.ContentManager,
+            RoleConstants.Teacher,
+            RoleConstants.Support,
+            RoleConstants.Student
+        };
+
+        return result
+            .OrderBy(r => {
+                var idx = order.IndexOf(r.Name);
+                return idx >= 0 ? idx : 99;
+            })
+            .ToList();
+    }
+
+    public async Task<(bool Success, string? ErrorMessage, int StatusCode)> UpdateRoleDescriptionAsync(
+        string roleName,
+        string newDescription,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var role = await _roleManager.FindByNameAsync(roleName);
+        if (role == null)
+        {
+            return (false, $"Không tìm thấy vai trò '{roleName}'.", 404);
+        }
+
+        var (isActorSuperAdmin, isActorAdmin) = await GetActorPrivilegesAsync(currentUserId);
+        if (!isActorSuperAdmin && !isActorAdmin)
+        {
+            return (false, "Bạn không có quyền chỉnh sửa thông tin vai trò.", 403);
+        }
+
+        if (role.Name == RoleConstants.SuperAdmin && !isActorSuperAdmin)
+        {
+            return (false, "Chỉ Super Admin mới có quyền sửa vai trò Super Admin.", 403);
+        }
+
+        role.Description = newDescription.Trim();
+        var updateResult = await _roleManager.UpdateAsync(role);
+        if (!updateResult.Succeeded)
+        {
+            return (false, "Không thể cập nhật mô tả vai trò.", 400);
+        }
+
+        await RecordAuditAsync(currentUserId, null, "ROLE_DESCRIPTION_UPDATED", ipAddress, null, true,
+            $"Cập nhật mô tả vai trò {role.Name}: {role.Description}", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (true, null, 200);
+    }
+
+    private static List<string> GetDefaultPermissionsForRole(string roleName)
+    {
+        return roleName.ToUpperInvariant() switch
+        {
+            "SUPER_ADMIN" or "ADMIN" => new List<string>
+            {
+                "USER_VIEW", "USER_CREATE", "USER_UPDATE", "USER_LOCK", "USER_DELETE", "USER_EXPORT",
+                "ROLE_VIEW", "ROLE_ASSIGN", "ROLE_UPDATE",
+                "CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_APPROVE", "CONTENT_PUBLISH", "CONTENT_ARCHIVE", "CONTENT_RESTORE",
+                "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE",
+                "ASSIGNMENT_VIEW", "ASSIGNMENT_CREATE", "ASSIGNMENT_GRADE",
+                "TEACHER_VIEW", "TEACHER_ASSIGN", "TEACHER_EVALUATE",
+                "SUPPORT_STAFF_VIEW", "SUPPORT_STAFF_ASSIGN",
+                "TICKET_VIEW", "TICKET_ASSIGN", "TICKET_REPLY", "TICKET_CLOSE",
+                "CONTENT_ISSUE_VIEW", "CONTENT_ISSUE_ASSIGN", "CONTENT_ISSUE_RESOLVE",
+                "SYSTEM_CONFIG_VIEW", "SYSTEM_CONFIG_UPDATE",
+                "AUDIT_LOG_VIEW", "CONTENT_AUDIT_VIEW", "REPORT_VIEW", "CONTENT_REPORT_VIEW"
+            },
+            "TEACHER" => new List<string>
+            {
+                "TEACHER_VIEW", "CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE",
+                "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE",
+                "ASSIGNMENT_VIEW", "ASSIGNMENT_CREATE", "ASSIGNMENT_GRADE", "REPORT_VIEW"
+            },
+            "CONTENT_MANAGER" => new List<string>
+            {
+                "CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_APPROVE", "CONTENT_PUBLISH", "CONTENT_ARCHIVE", "CONTENT_RESTORE",
+                "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE",
+                "CONTENT_ISSUE_VIEW", "CONTENT_ISSUE_ASSIGN", "CONTENT_ISSUE_RESOLVE",
+                "CONTENT_AUDIT_VIEW", "CONTENT_REPORT_VIEW"
+            },
+            "SUPPORT" => new List<string>
+            {
+                "USER_VIEW", "SUPPORT_STAFF_VIEW", "TICKET_VIEW", "TICKET_ASSIGN", "TICKET_REPLY", "TICKET_CLOSE", "REPORT_VIEW"
+            },
+            "STUDENT" => new List<string>
+            {
+                "CONTENT_VIEW", "ASSIGNMENT_VIEW"
+            },
+            _ => new List<string>()
+        };
+    }
+
     private async Task<(bool isSuperAdmin, bool isAdmin)> GetActorPrivilegesAsync(Guid actorId)
     {
         var actor = await _userManager.FindByIdAsync(actorId.ToString());

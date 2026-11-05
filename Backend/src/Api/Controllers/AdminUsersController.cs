@@ -210,6 +210,56 @@ public class AdminUsersController : BaseApiController
         return Ok(user);
     }
 
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUser([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, errorMessage, statusCode) = await _adminUserService.DeleteUserAsync(id, currentUserId, ipAddress, cancellationToken);
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Thao tác thất bại", errorMessage ?? "Không thể xóa người dùng.");
+        }
+
+        return Ok(new { success = true, message = "Đã vô hiệu hóa tài khoản thành công." });
+    }
+
+    [HttpGet("roles")]
+    [ProducesResponseType(typeof(List<AdminRoleItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetRoles(CancellationToken cancellationToken)
+    {
+        var roles = await _adminUserService.GetRolesSummaryAsync(cancellationToken);
+        return Ok(roles);
+    }
+
+    [HttpPut("roles/{roleName}/description")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateRoleDescription([FromRoute] string roleName, [FromBody] UpdateRoleDescriptionDto request, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, errorMessage, statusCode) = await _adminUserService.UpdateRoleDescriptionAsync(roleName, request.Description, currentUserId, ipAddress, cancellationToken);
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Thao tác thất bại", errorMessage ?? "Không thể cập nhật mô tả vai trò.");
+        }
+
+        return Ok(new { success = true, message = "Đã cập nhật mô tả vai trò thành công." });
+    }
+
     private string? GetClientIpAddress()
     {
         if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
@@ -226,4 +276,10 @@ public class StatusUpdateRequestDto
 {
     public string Status { get; set; } = string.Empty;
     public string? Reason { get; set; }
+}
+
+
+public class UpdateRoleDescriptionDto
+{
+    public string Description { get; set; } = string.Empty;
 }

@@ -53,4 +53,19 @@ public interface IAdminUserService
         Guid currentUserId,
         string? ipAddress,
         CancellationToken cancellationToken = default);
+
+    Task<(bool Success, string? ErrorMessage, int StatusCode)> DeleteUserAsync(
+        Guid id,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
+    Task<List<AdminRoleItemDto>> GetRolesSummaryAsync(CancellationToken cancellationToken = default);
+
+    Task<(bool Success, string? ErrorMessage, int StatusCode)> UpdateRoleDescriptionAsync(
+        string roleName,
+        string newDescription,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
 }

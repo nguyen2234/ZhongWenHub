@@ -506,6 +506,31 @@ class AdminUserService {
     return JSON.parse(JSON.stringify(user));
   }
 
+  public async deleteUser(id: string): Promise<void> {
+    const user = this.users.find((u) => u.id === id);
+    if (!user) {
+      throw new Error('Không tìm thấy người dùng.');
+    }
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản này.');
+      }
+    }
+
+    this.users = this.users.filter((u) => u.id !== id);
+    this.kpis.totalLearners = Math.max(0, this.kpis.totalLearners - 1);
+  }
+
   private toListItem(u: UserDetail): UserListItem {
     return {
       id: u.id,

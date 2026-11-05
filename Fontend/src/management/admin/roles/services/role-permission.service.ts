@@ -5,6 +5,14 @@ import type {
   RoleDetail,
   SystemRoleCode,
 } from '../types/role-permission.types';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
 
 // Mock storage for roles
 let INITIAL_ROLES: RoleDetail[] = [
@@ -182,14 +190,68 @@ class RolePermissionService {
    * Cập nhật mô tả vai trò
    * Cho phép chỉnh sửa mô tả cho TEACHER, SUPPORT, STUDENT
    */
-  updateRoleDescription(roleCode: SystemRoleCode, description: string): RoleDetail {
+  public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const token = authTokenService.getAccessToken();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(getApiUrl('admin/users/roles'), {
+        headers,
+        credentials: 'include',
+      });
+
+      if (!res.ok) return { success: false, error: 'HTTP ' + res.status };
+
+      const roles = await res.json();
+      if (Array.isArray(roles) && roles.length > 0) {
+        roles.forEach((r: any) => {
+          const found = INITIAL_ROLES.find((ir) => ir.code === r.name);
+          if (found) {
+            found.userCount = r.userCount ?? found.userCount;
+            if (r.description) found.description = r.description;
+          } else if (r.name === 'SUPER_ADMIN') {
+            INITIAL_ROLES.unshift({
+              id: r.id || 'role-super-admin',
+              code: 'SUPER_ADMIN',
+              name: 'Quản trị viên tối cao',
+              description: r.description || 'Toàn quyền quản trị và phân quyền hệ thống.',
+              systemRole: true,
+              userCount: r.userCount ?? 1,
+              permissions: [...ALL_PERMISSION_CODES],
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+            });
+          }
+        });
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message };
+    }
+  }
+
+  public async updateRoleDescription(roleCode: SystemRoleCode, description: string): Promise<RoleDetail> {
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      await fetch(getApiUrl(`admin/users/roles/${roleCode}/description`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ description }),
+      });
+    }
+
     const index = INITIAL_ROLES.findIndex((r) => r.code === roleCode);
     if (index === -1) {
       throw new Error(`Không tìm thấy vai trò với mã: ${roleCode}`);
     }
 
     // ADMIN description is read-only according to specifications
-    if (roleCode === 'ADMIN') {
+    if (roleCode === 'ADMIN' || roleCode === 'SUPER_ADMIN') {
       return { ...INITIAL_ROLES[index], permissions: [...ALL_PERMISSION_CODES] };
     }
 

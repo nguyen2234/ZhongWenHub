@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
-import { PageHeader, Pagination, ConfirmDialog } from '../../../shared/components';
+import { PageHeader, Pagination, ConfirmDialog, ToastNotification, type ToastMessage } from '../../../shared/components';
 import type {
   CreateUserDTO,
   UpdateUserDTO,
@@ -60,10 +60,13 @@ export const AdminUsersPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // 6. Modal states
+  // 6. Modal and notification states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [targetLockUser, setTargetLockUser] = useState<UserListItem | UserDetail | null>(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
+  const [targetDeleteUser, setTargetDeleteUser] = useState<UserListItem | UserDetail | null>(null);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState<boolean>(true);
@@ -159,9 +162,21 @@ export const AdminUsersPage: React.FC = () => {
 
   // Save edit in Drawer
   const handleSaveEdit = async (id: string, dto: UpdateUserDTO) => {
-    const updated = await adminUserService.updateUser(id, dto);
-    setSelectedUser(updated);
-    triggerRefresh();
+    try {
+      const updated = await adminUserService.updateUser(id, dto);
+      setToast({
+        type: 'success',
+        message: `Đã cập nhật thông tin người dùng ${updated.name} thành công!`,
+      });
+      setSelectedUser(updated);
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể cập nhật người dùng.',
+      });
+      throw err;
+    }
   };
 
   // Lock / Unlock Confirmation
@@ -177,11 +192,19 @@ export const AdminUsersPage: React.FC = () => {
       let updated: UserDetail;
       if (targetLockUser.status === 'LOCKED') {
         updated = await adminUserService.unlockUser(targetLockUser.id);
+        setToast({
+          type: 'success',
+          message: `Đã mở khóa tài khoản ${targetLockUser.name} thành công.`,
+        });
       } else {
         updated = await adminUserService.lockUser(
           targetLockUser.id,
           'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
         );
+        setToast({
+          type: 'success',
+          message: `Đã khóa tài khoản ${targetLockUser.name}. Phiên đăng nhập đã bị vô hiệu.`,
+        });
       }
 
       if (selectedUser?.id === targetLockUser.id) {
@@ -192,16 +215,61 @@ export const AdminUsersPage: React.FC = () => {
       setTargetLockUser(null);
       triggerRefresh();
     } catch (err: any) {
-      alert(err.message || 'Không thể thực hiện thao tác.');
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể thực hiện thao tác.',
+      });
+    }
+  };
+
+  // Delete / Deactivate Confirmation
+  const handleOpenDeleteConfirmation = (user: UserListItem | UserDetail) => {
+    setTargetDeleteUser(user);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!targetDeleteUser) return;
+
+    try {
+      await adminUserService.deleteUser(targetDeleteUser.id);
+      setToast({
+        type: 'success',
+        message: `Đã vô hiệu hóa tài khoản ${targetDeleteUser.name} thành công.`,
+      });
+      setIsConfirmDeleteOpen(false);
+      setTargetDeleteUser(null);
+      if (selectedUser?.id === targetDeleteUser.id) {
+        setIsDrawerOpen(false);
+        setSelectedUser(null);
+      }
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể vô hiệu hóa tài khoản này.',
+      });
     }
   };
 
   // Create User
   const handleCreateUser = async (dto: CreateUserDTO) => {
-    const created = await adminUserService.createUser(dto);
-    triggerRefresh();
-    setSelectedUser(created);
-    setIsDrawerOpen(true);
+    try {
+      const created = await adminUserService.createUser(dto);
+      setToast({
+        type: 'success',
+        message: `Đã tạo tài khoản ${created.name} (${created.email}) thành công!`,
+      });
+      triggerRefresh();
+      setSelectedUser(created);
+      setIsDrawerOpen(true);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể tạo tài khoản.',
+      });
+      throw err;
+    }
   };
 
   const confirmDialogProps = useMemo(() => {
@@ -317,6 +385,7 @@ export const AdminUsersPage: React.FC = () => {
         onSelectUser={handleSelectUser}
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
+        onDeleteUser={handleOpenDeleteConfirmation}
         sort={sort}
         onSortChange={handleSortChange}
         onResetFilters={handleResetFilters}
@@ -353,6 +422,7 @@ export const AdminUsersPage: React.FC = () => {
         onClose={handleCloseDrawer}
         onSaveEdit={handleSaveEdit}
         onToggleLock={handleOpenLockConfirmation}
+        onDelete={handleOpenDeleteConfirmation}
       />
 
       {/* 8. Destructive Action Confirmation Dialog */}
@@ -366,12 +436,30 @@ export const AdminUsersPage: React.FC = () => {
         onCancel={() => setIsConfirmLockOpen(false)}
       />
 
-      {/* 9. Create User Modal */}
+      {/* 9. Soft-delete / Deactivate Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmDeleteOpen}
+        title={`Vô hiệu hóa tài khoản ${targetDeleteUser?.name || ''}?`}
+        message="Tài khoản sẽ bị vô hiệu hóa và chuyển sang trạng thái ngưng hoạt động. Toàn bộ tiến độ học tập và dữ liệu lịch sử được bảo lưu an toàn."
+        confirmLabel="Vô hiệu hóa tài khoản"
+        cancelLabel="Hủy bỏ"
+        isDestructive={true}
+        onConfirm={handleExecuteDelete}
+        onCancel={() => {
+          setIsConfirmDeleteOpen(false);
+          setTargetDeleteUser(null);
+        }}
+      />
+
+      {/* 10. Create User Modal */}
       <CreateUserModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateUser}
       />
+
+      {/* 11. Toast Notification */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 };

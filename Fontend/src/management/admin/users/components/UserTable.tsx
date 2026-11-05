@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Eye, Edit3, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Eye, Edit3, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react';
 import type { UserListItem, UserSort, UserSortField } from '../types/user.types';
 import type { TableColumn, RowAction } from '../../../shared/types';
 import { ManagementDataTable, StatusBadge } from '../../../shared/components';
@@ -13,6 +13,7 @@ export interface UserTableProps {
   onSelectUser: (user: UserListItem) => void;
   onEditUser: (user: UserListItem) => void;
   onLockUnlockUser: (user: UserListItem) => void;
+  onDeleteUser?: (user: UserListItem) => void;
   sort?: UserSort;
   onSortChange?: (field: UserSortField) => void;
   onResetFilters?: () => void;
@@ -45,6 +46,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onSelectUser,
   onEditUser,
   onLockUnlockUser,
+  onDeleteUser,
   sort,
   onSortChange,
   onResetFilters,
@@ -223,8 +225,15 @@ export const UserTable: React.FC<UserTableProps> = ({
         variant: 'danger',
         onClick: (user: UserListItem) => onLockUnlockUser(user),
       },
+      {
+        key: 'delete_user',
+        label: 'Vô hiệu hóa tài khoản',
+        icon: <Trash2 size={15} style={{ color: '#dc2626' }} />,
+        variant: 'danger',
+        onClick: (user: UserListItem) => onDeleteUser && onDeleteUser(user),
+      },
     ],
-    [onSelectUser, onEditUser, onLockUnlockUser]
+    [onSelectUser, onEditUser, onLockUnlockUser, onDeleteUser]
   );
 
   return (

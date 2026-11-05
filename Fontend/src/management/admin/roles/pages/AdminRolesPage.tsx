@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { PageHeader, ConfirmDialog } from '../../../shared/components';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { PageHeader, ConfirmDialog, ToastNotification, type ToastMessage } from '../../../shared/components';
 import {
   RoleList,
   RoleDetailHeader,
@@ -16,6 +16,13 @@ import '../components/role-permission-management.css';
 export const AdminRolesPage: React.FC = () => {
   // 1. Data from service
   const [rolesVersion, setRolesVersion] = useState(0);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  useEffect(() => {
+    adminRolePermissionService.syncFromBackend().finally(() => {
+      setRolesVersion((v) => v + 1);
+    });
+  }, []);
   const roles = useMemo(() => {
     void rolesVersion;
     return adminRolePermissionService.getRoles();
@@ -190,7 +197,7 @@ export const AdminRolesPage: React.FC = () => {
   // 8. Save and Cancel workflow
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (selectedRoleCode === 'ADMIN') return;
 
     setIsSaving(true);
@@ -199,9 +206,18 @@ export const AdminRolesPage: React.FC = () => {
       const currentDraftDesc = draftDescriptions[selectedRoleCode] || '';
 
       adminRolePermissionService.updateRolePermissions(selectedRoleCode, currentDraftPerms);
-      adminRolePermissionService.updateRoleDescription(selectedRoleCode, currentDraftDesc);
+      await adminRolePermissionService.updateRoleDescription(selectedRoleCode, currentDraftDesc);
 
+      setToast({
+        type: 'success',
+        message: `Đã lưu thay đổi cho vai trò ${selectedRoleCode} thành công!`,
+      });
       setRolesVersion((v) => v + 1);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể lưu thay đổi vai trò.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -316,6 +332,9 @@ export const AdminRolesPage: React.FC = () => {
         onConfirm={handleConfirmDiscardAndSwitch}
         onCancel={handleCancelSwitch}
       />
+
+      {/* Toast Notification */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 };

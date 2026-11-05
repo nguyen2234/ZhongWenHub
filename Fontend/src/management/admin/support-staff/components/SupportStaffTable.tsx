@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Eye, Edit2, CalendarCheck, Lock, Unlock } from 'lucide-react';
+import { Eye, Edit2, CalendarCheck, Lock, Unlock, Trash2 } from 'lucide-react';
 import { StatusBadge, ManagementDataTable } from '../../../shared/components';
 import type { TableColumn, RowAction } from '../../../shared/types';
 import type {
@@ -24,6 +24,7 @@ export interface SupportStaffTableProps {
   onEditStaff: (staff: SupportStaffListItem) => void;
   onChangeWorkStatus: (staff: SupportStaffListItem) => void;
   onToggleLockAccount: (staff: SupportStaffListItem) => void;
+  onDeleteStaff?: (staff: SupportStaffListItem) => void;
   sort: SupportStaffSort;
   onSortChange: (field: SupportStaffSortField) => void;
 }
@@ -38,6 +39,7 @@ export const SupportStaffTable: React.FC<SupportStaffTableProps> = ({
   onEditStaff,
   onChangeWorkStatus,
   onToggleLockAccount,
+  onDeleteStaff,
   sort,
   onSortChange,
 }) => {
@@ -208,8 +210,15 @@ export const SupportStaffTable: React.FC<SupportStaffTableProps> = ({
         variant: 'danger',
         onClick: (staff: SupportStaffListItem) => onToggleLockAccount(staff),
       },
+      {
+        key: 'delete_staff',
+        label: 'Vô hiệu hóa tài khoản',
+        icon: <Trash2 size={15} style={{ color: '#dc2626' }} />,
+        variant: 'danger',
+        onClick: (staff: SupportStaffListItem) => onDeleteStaff && onDeleteStaff(staff),
+      },
     ],
-    [onSelectStaff, onEditStaff, onChangeWorkStatus, onToggleLockAccount]
+    [onSelectStaff, onEditStaff, onChangeWorkStatus, onToggleLockAccount, onDeleteStaff]
   );
 
   return (

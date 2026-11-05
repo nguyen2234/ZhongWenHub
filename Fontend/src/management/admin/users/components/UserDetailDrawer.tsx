@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Unlock, Edit2, ShieldAlert, BookOpen, Clock } from 'lucide-react';
+import { X, Lock, Unlock, Edit2, ShieldAlert, BookOpen, Clock, Trash2 } from 'lucide-react';
 import type { HskLevelCode, UpdateUserDTO, UserDetail, UserRole, UserStatus } from '../types/user.types';
 import { StatusBadge } from '../../../shared/components';
 
@@ -9,6 +9,7 @@ export interface UserDetailDrawerProps {
   onClose: () => void;
   onSaveEdit: (id: string, dto: UpdateUserDTO) => Promise<void> | void;
   onToggleLock: (user: UserDetail) => void;
+  onDelete?: (user: UserDetail) => void;
 }
 
 const HSK_OPTIONS: HskLevelCode[] = [
@@ -60,6 +61,7 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
   onClose,
   onSaveEdit,
   onToggleLock,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -513,6 +515,18 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
                   </>
                 )}
               </button>
+
+              {onDelete && (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-danger ds-btn-sm"
+                  onClick={() => onDelete(user)}
+                  title="Vô hiệu hóa và xóa mềm tài khoản"
+                >
+                  <Trash2 size={13} style={{ marginRight: '5px' }} />
+                  Vô hiệu hóa
+                </button>
+              )}
             </>
           )}
         </div>
