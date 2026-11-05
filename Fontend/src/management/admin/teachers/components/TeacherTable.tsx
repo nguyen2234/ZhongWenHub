@@ -142,9 +142,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         align: 'center',
         width: '80px',
         render: (teacher) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {teacher.classCount}
-          </span>
+          teacher.classCount ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {teacher.classCount}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa hỗ trợ
+            </span>
+          )
         ),
       },
       {
@@ -155,9 +161,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         align: 'center',
         width: '100px',
         render: (teacher) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {teacher.studentCount}
-          </span>
+          teacher.studentCount ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {teacher.studentCount}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa hỗ trợ
+            </span>
+          )
         ),
       },
       {

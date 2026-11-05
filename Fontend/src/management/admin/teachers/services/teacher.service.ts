@@ -11,7 +11,6 @@ import type {
   TeachingLevel,
   UpdateTeacherDTO,
 } from '../types/teacher.types';
-import { INITIAL_TEACHERS_MOCK } from '../data/mockTeacherData';
 import { authTokenService } from '../../../../core/api/client/auth-token.service';
 
 function getApiUrl(endpoint: string): string {
@@ -28,16 +27,8 @@ class AdminTeacherService {
   private lastError: string | null = null;
 
   constructor() {
-    const isUnitTest =
-      typeof (globalThis as any).Bun !== 'undefined' ||
-      (globalThis as any).process?.env?.NODE_ENV === 'test';
-    if (isUnitTest && !authTokenService.isAuthenticated()) {
-      this.teachers = [...INITIAL_TEACHERS_MOCK];
-      this.hasSynced = true;
-    } else {
-      this.teachers = [];
-      this.syncFromBackend();
-    }
+    this.teachers = [];
+    this.syncFromBackend();
   }
 
   public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
@@ -58,18 +49,16 @@ class AdminTeacherService {
       });
 
       if (!res.ok) {
-        const errText = `Không thể tải danh sách giáo viên (HTTP ${res.status}).`;
+        const errText = `Không thể tải danh sách giáo viên từ máy chủ (HTTP ${res.status}).`;
         this.lastError = errText;
-        if (this.teachers.length === 0) {
-          this.teachers = [...INITIAL_TEACHERS_MOCK];
-        }
+        this.teachers = [];
         this.hasSynced = true;
         return { success: false, error: errText };
       }
 
       const data = await res.json();
       if (data && Array.isArray(data.items)) {
-        this.teachers = data.items.map((u: any, idx: number) => {
+        this.teachers = data.items.map((u: any) => {
           const isLocked = u.status === 'LOCKED' || u.status === 'SUSPENDED';
           const hsk = (u.hskLevel || 'HSK 3') as TeachingLevel;
           const levels: TeachingLevel[] = [hsk];
@@ -77,58 +66,51 @@ class AdminTeacherService {
             id: u.id,
             name: u.name || u.displayName || 'Giáo viên',
             email: u.email,
-            phone: u.phone || '0901234567',
+            phone: u.phone || '',
             avatarUrl: u.avatarUrl,
             accountStatus: isLocked ? 'LOCKED' : (u.status || 'ACTIVE'),
             teachingStatus: isLocked ? 'INACTIVE' : 'ACTIVE',
             teachingLevels: levels,
             specializations: ['GRAMMAR', 'CONVERSATION'] as TeacherSpecialization[],
-            classCount: (idx % 3) + 1,
-            studentCount: ((idx + 1) * 12) % 40 + 10,
-            lessonCount: 15,
-            joinedAt: u.joinedAt || '01/01/2026',
-            joinedDateRaw: u.joinedDateRaw || new Date().toISOString(),
-            lastActiveAt: u.lastActiveAt || 'Vừa xong',
-            lastActiveDateRaw: u.lastActiveDateRaw || new Date().toISOString(),
+            classCount: 0,
+            studentCount: 0,
+            lessonCount: 0,
+            joinedAt: u.joinedAt || (u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+            joinedDateRaw: u.joinedDateRaw || (u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()),
+            lastActiveAt: u.lastActiveAt || (u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+            lastActiveDateRaw: u.lastActiveDateRaw || (u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : new Date().toISOString()),
             notes: u.notes,
             lockReason: u.lockReason,
             lockedAt: u.lockedAt,
             profile: {
               teachingLevels: levels,
               specializations: ['GRAMMAR', 'CONVERSATION'],
-              qualifications: 'Cử nhân Sư phạm Tiếng Trung Quốc tế',
-              experienceYears: 3 + (idx % 5),
-              bio: u.notes || 'Giáo viên giảng dạy tiếng Trung tại ZhongWenHub.',
+              qualifications: u.notes || 'Giáo viên Tiếng Trung',
+              experienceYears: 0,
+              bio: u.notes || '',
             },
             teachingSummary: {
-              classCount: (idx % 3) + 1,
-              studentCount: ((idx + 1) * 12) % 40 + 10,
-              lessonCount: 15,
-              assignmentCount: 4,
+              classCount: 0,
+              studentCount: 0,
+              lessonCount: 0,
+              assignmentCount: 0,
               assignedClasses: [],
             },
-            recentActivities: [
-              {
-                id: `act-${u.id}`,
-                actionText: 'Hoạt động gần nhất',
-                targetName: 'Hệ thống Quản lý',
-                timeAgo: u.lastActiveAt || 'Vừa xong',
-                timestamp: u.lastActiveDateRaw || new Date().toISOString(),
-              },
-            ],
+            recentActivities: [],
           };
         });
         this.hasSynced = true;
         this.lastError = null;
+      } else {
+        this.teachers = [];
+        this.hasSynced = true;
       }
 
       return { success: true };
     } catch (err: any) {
       const msg = err?.message || 'Không thể kết nối đến máy chủ Backend.';
       this.lastError = msg;
-      if (this.teachers.length === 0) {
-        this.teachers = [...INITIAL_TEACHERS_MOCK];
-      }
+      this.teachers = [];
       this.hasSynced = true;
       return { success: false, error: msg };
     } finally {

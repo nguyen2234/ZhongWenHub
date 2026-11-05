@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Persistence;
 
@@ -43,13 +44,20 @@ public class AuthService : IAuthService
             return AuthResultDto.Failed(401, "Xác thực thất bại", "Tài khoản hoặc mật khẩu không chính xác.");
         }
 
-        if (await _userManager.IsLockedOutAsync(user))
+        // Determine user roles strictly from database (cannot be spoofed by client)
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var isExemptFromLockout = userRoles.Contains(RoleConstants.Admin, StringComparer.OrdinalIgnoreCase)
+                               || userRoles.Contains(RoleConstants.SuperAdmin, StringComparer.OrdinalIgnoreCase);
+
+        // Auto-lockout from repeated password failures applies only to non-admin roles (STUDENT, TEACHER, CONTENT_MANAGER, SUPPORT)
+        if (!isExemptFromLockout && await _userManager.IsLockedOutAsync(user))
         {
             var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
             await RecordAuditAsync(user.Id, user.UserName, "LOGIN_LOCKED", ipAddress, userAgent, false, $"Tài khoản bị tạm khóa đến {lockoutEnd}.", cancellationToken);
             return AuthResultDto.Failed(403, "Tài khoản bị khóa", "Tài khoản của bạn đã bị khóa tạm thời do nhập sai quá nhiều lần. Vui lòng thử lại sau.");
         }
 
+        // Manual status lock or suspension applies to ALL users, including ADMIN and SUPER_ADMIN
         if (user.Status != UserStatus.ACTIVE)
         {
             var statusTitle = (user.Status == UserStatus.LOCKED || user.Status == UserStatus.SUSPENDED)
@@ -69,7 +77,23 @@ public class AuthService : IAuthService
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!isPasswordValid)
         {
-            await _userManager.AccessFailedAsync(user);
+            if (!isExemptFromLockout)
+            {
+                // Non-admin roles increment failure count and auto-lockout after 5 attempts
+                await _userManager.AccessFailedAsync(user);
+            }
+            else
+            {
+                // Admin and SuperAdmin accounts are exempt from auto-lockout DOS attacks.
+                // Reset failed count and clear any potential lockout expiration.
+                await _userManager.ResetAccessFailedCountAsync(user);
+                if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow)
+                {
+                    await _userManager.SetLockoutEndDateAsync(user, null);
+                }
+            }
+
+            // Record audit without logging password, tokens, or sensitive information
             await RecordAuditAsync(user.Id, user.UserName, "LOGIN_FAILED", ipAddress, userAgent, false, "Sai mật khẩu.", cancellationToken);
             return AuthResultDto.Failed(401, "Xác thực thất bại", "Tài khoản hoặc mật khẩu không chính xác.");
         }
@@ -85,10 +109,9 @@ public class AuthService : IAuthService
             // Concurrent login from multiple clients for the same user account; non-critical metadata update
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
-        var userDto = MapToUserDto(user, roles);
+        var userDto = MapToUserDto(user, userRoles);
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(userDto, roles);
+        var accessToken = _jwtTokenService.GenerateAccessToken(userDto, userRoles);
         var (rawRefreshToken, tokenHash, expiresAt) = _jwtTokenService.GenerateRefreshToken(request.RememberMe);
 
         var refreshToken = new RefreshToken

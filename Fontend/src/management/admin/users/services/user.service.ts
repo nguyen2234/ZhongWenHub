@@ -8,7 +8,6 @@ import type {
   UserSort,
   UserSummaryKPIs,
 } from '../types/user.types';
-import { INITIAL_USER_KPIS, INITIAL_USERS } from '../data/mockUserData';
 import { authTokenService } from '../../../../core/api/client/auth-token.service';
 
 function getApiUrl(endpoint: string): string {
@@ -16,6 +15,23 @@ function getApiUrl(endpoint: string): string {
   const cleanBase = base.replace(/\/+$/, '');
   const cleanEndpoint = endpoint.replace(/^\/+/, '');
   return `${cleanBase}/${cleanEndpoint}`;
+}
+
+export function generateSecureRandomPassword(): string {
+  const lowers = 'abcdefghjkmnpqrstuvwxyz';
+  const uppers = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+  const numbers = '23456789';
+  const specials = '!@#$%^&*';
+  let pwd = '';
+  pwd += uppers[Math.floor(Math.random() * uppers.length)];
+  pwd += lowers[Math.floor(Math.random() * lowers.length)];
+  pwd += numbers[Math.floor(Math.random() * numbers.length)];
+  pwd += specials[Math.floor(Math.random() * specials.length)];
+  const all = lowers + uppers + numbers + specials;
+  for (let i = 0; i < 8; i++) {
+    pwd += all[Math.floor(Math.random() * all.length)];
+  }
+  return pwd;
 }
 
 class AdminUserService {
@@ -31,18 +47,9 @@ class AdminUserService {
   private lastError: string | null = null;
 
   constructor() {
-    const isUnitTest =
-      typeof (globalThis as any).Bun !== 'undefined' ||
-      (globalThis as any).process?.env?.NODE_ENV === 'test';
-    if (isUnitTest && !authTokenService.isAuthenticated()) {
-      this.users = [...INITIAL_USERS];
-      this.kpis = { ...INITIAL_USER_KPIS };
-      this.hasSynced = true;
-    } else {
-      this.users = [];
-      this.kpis = { totalLearners: 0, activeLearners: 0, lockedLearners: 0, newLearners30d: 0 };
-      this.syncFromBackend();
-    }
+    this.users = [];
+    this.kpis = { totalLearners: 0, activeLearners: 0, lockedLearners: 0, newLearners30d: 0 };
+    this.syncFromBackend();
   }
 
   public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
@@ -91,10 +98,10 @@ class AdminUserService {
           hskLevel: b.hskLevel || 'HSK 1',
           status: b.status === 'SUSPENDED' ? 'LOCKED' : (b.status || 'ACTIVE'),
           progressPercentage: b.progressPercentage || 0,
-          joinedAt: b.joinedAt || '28/10/2026',
-          joinedDateRaw: b.joinedDateRaw || new Date().toISOString().slice(0, 10),
-          lastActiveAt: b.lastActiveAt || 'Vừa mới tạo',
-          lastActiveDateRaw: b.lastActiveDateRaw || new Date().toISOString(),
+          joinedAt: b.joinedAt || (b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+          joinedDateRaw: b.joinedDateRaw || (b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString()),
+          lastActiveAt: b.lastActiveAt || (b.lastLoginAt ? new Date(b.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+          lastActiveDateRaw: b.lastActiveDateRaw || (b.lastLoginAt ? new Date(b.lastLoginAt).toISOString() : new Date().toISOString()),
           phone: b.phone,
           notes: b.notes,
           lockReason: b.lockReason,
@@ -272,96 +279,59 @@ class AdminUserService {
       : [dto.role || 'STUDENT'];
 
     const token = authTokenService.getAccessToken();
-    if (token) {
-      const res = await fetch(getApiUrl('admin/users'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          initialHsk: dto.initialHsk || 'HSK 1',
-          status: dto.status || 'ACTIVE',
-          password: dto.password || 'UserPassword123!',
-          roles: assignedRoles,
-          notes: dto.notes,
-          phone: dto.phone,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        const errorMsg =
-          errorData?.detail ||
-          errorData?.message ||
-          (errorData?.errors ? Object.values(errorData.errors).flat().join('; ') : null) ||
-          'Không thể tạo tài khoản người dùng.';
-        throw new Error(errorMsg);
-      }
-
-      const created = await res.json();
-      const newUser: UserDetail = {
-        id: created.id,
-        name: created.name || dto.name.trim(),
-        email: created.email || dto.email.trim().toLowerCase(),
-        roles: created.roles || assignedRoles,
-        role: (created.roles && created.roles[0]) || assignedRoles[0],
-        hskLevel: created.hskLevel || dto.initialHsk || 'HSK 1',
-        status: created.status || dto.status || 'ACTIVE',
-        progressPercentage: created.progressPercentage || 0,
-        joinedAt: created.joinedAt || new Date().toLocaleDateString('vi-VN'),
-        joinedDateRaw: created.joinedDateRaw || new Date().toISOString().slice(0, 10),
-        lastActiveAt: created.lastActiveAt || 'Vừa mới tạo',
-        lastActiveDateRaw: created.lastActiveDateRaw || new Date().toISOString(),
-        phone: created.phone || dto.phone,
-        notes: created.notes || dto.notes,
-        learningSummary: created.learningSummary || {
-          currentHsk: dto.initialHsk || 'HSK 1',
-          totalXp: 0,
-          streakDays: 0,
-          completedLessons: 0,
-          totalLessons: 35,
-          progressPercentage: 0,
-          vocabularyMastered: 0,
-          srsReviewDue: 0,
-          lastStudySession: 'Chưa có hoạt động học tập',
-        },
-      };
-
-      this.users.unshift(newUser);
-      this.kpis.totalLearners += 1;
-      this.kpis.newLearners30d += 1;
-      if (newUser.status === 'ACTIVE') this.kpis.activeLearners += 1;
-
-      return JSON.parse(JSON.stringify(newUser));
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để tạo tài khoản.');
     }
 
-    // Local fallback for offline unit tests
-    const newId = `u-${Date.now().toString().slice(-4)}`;
-    const now = new Date();
-    const joinedAt = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-    const joinedDateRaw = now.toISOString().slice(0, 10);
+    const effectivePassword = dto.password?.trim() || generateSecureRandomPassword();
 
+    const res = await fetch(getApiUrl('admin/users'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        initialHsk: dto.initialHsk || 'HSK 1',
+        status: dto.status || 'ACTIVE',
+        password: effectivePassword,
+        roles: assignedRoles,
+        notes: dto.notes,
+        phone: dto.phone,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      const errorMsg =
+        errorData?.detail ||
+        errorData?.message ||
+        (errorData?.errors ? Object.values(errorData.errors).flat().join('; ') : null) ||
+        'Không thể tạo tài khoản người dùng trên máy chủ.';
+      throw new Error(errorMsg);
+    }
+
+    const created = await res.json();
     const newUser: UserDetail = {
-      id: newId,
-      name: dto.name.trim(),
-      email: dto.email.trim().toLowerCase(),
-      roles: assignedRoles,
-      role: assignedRoles[0],
-      hskLevel: dto.initialHsk,
-      status: dto.status,
-      progressPercentage: 0,
-      joinedAt,
-      joinedDateRaw,
-      lastActiveAt: 'Vừa mới tạo',
-      lastActiveDateRaw: now.toISOString(),
-      phone: dto.phone,
-      notes: dto.notes,
-      learningSummary: {
-        currentHsk: dto.initialHsk,
+      id: created.id,
+      name: created.name || dto.name.trim(),
+      email: created.email || dto.email.trim().toLowerCase(),
+      roles: created.roles || assignedRoles,
+      role: (created.roles && created.roles[0]) || assignedRoles[0],
+      hskLevel: created.hskLevel || dto.initialHsk || 'HSK 1',
+      status: created.status || dto.status || 'ACTIVE',
+      progressPercentage: created.progressPercentage || 0,
+      joinedAt: created.joinedAt || (created.createdAt ? new Date(created.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN')),
+      joinedDateRaw: created.joinedDateRaw || (created.createdAt ? new Date(created.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)),
+      lastActiveAt: created.lastActiveAt || 'Vừa mới tạo',
+      lastActiveDateRaw: created.lastActiveDateRaw || new Date().toISOString(),
+      phone: created.phone || dto.phone,
+      notes: created.notes || dto.notes,
+      learningSummary: created.learningSummary || {
+        currentHsk: dto.initialHsk || 'HSK 1',
         totalXp: 0,
         streakDays: 0,
         completedLessons: 0,
@@ -376,7 +346,7 @@ class AdminUserService {
     this.users.unshift(newUser);
     this.kpis.totalLearners += 1;
     this.kpis.newLearners30d += 1;
-    if (dto.status === 'ACTIVE') this.kpis.activeLearners += 1;
+    if (newUser.status === 'ACTIVE') this.kpis.activeLearners += 1;
 
     return JSON.parse(JSON.stringify(newUser));
   }
@@ -399,33 +369,35 @@ class AdminUserService {
       : dto.role ? [dto.role] : user.roles;
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          hskLevel: dto.hskLevel,
-          status: dto.status,
-          roles: targetRoles,
-          notes: dto.notes,
-          phone: dto.phone,
-        }),
-      });
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để cập nhật người dùng.');
+    }
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        const errorMsg =
-          errorData?.detail ||
-          errorData?.message ||
-          'Không thể cập nhật thông tin người dùng.';
-        throw new Error(errorMsg);
-      }
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        hskLevel: dto.hskLevel,
+        status: dto.status,
+        roles: targetRoles,
+        notes: dto.notes,
+        phone: dto.phone,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      const errorMsg =
+        errorData?.detail ||
+        errorData?.message ||
+        'Không thể cập nhật thông tin người dùng trên máy chủ.';
+      throw new Error(errorMsg);
     }
 
     user.name = dto.name.trim();
@@ -455,20 +427,22 @@ class AdminUserService {
 
     const lockReason = reason || 'Tài khoản tạm thời bị khóa bởi Quản trị viên.';
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ reason: lockReason }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản này.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để khóa tài khoản.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ reason: lockReason }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản này.');
     }
 
     user.status = 'LOCKED';
@@ -485,18 +459,20 @@ class AdminUserService {
     }
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản này.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để mở khóa tài khoản.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản này.');
     }
 
     user.status = 'ACTIVE';
@@ -513,18 +489,20 @@ class AdminUserService {
     }
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản này.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để xóa tài khoản.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể vô hiệu hóa tài khoản này.');
     }
 
     this.users = this.users.filter((u) => u.id !== id);

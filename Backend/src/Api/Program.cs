@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using ZhongWenHub.Api.Middleware;
 using ZhongWenHub.Business;
@@ -39,6 +41,45 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials();
     });
+});
+
+// Configure Rate Limiting for Login & Sensitive Endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    var loginPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:LoginPermitLimit")
+        ?? (builder.Environment.IsDevelopment() ? 60 : 20);
+
+    options.AddPolicy("LoginRateLimit", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = loginPermitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/problem+json";
+        var problem = new ApiProblemDetailsDto
+        {
+            Type = "https://httpstatuses.com/429",
+            Title = "Quá nhiều yêu cầu",
+            Status = StatusCodes.Status429TooManyRequests,
+            Detail = "Bạn đã thực hiện quá nhiều yêu cầu đăng nhập từ địa chỉ IP này. Vui lòng thử lại sau ít phút.",
+            Instance = context.HttpContext.Request.Path,
+            TraceId = context.HttpContext.TraceIdentifier
+        };
+        await context.HttpContext.Response.WriteAsync(
+            JsonSerializer.Serialize(problem, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            token);
+    };
 });
 
 // Configure Health Checks
@@ -164,6 +205,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseCors("DefaultCorsPolicy");
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

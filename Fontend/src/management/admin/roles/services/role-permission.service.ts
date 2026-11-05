@@ -233,16 +233,23 @@ class RolePermissionService {
 
   public async updateRoleDescription(roleCode: SystemRoleCode, description: string): Promise<RoleDetail> {
     const token = authTokenService.getAccessToken();
-    if (token) {
-      await fetch(getApiUrl(`admin/users/roles/${roleCode}/description`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ description }),
-      });
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để cập nhật vai trò.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/roles/${roleCode}/description`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ description }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể lưu mô tả vai trò trên máy chủ.');
     }
 
     const index = INITIAL_ROLES.findIndex((r) => r.code === roleCode);

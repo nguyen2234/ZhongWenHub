@@ -143,9 +143,15 @@ export const SupportStaffTable: React.FC<SupportStaffTableProps> = ({
         align: 'center',
         width: '90px',
         render: (staff) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {staff.openTickets}
-          </span>
+          staff.openTickets ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {staff.openTickets}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa có DL
+            </span>
+          )
         ),
       },
       {
@@ -156,9 +162,15 @@ export const SupportStaffTable: React.FC<SupportStaffTableProps> = ({
         align: 'center',
         width: '120px',
         render: (staff) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {staff.resolvedTickets}
-          </span>
+          staff.resolvedTickets ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {staff.resolvedTickets}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa có DL
+            </span>
+          )
         ),
       },
       {

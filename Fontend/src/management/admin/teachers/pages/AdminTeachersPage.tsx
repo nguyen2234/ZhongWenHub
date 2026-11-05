@@ -73,10 +73,28 @@ export const AdminTeachersPage: React.FC = () => {
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
+
   const triggerRefresh = useCallback(() => {
-    adminTeacherService.syncFromBackend().finally(() => {
-      setDataVersion((v) => v + 1);
-    });
+    setIsSyncing(true);
+    setSyncError(null);
+    adminTeacherService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải danh sách giáo viên từ máy chủ.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setDataVersion((v) => v + 1);
+      });
   }, []);
 
   useEffect(() => {
@@ -308,6 +326,44 @@ export const AdminTeachersPage: React.FC = () => {
         onFilterChange={handleFilterChange}
         onResetFilters={handleResetFilters}
       />
+
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-md)',
+            color: '#991b1b',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isSyncing ? 'Đang thử lại...' : 'Thử lại'}
+          </button>
+        </div>
+      )}
 
       {/* 4. Main Teacher Table / Mobile Cards / Empty State */}
       {paginatedData.totalItems === 0 ? (

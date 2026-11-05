@@ -297,4 +297,36 @@ test.describe('ZhongWenHub — Hoàn thiện CRUD Admin: Người dùng & Tổ c
     await expect(page.getByText('Giáo viên').first()).toBeVisible();
     await expect(page.getByText('Học viên').first()).toBeVisible();
   });
+
+  test('16. Tài khoản ADMIN nhập sai mật khẩu nhiều lần không bị tự động khóa, đăng nhập lại thành công', async ({ page }) => {
+    const adminEmail = 'admin@zhongwenhub.edu.vn';
+    const correctPass = 'AdminPassword123!';
+    const wrongPass = 'IncorrectPassword999!';
+
+    await page.goto('/ZhongWenHub/login');
+    await page.waitForLoadState('networkidle');
+
+    // Thử nhập sai mật khẩu 3 lần liên tiếp
+    for (let i = 0; i < 3; i++) {
+      await page.fill('#login-email', adminEmail);
+      await page.fill('#login-password', wrongPass);
+      const [res] = await Promise.all([
+        page.waitForResponse((r) => r.url().includes('/auth/login')),
+        page.click('button[type="submit"]'),
+      ]);
+      expect(res.status()).toBe(401);
+      await page.waitForTimeout(300);
+    }
+
+    // Lần thứ 4 nhập đúng mật khẩu -> Đăng nhập thành công, không bị lockout
+    await page.fill('#login-email', adminEmail);
+    await page.fill('#login-password', correctPass);
+    const [okRes] = await Promise.all([
+      page.waitForResponse((r) => r.url().includes('/auth/login')),
+      page.click('button[type="submit"]'),
+    ]);
+    expect(okRes.status()).toBe(200);
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
+    expect(page.url()).toContain('/ZhongWenHub/');
+  });
 });

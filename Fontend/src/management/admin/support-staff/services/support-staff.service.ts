@@ -10,7 +10,6 @@ import type {
   SupportWorkStatus,
   UpdateSupportStaffDTO,
 } from '../types/support-staff.types';
-import { INITIAL_SUPPORT_STAFF_MOCK } from '../data/mockSupportStaffData';
 import { authTokenService } from '../../../../core/api/client/auth-token.service';
 
 function getApiUrl(endpoint: string): string {
@@ -27,16 +26,8 @@ class AdminSupportStaffService {
   private lastError: string | null = null;
 
   constructor() {
-    const isUnitTest =
-      typeof (globalThis as any).Bun !== 'undefined' ||
-      (globalThis as any).process?.env?.NODE_ENV === 'test';
-    if (isUnitTest && !authTokenService.isAuthenticated()) {
-      this.staffList = [...INITIAL_SUPPORT_STAFF_MOCK];
-      this.hasSynced = true;
-    } else {
-      this.staffList = [];
-      this.syncFromBackend();
-    }
+    this.staffList = [];
+    this.syncFromBackend();
   }
 
   public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
@@ -57,66 +48,57 @@ class AdminSupportStaffService {
       });
 
       if (!res.ok) {
-        const errText = `Không thể tải danh sách nhân viên hỗ trợ (HTTP ${res.status}).`;
+        const errText = `Không thể tải danh sách nhân viên hỗ trợ từ máy chủ (HTTP ${res.status}).`;
         this.lastError = errText;
-        if (this.staffList.length === 0) {
-          this.staffList = [...INITIAL_SUPPORT_STAFF_MOCK];
-        }
+        this.staffList = [];
         this.hasSynced = true;
         return { success: false, error: errText };
       }
 
       const data = await res.json();
       if (data && Array.isArray(data.items)) {
-        this.staffList = data.items.map((u: any, idx: number) => {
+        this.staffList = data.items.map((u: any) => {
           const isLocked = u.status === 'LOCKED' || u.status === 'SUSPENDED';
           return {
             id: u.id,
             name: u.name || u.displayName || 'Nhân viên Hỗ trợ',
             email: u.email,
-            phone: u.phone || '0908889999',
+            phone: u.phone || '',
             avatarUrl: u.avatarUrl,
             accountStatus: isLocked ? 'LOCKED' : (u.status || 'ACTIVE'),
-            workStatus: isLocked ? 'OFF_DUTY' : ((idx % 2 === 0 ? 'AVAILABLE' : 'BUSY') as SupportWorkStatus),
-            supportScopes: ['ACCOUNT', 'TECHNICAL', 'LEARNING'] as SupportScope[],
-            shift: idx % 2 === 0 ? 'MORNING' : 'AFTERNOON',
-            joinedAt: u.joinedAt || '01/01/2026',
-            joinedDateRaw: u.joinedDateRaw || new Date().toISOString(),
-            lastActiveAt: u.lastActiveAt || 'Vừa xong',
-            lastActiveDateRaw: u.lastActiveDateRaw || new Date().toISOString(),
-            notes: u.notes || 'Nhân viên hỗ trợ học viên ZhongWenHub.',
+            workStatus: isLocked ? 'OFF_DUTY' : 'AVAILABLE',
+            supportScopes: ['ACCOUNT', 'TECHNICAL'] as SupportScope[],
+            shift: 'MORNING' as const,
+            joinedAt: u.joinedAt || (u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+            joinedDateRaw: u.joinedDateRaw || (u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()),
+            lastActiveAt: u.lastActiveAt || (u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+            lastActiveDateRaw: u.lastActiveDateRaw || (u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : new Date().toISOString()),
+            notes: u.notes || '',
             lockReason: u.lockReason,
             lockedAt: u.lockedAt,
             performance: {
-              openTickets: (idx % 3) + 1,
-              inProgressTickets: 1,
-              resolvedTickets: 30 + (idx * 5),
-              avgResponseTime: '3.2 phút',
-              resolutionRate: '98.5%',
+              openTickets: 0,
+              inProgressTickets: 0,
+              resolvedTickets: 0,
+              avgResponseTime: 'Chưa có DL',
+              resolutionRate: 'Chưa có DL',
             },
-            assignedScopes: ['ACCOUNT', 'TECHNICAL', 'LEARNING'],
-            recentActivities: [
-              {
-                id: `act-${u.id}`,
-                actionText: 'Hoạt động hỗ trợ gần nhất',
-                targetName: 'Hệ thống Quản lý',
-                timeAgo: u.lastActiveAt || 'Vừa xong',
-                timestamp: u.lastActiveDateRaw || new Date().toISOString(),
-              },
-            ],
+            assignedScopes: ['ACCOUNT', 'TECHNICAL'],
+            recentActivities: [],
           };
         });
         this.hasSynced = true;
         this.lastError = null;
+      } else {
+        this.staffList = [];
+        this.hasSynced = true;
       }
 
       return { success: true };
     } catch (err: any) {
       const msg = err?.message || 'Không thể kết nối đến máy chủ Backend.';
       this.lastError = msg;
-      if (this.staffList.length === 0) {
-        this.staffList = [...INITIAL_SUPPORT_STAFF_MOCK];
-      }
+      this.staffList = [];
       this.hasSynced = true;
       return { success: false, error: msg };
     } finally {

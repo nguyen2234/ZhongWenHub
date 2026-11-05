@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../../design-system';
 import type { CreateUserDTO, HskLevelCode, UserRole, UserStatus } from '../types/user.types';
+import { generateSecureRandomPassword } from '../services/user.service';
 
 export interface CreateUserModalProps {
   isOpen: boolean;
@@ -60,9 +61,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       return;
     }
 
+    const effectivePassword = formData.password?.trim() || generateSecureRandomPassword();
+
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit({ ...formData, password: effectivePassword });
       // Reset form on success
       setFormData({
         name: '',
@@ -175,13 +178,30 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--foreground)' }}>
-              Mật khẩu khởi tạo
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--foreground)' }}>
+                Mật khẩu khởi tạo
+              </label>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, password: generateSecureRandomPassword() }))}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary)',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                + Tạo mật khẩu an toàn
+              </button>
+            </div>
             <input
               type="password"
               className="drawer-form-input"
-              placeholder="Mặc định: UserPassword123!"
+              placeholder="Nhập hoặc bấm Tạo mật khẩu an toàn"
               value={formData.password || ''}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               disabled={isSubmitting}

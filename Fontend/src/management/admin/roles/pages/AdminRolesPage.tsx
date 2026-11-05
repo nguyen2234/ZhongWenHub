@@ -17,12 +17,33 @@ export const AdminRolesPage: React.FC = () => {
   // 1. Data from service
   const [rolesVersion, setRolesVersion] = useState(0);
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
+
+  const triggerRefresh = useCallback(() => {
+    setIsSyncing(true);
+    setSyncError(null);
+    adminRolePermissionService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải danh sách vai trò từ máy chủ.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setRolesVersion((v) => v + 1);
+      });
+  }, []);
 
   useEffect(() => {
-    adminRolePermissionService.syncFromBackend().finally(() => {
-      setRolesVersion((v) => v + 1);
-    });
-  }, []);
+    triggerRefresh();
+  }, [triggerRefresh]);
   const roles = useMemo(() => {
     void rolesVersion;
     return adminRolePermissionService.getRoles();
@@ -61,28 +82,19 @@ export const AdminRolesPage: React.FC = () => {
     const set = new Set<SystemRoleCode>();
 
     roles.forEach((savedRole) => {
-      // ADMIN is never dirty (immutable permissions & description)
-      if (savedRole.code === 'ADMIN') return;
+      // ADMIN & SUPER_ADMIN are immutable
+      if (savedRole.code === 'ADMIN' || savedRole.code === 'SUPER_ADMIN') return;
 
-      const currentDraft = draftPermissions[savedRole.code] || [];
       const currentDesc = draftDescriptions[savedRole.code] ?? '';
-
-      // Compare permissions set
-      const isPermChanged =
-        currentDraft.length !== savedRole.permissions.length ||
-        currentDraft.some((p) => !savedRole.permissions.includes(p)) ||
-        savedRole.permissions.some((p) => !currentDraft.includes(p));
-
-      // Compare description
       const isDescChanged = currentDesc.trim() !== savedRole.description.trim();
 
-      if (isPermChanged || isDescChanged) {
+      if (isDescChanged) {
         set.add(savedRole.code);
       }
     });
 
     return set;
-  }, [roles, draftPermissions, draftDescriptions]);
+  }, [roles, draftDescriptions]);
 
   const isCurrentRoleDirty = dirtyRoles.has(selectedRoleCode);
 
@@ -198,19 +210,16 @@ export const AdminRolesPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
-    if (selectedRoleCode === 'ADMIN') return;
+    if (selectedRoleCode === 'ADMIN' || selectedRoleCode === 'SUPER_ADMIN') return;
 
     setIsSaving(true);
     try {
-      const currentDraftPerms = draftPermissions[selectedRoleCode] || [];
       const currentDraftDesc = draftDescriptions[selectedRoleCode] || '';
-
-      adminRolePermissionService.updateRolePermissions(selectedRoleCode, currentDraftPerms);
       await adminRolePermissionService.updateRoleDescription(selectedRoleCode, currentDraftDesc);
 
       setToast({
         type: 'success',
-        message: `Đã lưu thay đổi cho vai trò ${selectedRoleCode} thành công!`,
+        message: `Đã lưu mô tả cho vai trò ${selectedRoleCode} vào hệ thống thành công!`,
       });
       setRolesVersion((v) => v + 1);
     } catch (err: any) {
@@ -221,7 +230,7 @@ export const AdminRolesPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedRoleCode, draftPermissions, draftDescriptions]);
+  }, [selectedRoleCode, draftDescriptions]);
 
   const handleCancel = useCallback(() => {
     const currentSavedRole = roles.find((r) => r.code === selectedRoleCode);
@@ -257,6 +266,44 @@ export const AdminRolesPage: React.FC = () => {
         title="Quản lý vai trò & quyền hạn"
         subtitle="Xem danh mục vai trò hệ thống và thiết lập quyền hạn chi tiết cho từng phân hệ chức năng."
       />
+
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-md)',
+            color: '#991b1b',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isSyncing ? 'Đang thử lại...' : 'Thử lại'}
+          </button>
+        </div>
+      )}
 
       {/* Mobile Role Switcher */}
       <div style={{ marginBottom: 'var(--space-4)' }} className="rpm-mobile-selector-wrap">
@@ -295,6 +342,27 @@ export const AdminRolesPage: React.FC = () => {
             onDescriptionChange={handleDescriptionChange}
           />
 
+          {/* Security & Policy Callout */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '12px',
+              color: '#1e40af',
+              marginBottom: '16px',
+            }}
+          >
+            <span>🔒</span>
+            <span>
+              <strong>Chính sách phân quyền hệ thống:</strong> Ma trận quyền của các vai trò được thiết lập cố định theo chính sách phân quyền ASP.NET Core Authorization Policy (Chỉ đọc). Quản trị viên có thể tùy chỉnh mô tả vai trò và phân quyền thông qua việc gán vai trò trực tiếp cho người dùng.
+            </span>
+          </div>
+
           {/* Module Cards Grid */}
           <div className="rpm-modules-grid">
             {moduleGroups.map((group) => (
@@ -302,7 +370,7 @@ export const AdminRolesPage: React.FC = () => {
                 key={group.id}
                 group={group}
                 assignedPermissions={currentRoleAssignedPermissions}
-                isReadOnly={selectedRoleCode === 'ADMIN'}
+                isReadOnly={true}
                 onTogglePermission={handleTogglePermission}
                 onToggleModuleAll={handleToggleModuleAll}
               />
@@ -310,7 +378,7 @@ export const AdminRolesPage: React.FC = () => {
           </div>
 
           {/* Unsaved Changes Bar */}
-          {isCurrentRoleDirty && selectedRoleCode !== 'ADMIN' && (
+          {isCurrentRoleDirty && selectedRoleCode !== 'ADMIN' && selectedRoleCode !== 'SUPER_ADMIN' && (
             <UnsavedChangesBar
               roleName={currentRole.name}
               isSaving={isSaving}

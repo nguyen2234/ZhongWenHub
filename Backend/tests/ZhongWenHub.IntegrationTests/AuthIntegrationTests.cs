@@ -321,6 +321,159 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Admin_RepeatedWrongPasswords_IsNotLockedOutAndCanLoginWithCorrectPassword()
+    {
+        var adminEmail = "admin@zhongwenhub.edu.vn";
+        var wrongPass = "WrongPassword999!";
+        var correctPass = "AdminPassword123!";
+
+        // Attempt 6 consecutive wrong password logins
+        for (int i = 0; i < 6; i++)
+        {
+            var wrongResponse = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+            {
+                UsernameOrEmail = adminEmail,
+                Password = wrongPass
+            });
+            Assert.Equal(HttpStatusCode.Unauthorized, wrongResponse.StatusCode);
+        }
+
+        // 7th attempt with CORRECT password must succeed (Admin is exempt from automatic lockout)
+        var correctResponse = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = adminEmail,
+            Password = correctPass
+        });
+
+        Assert.Equal(HttpStatusCode.OK, correctResponse.StatusCode);
+        var body = await correctResponse.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        Assert.NotNull(body);
+        Assert.NotEmpty(body.AccessToken);
+        Assert.Contains("ADMIN", body.User.Roles);
+    }
+
+    [Fact]
+    public async Task SuperAdmin_RepeatedWrongPasswords_IsNotLockedOutAndCanLogin()
+    {
+        var superAdminEmail = "superadmin@zhongwenhub.edu.vn";
+        var wrongPass = "SuperWrongPass123!";
+        var correctPass = "SuperAdmin123!";
+
+        // Try 6 consecutive wrong password logins
+        for (int i = 0; i < 6; i++)
+        {
+            var res = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+            {
+                UsernameOrEmail = superAdminEmail,
+                Password = wrongPass
+            });
+            Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        }
+
+        // Login with correct password succeeds
+        var okRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = superAdminEmail,
+            Password = correctPass
+        });
+        Assert.Equal(HttpStatusCode.OK, okRes.StatusCode);
+        var body = await okRes.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        Assert.NotNull(body);
+        Assert.Contains("SUPER_ADMIN", body.User.Roles);
+    }
+
+    [Fact]
+    public async Task Student_AfterFiveFailedAttempts_IsLockedOut()
+    {
+        var studentEmail = $"student_lockout_{Guid.NewGuid():N}@zhongwenhub.edu.vn";
+        var password = "StudentValidPassword123!";
+
+        // Register new student
+        var regRes = await _client.PostAsJsonAsync("/api/v1/auth/register", new RegisterRequestDto
+        {
+            Email = studentEmail,
+            FullName = "Student Lockout Tester",
+            Password = password,
+            ConfirmPassword = password
+        });
+        Assert.Equal(HttpStatusCode.Created, regRes.StatusCode);
+
+        // Fail 5 times
+        for (int i = 0; i < 5; i++)
+        {
+            var wrongRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+            {
+                UsernameOrEmail = studentEmail,
+                Password = "WrongPassword999!"
+            });
+            Assert.Equal(HttpStatusCode.Unauthorized, wrongRes.StatusCode);
+        }
+
+        // 6th attempt should be blocked with 403 Forbidden (Lockout triggered)
+        var lockedRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = studentEmail,
+            Password = password
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, lockedRes.StatusCode);
+        var problem = await lockedRes.Content.ReadFromJsonAsync<ApiProblemDetailsDto>(_jsonOptions);
+        Assert.NotNull(problem);
+        Assert.Equal("Tài khoản bị khóa", problem.Title);
+    }
+
+    [Fact]
+    public async Task ManuallyLockedUser_Returns403Forbidden()
+    {
+        // Login as admin to lock a user
+        var adminLoginRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = "admin@zhongwenhub.edu.vn",
+            Password = "AdminPassword123!"
+        });
+        var adminAuth = await adminLoginRes.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        Assert.NotNull(adminAuth);
+
+        // Create a new user
+        var targetEmail = $"target_user_{Guid.NewGuid():N}@zhongwenhub.edu.vn";
+        var targetPass = "TargetPass123!";
+        using var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/users")
+        {
+            Content = JsonContent.Create(new
+            {
+                Name = "Target User",
+                Email = targetEmail,
+                Password = targetPass,
+                Roles = new[] { "STUDENT" },
+                Status = "ACTIVE"
+            })
+        };
+        createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminAuth.AccessToken);
+        var createRes = await _client.SendAsync(createReq);
+        Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+        var createdUser = await createRes.Content.ReadFromJsonAsync<UserDto>(_jsonOptions);
+        Assert.NotNull(createdUser);
+
+        // Lock the user manually via POST /api/v1/admin/users/{id}/lock
+        using var lockReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/users/{createdUser.Id}/lock")
+        {
+            Content = JsonContent.Create(new { Reason = "Vi phạm chính sách" })
+        };
+        lockReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminAuth.AccessToken);
+        var lockRes = await _client.SendAsync(lockReq);
+        Assert.Equal(HttpStatusCode.OK, lockRes.StatusCode);
+
+        // Attempt login with correct password -> must be forbidden 403
+        var loginRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
+        {
+            UsernameOrEmail = targetEmail,
+            Password = targetPass
+        });
+
+        Assert.Equal(HttpStatusCode.Forbidden, loginRes.StatusCode);
+    }
+
     private static string ExtractRefreshTokenFromCookie(string cookieHeader)
     {
         var part = cookieHeader.Split(';').FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));
