@@ -22,6 +22,8 @@ import type {
   VocabularyFilters,
   VocabularyImportResultDto,
   BatchPublishResultDto,
+  BatchUpdateMeaningItemDTO,
+  BatchUpdateMeaningsResultDTO,
 } from '../types';
 
 let standards = [...MOCK_STANDARDS];
@@ -68,14 +70,26 @@ class HskRepositoryService {
 
   // --- Vocabulary ---
   async syncVocabulariesFromApi(params?: { hskLevel?: number; missingMeaningVi?: boolean; pageSize?: number }): Promise<void> {
-    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500 };
+    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500, page: 1 };
     if (params?.hskLevel) queryParams.hskLevel = params.hskLevel;
     if (params?.missingMeaningVi !== undefined) queryParams.missingMeaningVi = params.missingMeaningVi;
 
     const res = await httpClient.get<any>('/content/vocabularies', {
       params: queryParams,
     });
-    const items = Array.isArray(res) ? res : (res?.items || []);
+    let items = Array.isArray(res) ? res : (res?.items || []);
+    const totalPages = res?.totalPages ?? 1;
+
+    if (totalPages > 1) {
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await httpClient.get<any>('/content/vocabularies', {
+          params: { ...queryParams, page: p },
+        });
+        const nextItems = Array.isArray(nextRes) ? nextRes : (nextRes?.items || []);
+        items = [...items, ...nextItems];
+      }
+    }
+
     vocabularies = items.map((v: any) => ({
       id: v.id,
       hskLevelId: `level-hsk-${v.hskLevel || 1}`,
@@ -250,6 +264,11 @@ class HskRepositoryService {
 
   async batchPublishVocabulariesAsync(ids: string[]): Promise<BatchPublishResultDto> {
     const res = await httpClient.post<BatchPublishResultDto>('/content/vocabularies/batch-publish', { ids });
+    return res;
+  }
+
+  async batchUpdateMeaningsAsync(items: BatchUpdateMeaningItemDTO[]): Promise<BatchUpdateMeaningsResultDTO> {
+    const res = await httpClient.post<BatchUpdateMeaningsResultDTO>('/admin/vocabularies/batch-update-meanings', { items });
     return res;
   }
 

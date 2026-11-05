@@ -337,6 +337,44 @@ public class BatchPublishResultDto
     public List<string> SkippedReasons { get; set; } = new();
 }
 
+public class BatchUpdateMeaningItemDto
+{
+    public Guid Id { get; set; }
+
+    public string? Hanzi { get; set; }
+
+    public string? Pinyin { get; set; }
+
+    [StringLength(255, ErrorMessage = "Nghĩa tiếng Việt tối đa 255 ký tự.")]
+    public string MeaningVi { get; set; } = string.Empty;
+
+    public string? PartOfSpeech { get; set; }
+
+    public string? Status { get; set; }
+}
+
+public class BatchUpdateMeaningsRequestDto
+{
+    [Required]
+    public List<BatchUpdateMeaningItemDto> Items { get; set; } = new();
+}
+
+public class BatchUpdateMeaningErrorItemDto
+{
+    public Guid? Id { get; set; }
+    public string? Hanzi { get; set; }
+    public string? Pinyin { get; set; }
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class BatchUpdateMeaningsResultDto
+{
+    public int TotalRequested { get; set; }
+    public int UpdatedCount { get; set; }
+    public int ErrorCount { get; set; }
+    public List<BatchUpdateMeaningErrorItemDto> Errors { get; set; } = new();
+}
+
 public class GrammarPointDto
 {
     public Guid Id { get; set; }

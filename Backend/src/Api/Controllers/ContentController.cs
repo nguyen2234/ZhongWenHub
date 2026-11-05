@@ -438,6 +438,24 @@ public class ContentController : BaseApiController
         return Ok(result);
     }
 
+    [HttpPost("vocabularies/batch-update-meanings")]
+    [HttpPost("/api/v1/admin/vocabularies/batch-update-meanings")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchUpdateMeaningsResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchUpdateMeanings(
+        [FromBody] BatchUpdateMeaningsRequestDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (dto == null || dto.Items == null || dto.Items.Count == 0)
+        {
+            return BadRequest(new { message = "Danh sách cập nhật nghĩa từ vựng không được để trống." });
+        }
+
+        var result = await _contentService.BatchUpdateMeaningsAsync(dto.Items, cancellationToken);
+        return Ok(result);
+    }
+
     // ==========================================
     // GRAMMAR
     // ==========================================

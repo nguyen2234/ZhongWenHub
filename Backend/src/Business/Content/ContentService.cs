@@ -372,7 +372,7 @@ public class ContentService : IContentService
 
         var totalItems = await query.CountAsync(cancellationToken);
         var pageClamped = Math.Max(1, page);
-        var pageSizeClamped = Math.Clamp(pageSize, 1, 100);
+        var pageSizeClamped = Math.Clamp(pageSize, 1, 500);
 
         var items = await query
             .OrderBy(l => l.OrderIndex)
@@ -772,7 +772,7 @@ public class ContentService : IContentService
 
         var totalItems = await query.CountAsync(cancellationToken);
         var pageClamped = Math.Max(1, page);
-        var pageSizeClamped = Math.Clamp(pageSize, 1, 100);
+        var pageSizeClamped = Math.Clamp(pageSize, 1, 500);
 
         var items = await query
             .OrderBy(v => v.HskLevel)
@@ -1275,6 +1275,130 @@ public class ContentService : IContentService
         };
     }
 
+    public async Task<BatchUpdateMeaningsResultDto> BatchUpdateMeaningsAsync(List<BatchUpdateMeaningItemDto> items, CancellationToken cancellationToken = default)
+    {
+        var result = new BatchUpdateMeaningsResultDto
+        {
+            TotalRequested = items?.Count ?? 0
+        };
+
+        if (items == null || items.Count == 0)
+        {
+            return result;
+        }
+
+        var ids = items.Select(x => x.Id).Distinct().ToList();
+        var vocabs = await _dbContext.Vocabularies
+            .Where(v => ids.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, cancellationToken);
+
+        foreach (var item in items)
+        {
+            if (item.Id == Guid.Empty)
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                {
+                    Id = item.Id,
+                    Hanzi = item.Hanzi,
+                    Pinyin = item.Pinyin,
+                    Reason = "ID từ vựng không hợp lệ."
+                });
+                continue;
+            }
+
+            if (!vocabs.TryGetValue(item.Id, out var vocab))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                {
+                    Id = item.Id,
+                    Hanzi = item.Hanzi,
+                    Pinyin = item.Pinyin,
+                    Reason = $"Không tìm thấy từ vựng với ID {item.Id}."
+                });
+                continue;
+            }
+
+            // Cross-validation of Hanzi if provided
+            if (!string.IsNullOrWhiteSpace(item.Hanzi) && !string.Equals(vocab.Hanzi.Trim(), item.Hanzi.Trim(), StringComparison.Ordinal))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                {
+                    Id = item.Id,
+                    Hanzi = item.Hanzi,
+                    Pinyin = item.Pinyin,
+                    Reason = $"Hán tự '{item.Hanzi}' không khớp với cơ sở dữ liệu ('{vocab.Hanzi}')."
+                });
+                continue;
+            }
+
+            // Cross-validation of Pinyin if provided (crucial for homographs / duoyinzi)
+            if (!string.IsNullOrWhiteSpace(item.Pinyin) && !string.Equals(vocab.Pinyin.Trim(), item.Pinyin.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                {
+                    Id = item.Id,
+                    Hanzi = item.Hanzi,
+                    Pinyin = item.Pinyin,
+                    Reason = $"Pinyin '{item.Pinyin}' không khớp với cơ sở dữ liệu ('{vocab.Pinyin}')."
+                });
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(item.MeaningVi))
+            {
+                result.ErrorCount++;
+                result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                {
+                    Id = item.Id,
+                    Hanzi = item.Hanzi,
+                    Pinyin = item.Pinyin,
+                    Reason = "Nghĩa tiếng Việt không được để trống."
+                });
+                continue;
+            }
+
+            // Status handling: if explicitly requested as PUBLISHED, MeaningVi must be non-empty (already checked).
+            // Otherwise, keep existing status (or apply provided valid status e.g. DRAFT).
+            if (!string.IsNullOrWhiteSpace(item.Status))
+            {
+                var upperStatus = item.Status.Trim().ToUpperInvariant();
+                if (upperStatus != "DRAFT" && upperStatus != "PUBLISHED" && upperStatus != "ARCHIVED")
+                {
+                    result.ErrorCount++;
+                    result.Errors.Add(new BatchUpdateMeaningErrorItemDto
+                    {
+                        Id = item.Id,
+                        Hanzi = item.Hanzi,
+                        Pinyin = item.Pinyin,
+                        Reason = $"Trạng thái '{item.Status}' không hợp lệ."
+                    });
+                    continue;
+                }
+                vocab.Status = upperStatus;
+            }
+
+            vocab.MeaningVi = item.MeaningVi.Trim();
+            if (!string.IsNullOrWhiteSpace(item.PartOfSpeech))
+            {
+                vocab.PartOfSpeech = item.PartOfSpeech.Trim();
+            }
+            vocab.UpdatedAt = DateTime.UtcNow;
+
+            result.UpdatedCount++;
+        }
+
+        if (result.UpdatedCount > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
     #endregion
 
     #region Grammar
@@ -1310,7 +1434,7 @@ public class ContentService : IContentService
 
         var totalItems = await query.CountAsync(cancellationToken);
         var pageClamped = Math.Max(1, page);
-        var pageSizeClamped = Math.Clamp(pageSize, 1, 100);
+        var pageSizeClamped = Math.Clamp(pageSize, 1, 500);
 
         var items = await query
             .OrderBy(g => g.HskLevel)
@@ -1529,7 +1653,7 @@ public class ContentService : IContentService
 
         var totalItems = await query.CountAsync(cancellationToken);
         var pageClamped = Math.Max(1, page);
-        var pageSizeClamped = Math.Clamp(pageSize, 1, 100);
+        var pageSizeClamped = Math.Clamp(pageSize, 1, 500);
 
         var items = await query
             .OrderBy(e => e.HskLevel)

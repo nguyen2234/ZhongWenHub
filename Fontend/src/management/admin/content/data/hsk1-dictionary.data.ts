@@ -9,7 +9,15 @@ export interface Hsk1DictionaryEntry {
   pinyin: string;
   meaningVi: string;
   partOfSpeech: string;
+  isAmbiguous?: boolean;
+  manualReviewRequired?: boolean;
+  notes?: string;
 }
+
+export type SuggestionMatchResult =
+  | { status: 'EXACT'; entry: Hsk1DictionaryEntry }
+  | { status: 'PINYIN_MISMATCH'; entry: undefined; candidatePinyin: string; hanzi: string }
+  | { status: 'NOT_FOUND'; entry: undefined };
 
 export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = {
   "爱": {
@@ -71,6 +79,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "běn",
     meaningVi: "cuốn, quyển (lượng từ sách)",
     partOfSpeech: "Lượng từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa (Entry 本1): Trong HSK 1 đóng vai trò là lượng từ (cuốn sách, quyển vở).",
   },
   "边": {
     hanzi: "边",
@@ -209,6 +220,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "diǎn",
     meaningVi: "giờ, chút, điểm",
     partOfSpeech: "Lượng từ / Danh từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa (Entry 点1): Vừa là lượng từ chỉ thời gian (giờ), lượng từ chỉ số lượng ít (một chút), vừa là danh từ.",
   },
   "店": {
     hanzi: "店",
@@ -257,6 +271,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "dōu",
     meaningVi: "đều, cũng",
     partOfSpeech: "Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm: Trong HSK 1 là phó từ 'dōu' (đều). Khác với 'dū' (thủ đô, đô thị).",
   },
   "读": {
     hanzi: "读",
@@ -275,6 +292,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "duì",
     meaningVi: "đúng, đối với",
     partOfSpeech: "Tính từ / Giới từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa/đa từ loại: Tính từ (đúng), giới từ (đối với ai đó), hoặc lượng từ (đôi, cặp).",
   },
   "对不起": {
     hanzi: "对不起",
@@ -287,6 +307,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "duō",
     meaningVi: "nhiều, bao nhiêu",
     partOfSpeech: "Tính từ / Đại từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa: Tính từ (nhiều), hoặc đại từ/phó từ hỏi mức độ (多大, 多高, 多少).",
   },
   "多少": {
     hanzi: "多少",
@@ -341,6 +364,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "fēn",
     meaningVi: "phút, điểm, phân chia",
     partOfSpeech: "Lượng từ / Danh từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa: Lượng từ phút, lượng từ điểm số, hoặc động từ chia tách.",
   },
   "分钟": {
     hanzi: "分钟",
@@ -377,6 +403,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "gěi",
     meaningVi: "cho, tặng, gửi cho",
     partOfSpeech: "Động từ / Giới từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Động từ (cho, tặng), giới từ (cho ai, làm gì cho ai).",
   },
   "公司": {
     hanzi: "公司",
@@ -389,6 +418,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "gōngzuò",
     meaningVi: "làm việc, công việc",
     partOfSpeech: "Động từ / Danh từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Vừa là động từ (làm việc) vừa là danh từ (công việc, nghề nghiệp).",
   },
   "狗": {
     hanzi: "狗",
@@ -413,6 +445,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "hái",
     meaningVi: "vẫn, còn, vả lại",
     partOfSpeech: "Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm: Trong HSK 1 là phó từ 'hái' (vẫn, còn). Phân biệt với động từ 'huán' (trả lại).",
   },
   "孩子": {
     hanzi: "孩子",
@@ -437,6 +472,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "hǎo",
     meaningVi: "tốt, đẹp, hay, khỏe",
     partOfSpeech: "Tính từ / Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm/đa nghĩa: Trong HSK 1 đọc là 'hǎo' (tốt, khỏe, rất). Khác với 'hào' (yêu thích, như 爱好).",
   },
   "好吃": {
     hanzi: "好吃",
@@ -467,6 +505,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "hào",
     meaningVi: "ngày (trong tháng), số hiệu",
     partOfSpeech: "Danh từ / Lượng từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Vừa là danh từ (số hiệu, mã số) vừa là lượng từ/chỉ ngày.",
   },
   "喝": {
     hanzi: "喝",
@@ -479,6 +520,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "hé",
     meaningVi: "và, cùng với",
     partOfSpeech: "Giới từ / Liên từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm/đa từ loại (Entry 和1): Giới từ/liên từ 'hé' (và, với). Khác với 'hè' (họa thơ), 'huó/huò' (hòa/trộn), 'hú' (ù bài).",
   },
   "很": {
     hanzi: "很",
@@ -503,6 +547,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "huì",
     meaningVi: "biết (qua học hỏi), sẽ, hội",
     partOfSpeech: "Động từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa/đa âm: Trong HSK 1 là động từ năng nguyện 'huì' (biết, sẽ). Khác với 'kuài' trong 'kế toán' (会计).",
   },
   "火车": {
     hanzi: "火车",
@@ -557,6 +604,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "jiào",
     meaningVi: "tên là, gọi là, kêu",
     partOfSpeech: "Động từ / Giới từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Động từ (gọi là, tên là, kêu), giới từ bị động (bị, được).",
   },
   "姐姐": {
     hanzi: "姐姐",
@@ -605,6 +655,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "kàn",
     meaningVi: "nhìn, xem, đọc",
     partOfSpeech: "Động từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm: Trong HSK 1 đọc là 'kàn' (nhìn, xem). Khác với 'kān' (trông nom, coi sóc).",
   },
   "看病": {
     hanzi: "看病",
@@ -677,6 +730,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "liǎng",
     meaningVi: "hai (dùng trước lượng từ)",
     partOfSpeech: "Số từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa (Entry 两1): Số từ 'hai' dùng trước lượng từ, khác với '二' (èr) dùng đếm số thứ tự hoặc số nhà.",
   },
   "零": {
     hanzi: "零",
@@ -719,6 +775,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "máng",
     meaningVi: "bận rộn",
     partOfSpeech: "Tính từ / Động từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Tính từ (bận rộn) hoặc động từ (bận làm gì).",
   },
   "猫": {
     hanzi: "猫",
@@ -743,6 +802,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "méiyǒu",
     meaningVi: "không có, chưa",
     partOfSpeech: "Động từ / Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Động từ (không có) hoặc phó từ phủ định (chưa từng làm).",
   },
   "妹妹": {
     hanzi: "妹妹",
@@ -827,6 +889,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "nà",
     meaningVi: "kia, đó",
     partOfSpeech: "Đại từ / Liên từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Đại từ chỉ định (kia, đó) hoặc liên từ (vậy thì, thế thì).",
   },
   "那边": {
     hanzi: "那边",
@@ -1061,6 +1126,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "shàng",
     meaningVi: "trên, lên, đi lên",
     partOfSpeech: "Danh từ / Động từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Danh từ phương vị (trên), động từ (lên xe, đi làm/đi học), tính từ chỉ trước (上个月).",
   },
   "上班": {
     hanzi: "上班",
@@ -1091,6 +1159,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "shǎo",
     meaningVi: "ít, thiếu",
     partOfSpeech: "Tính từ / Động từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa âm/đa nghĩa: 'shǎo' (ít, thiếu). Khác với 'shào' (thiếu niên).",
   },
   "谁": {
     hanzi: "谁",
@@ -1253,6 +1324,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "tiān",
     meaningVi: "ngày, trời",
     partOfSpeech: "Danh từ / Lượng từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa/từ loại: Danh từ (trời, bầu trời) hoặc lượng từ (ngày).",
   },
   "天气": {
     hanzi: "天气",
@@ -1319,6 +1393,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "wèi",
     meaningVi: "alo (nghe điện thoại), này",
     partOfSpeech: "Thán từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa nghĩa (Entry 喂1): Thán từ chào hỏi qua điện thoại, khác với động từ 'cho ăn'.",
   },
   "问": {
     hanzi: "问",
@@ -1367,6 +1444,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "xià",
     meaningVi: "dưới, xuống, tiếp theo",
     partOfSpeech: "Danh từ / Động từ / Lượng từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Danh từ phương vị (dưới), động từ (xuống, tan ca), lượng từ (一下).",
   },
   "下雨": {
     hanzi: "下雨",
@@ -1565,6 +1645,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "yíxià",
     meaningVi: "một lát, một chút, thử xem",
     partOfSpeech: "Số lượng từ / Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Lượng từ hành động (một lát, một chút) hoặc phó từ.",
   },
   "椅子": {
     hanzi: "椅子",
@@ -1607,6 +1690,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "yǒuxiē",
     meaningVi: "một số, một vài, đôi chút",
     partOfSpeech: "Đại từ / Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Đại từ (một số, một vài) hoặc phó từ (có chút, hơi).",
   },
   "雨": {
     hanzi: "雨",
@@ -1637,6 +1723,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "zài",
     meaningVi: "ở, tại, đang (phó từ tiếp diễn)",
     partOfSpeech: "Động từ / Giới từ / Phó từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Động từ (ở đâu), giới từ (tại nơi nào), hoặc phó từ tiếp diễn (đang làm gì).",
   },
   "再见": {
     hanzi: "再见",
@@ -1721,6 +1810,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "zhēn",
     meaningVi: "thật, quả thực",
     partOfSpeech: "Phó từ / Tính từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Từ đa từ loại: Phó từ mức độ (thật là, quả là) hoặc tính từ (chân thật).",
   },
   "正在": {
     hanzi: "正在",
@@ -1733,6 +1825,9 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     pinyin: "zhī",
     meaningVi: "con (lượng từ con vật), chiếc",
     partOfSpeech: "Lượng từ",
+    manualReviewRequired: true,
+    isAmbiguous: true,
+    notes: "Đồng âm khác nghĩa/khác âm đọc: Trong HSK 1 là lượng từ 'zhī' (con, chiếc). Phân biệt với phó từ 'zhǐ' (chỉ, chỉ có).",
   },
   "知道": {
     hanzi: "知道",
@@ -1813,3 +1908,69 @@ export const HSK1_DICTIONARY_SUGGESTIONS: Record<string, Hsk1DictionaryEntry> = 
     partOfSpeech: "Cụm từ",
   },
 };
+
+/**
+ * Chuẩn hóa pinyin để so sánh đối chiếu:
+ * - Chuyển chữ thường
+ * - Loại bỏ khoảng trắng thừa
+ * - Giữ nguyên dấu thanh điệu để phân biệt các âm khác thanh điệu
+ */
+export function normalizePinyin(pinyin: string): string {
+  if (!pinyin) return '';
+  return pinyin
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '');
+}
+
+/**
+ * Tra cứu gợi ý từ điển HSK 1 với cơ chế đối chiếu nghiêm ngặt cả Hanzi VÀ Pinyin:
+ * - Nếu không có chữ Hán: trả về NOT_FOUND
+ * - Nếu có chữ Hán nhưng Pinyin không khớp: trả về PINYIN_MISMATCH kèm candidatePinyin và tuyệt đối KHÔNG trả về gợi ý, tránh gán nhầm nghĩa từ đồng hình khác âm đọc.
+ * - Nếu khớp cả Hanzi và Pinyin: trả về EXACT kèm dữ liệu gợi ý.
+ */
+export function getHsk1DictionarySuggestion(hanzi?: string, pinyin?: string): SuggestionMatchResult {
+  if (!hanzi || !hanzi.trim()) {
+    return { status: 'NOT_FOUND', entry: undefined };
+  }
+
+  const cleanHanzi = hanzi.trim();
+  const entry = HSK1_DICTIONARY_SUGGESTIONS[cleanHanzi];
+  if (!entry) {
+    return { status: 'NOT_FOUND', entry: undefined };
+  }
+
+  // Nếu pinyin để trống hoặc không khớp âm đọc: báo PINYIN_MISMATCH
+  if (!pinyin || !pinyin.trim()) {
+    return {
+      status: 'PINYIN_MISMATCH',
+      entry: undefined,
+      candidatePinyin: entry.pinyin,
+      hanzi: cleanHanzi,
+    };
+  }
+
+  const normInputPinyin = normalizePinyin(pinyin);
+  const normEntryPinyin = normalizePinyin(entry.pinyin);
+
+  if (normInputPinyin !== normEntryPinyin) {
+    return {
+      status: 'PINYIN_MISMATCH',
+      entry: undefined,
+      candidatePinyin: entry.pinyin,
+      hanzi: cleanHanzi,
+    };
+  }
+
+  return {
+    status: 'EXACT',
+    entry,
+  };
+}
+
+/**
+ * Danh sách các từ HSK 1 cần Content Manager kiểm tra thủ công (đa từ loại, đa nghĩa, từ đồng hình khác âm)
+ */
+export function getHsk1ManualReviewEntries(): Hsk1DictionaryEntry[] {
+  return Object.values(HSK1_DICTIONARY_SUGGESTIONS).filter((e) => e.manualReviewRequired || e.isAmbiguous);
+}

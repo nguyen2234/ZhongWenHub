@@ -10,9 +10,13 @@ import {
   Sparkles,
   CheckCircle,
   ArrowRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
-import { HSK1_DICTIONARY_SUGGESTIONS } from '../data/hsk1-dictionary.data';
+import {
+  getHsk1DictionarySuggestion,
+  type SuggestionMatchResult,
+} from '../data/hsk1-dictionary.data';
 import type {
   ContentStatus,
   HskLevel,
@@ -82,7 +86,8 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
 
   if (!isOpen || !vocabulary) return null;
 
-  const suggestion = simplified ? HSK1_DICTIONARY_SUGGESTIONS[simplified.trim()] : undefined;
+  const suggestionResult: SuggestionMatchResult = getHsk1DictionarySuggestion(simplified, pinyin);
+  const suggestion = suggestionResult.status === 'EXACT' ? suggestionResult.entry : undefined;
 
   const handleApplySuggestion = () => {
     if (!suggestion) return;
@@ -333,6 +338,29 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
             </h4>
 
             {/* Dictionary Suggestion Banner */}
+            {suggestionResult.status === 'PINYIN_MISMATCH' && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#991b1b', fontWeight: 600, fontSize: '12px' }}>
+                  <AlertTriangle size={14} color="#dc2626" />
+                  <span>Pinyin không khớp gợi ý từ điển HSK 1 ({suggestionResult.candidatePinyin}):</span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#7f1d1d' }}>
+                  Chữ Hán <strong>{suggestionResult.hanzi}</strong> có âm chuẩn trong HSK 1 là <strong>{suggestionResult.candidatePinyin}</strong>.
+                  Pinyin đang nhập là <strong>"{pinyin}"</strong>. Hệ thống không tự động áp dụng gợi ý để tránh sai lệch nghĩa đối với từ đồng hình khác âm đọc.
+                </div>
+              </div>
+            )}
+
             {suggestion && (
               <div
                 style={{
@@ -348,7 +376,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#166534', fontWeight: 600, fontSize: '12px' }}>
                     <Sparkles size={14} color="#16a34a" />
-                    <span>Gợi ý từ điển HSK 1 (Chưa duyệt):</span>
+                    <span>Gợi ý từ điển HSK 1 (Khớp Hanzi & Pinyin):</span>
                   </div>
                   {isEditing && (
                     <button
@@ -378,6 +406,23 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                     </span>
                   )}
                 </div>
+                {suggestion.manualReviewRequired && (
+                  <div
+                    style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#fef3c7',
+                      border: '1px solid #fde68a',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      color: '#92400e',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>⚠️ <strong>Cần kiểm tra kỹ:</strong> {suggestion.notes || 'Từ có nhiều nghĩa hoặc từ loại đặc biệt theo ngữ cảnh.'}</span>
+                  </div>
+                )}
                 <div style={{ fontSize: '11px', color: '#65a30d', fontStyle: 'italic' }}>
                   Lưu ý: Đây chỉ là gợi ý tham khảo. Người kiểm duyệt cần kiểm tra và xác nhận trước khi lưu/xuất bản.
                 </div>
@@ -684,6 +729,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
                 disabled={isSaving}
                 style={{ borderColor: 'var(--border)' }}
                 onClick={() => handleSaveWithStatus('DRAFT', false)}
+                title="Lưu nghĩa tiếng Việt và giữ trạng thái Bản nháp (DRAFT)"
               >
                 <Save size={14} /> Lưu bản nháp
               </button>
@@ -699,16 +745,31 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
               </button>
 
               {onNavigateNext && currentIndex !== undefined && totalCount !== undefined && currentIndex < totalCount - 1 && (
-                <button
-                  type="button"
-                  className="ds-btn ds-btn-secondary ds-btn-sm"
-                  disabled={isSaving}
-                  style={{ backgroundColor: '#4f46e5', color: '#fff', border: 'none' }}
-                  onClick={() => handleSaveWithStatus(meaningVi.trim() ? 'PUBLISHED' : 'DRAFT', true)}
-                  title="Lưu từ hiện tại và tự động chuyển sang từ tiếp theo"
-                >
-                  <span>Lưu & Tiếp theo</span> <ArrowRight size={14} />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="ds-btn ds-btn-secondary ds-btn-sm"
+                    disabled={isSaving}
+                    style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none' }}
+                    onClick={() => handleSaveWithStatus('DRAFT', true)}
+                    title="Lưu nghĩa dạng Bản nháp (DRAFT) và chuyển sang từ tiếp theo"
+                  >
+                    <span>Lưu nháp & Tiếp theo</span> <ArrowRight size={14} />
+                  </button>
+
+                  {meaningVi.trim() && (
+                    <button
+                      type="button"
+                      className="ds-btn ds-btn-secondary ds-btn-sm"
+                      disabled={isSaving}
+                      style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+                      onClick={() => handleSaveWithStatus('PUBLISHED', true)}
+                      title="Xuất bản từ này và chuyển ngay sang từ tiếp theo"
+                    >
+                      <CheckCircle size={14} /> <span>Xuất bản & Tiếp theo</span> <ArrowRight size={14} />
+                    </button>
+                  )}
+                </>
               )}
             </>
           ) : (

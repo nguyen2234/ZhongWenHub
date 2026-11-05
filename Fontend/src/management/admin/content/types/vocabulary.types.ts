@@ -131,3 +131,30 @@ export interface BatchPublishResultDto {
   skippedCount: number;
   skippedReasons: string[];
 }
+
+export interface BatchUpdateMeaningItemDTO {
+  id: string;
+  hanzi?: string;
+  pinyin?: string;
+  meaningVi: string;
+  partOfSpeech?: string;
+  status?: string;
+}
+
+export interface BatchUpdateMeaningsRequestDTO {
+  items: BatchUpdateMeaningItemDTO[];
+}
+
+export interface BatchUpdateMeaningErrorItemDTO {
+  id?: string;
+  hanzi?: string;
+  pinyin?: string;
+  reason: string;
+}
+
+export interface BatchUpdateMeaningsResultDTO {
+  totalRequested: number;
+  updatedCount: number;
+  errorCount: number;
+  errors: BatchUpdateMeaningErrorItemDTO[];
+}

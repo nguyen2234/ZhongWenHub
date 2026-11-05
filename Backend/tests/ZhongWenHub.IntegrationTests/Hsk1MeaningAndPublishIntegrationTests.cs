@@ -221,4 +221,141 @@ public class Hsk1MeaningAndPublishIntegrationTests : IClassFixture<CustomWebAppl
         var studentBatchRes = await _client.SendAsync(studentBatchReq);
         Assert.Equal(HttpStatusCode.Forbidden, studentBatchRes.StatusCode);
     }
+
+    [Fact]
+    public async Task BatchUpdateMeanings_Workflow_ValidatesAndReportsPerItemErrors()
+    {
+        var adminToken = await GetAdminTokenAsync();
+        var studentToken = await GetStudentTokenAsync();
+
+        Guid word1Id = Guid.NewGuid();
+        Guid wordHomographId = Guid.NewGuid();
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            db.Vocabularies.Add(new VocabularyEntity
+            {
+                Id = word1Id,
+                Hanzi = "茶",
+                Pinyin = "chá",
+                MeaningVi = "",
+                PartOfSpeech = "Danh từ",
+                HskLevel = 1,
+                Status = "DRAFT",
+                SourceDataset = "HSK 3.0",
+                SourceEntryId = "17"
+            });
+
+            // Homograph word: 只 pronounced zhī (measure word) in HSK 1
+            db.Vocabularies.Add(new VocabularyEntity
+            {
+                Id = wordHomographId,
+                Hanzi = "只",
+                Pinyin = "zhī",
+                MeaningVi = "",
+                PartOfSpeech = "Lượng từ",
+                HskLevel = 1,
+                Status = "DRAFT",
+                SourceDataset = "HSK 3.0",
+                SourceEntryId = "287"
+            });
+
+            await db.SaveChangesAsync();
+        }
+
+        // 1. STUDENT cannot call batch-update-meanings (Forbidden)
+        var studentReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
+        studentReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        studentReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
+        {
+            Items = new List<BatchUpdateMeaningItemDto>
+            {
+                new() { Id = word1Id, MeaningVi = "trà" }
+            }
+        });
+        var studentRes = await _client.SendAsync(studentReq);
+        Assert.Equal(HttpStatusCode.Forbidden, studentRes.StatusCode);
+
+        // 2. ADMIN calls batch-update with 4 items:
+        // Item 1: Valid word1 (茶, chá) -> should succeed, stays DRAFT
+        // Item 2: Homograph 只 with WRONG Pinyin 'zhǐ' -> should fail validation (Pinyin mismatch)
+        // Item 3: Empty meaning -> should fail validation
+        // Item 4: Non-existent ID -> should report not found
+        Guid nonExistentId = Guid.NewGuid();
+        var batchReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
+        batchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        batchReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
+        {
+            Items = new List<BatchUpdateMeaningItemDto>
+            {
+                new()
+                {
+                    Id = word1Id,
+                    Hanzi = "茶",
+                    Pinyin = "chá",
+                    MeaningVi = "trà, chè",
+                    PartOfSpeech = "Danh từ"
+                },
+                new()
+                {
+                    Id = wordHomographId,
+                    Hanzi = "只",
+                    Pinyin = "zhǐ", // WRONG pinyin for HSK 1 zhī!
+                    MeaningVi = "chỉ (phó từ)",
+                    PartOfSpeech = "Phó từ"
+                },
+                new()
+                {
+                    Id = wordHomographId,
+                    Hanzi = "只",
+                    Pinyin = "zhī",
+                    MeaningVi = "   ", // Empty meaning!
+                    PartOfSpeech = "Lượng từ"
+                },
+                new()
+                {
+                    Id = nonExistentId,
+                    Hanzi = "测试",
+                    MeaningVi = "thử nghiệm"
+                }
+            }
+        });
+
+        var batchRes = await _client.SendAsync(batchReq);
+        Assert.Equal(HttpStatusCode.OK, batchRes.StatusCode);
+
+        var result = await batchRes.Content.ReadFromJsonAsync<BatchUpdateMeaningsResultDto>(_jsonOptions);
+        Assert.NotNull(result);
+        Assert.Equal(4, result.TotalRequested);
+        Assert.Equal(1, result.UpdatedCount);
+        Assert.Equal(3, result.ErrorCount);
+        Assert.Contains(result.Errors, e => e.Reason.Contains("Pinyin 'zhǐ' không khớp"));
+        Assert.Contains(result.Errors, e => e.Reason.Contains("Nghĩa tiếng Việt không được để trống"));
+        Assert.Contains(result.Errors, e => e.Reason.Contains($"Không tìm thấy từ vựng với ID {nonExistentId}"));
+
+        // 3. Verify in database: word1 is updated with MeaningVi but STILL DRAFT
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var w1 = await db.Vocabularies.FindAsync(word1Id);
+            Assert.NotNull(w1);
+            Assert.Equal("trà, chè", w1.MeaningVi);
+            Assert.Equal("Danh từ", w1.PartOfSpeech);
+            Assert.Equal("DRAFT", w1.Status);
+            Assert.Equal("HSK 3.0", w1.SourceDataset);
+            Assert.Equal("17", w1.SourceEntryId);
+
+            var wHomo = await db.Vocabularies.FindAsync(wordHomographId);
+            Assert.NotNull(wHomo);
+            Assert.Equal("", wHomo.MeaningVi); // Not updated because of errors
+        }
+
+        // 4. STUDENT still cannot see word1 because it is DRAFT
+        var studentVerifyReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{word1Id}");
+        studentVerifyReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        var studentVerifyRes = await _client.SendAsync(studentVerifyReq);
+        Assert.Equal(HttpStatusCode.NotFound, studentVerifyRes.StatusCode);
+    }
 }
