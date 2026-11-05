@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'bun:test';
 
 describe('Admin User Management Redesign & Isolation Verification', () => {

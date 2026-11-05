@@ -158,12 +158,20 @@ export const AdminUserDetailPage: React.FC = () => {
   };
 
   // Reset Password Handler
-  const handleConfirmResetPassword = async (password: string) => {
+  const handleConfirmResetPassword = async (
+    userIdOrPassword: string,
+    newPassword?: string,
+    confirmPassword?: string
+  ) => {
     if (!user) return;
+    const targetUserId = newPassword ? userIdOrPassword : user.id;
+    const targetPassword = newPassword || userIdOrPassword;
+    const targetConfirm = confirmPassword || targetPassword;
+
     try {
-      const res = await adminUserService.resetPasswordAsync(user.id, {
-        newPassword: password,
-        confirmPassword: password,
+      const res = await adminUserService.resetPasswordAsync(targetUserId, {
+        newPassword: targetPassword,
+        confirmPassword: targetConfirm,
       });
       setToast({
         type: 'success',

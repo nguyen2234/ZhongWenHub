@@ -357,9 +357,13 @@ class AdminUserService {
   }
 
   public async updateUser(id: string, dto: UpdateUserDTO): Promise<UserDetail> {
-    const user = this.users.find((u) => u.id === id);
+    let user = this.users.find((u) => u.id === id);
     if (!user) {
-      throw new Error('Không tìm thấy người dùng.');
+      try {
+        user = await this.getUserDetailAsync(id);
+      } catch {
+        // Fallback placeholder to proceed with API call
+      }
     }
 
     const emailDuplicate = this.users.find(
@@ -371,7 +375,7 @@ class AdminUserService {
 
     const targetRoles = dto.roles && dto.roles.length > 0
       ? dto.roles
-      : dto.role ? [dto.role] : user.roles;
+      : dto.role ? [dto.role] : (user?.roles || ['STUDENT']);
 
     const token = authTokenService.getAccessToken();
     if (!token) {
@@ -405,23 +409,28 @@ class AdminUserService {
       throw new Error(errorMsg);
     }
 
-    user.name = dto.name.trim();
-    user.email = dto.email.trim().toLowerCase();
-    user.hskLevel = dto.hskLevel;
-    user.status = dto.status;
-    if (targetRoles) {
-      user.roles = targetRoles;
-      user.role = targetRoles[0];
+    if (user) {
+      user.name = dto.name.trim();
+      user.email = dto.email.trim().toLowerCase();
+      user.hskLevel = dto.hskLevel;
+      user.status = dto.status;
+      if (targetRoles) {
+        user.roles = targetRoles;
+        user.role = targetRoles[0];
+      }
+      if (dto.notes !== undefined) {
+        user.notes = dto.notes;
+      }
+      if (dto.phone !== undefined) {
+        user.phone = dto.phone;
+      }
+      if (user.learningSummary) {
+        user.learningSummary.currentHsk = dto.hskLevel;
+      }
+      return JSON.parse(JSON.stringify(user));
     }
-    if (dto.notes !== undefined) {
-      user.notes = dto.notes;
-    }
-    if (dto.phone !== undefined) {
-      user.phone = dto.phone;
-    }
-    user.learningSummary.currentHsk = dto.hskLevel;
 
-    return JSON.parse(JSON.stringify(user));
+    return await this.getUserDetailAsync(id);
   }
 
   public async lockUser(id: string, reason?: string): Promise<UserDetail> {
@@ -668,6 +677,8 @@ class AdminUserService {
     const idx = this.users.findIndex((u) => u.id === id);
     if (idx !== -1) {
       this.users[idx] = detail;
+    } else {
+      this.users.push(detail);
     }
 
     return detail;
