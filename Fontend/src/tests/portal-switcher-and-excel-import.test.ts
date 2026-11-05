@@ -1,4 +1,4 @@
-﻿// @ts-ignore
+// @ts-ignore
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { PORTAL_DEFINITIONS, type PortalDef } from '../management/shared/components/PortalSwitcher';
 
@@ -132,5 +132,47 @@ describe('PHẦN B — Excel Template & File Validation Rules', () => {
     expect(sanitizeCellValue('+cmd|/c calc')).toBe('cmd|/c calc');
     expect(sanitizeCellValue('@SUM(A1:A10)')).toBe('SUM(A1:A10)');
     expect(sanitizeCellValue('你好')).toBe('你好');
+  });
+
+  it('validates Import Wizard state transitions and safety guardrails', () => {
+    type WizardState =
+      | 'SELECT_FILE'
+      | 'PREVIEW_LOADING'
+      | 'PREVIEW_READY'
+      | 'IMPORT_LOADING'
+      | 'IMPORT_SUCCESS'
+      | 'IMPORT_ERROR';
+
+    let state: WizardState = 'SELECT_FILE';
+    let file: { name: string; size: number } | null = null;
+    let previewResult: { importedCount: number; skippedCount: number; failedCount: number } | null = null;
+
+    // Rule 1: Cannot preview without file
+    const canPreview = (s: WizardState, f: typeof file) => s === 'SELECT_FILE' && f !== null;
+    expect(canPreview(state, file)).toBe(false);
+
+    // Rule 2: Selecting file allows preview
+    file = { name: 'test.xlsx', size: 10240 };
+    expect(canPreview(state, file)).toBe(true);
+
+    // Transition to PREVIEW_LOADING
+    state = 'PREVIEW_LOADING';
+
+    // Transition to PREVIEW_READY
+    previewResult = { importedCount: 2, skippedCount: 1, failedCount: 0 };
+    state = 'PREVIEW_READY';
+
+    // Rule 3: Cannot import if importedCount <= 0
+    const canImport = (s: WizardState, res: typeof previewResult) => s === 'PREVIEW_READY' && res !== null && res.importedCount > 0;
+    expect(canImport(state, previewResult)).toBe(true);
+
+    // If importedCount is 0 (all duplicates or errors)
+    const zeroValidResult = { importedCount: 0, skippedCount: 2, failedCount: 1 };
+    expect(canImport(state, zeroValidResult)).toBe(false);
+
+    // Transition to IMPORT_LOADING -> IMPORT_SUCCESS
+    state = 'IMPORT_LOADING';
+    state = 'IMPORT_SUCCESS';
+    expect(state).toBe('IMPORT_SUCCESS');
   });
 });

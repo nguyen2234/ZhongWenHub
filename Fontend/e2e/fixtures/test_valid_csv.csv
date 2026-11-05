@@ -1,0 +1,3 @@
+id,level,hanzi,pinyin,part_of_speech,entry,homograph,level_label,source_pdf_page
+TEST-CSV-001,2,电脑,diànnǎo,名,电脑,,2,10
+TEST-CSV-002,2,手机,shǒujī,名,手机,,2,10
