@@ -19,7 +19,6 @@ function getApiUrl(endpoint: string): string {
 
 function resolvePrimaryRole(roles?: string[]): UserRole {
   if (!roles || roles.length === 0) return 'STUDENT';
-  if (roles.includes('SUPER_ADMIN')) return 'SUPER_ADMIN';
   if (roles.includes('ADMIN')) return 'ADMIN';
   if (roles.includes('CONTENT_MANAGER')) return 'CONTENT_MANAGER';
   if (roles.includes('TEACHER')) return 'TEACHER';
@@ -28,7 +27,7 @@ function resolvePrimaryRole(roles?: string[]): UserRole {
 }
 
 function getSystemRoleCode(role: string): 'ADMIN' | 'CONTENT_MANAGER' | 'TEACHER' | 'SUPPORT' | 'STUDENT' {
-  if (role === 'SUPER_ADMIN' || role === 'ADMIN') return 'ADMIN';
+  if (role === 'ADMIN') return 'ADMIN';
   if (role === 'CONTENT_MANAGER') return 'CONTENT_MANAGER';
   if (role === 'TEACHER') return 'TEACHER';
   if (role === 'SUPPORT') return 'SUPPORT';

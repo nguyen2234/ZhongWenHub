@@ -32,8 +32,8 @@ public class Hsk1ImportIntegrationTests : IClassFixture<CustomWebApplicationFact
     {
         var loginReq = new LoginRequestDto
         {
-            UsernameOrEmail = "admin@zhongwenhub.edu.vn",
-            Password = "AdminPassword123!"
+            UsernameOrEmail = "admin@gmail.com",
+            Password = "admin"
         };
         var res = await _client.PostAsJsonAsync("/api/v1/auth/login", loginReq);
         var body = await res.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);

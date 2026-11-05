@@ -39,7 +39,7 @@ export const PORTAL_DEFINITIONS: PortalDef[] = [
     icon: GraduationCap,
     accentColor: '#2563eb',
     bgColor: '#eff6ff',
-    allowedRoles: ['STUDENT', 'TEACHER', 'CONTENT_MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    allowedRoles: ['STUDENT', 'TEACHER', 'CONTENT_MANAGER', 'ADMIN'],
   },
   {
     id: 'TEACHER',
@@ -50,7 +50,7 @@ export const PORTAL_DEFINITIONS: PortalDef[] = [
     icon: Users,
     accentColor: '#059669',
     bgColor: '#ecfdf5',
-    allowedRoles: ['TEACHER', 'ADMIN', 'SUPER_ADMIN'],
+    allowedRoles: ['TEACHER', 'ADMIN'],
   },
   {
     id: 'CONTENT_MANAGER',
@@ -61,7 +61,7 @@ export const PORTAL_DEFINITIONS: PortalDef[] = [
     icon: BookOpenCheck,
     accentColor: '#d97706',
     bgColor: '#fffbeb',
-    allowedRoles: ['CONTENT_MANAGER', 'ADMIN', 'SUPER_ADMIN'],
+    allowedRoles: ['CONTENT_MANAGER', 'ADMIN'],
   },
   {
     id: 'ADMIN',
@@ -72,7 +72,7 @@ export const PORTAL_DEFINITIONS: PortalDef[] = [
     icon: ShieldCheck,
     accentColor: '#dc2626',
     bgColor: '#fef2f2',
-    allowedRoles: ['ADMIN', 'SUPER_ADMIN'],
+    allowedRoles: ['ADMIN'],
   },
 ];
 
@@ -125,7 +125,7 @@ export const PortalSwitcher: React.FC<PortalSwitcherProps> = ({
     return set;
   }, [user]);
 
-  const isSuperOrAdmin = userRoles.has('ADMIN') || userRoles.has('SUPER_ADMIN');
+  const isSuperOrAdmin = userRoles.has('ADMIN');
 
   // Filter portals authorized for this user
   const permittedPortals = useMemo(() => {

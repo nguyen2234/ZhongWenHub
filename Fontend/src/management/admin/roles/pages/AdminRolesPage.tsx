@@ -82,8 +82,8 @@ export const AdminRolesPage: React.FC = () => {
     const set = new Set<SystemRoleCode>();
 
     roles.forEach((savedRole) => {
-      // ADMIN & SUPER_ADMIN are immutable
-      if (savedRole.code === 'ADMIN' || savedRole.code === 'SUPER_ADMIN') return;
+      // ADMIN is immutable
+      if (savedRole.code === 'ADMIN') return;
 
       const currentDesc = draftDescriptions[savedRole.code] ?? '';
       const isDescChanged = currentDesc.trim() !== savedRole.description.trim();
@@ -210,7 +210,7 @@ export const AdminRolesPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
-    if (selectedRoleCode === 'ADMIN' || selectedRoleCode === 'SUPER_ADMIN') return;
+    if (selectedRoleCode === 'ADMIN') return;
 
     setIsSaving(true);
     try {
@@ -378,7 +378,7 @@ export const AdminRolesPage: React.FC = () => {
           </div>
 
           {/* Unsaved Changes Bar */}
-          {isCurrentRoleDirty && selectedRoleCode !== 'ADMIN' && selectedRoleCode !== 'SUPER_ADMIN' && (
+          {isCurrentRoleDirty && selectedRoleCode !== 'ADMIN' && (
             <UnsavedChangesBar
               roleName={currentRole.name}
               isSaving={isSaving}

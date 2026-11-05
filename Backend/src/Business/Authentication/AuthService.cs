@@ -46,8 +46,7 @@ public class AuthService : IAuthService
 
         // Determine user roles strictly from database (cannot be spoofed by client)
         var userRoles = await _userManager.GetRolesAsync(user);
-        var isExemptFromLockout = userRoles.Contains(RoleConstants.Admin, StringComparer.OrdinalIgnoreCase)
-                               || userRoles.Contains(RoleConstants.SuperAdmin, StringComparer.OrdinalIgnoreCase);
+        var isExemptFromLockout = userRoles.Contains(RoleConstants.Admin, StringComparer.OrdinalIgnoreCase);
 
         // Auto-lockout from repeated password failures applies only to non-admin roles (STUDENT, TEACHER, CONTENT_MANAGER, SUPPORT)
         if (!isExemptFromLockout && await _userManager.IsLockedOutAsync(user))
@@ -84,7 +83,7 @@ public class AuthService : IAuthService
             }
             else
             {
-                // Admin and SuperAdmin accounts are exempt from auto-lockout DOS attacks.
+                // Admin account is exempt from auto-lockout DOS attacks.
                 // Reset failed count and clear any potential lockout expiration.
                 await _userManager.ResetAccessFailedCountAsync(user);
                 if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow)

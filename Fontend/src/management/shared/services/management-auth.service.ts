@@ -13,17 +13,11 @@ export interface ManagementSession {
 const STORAGE_KEY = 'zwh_management_session';
 
 const DEFAULT_SESSIONS: Record<UserRole, ManagementSession> = {
-  SUPER_ADMIN: {
-    id: 'usr-superadmin-01',
-    name: 'Hệ Thống Super Admin',
-    email: 'superadmin@zhongwenhub.edu.vn',
-    role: 'SUPER_ADMIN',
-    permissions: adminRolePermissionService.getRoleByCode('ADMIN')?.permissions || [],
-  },
+
   ADMIN: {
     id: 'usr-admin-01',
     name: 'Quản Trị Viên (Admin)',
-    email: 'admin@zhongwenhub.edu.vn',
+    email: 'admin@gmail.com',
     role: 'ADMIN',
     permissions: adminRolePermissionService.getRoleByCode('ADMIN')?.permissions || [],
   },
@@ -92,7 +86,7 @@ class ManagementAuthService {
       return;
     }
 
-    const roleCode = session.role === 'SUPER_ADMIN' ? 'ADMIN' : session.role;
+    const roleCode = session.role;
     const catalogPermissions = adminRolePermissionService.getRoleByCode(roleCode)?.permissions || [];
 
     this.currentSession = {
@@ -155,13 +149,13 @@ class ManagementAuthService {
 
   public hasPermission(permission: string): boolean {
     if (!this.currentSession) return false;
-    if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'SUPER_ADMIN') return true;
+    if (this.currentSession.role === 'ADMIN') return true;
     return this.currentSession.permissions.includes(permission);
   }
 
   public hasAnyPermission(permissions: string[]): boolean {
     if (!this.currentSession) return false;
-    if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'SUPER_ADMIN') return true;
+    if (this.currentSession.role === 'ADMIN') return true;
     return permissions.some((p) => this.currentSession?.permissions.includes(p) ?? false);
   }
 
@@ -171,7 +165,7 @@ class ManagementAuthService {
    */
   public canManageContent(): boolean {
     if (!this.currentSession) return false;
-    if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'SUPER_ADMIN' || this.currentSession.role === 'CONTENT_MANAGER') {
+    if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'CONTENT_MANAGER') {
       return true;
     }
     const perms = this.currentSession.permissions;
@@ -185,7 +179,7 @@ class ManagementAuthService {
    */
   public canAccessWorkspace(workspaceRole: UserRole): boolean {
     if (!this.currentSession) return false;
-    if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'SUPER_ADMIN') return true;
+    if (this.currentSession.role === 'ADMIN') return true;
     return this.currentSession.role === workspaceRole;
   }
 

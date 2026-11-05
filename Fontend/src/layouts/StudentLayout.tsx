@@ -29,7 +29,7 @@ export const StudentLayout: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthContext();
 
   const isAdmin = Boolean(
-    user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || user.roles?.includes('ADMIN') || user.roles?.includes('SUPER_ADMIN'))
+    user && (user.role === 'ADMIN' || user.roles?.includes('ADMIN'))
   );
   const displayName = user?.fullName || user?.email || 'Học viên';
   const displayEmail = user?.email || '';

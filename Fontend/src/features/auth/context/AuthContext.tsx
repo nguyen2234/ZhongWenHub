@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const primaryRole = (authUser.role || authUser.roles?.[0] || 'STUDENT') as UserRole;
-    const roleCode = primaryRole === 'SUPER_ADMIN' ? 'ADMIN' : primaryRole;
+    const roleCode = primaryRole;
     const permissions = adminRolePermissionService.getRoleByCode(roleCode)?.permissions || [];
 
     managementAuthService.setSession({

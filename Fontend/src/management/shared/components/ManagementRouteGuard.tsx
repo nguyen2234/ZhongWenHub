@@ -57,7 +57,7 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
   }
   if (session?.role) userRoles.add(session.role);
 
-  const isSuperOrAdmin = userRoles.has('SUPER_ADMIN') || userRoles.has('ADMIN');
+  const isSuperOrAdmin = userRoles.has('ADMIN');
 
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
@@ -121,8 +121,7 @@ export const AdminLegacyContentRedirect: React.FC<{ targetPath: string }> = ({ t
   }
   const canManage =
     userRoles.has('ADMIN') ||
-    userRoles.has('SUPER_ADMIN') ||
-    userRoles.has('CONTENT_MANAGER') ||
+        userRoles.has('CONTENT_MANAGER') ||
     managementAuthService.canManageContent();
 
   if (!canManage) {
@@ -156,8 +155,7 @@ export const AdminLegacyLessonEditorRedirect: React.FC = () => {
   }
   const canManage =
     userRoles.has('ADMIN') ||
-    userRoles.has('SUPER_ADMIN') ||
-    userRoles.has('CONTENT_MANAGER') ||
+        userRoles.has('CONTENT_MANAGER') ||
     managementAuthService.canManageContent();
 
   if (!canManage) {

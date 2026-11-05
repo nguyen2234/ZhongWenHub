@@ -28,8 +28,7 @@ public static class DbInitializer
             // Seed Roles
             var rolesWithDescriptions = new Dictionary<string, string>
             {
-                { RoleConstants.SuperAdmin, "Quản trị viên tối cao, toàn quyền hệ thống" },
-                { RoleConstants.Admin, "Quản trị viên vận hành hệ thống" },
+                { RoleConstants.Admin, "Quản trị viên toàn quyền hệ thống" },
                 { RoleConstants.ContentManager, "Quản lý nội dung học liệu HSK, từ vựng, ngữ pháp, video" },
                 { RoleConstants.Teacher, "Giáo viên giảng dạy, tạo bài tập, đánh giá" },
                 { RoleConstants.Support, "Nhân viên hỗ trợ học viên và xử lý ticket" },
@@ -56,20 +55,6 @@ public static class DbInitializer
             // Seed Users
             var seedUsers = new[]
             {
-                (
-                    Email: "superadmin@zhongwenhub.edu.vn",
-                    Username: "superadmin",
-                    DisplayName: "Hệ Thống Super Admin",
-                    Role: RoleConstants.SuperAdmin,
-                    Password: "SuperAdmin123!"
-                ),
-                (
-                    Email: "admin@zhongwenhub.edu.vn",
-                    Username: "admin",
-                    DisplayName: "Quản Trị Viên Vận Hành",
-                    Role: RoleConstants.Admin,
-                    Password: "AdminPassword123!"
-                ),
                 (
                     Email: "contentmanager@zhongwenhub.edu.vn",
                     Username: "contentmanager",

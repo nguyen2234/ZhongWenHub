@@ -23,7 +23,6 @@ const getRoleBadgeInfo = (roles?: string[]) => {
   const primaryRole = roles && roles.length > 0 ? roles[0].toUpperCase() : 'STUDENT';
   switch (primaryRole) {
     case 'ADMIN':
-    case 'SUPER_ADMIN':
       return { label: 'Quản trị viên', bg: 'rgba(239, 68, 68, 0.1)', color: '#dc2626' };
     case 'TEACHER':
       return { label: 'Giáo viên', bg: 'rgba(59, 130, 246, 0.1)', color: '#2563eb' };

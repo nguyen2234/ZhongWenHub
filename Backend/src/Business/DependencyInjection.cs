@@ -64,25 +64,25 @@ public static class DependencyInjection
         services.AddAuthorization(options =>
         {
             options.AddPolicy(PolicyConstants.AdminAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin));
+                policy.RequireRole(RoleConstants.Admin));
 
             options.AddPolicy(PolicyConstants.ContentManagementAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin, RoleConstants.ContentManager));
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.ContentManager));
 
             options.AddPolicy(PolicyConstants.TeacherAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin, RoleConstants.Teacher));
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.Teacher));
 
             options.AddPolicy(PolicyConstants.SupportAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin, RoleConstants.Support));
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.Support));
 
             options.AddPolicy(PolicyConstants.StudentAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin, RoleConstants.ContentManager, RoleConstants.Teacher, RoleConstants.Support, RoleConstants.Student));
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.ContentManager, RoleConstants.Teacher, RoleConstants.Support, RoleConstants.Student));
 
             options.AddPolicy(PolicyConstants.SystemSettingsManage, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin));
+                policy.RequireRole(RoleConstants.Admin));
 
             options.AddPolicy(PolicyConstants.UserManagementAccess, policy =>
-                policy.RequireRole(RoleConstants.SuperAdmin, RoleConstants.Admin));
+                policy.RequireRole(RoleConstants.Admin));
         });
 
         // Business Services

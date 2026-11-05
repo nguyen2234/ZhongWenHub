@@ -6,18 +6,26 @@ const SCREENSHOTS_DIR = path.resolve(process.cwd(), 'e2e/screenshots');
 
 async function loginViaUi(
   page: Page,
-  email = 'admin@zhongwenhub.edu.vn',
-  password = 'AdminPassword123!'
+  email = 'admin@gmail.com',
+  password = 'admin'
 ) {
-  await page.goto('/ZhongWenHub/login');
-  await page.fill('#login-email', email);
-  await page.fill('#login-password', password);
-  await Promise.all([
-    page.waitForResponse((res) => res.url().includes('/auth/login') && res.status() === 200),
-    page.click('button[type="submit"]'),
-  ]);
-  await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
-  await page.waitForLoadState('networkidle');
+  const emailInput = page.locator('#login-email');
+  const isLoginPage = await emailInput.isVisible({ timeout: 1000 }).catch(() => false);
+
+  if (!isLoginPage) {
+    await page.goto('/ZhongWenHub/login');
+  }
+
+  if (await emailInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await emailInput.fill(email);
+    await page.fill('#login-password', password);
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/auth/login') && res.status() === 200),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+  }
 }
 
 test.describe('ZhongWenHub — Hoàn thiện CRUD Admin: Người dùng & Tổ chức', () => {
@@ -59,13 +67,13 @@ test.describe('ZhongWenHub — Hoàn thiện CRUD Admin: Người dùng & Tổ c
     await page.goto('/ZhongWenHub/management/admin/users');
     await page.waitForLoadState('networkidle');
 
-    // Tìm kiếm "admin@zhongwenhub.edu.vn"
+    // Tìm kiếm "admin@gmail.com"
     const searchInput = page.locator('.user-search-input').first();
-    await searchInput.fill('admin@zhongwenhub.edu.vn');
+    await searchInput.fill('admin@gmail.com');
     await page.waitForTimeout(600);
 
     // Xác nhận kết quả tìm kiếm chứa admin
-    await expect(page.getByText('admin@zhongwenhub.edu.vn').first()).toBeVisible();
+    await expect(page.getByText('admin@gmail.com').first()).toBeVisible();
   });
 
   test('04. Lọc theo vai trò (TEACHER, STUDENT...), trạng thái, cấp HSK', async ({ page }) => {
@@ -299,8 +307,8 @@ test.describe('ZhongWenHub — Hoàn thiện CRUD Admin: Người dùng & Tổ c
   });
 
   test('16. Tài khoản ADMIN nhập sai mật khẩu nhiều lần không bị tự động khóa, đăng nhập lại thành công', async ({ page }) => {
-    const adminEmail = 'admin@zhongwenhub.edu.vn';
-    const correctPass = 'AdminPassword123!';
+    const adminEmail = 'admin@gmail.com';
+    const correctPass = 'admin';
     const wrongPass = 'IncorrectPassword999!';
 
     await page.goto('/ZhongWenHub/login');
@@ -328,5 +336,27 @@ test.describe('ZhongWenHub — Hoàn thiện CRUD Admin: Người dùng & Tổ c
     expect(okRes.status()).toBe(200);
     await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
     expect(page.url()).toContain('/ZhongWenHub/');
+  });
+
+  test('17. Xác nhận chỉ có 1 tài khoản ADMIN duy nhất (admin@gmail.com) và không còn SUPER_ADMIN', async ({ page }) => {
+    await loginViaUi(page);
+    await page.goto('/ZhongWenHub/management/admin/users');
+    await page.waitForLoadState('networkidle');
+
+    // Lọc theo vai trò ADMIN
+    const roleSelect = page.locator('select[aria-label="Lọc theo vai trò người dùng"]');
+    await expect(roleSelect).toBeVisible();
+    await roleSelect.selectOption('ADMIN');
+    await page.waitForTimeout(600);
+
+    // Xác nhận chỉ có 1 bản ghi ADMIN là admin@gmail.com
+    await expect(page.locator('tbody tr')).toHaveCount(1);
+    await expect(page.getByText('admin@gmail.com').first()).toBeVisible();
+
+    // Chuyển sang trang Roles, xác nhận không còn vai trò SUPER_ADMIN
+    await page.goto('/ZhongWenHub/management/admin/roles');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText('SUPER_ADMIN')).toHaveCount(0);
+    await expect(page.getByText('Quản trị viên tối cao')).toHaveCount(0);
   });
 });

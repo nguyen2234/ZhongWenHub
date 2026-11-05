@@ -5,8 +5,7 @@ export type UserRole =
   | 'TEACHER'
   | 'CONTENT_MANAGER'
   | 'SUPPORT'
-  | 'ADMIN'
-  | 'SUPER_ADMIN';
+  | 'ADMIN';
 
 export type HskLevelCode =
   | 'HSK 1'

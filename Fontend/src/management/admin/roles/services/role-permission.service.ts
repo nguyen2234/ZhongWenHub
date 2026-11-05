@@ -210,18 +210,6 @@ class RolePermissionService {
           if (found) {
             found.userCount = r.userCount ?? found.userCount;
             if (r.description) found.description = r.description;
-          } else if (r.name === 'SUPER_ADMIN') {
-            INITIAL_ROLES.unshift({
-              id: r.id || 'role-super-admin',
-              code: 'SUPER_ADMIN',
-              name: 'Quản trị viên tối cao',
-              description: r.description || 'Toàn quyền quản trị và phân quyền hệ thống.',
-              systemRole: true,
-              userCount: r.userCount ?? 1,
-              permissions: [...ALL_PERMISSION_CODES],
-              createdAt: '2024-01-01T00:00:00Z',
-              updatedAt: '2024-01-01T00:00:00Z',
-            });
           }
         });
       }
@@ -258,7 +246,7 @@ class RolePermissionService {
     }
 
     // ADMIN description is read-only according to specifications
-    if (roleCode === 'ADMIN' || roleCode === 'SUPER_ADMIN') {
+    if (roleCode === 'ADMIN') {
       return { ...INITIAL_ROLES[index], permissions: [...ALL_PERMISSION_CODES] };
     }
 

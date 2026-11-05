@@ -24,7 +24,6 @@ public class ContentController : BaseApiController
     private bool IsStaff()
     {
         return User.IsInRole(RoleConstants.Admin)
-            || User.IsInRole(RoleConstants.SuperAdmin)
             || User.IsInRole(RoleConstants.ContentManager);
     }
 

@@ -27,8 +27,8 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
     {
         var loginReq = new LoginRequestDto
         {
-            UsernameOrEmail = "admin@zhongwenhub.edu.vn",
-            Password = "AdminPassword123!"
+            UsernameOrEmail = "admin@gmail.com",
+            Password = "admin"
         };
         var res = await _client.PostAsJsonAsync("/api/v1/auth/login", loginReq);
         var body = await res.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
@@ -144,7 +144,7 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
     }
 
     [Fact]
-    public async Task Admin_AttemptingToElevateToSuperAdmin_Returns403Forbidden()
+    public async Task Admin_AttemptingToElevateAnotherUserToAdmin_Returns403Forbidden()
     {
         var token = await GetAdminTokenAsync();
 
@@ -155,10 +155,10 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
         var listBody = await listRes.Content.ReadFromJsonAsync<PagedResponse<AdminUserListItemDto>>(_jsonOptions);
         var student = listBody!.Items.First();
 
-        // Try to assign SUPER_ADMIN
+        // Try to assign ADMIN
         var rolesReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/users/{student.Id}/roles")
         {
-            Content = JsonContent.Create(new UpdateUserRolesDto { Roles = new List<string> { "SUPER_ADMIN", "STUDENT" } })
+            Content = JsonContent.Create(new UpdateUserRolesDto { Roles = new List<string> { "ADMIN", "STUDENT" } })
         };
         rolesReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _client.SendAsync(rolesReq);
@@ -167,24 +167,24 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
     }
 
     [Fact]
-    public async Task Admin_AttemptingToLockSuperAdmin_Returns403Forbidden()
+    public async Task Admin_AttemptingToLockSoleAdmin_Returns400BadRequest()
     {
         var token = await GetAdminTokenAsync();
 
-        // Find super admin
-        var listReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/users?search=superadmin@zhongwenhub.edu.vn");
+        // Find sole admin
+        var listReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/users?search=admin@gmail.com");
         listReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var listRes = await _client.SendAsync(listReq);
         var listBody = await listRes.Content.ReadFromJsonAsync<PagedResponse<AdminUserListItemDto>>(_jsonOptions);
-        var superAdmin = listBody!.Items.First();
+        var soleAdmin = listBody!.Items.First();
 
-        var lockReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/users/{superAdmin.Id}/lock")
+        var lockReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/admin/users/{soleAdmin.Id}/lock")
         {
-            Content = JsonContent.Create(new LockUserRequestDto { Reason = "Malicious admin attempt" })
+            Content = JsonContent.Create(new LockUserRequestDto { Reason = "Attempt to lock sole admin" })
         };
         lockReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await _client.SendAsync(lockReq);
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

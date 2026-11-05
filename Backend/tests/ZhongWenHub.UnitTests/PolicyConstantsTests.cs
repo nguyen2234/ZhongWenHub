@@ -6,10 +6,9 @@ namespace ZhongWenHub.UnitTests;
 public class PolicyConstantsTests
 {
     [Fact]
-    public void AllRoles_ContainsExpectedSixRoles()
+    public void AllRoles_ContainsExpectedFiveRoles()
     {
-        Assert.Equal(6, RoleConstants.AllRoles.Count);
-        Assert.Contains(RoleConstants.SuperAdmin, RoleConstants.AllRoles);
+        Assert.Equal(5, RoleConstants.AllRoles.Count);
         Assert.Contains(RoleConstants.Admin, RoleConstants.AllRoles);
         Assert.Contains(RoleConstants.ContentManager, RoleConstants.AllRoles);
         Assert.Contains(RoleConstants.Teacher, RoleConstants.AllRoles);

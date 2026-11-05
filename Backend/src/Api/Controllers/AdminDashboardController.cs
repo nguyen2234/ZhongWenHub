@@ -8,7 +8,7 @@ namespace ZhongWenHub.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/admin/dashboard")]
-[Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.SuperAdmin}")]
+[Authorize(Roles = RoleConstants.Admin)]
 public class AdminDashboardController : BaseApiController
 {
     private readonly IAdminUserService _adminUserService;

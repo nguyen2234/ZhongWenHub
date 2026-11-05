@@ -33,7 +33,7 @@ describe('PHẦN A — Portal Switcher & RBAC Access Rules', () => {
   // Helper simulating getAvailablePortals
   function filterPortalsForUser(userRoles: string[]): PortalDef[] {
     const roleSet = new Set(userRoles);
-    const isSuperOrAdmin = roleSet.has('ADMIN') || roleSet.has('SUPER_ADMIN');
+    const isSuperOrAdmin = roleSet.has('ADMIN');
 
     return PORTAL_DEFINITIONS.filter((portal) => {
       if (portal.id === 'STUDENT') return true;
@@ -68,12 +68,11 @@ describe('PHẦN A — Portal Switcher & RBAC Access Rules', () => {
     expect(ids).not.toContain('ADMIN');
   });
 
-  it('ADMIN / SUPER_ADMIN user should see ALL 4 portals', () => {
+  it('ADMIN user should see ALL 4 portals', () => {
     const adminPortals = filterPortalsForUser(['ADMIN']);
     expect(adminPortals).toHaveLength(4);
 
-    const superAdminPortals = filterPortalsForUser(['SUPER_ADMIN']);
-    expect(superAdminPortals).toHaveLength(4);
+    
   });
 
   it('Multi-role user with [TEACHER, CONTENT_MANAGER] should see 3 portals without admin portal', () => {

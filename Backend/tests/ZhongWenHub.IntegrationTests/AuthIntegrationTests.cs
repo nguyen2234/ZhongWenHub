@@ -324,9 +324,9 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task Admin_RepeatedWrongPasswords_IsNotLockedOutAndCanLoginWithCorrectPassword()
     {
-        var adminEmail = "admin@zhongwenhub.edu.vn";
+        var adminEmail = "admin@gmail.com";
         var wrongPass = "WrongPassword999!";
-        var correctPass = "AdminPassword123!";
+        var correctPass = "admin";
 
         // Attempt 6 consecutive wrong password logins
         for (int i = 0; i < 6; i++)
@@ -351,36 +351,6 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         Assert.NotNull(body);
         Assert.NotEmpty(body.AccessToken);
         Assert.Contains("ADMIN", body.User.Roles);
-    }
-
-    [Fact]
-    public async Task SuperAdmin_RepeatedWrongPasswords_IsNotLockedOutAndCanLogin()
-    {
-        var superAdminEmail = "superadmin@zhongwenhub.edu.vn";
-        var wrongPass = "SuperWrongPass123!";
-        var correctPass = "SuperAdmin123!";
-
-        // Try 6 consecutive wrong password logins
-        for (int i = 0; i < 6; i++)
-        {
-            var res = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
-            {
-                UsernameOrEmail = superAdminEmail,
-                Password = wrongPass
-            });
-            Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
-        }
-
-        // Login with correct password succeeds
-        var okRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
-        {
-            UsernameOrEmail = superAdminEmail,
-            Password = correctPass
-        });
-        Assert.Equal(HttpStatusCode.OK, okRes.StatusCode);
-        var body = await okRes.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
-        Assert.NotNull(body);
-        Assert.Contains("SUPER_ADMIN", body.User.Roles);
     }
 
     [Fact]
@@ -429,8 +399,8 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         // Login as admin to lock a user
         var adminLoginRes = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequestDto
         {
-            UsernameOrEmail = "admin@zhongwenhub.edu.vn",
-            Password = "AdminPassword123!"
+            UsernameOrEmail = "admin@gmail.com",
+            Password = "admin"
         });
         var adminAuth = await adminLoginRes.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
         Assert.NotNull(adminAuth);

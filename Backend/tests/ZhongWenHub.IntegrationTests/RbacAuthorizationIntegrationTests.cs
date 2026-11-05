@@ -52,7 +52,7 @@ public class RbacAuthorizationIntegrationTests : IClassFixture<CustomWebApplicat
     [Fact]
     public async Task Admin_AccessAdminEndpoint_Returns200Ok()
     {
-        var token = await GetTokenForUserAsync("admin@zhongwenhub.edu.vn", "AdminPassword123!");
+        var token = await GetTokenForUserAsync("admin@gmail.com", "admin");
 
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/system/admin-test");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -63,22 +63,9 @@ public class RbacAuthorizationIntegrationTests : IClassFixture<CustomWebApplicat
     }
 
     [Fact]
-    public async Task Admin_AccessSuperAdminEndpoint_Returns403Forbidden()
+    public async Task Admin_AccessSystemSettingsManageEndpoint_Returns200Ok()
     {
-        var token = await GetTokenForUserAsync("admin@zhongwenhub.edu.vn", "AdminPassword123!");
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/system/superadmin-test");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await _client.SendAsync(request);
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task SuperAdmin_AccessSuperAdminEndpoint_Returns200Ok()
-    {
-        var token = await GetTokenForUserAsync("superadmin@zhongwenhub.edu.vn", "SuperAdmin123!");
+        var token = await GetTokenForUserAsync("admin@gmail.com", "admin");
 
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/system/superadmin-test");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -86,6 +73,19 @@ public class RbacAuthorizationIntegrationTests : IClassFixture<CustomWebApplicat
         var response = await _client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Student_AccessSystemSettingsManageEndpoint_Returns403Forbidden()
+    {
+        var token = await GetTokenForUserAsync("student@zhongwenhub.edu.vn", "StudentPassword123!");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/system/superadmin-test");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

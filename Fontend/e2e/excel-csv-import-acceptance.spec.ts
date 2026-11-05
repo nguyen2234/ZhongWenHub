@@ -11,8 +11,8 @@ const VALID_CSV = path.join(FIXTURES_DIR, 'test_valid_csv.csv');
 
 async function loginViaUi(
   page: Page,
-  email = 'admin@zhongwenhub.edu.vn',
-  password = 'AdminPassword123!'
+  email = 'admin@gmail.com',
+  password = 'admin'
 ) {
   await page.goto('/ZhongWenHub/login');
   await page.fill('#login-email', email);
