@@ -9,9 +9,11 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5, 20px);
+  gap: clamp(16px, 2vw, 24px);
   padding-bottom: 96px; /* Clearance for StudentBottomNav on mobile */
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: practice-container;
 }
 
 /* 1. Header */
@@ -186,8 +188,8 @@
 /* 3. Quick & Mistake Dual Row */
 .practice-quick-dual-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: clamp(12px, 1.5vw, 16px);
 }
 
 .practice-action-card {
@@ -307,8 +309,8 @@
 
 .practice-skill-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-4, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 28cqi, 260px), 1fr));
+  gap: clamp(12px, 1.6vw, 16px);
 }
 
 .practice-skill-card {

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Layers,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import {
   PageHeader,
@@ -37,6 +38,7 @@ import type {
 } from '../../../../features/exercise-engine/types';
 import type { TableColumn } from '../../../shared/types';
 import type { ContentStatus } from '../types/common-content.types';
+import type { AdminExerciseStats } from '../../../../core/repositories';
 
 const SKILLS: Array<{ id: SkillCategory; label: string }> = [
   { id: 'vocabulary', label: 'Từ vựng' },
@@ -86,25 +88,52 @@ export const AdminExerciseBankPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // 2. Fetch data
-  const exerciseList = useMemo(() => {
-    void version;
-    return adminExerciseService.getAll(filters);
-  }, [filters, version]);
+  // 2. Real async state from SQL Server backend
+  const [exerciseList, setExerciseList] = useState<AdminExerciseItem[]>([]);
+  const [stats, setStats] = useState<AdminExerciseStats>({
+    total: 0,
+    published: 0,
+    draft: 0,
+    pending: 0,
+    archived: 0,
+    byHsk: {} as any,
+    bySkill: {} as any,
+    byType: {} as any,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    void version;
-    return adminExerciseService.getStats();
-  }, [version]);
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [list, statsData] = await Promise.all([
+        adminExerciseService.getAllAsync(filters),
+        adminExerciseService.getStatsAsync(),
+      ]);
+      setExerciseList(list);
+      setStats(statsData);
+    } catch (err: any) {
+      console.error('[AdminExerciseBankPage] Load error:', err);
+      setErrorMessage(err?.message || 'Không thể kết nối đến máy chủ để tải dữ liệu bài tập.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData, version]);
 
   // Deep linking: auto-open drawer if `id` parameter is in URL
   useEffect(() => {
     if (urlId) {
-      const found = adminExerciseService.getById(urlId);
-      if (found) {
-        setSelectedExercise(found);
-        setIsDrawerOpen(true);
-      }
+      adminExerciseService.getByIdAsync(urlId).then((found) => {
+        if (found) {
+          setSelectedExercise(found);
+          setIsDrawerOpen(true);
+        }
+      });
     }
   }, [urlId]);
 
@@ -147,34 +176,52 @@ export const AdminExerciseBankPage: React.FC = () => {
     setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
 
-  const handleSaveExercise = useCallback((id: string, dto: UpdateAdminExerciseDTO) => {
-    adminExerciseService.update(id, dto);
-    setVersion((v) => v + 1);
-    const updated = adminExerciseService.getById(id);
-    if (updated) setSelectedExercise(updated);
+  const handleSaveExercise = useCallback(async (id: string, dto: UpdateAdminExerciseDTO) => {
+    try {
+      const updated = await adminExerciseService.updateAsync(id, dto);
+      setVersion((v) => v + 1);
+      if (updated) setSelectedExercise(updated);
+    } catch (err: any) {
+      console.error('Lỗi lưu bài tập:', err);
+      alert(err?.message || 'Không thể lưu bài tập vào máy chủ.');
+    }
   }, []);
 
   const handleDeleteExercise = useCallback(
-    (id: string) => {
-      adminExerciseService.delete(id);
-      setVersion((v) => v + 1);
-      handleCloseDrawer();
+    async (id: string) => {
+      try {
+        await adminExerciseService.deleteAsync(id);
+        setVersion((v) => v + 1);
+        handleCloseDrawer();
+      } catch (err: any) {
+        console.error('Lỗi xóa bài tập:', err);
+        alert(err?.message || 'Không thể xóa bài tập trên máy chủ.');
+      }
     },
     [handleCloseDrawer]
   );
 
-  const handleCreateExercise = useCallback((dto: CreateAdminExerciseDTO) => {
-    const created = adminExerciseService.create(dto);
-    setVersion((v) => v + 1);
-    setSelectedExercise(created);
-    setIsDrawerOpen(true);
+  const handleCreateExercise = useCallback(async (dto: CreateAdminExerciseDTO) => {
+    try {
+      const created = await adminExerciseService.createAsync(dto);
+      setVersion((v) => v + 1);
+      setSelectedExercise(created);
+      setIsDrawerOpen(true);
+      setIsCreateModalOpen(false);
+    } catch (err: any) {
+      console.error('Lỗi tạo bài tập:', err);
+      alert(err?.message || 'Không thể tạo bài tập trên máy chủ.');
+    }
   }, []);
 
-  const handleResetData = useCallback(() => {
-    adminExerciseService.resetToDefault();
-    setVersion((v) => v + 1);
-    setIsResetConfirmOpen(false);
-    handleCloseDrawer();
+  const handleResetData = useCallback(async () => {
+    try {
+      await adminExerciseService.resetToDefault();
+      setVersion((v) => v + 1);
+    } finally {
+      setIsResetConfirmOpen(false);
+      handleCloseDrawer();
+    }
   }, [handleCloseDrawer]);
 
   const location = useLocation();
@@ -665,8 +712,46 @@ export const AdminExerciseBankPage: React.FC = () => {
           }
         />
 
-        {/* Data Table with Evondev Mobile Card Support (R9 & R11) */}
-        <DataTable<AdminExerciseItem>
+        {/* Error banner with Retry */}
+        {errorMessage && (
+          <div
+            style={{
+              padding: '10px 14px',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 'var(--radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: 'var(--text-xs)',
+              color: 'var(--danger, #ef4444)',
+              marginBottom: 'var(--space-3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              className="ds-btn ds-btn-outline ds-btn-sm"
+              onClick={loadData}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              <RefreshCw size={14} /> Thử lại
+            </button>
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <div style={{ padding: 'var(--space-6)', textAlign: 'center', color: 'var(--muted)' }}>
+            Đang tải dữ liệu bài tập từ máy chủ...
+          </div>
+        )}
+
+        {!isLoading && (
+          <DataTable<AdminExerciseItem>
           columns={columns}
           data={paginatedData}
           keyExtractor={(item) => item.id}
@@ -712,8 +797,10 @@ export const AdminExerciseBankPage: React.FC = () => {
           ]}
         />
 
+        )}
+
         {/* Pagination */}
-        {exerciseList.length > pageSize && (
+        {!isLoading && exerciseList.length > pageSize && (
           <div style={{ marginTop: 'var(--space-4)' }}>
             <Pagination
               currentPage={currentPage}

@@ -29,12 +29,16 @@ export interface AuthUser {
   currentHskLevel: number;
   streakDays: number;
   xpPoints: number;
+  roles?: string[];
+  role?: string;
+  createdAt?: string;
 }
 
 export interface AuthResponse {
   success: boolean;
   message?: string;
   user?: AuthUser;
+  accessToken?: string;
 }
 
 export interface PasswordRequirements {

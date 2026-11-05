@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Flame,
@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
@@ -17,12 +18,35 @@ import { StudentSearchModal } from './components/StudentSearchModal';
 import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
+import { useAuthContext } from '../features/auth/context/AuthContext';
+import { PortalSwitcher } from '../management/shared/components/PortalSwitcher';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const { currentHskLevel, streakDays, xpTotal } = useLearningState();
+  const { user, isAuthenticated, logout } = useAuthContext();
+
+  const isAdmin = Boolean(
+    user && (user.role === 'ADMIN' || user.roles?.includes('ADMIN'))
+  );
+  const displayName = user?.fullName || user?.email || 'Học viên';
+  const displayEmail = user?.email || '';
+  const displayInitials = (displayName || 'U')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(-2)
+    .join('')
+    .toUpperCase();
+  const displayRoleLabel = isAdmin
+    ? 'Quản trị viên'
+    : (user?.role === 'TEACHER' ? 'Giáo viên' : `Học viên HSK ${user?.currentHskLevel || 1}`);
+
+  const activeHskLevel = user?.currentHskLevel ?? currentHskLevel;
+  const activeStreak = user?.streakDays ?? streakDays;
+  const activeXp = user?.xpPoints ?? xpTotal;
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -114,7 +138,7 @@ export const StudentLayout: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
       {/* =====================================================================
           1. HANBEEGO-INSPIRED TOP HEADER
           ===================================================================== */}
@@ -140,7 +164,7 @@ export const StudentLayout: React.FC = () => {
             justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
             gap: '10px',
             padding: isSidebarCollapsed ? '0 10px' : '0 16px',
-            width: isSidebarCollapsed ? '72px' : '256px',
+            width: isSidebarCollapsed ? 'var(--student-sidebar-collapsed-width, 72px)' : 'var(--student-sidebar-width, 256px)',
             borderRight: '1.5px solid #f1f5f9',
             flexShrink: 0,
             boxSizing: 'border-box',
@@ -371,133 +395,257 @@ export const StudentLayout: React.FC = () => {
             <span>pīn</span>
           </button>
 
-          <div className="header-hsk-badge">
-            <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
-          </div>
-
-          {/* Streak Flame Pill */}
-          <div
-            className="header-streak-pill"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 8px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--streak-bg)',
-              border: '1px solid var(--streak-border)',
-              color: 'var(--streak)',
-              fontSize: '11px',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-            title={`Chuỗi ${streakDays} ngày học liên tiếp`}
-          >
-            <Flame size={14} />
-            <span className="header-streak-label">{streakDays}N</span>
-          </div>
-
-          <div className="header-xp-pill">
-            <XPIndicator amount={xpTotal} variant="pill" />
-          </div>
-
-          {/* User Account Dropdown Trigger & Popover */}
-          <div ref={accountMenuRef} style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => setIsAccountMenuOpen((prev) => !prev)}
-              aria-expanded={isAccountMenuOpen}
-              aria-haspopup="true"
-              aria-label="Tài khoản học viên Minh Anh"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '2px 6px 2px 2px',
-                borderRadius: '9999px',
-                border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
-                backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              title="Menu tài khoản (Hồ sơ, Cài đặt)"
-            >
-              <div
+          {/* Conditional Header Content: Guest vs Authenticated */}
+          {!isAuthenticated ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="ds-btn ds-btn-ghost"
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--primary)',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                }}
-              >
-                MA
-              </div>
-              <ChevronDown
-                size={14}
-                style={{
-                  color: '#64748b',
-                  transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.15s ease',
-                }}
-              />
-            </button>
-
-            {/* Account Popover Menu */}
-            {isAccountMenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 'calc(100% + 8px)',
-                  width: '240px',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '14px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#334155',
+                  borderRadius: '8px',
                   border: '1px solid #e2e8f0',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  zIndex: 50,
-                  padding: '6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
+                  backgroundColor: '#ffffff',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {/* User Identity Header */}
-                <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>Minh Anh</div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>student@zhongwenhub.edu.vn</div>
+                Đăng nhập
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="ds-btn ds-btn-primary"
+                style={{
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  backgroundColor: 'var(--primary, #E60012)',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Đăng ký
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="header-hsk-badge">
+                <HSKLevel level={((activeHskLevel >= 7 ? '7-9' : activeHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9')} />
+              </div>
+
+              {/* Streak Flame Pill */}
+              <div
+                className="header-streak-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--streak-bg)',
+                  border: '1px solid var(--streak-border)',
+                  color: 'var(--streak)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+                title={`Chuỗi ${activeStreak} ngày học liên tiếp`}
+              >
+                <Flame size={14} />
+                <span className="header-streak-label">{activeStreak}N</span>
+              </div>
+
+              <div className="header-xp-pill">
+                <XPIndicator amount={activeXp} variant="pill" />
+              </div>
+
+              {/* User Account Dropdown Trigger & Popover */}
+              <div ref={accountMenuRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAccountMenuOpen((prev) => !prev)}
+                  aria-expanded={isAccountMenuOpen}
+                  aria-haspopup="true"
+                  aria-label={`Tài khoản ${displayName}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '2px 6px 2px 2px',
+                    borderRadius: '9999px',
+                    border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
+                    backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Menu tài khoản (Hồ sơ, Cài đặt)"
+                >
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={displayName}
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--primary, #E60012)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {displayInitials}
+                    </div>
+                  )}
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: '#64748b',
+                      transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
+                </button>
+
+                {/* Account Popover Menu */}
+                {isAccountMenuOpen && (
                   <div
                     style={{
-                      display: 'inline-block',
-                      marginTop: '6px',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      backgroundColor: '#e0e7ff',
-                      color: '#4338ca',
-                      fontSize: '10px',
-                      fontWeight: 700,
+                      position: 'absolute',
+                      right: 0,
+                      top: 'calc(100% + 8px)',
+                      width: '240px',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                      zIndex: 50,
+                      padding: '6px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
                     }}
                   >
-                    Học viên HSK 2
-                  </div>
-                </div>
+                    {/* User Identity Header */}
+                    <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{displayName}</div>
+                      {displayEmail && <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{displayEmail}</div>}
+                      <div
+                        style={{
+                          display: 'inline-block',
+                          marginTop: '6px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: isAdmin ? '#fef2f2' : '#e0e7ff',
+                          color: isAdmin ? '#dc2626' : '#4338ca',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {displayRoleLabel}
+                      </div>
+                    </div>
 
-                {/* Primary Account Items: Profile, Settings, Classes */}
-                {ACCOUNT_MENU_ITEMS.map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
+                    {/* Primary Account Items: Profile, Settings, Classes */}
+                    {ACCOUNT_MENU_ITEMS.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsAccountMenuOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            color: '#334155',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'background-color 0.1s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <ItemIcon size={16} style={{ color: '#64748b' }} />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+
+                    {/* Management Portal Shortcut (ONLY for Admin / SuperAdmin) */}
+                    {isAdmin && (
+                      <>
+                        <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigate('/management/admin/dashboard');
+                            setIsAccountMenuOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            color: '#4338ca',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <ShieldCheck size={16} style={{ color: '#4338ca' }} />
+                          <span>Cổng Quản trị hệ thống</span>
+                        </button>
+                      </>
+                    )}
+
+                    <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+
+                    {/* Logout Action */}
                     <button
-                      key={item.id}
                       type="button"
-                      onClick={() => {
-                        navigate(item.path);
+                      onClick={async () => {
                         setIsAccountMenuOpen(false);
+                        await logout();
+                        navigate('/login');
                       }}
                       style={{
                         display: 'flex',
@@ -508,122 +656,84 @@ export const StudentLayout: React.FC = () => {
                         borderRadius: '8px',
                         border: 'none',
                         backgroundColor: 'transparent',
-                        color: '#334155',
+                        color: '#e11d48',
                         fontSize: '12px',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fff1f2')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <ItemIcon size={16} style={{ color: '#64748b' }} />
-                      <span>{item.label}</span>
+                      <LogOut size={16} style={{ color: '#e11d48' }} />
+                      <span>Đăng xuất</span>
                     </button>
-                  );
-                })}
-
-                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
-
-                {/* Management Portal Shortcut */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('/management/admin/dashboard');
-                    setIsAccountMenuOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#4338ca',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <ShieldCheck size={16} style={{ color: '#4338ca' }} />
-                  <span>Cổng Quản trị hệ thống</span>
-                </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
-          {/* Quick Management Switch */}
-          <Link
-            to="/management/admin/dashboard"
-            className="header-admin-link"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              height: '32px',
-              padding: '0 10px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              color: '#64748b',
-              fontSize: '11px',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-            title="Cổng Quản trị"
-          >
-            <ShieldCheck size={14} />
-            <span className="header-admin-text">Quản trị</span>
-          </Link>
+          {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
+          <PortalSwitcher variant="header" />
         </div>
       </header>
 
       {/* =====================================================================
           2. HANBEEGO-STYLE TWO-PANE BODY (Sticky Sidebar + Main Content)
           ===================================================================== */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 64px)' }}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100dvh - var(--app-header-height))' }}>
         {/* Persistent Desktop Sidebar */}
-        <div className="desktop-sidebar-wrapper" style={{ display: 'block' }}>
-          <div
-            style={{
-              position: 'sticky',
-              top: 'var(--app-header-height)',
-              height: 'calc(100vh - var(--app-header-height))',
-            }}
-          >
-            <StudentSidebar
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={toggleSidebarCollapse}
-            />
-          </div>
-        </div>
+        <aside
+          className="desktop-sidebar-wrapper student-sidebar-wrapper"
+          style={{
+            position: 'sticky',
+            top: 'var(--app-header-height)',
+            height: 'calc(100dvh - var(--app-header-height))',
+            maxHeight: 'calc(100dvh - var(--app-header-height))',
+            flexShrink: 0,
+            alignSelf: 'flex-start',
+            zIndex: 'var(--z-sidebar)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+                <div style={{ padding: '4px 12px 8px 12px', borderBottom: '1px solid #f1f5f9' }}>
+                  <PortalSwitcher variant="drawer" onPortalChange={() => setIsMobileDrawerOpen(false)} />
+                </div>
+          <StudentSidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={toggleSidebarCollapse}
+          />
+        </aside>
 
         {/* Mobile Slide-in Drawer */}
         {isMobileDrawerOpen && (
           <div
+            className="mobile-sidebar-drawer-overlay"
             style={{
               position: 'fixed',
               inset: 0,
               zIndex: 'var(--z-drawer)',
               backgroundColor: 'rgba(15, 23, 42, 0.5)',
               display: 'flex',
+              overscrollBehavior: 'none',
+              touchAction: 'none',
             }}
             onClick={() => setIsMobileDrawerOpen(false)}
           >
             <div
+              className="mobile-sidebar-drawer"
               style={{
-                width: '280px',
-                height: '100%',
+                width: 'min(300px, 85vw)',
+                height: '100dvh',
+                maxHeight: '100dvh',
                 backgroundColor: '#ffffff',
                 boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: 'hidden',
               }}
               onClick={(e) => e.stopPropagation()}
               role="dialog"
@@ -637,6 +747,7 @@ export const StudentLayout: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexShrink: 0,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -663,12 +774,13 @@ export const StudentLayout: React.FC = () => {
                   type="button"
                   onClick={() => setIsMobileDrawerOpen(false)}
                   style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                  aria-label="Đóng thanh điều hướng"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }} className="student-sidebar-scroll">
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <StudentSidebar
                   isCollapsed={false}
                   onNavigate={() => setIsMobileDrawerOpen(false)}
@@ -742,7 +854,7 @@ export const StudentLayout: React.FC = () => {
 
       {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (max-width: 1024px) {
+        @media (max-width: 1023px) {
           .desktop-sidebar-wrapper {
             display: none !important;
           }

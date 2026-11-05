@@ -1,0 +1,19 @@
+namespace ZhongWenHub.Data.Constants;
+
+public static class RoleConstants
+{
+    public const string Admin = "ADMIN";
+    public const string ContentManager = "CONTENT_MANAGER";
+    public const string Teacher = "TEACHER";
+    public const string Support = "SUPPORT";
+    public const string Student = "STUDENT";
+
+    public static readonly IReadOnlyList<string> AllRoles = new[]
+    {
+        Admin,
+        ContentManager,
+        Teacher,
+        Support,
+        Student
+    };
+}

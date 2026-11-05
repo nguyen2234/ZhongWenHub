@@ -5,15 +5,17 @@
   box-sizing: border-box;
 }
 
-/* Two-column container: Main reading column (950-1050px) + Right sticky TOC */
+/* Two-column container: Main reading column + Right sticky TOC */
 .hsk-textbook-layout {
   display: flex;
   align-items: flex-start;
-  gap: 28px;
+  gap: clamp(16px, 2vw, 28px);
   width: 100%;
   max-width: 1360px;
   margin-inline: auto;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: lesson-layout;
 }
 
 .hsk-textbook-content {
@@ -22,7 +24,7 @@
   max-width: 1050px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: clamp(20px, 2.5vw, 32px);
 }
 
 /* Section Common Standards with scroll-margin-top for sticky header */
@@ -80,13 +82,13 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  padding: 28px 32px;
+  padding: clamp(18px, 2.2vw, 28px) clamp(16px, 2.5vw, 32px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(14px, 1.8vw, 20px);
 }
 
 .hsk-breadcrumb {
@@ -117,7 +119,7 @@
 
 .hsk-overview-hanzi-title {
   font-family: var(--font-hanzi);
-  font-size: 34px;
+  font-size: clamp(24px, 2.6vw, 34px);
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.01em;
@@ -126,14 +128,14 @@
 
 .hsk-overview-pinyin-title {
   font-family: var(--font-pinyin);
-  font-size: 16px;
+  font-size: clamp(13.5px, 1.3vw, 16px);
   font-weight: 600;
   color: #64748b;
 }
 
 .hsk-overview-vi-title {
   font-family: var(--font-sans);
-  font-size: 20px;
+  font-size: clamp(16px, 1.5vw, 20px);
   font-weight: 700;
   color: #1e293b;
 }
@@ -163,21 +165,23 @@
 /* 2. VOCABULARY GRID & CARDS */
 .hsk-vocab-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 28vw, 320px), 1fr));
+  gap: clamp(12px, 1.5vw, 16px);
 }
 
 .hsk-vocab-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 20px 22px;
+  padding: clamp(14px, 1.6vw, 18px) clamp(14px, 1.8vw, 20px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .hsk-vocab-card:hover {
@@ -196,6 +200,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .hsk-vocab-index-circle {
@@ -214,7 +219,7 @@
 
 .hsk-vocab-hanzi {
   font-family: var(--font-hanzi);
-  font-size: 30px;
+  font-size: clamp(24px, 2.4vw, 30px);
   font-weight: 800;
   color: #0f172a;
   line-height: 1;
@@ -298,10 +303,10 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 24px 28px;
+  padding: clamp(18px, 2vw, 24px) clamp(16px, 2.2vw, 28px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(14px, 1.6vw, 18px);
   box-shadow: none;
 }
 
@@ -325,13 +330,13 @@
 
 .hsk-grammar-formula-text {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: clamp(14px, 1.4vw, 16px);
   font-weight: 700;
   color: #0f172a;
 }
 
 .hsk-grammar-explanation {
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.65;
   color: #334155;
 }
@@ -350,6 +355,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* 4. DIALOGUE CHAT SECTION */
@@ -357,10 +363,10 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  padding: 24px 28px;
+  padding: clamp(18px, 2vw, 24px) clamp(16px, 2.2vw, 28px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(16px, 1.8vw, 20px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
@@ -384,7 +390,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  max-width: 82%;
+  max-width: clamp(75%, 82%, 94%);
 }
 
 .hsk-chat-row.speaker-a {
@@ -539,7 +545,7 @@
 /* Row 2 - 3 Activity Groups */
 .hsk-practice-steps-preview {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 12px;
 }
 
@@ -567,7 +573,7 @@
 }
 
 .hsk-practice-cta-btn {
-  width: 240px;
+  width: min(100%, 280px);
   height: 44px;
   padding: 0 20px;
   font-size: 14px;
@@ -601,12 +607,12 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  padding: 32px;
+  padding: clamp(20px, 2.5vw, 32px);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 20px;
+  gap: clamp(16px, 2vw, 20px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
@@ -627,8 +633,11 @@
     flex-direction: column;
   }
 
-  .hsk-vocab-grid {
-    grid-template-columns: 1fr;
+  .lesson-toc-tablet-bar,
+  .lesson-toc-mobile-trigger {
+    order: -1;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -655,6 +664,28 @@
   justify-content: center;
 }
 
+@media (max-width: 1440px) {
+  .hsk-overview-sticker-wrap img,
+  .hsk-overview-sticker-wrap .chibi-sticker-img {
+    width: 110px !important;
+    height: 110px !important;
+    max-width: 110px !important;
+    max-height: 110px !important;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 1200px) {
+  .hsk-overview-sticker-wrap img,
+  .hsk-overview-sticker-wrap .chibi-sticker-img {
+    width: 90px !important;
+    height: 90px !important;
+    max-width: 90px !important;
+    max-height: 90px !important;
+    object-fit: contain;
+  }
+}
+
 @media (max-width: 640px) {
   .hsk-overview-card {
     padding: 20px 18px;
@@ -670,5 +701,9 @@
 
   .hsk-chat-row {
     max-width: 95%;
+  }
+
+  .hsk-vocab-grid {
+    grid-template-columns: 1fr;
   }
 }

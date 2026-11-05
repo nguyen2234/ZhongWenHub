@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -11,10 +11,11 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Info,
   CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
+import { authService } from '../../../features/auth/services/authService';
+import { PortalSwitcher } from './PortalSwitcher';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -73,7 +74,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     if (path.includes('/content-manager/quality-metrics')) return { group: 'Kiểm duyệt & Vận hành', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
 
     // Group: Người dùng & Tổ chức (Admin)
-    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
+    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Quản lý người dùng', link: '/management/admin/users' };
     if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
     if (path.includes('/support-staff')) return { group: 'Người dùng & Tổ chức', title: 'Nhân viên hỗ trợ', link: '/management/admin/support-staff' };
     if (path.includes('/roles')) return { group: 'Người dùng & Tổ chức', title: 'Vai trò & Phân quyền', link: '/management/admin/roles' };
@@ -215,26 +216,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           RIGHT: ENVIRONMENT BADGE, SEARCH, NOTIFICATIONS, USER MENU
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        {/* Environment / Demo Indicator Tag */}
-        <div
-          className="env-indicator-pill"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            padding: '3px 9px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--primary-light)',
-            border: '1px solid rgba(230, 0, 18, 0.2)',
-            color: 'var(--primary)',
-            fontSize: '11px',
-            fontWeight: 600,
-          }}
-          title="Dữ liệu hiển thị ở chế độ mô phỏng vận hành"
-        >
-          <Info size={12} />
-          <span>Mô phỏng Demo</span>
-        </div>
 
         {/* Search Shortcut */}
         <div
@@ -272,6 +253,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             ⌘K
           </kbd>
         </div>
+
+        {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
+        <PortalSwitcher variant="header" />
 
         {/* Notifications Popover */}
         <div style={{ position: 'relative' }} ref={notifyRef}>
@@ -629,8 +613,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
 
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   setIsUserMenuOpen(false);
+                  await authService.logout();
                   navigate('/login');
                 }}
                 style={{

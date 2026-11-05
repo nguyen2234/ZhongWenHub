@@ -33,6 +33,7 @@ export interface TeacherDetailDrawerProps {
   onSaveEdit: (id: string, dto: UpdateTeacherDTO) => void;
   onChangeTeachingStatus: (teacher: TeacherDetail) => void;
   onToggleLockAccount: (teacher: TeacherDetail) => void;
+  onDelete?: (teacher: TeacherDetail) => void;
 }
 
 export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
@@ -42,6 +43,7 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
   onSaveEdit,
   onChangeTeachingStatus,
   onToggleLockAccount,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -611,7 +613,18 @@ export const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
             </>
           ) : (
             <>
-              <div className="drawer-footer-left">
+              <div className="drawer-footer-left" style={{ display: 'flex', gap: '8px' }}>
+                {onDelete && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => onDelete(teacher)}
+                    style={{ color: 'var(--danger)' }}
+                    title="Vô hiệu hóa tài khoản giáo viên"
+                  >
+                    Vô hiệu hóa
+                  </button>
+                )}
                 {teacher.accountStatus === 'LOCKED' ? (
                   <button
                     type="button"

@@ -8,7 +8,7 @@ export interface LessonDetailDrawerProps {
   isOpen: boolean;
   lesson: Lesson | null;
   onClose: () => void;
-  onSave: (id: string, dto: UpdateLessonDTO) => void;
+  onSave: (id: string, dto: UpdateLessonDTO) => Promise<void> | void;
 }
 
 export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
@@ -20,6 +20,8 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [titleZh, setTitleZh] = useState('');
   const [titleVi, setTitleVi] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(15);
@@ -38,22 +40,31 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
       setStatus(lesson.status);
       setSummary(lesson.summary);
       setIsEditing(false);
+      setSaveError(null);
     }
   }, [lesson]);
 
   if (!isOpen || !lesson) return null;
 
-  const handleSave = () => {
-    onSave(lesson.id, {
-      titleZh,
-      titleVi,
-      durationMinutes,
-      xpReward,
-      orderIndex,
-      status,
-      summary,
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    setSaveError(null);
+    setIsSubmitting(true);
+    try {
+      await onSave(lesson.id, {
+        titleZh,
+        titleVi,
+        durationMinutes,
+        xpReward,
+        orderIndex,
+        status,
+        summary,
+      });
+      setIsEditing(false);
+    } catch (err: any) {
+      setSaveError(err?.message || 'Không thể lưu bài học vào máy chủ.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,12 +81,29 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
             type="button"
             className="ds-btn ds-btn-ghost ds-btn-sm"
             onClick={onClose}
+            disabled={isSubmitting}
           >
             <X size={18} />
           </button>
         </div>
 
         <div className="lcm-drawer-body">
+          {saveError && (
+            <div
+              style={{
+                marginBottom: 'var(--space-3)',
+                padding: 'var(--space-2) var(--space-3)',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--danger, #ef4444)',
+                fontSize: 'var(--text-xs)',
+              }}
+            >
+              {saveError}
+            </div>
+          )}
+
           {/* Thông tin siêu dữ liệu bài học */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
             <h4 style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', margin: 0 }}>
@@ -90,6 +118,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                     className="lcm-form-input"
                     value={titleZh}
                     onChange={(e) => setTitleZh(e.target.value)}
+                    disabled={isSubmitting}
                   />
                 ) : (
                   <span style={{ fontFamily: 'var(--font-hanzi)', fontSize: '1.2rem', fontWeight: 700 }}>
@@ -105,6 +134,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                     className="lcm-form-input"
                     value={titleVi}
                     onChange={(e) => setTitleVi(e.target.value)}
+                    disabled={isSubmitting}
                   />
                 ) : (
                   <span style={{ fontWeight: 600 }}>{titleVi}</span>
@@ -121,6 +151,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                     className="lcm-form-input"
                     value={durationMinutes}
                     onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    disabled={isSubmitting}
                   />
                 ) : (
                   <span>{durationMinutes} phút</span>
@@ -135,6 +166,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                     className="lcm-form-input"
                     value={xpReward}
                     onChange={(e) => setXpReward(Number(e.target.value))}
+                    disabled={isSubmitting}
                   />
                 ) : (
                   <span>+{xpReward} XP</span>
@@ -149,6 +181,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                     className="lcm-form-input"
                     value={orderIndex}
                     onChange={(e) => setOrderIndex(Number(e.target.value))}
+                    disabled={isSubmitting}
                   />
                 ) : (
                   <span>#{orderIndex}</span>
@@ -164,6 +197,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                   rows={3}
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
+                  disabled={isSubmitting}
                 />
               ) : (
                 <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--muted)', lineHeight: 1.5 }}>
@@ -179,6 +213,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                   className="lcm-form-input"
                   value={status}
                   onChange={(e) => setStatus(e.target.value as ContentStatus)}
+                  disabled={isSubmitting}
                 >
                   <option value="DRAFT">Bản nháp</option>
                   <option value="PENDING_REVIEW">Chờ duyệt</option>
@@ -229,7 +264,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
               </div>
 
               <div style={{ padding: 'var(--space-3)', backgroundColor: 'var(--background)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--muted)', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--primary)', marginBottom: '4px' }}>
                   <strong style={{ fontSize: 'var(--text-sm)' }}>Hội thoại & Luyện nghe</strong>
                 </div>
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
@@ -267,6 +302,7 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                 type="button"
                 className="ds-btn ds-btn-outline ds-btn-sm"
                 onClick={() => setIsEditing(false)}
+                disabled={isSubmitting}
               >
                 Hủy bỏ
               </button>
@@ -274,8 +310,9 @@ export const LessonDetailDrawer: React.FC<LessonDetailDrawerProps> = ({
                 type="button"
                 className="ds-btn ds-btn-primary ds-btn-sm"
                 onClick={handleSave}
+                disabled={isSubmitting}
               >
-                <Save size={14} /> Lưu thay đổi
+                <Save size={14} /> {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
             </>
           ) : (

@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { PageHeader, Pagination, ConfirmDialog, EmptyState } from '../../../shared/components';
+import { PageHeader, Pagination, ConfirmDialog, EmptyState, ToastNotification, type ToastMessage } from '../../../shared/components';
 import type {
   CreateTeacherDTO,
   TeacherDetail,
@@ -69,10 +69,37 @@ export const AdminTeachersPage: React.FC = () => {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [lockTargetTeacher, setLockTargetTeacher] = useState<TeacherListItem | TeacherDetail | null>(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
+  const [targetDeleteTeacher, setTargetDeleteTeacher] = useState<TeacherListItem | TeacherDetail | null>(null);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
 
   const triggerRefresh = useCallback(() => {
-    setDataVersion((v) => v + 1);
+    setIsSyncing(true);
+    setSyncError(null);
+    adminTeacherService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải danh sách giáo viên từ máy chủ.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setDataVersion((v) => v + 1);
+      });
   }, []);
+
+  useEffect(() => {
+    triggerRefresh();
+  }, [triggerRefresh]);
 
   // Handle Toolbar filters change
   const handleFilterChange = (newFilters: TeacherFilters) => {
@@ -139,10 +166,21 @@ export const AdminTeachersPage: React.FC = () => {
     setIsDrawerOpen(false);
   };
 
-  const handleSaveEdit = (id: string, dto: UpdateTeacherDTO) => {
-    const updated = adminTeacherService.updateTeacher(id, dto);
-    setSelectedTeacher(updated);
-    triggerRefresh();
+  const handleSaveEdit = async (id: string, dto: UpdateTeacherDTO) => {
+    try {
+      const updated = await adminTeacherService.updateTeacher(id, dto);
+      setSelectedTeacher(updated);
+      setToast({
+        type: 'success',
+        message: `Đã cập nhật thông tin giáo viên ${updated.name} thành công!`,
+      });
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể cập nhật hồ sơ giáo viên.',
+      });
+    }
   };
 
   // Teaching Status Modal
@@ -156,6 +194,10 @@ export const AdminTeachersPage: React.FC = () => {
     if (selectedTeacher?.id === teacherId) {
       setSelectedTeacher(updated);
     }
+    setToast({
+      type: 'success',
+      message: 'Đã cập nhật trạng thái giảng dạy thành công.',
+    });
     triggerRefresh();
   };
 
@@ -165,35 +207,91 @@ export const AdminTeachersPage: React.FC = () => {
     setIsConfirmLockOpen(true);
   };
 
-  const handleConfirmLockToggle = () => {
+  const handleConfirmLockToggle = async () => {
     if (!lockTargetTeacher) return;
 
-    if (lockTargetTeacher.accountStatus === 'LOCKED') {
-      const updated = adminTeacherService.unlockTeacherAccount(lockTargetTeacher.id);
-      if (selectedTeacher?.id === lockTargetTeacher.id) {
-        setSelectedTeacher(updated);
+    try {
+      if (lockTargetTeacher.accountStatus === 'LOCKED') {
+        const updated = await adminTeacherService.unlockTeacherAccount(lockTargetTeacher.id);
+        if (selectedTeacher?.id === lockTargetTeacher.id) {
+          setSelectedTeacher(updated);
+        }
+        setToast({
+          type: 'success',
+          message: `Đã mở khóa tài khoản giáo viên ${lockTargetTeacher.name}.`,
+        });
+      } else {
+        const updated = await adminTeacherService.lockTeacherAccount(
+          lockTargetTeacher.id,
+          'Tài khoản bị khóa bởi quản trị viên hệ thống.'
+        );
+        if (selectedTeacher?.id === lockTargetTeacher.id) {
+          setSelectedTeacher(updated);
+        }
+        setToast({
+          type: 'success',
+          message: `Đã khóa tài khoản giáo viên ${lockTargetTeacher.name}.`,
+        });
       }
-    } else {
-      const updated = adminTeacherService.lockTeacherAccount(
-        lockTargetTeacher.id,
-        'Tài khoản bị khóa bởi quản trị viên hệ thống.'
-      );
-      if (selectedTeacher?.id === lockTargetTeacher.id) {
-        setSelectedTeacher(updated);
-      }
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể thực hiện thao tác khóa/mở khóa.',
+      });
+    } finally {
+      setIsConfirmLockOpen(false);
+      setLockTargetTeacher(null);
     }
-    triggerRefresh();
-    setIsConfirmLockOpen(false);
-    setLockTargetTeacher(null);
+  };
+
+  // Delete Teacher
+  const handleOpenDeleteConfirmation = (teacher: TeacherListItem | TeacherDetail) => {
+    setTargetDeleteTeacher(teacher);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleExecuteDeleteTeacher = async () => {
+    if (!targetDeleteTeacher) return;
+    try {
+      await adminTeacherService.deleteTeacher(targetDeleteTeacher.id);
+      setToast({
+        type: 'success',
+        message: `Đã vô hiệu hóa giáo viên ${targetDeleteTeacher.name} thành công.`,
+      });
+      setIsConfirmDeleteOpen(false);
+      setTargetDeleteTeacher(null);
+      if (selectedTeacher?.id === targetDeleteTeacher.id) {
+        setIsDrawerOpen(false);
+        setSelectedTeacher(null);
+      }
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể xóa giáo viên.',
+      });
+    }
   };
 
   // Create Teacher
-  const handleCreateTeacher = (dto: CreateTeacherDTO) => {
-    const created = adminTeacherService.createTeacher(dto);
-    triggerRefresh();
-    // Open drawer to review newly created teacher
-    setSelectedTeacher(created);
-    setIsDrawerOpen(true);
+  const handleCreateTeacher = async (dto: CreateTeacherDTO) => {
+    try {
+      const created = await adminTeacherService.createTeacher(dto);
+      setToast({
+        type: 'success',
+        message: `Đã tạo tài khoản giáo viên ${created.name} (${created.email}) thành công!`,
+      });
+      triggerRefresh();
+      setSelectedTeacher(created);
+      setIsDrawerOpen(true);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể tạo tài khoản giáo viên.',
+      });
+      throw err;
+    }
   };
 
   return (
@@ -229,6 +327,44 @@ export const AdminTeachersPage: React.FC = () => {
         onResetFilters={handleResetFilters}
       />
 
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-md)',
+            color: '#991b1b',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isSyncing ? 'Đang thử lại...' : 'Thử lại'}
+          </button>
+        </div>
+      )}
+
       {/* 4. Main Teacher Table / Mobile Cards / Empty State */}
       {paginatedData.totalItems === 0 ? (
         <EmptyState
@@ -257,6 +393,7 @@ export const AdminTeachersPage: React.FC = () => {
             onEditTeacher={handleEditTeacher}
             onChangeTeachingStatus={handleOpenTeachingStatusModal}
             onToggleLockAccount={handleToggleLockAccount}
+            onDeleteTeacher={handleOpenDeleteConfirmation}
             sort={sort}
             onSortChange={handleSortChange}
           />
@@ -291,6 +428,7 @@ export const AdminTeachersPage: React.FC = () => {
         onSaveEdit={handleSaveEdit}
         onChangeTeachingStatus={handleOpenTeachingStatusModal}
         onToggleLockAccount={handleToggleLockAccount}
+        onDelete={handleOpenDeleteConfirmation}
       />
 
       {/* 7. Create Teacher Modal */}
@@ -335,6 +473,24 @@ export const AdminTeachersPage: React.FC = () => {
           setLockTargetTeacher(null);
         }}
       />
+
+      {/* 10. Confirm Soft-delete Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmDeleteOpen}
+        title={`Vô hiệu hóa giáo viên ${targetDeleteTeacher?.name || ''}?`}
+        message="Tài khoản giáo viên sẽ bị vô hiệu hóa. Các khóa học và lớp học do giáo viên phụ trách sẽ được bảo lưu an toàn."
+        confirmLabel="Vô hiệu hóa tài khoản"
+        cancelLabel="Hủy bỏ"
+        isDestructive={true}
+        onConfirm={handleExecuteDeleteTeacher}
+        onCancel={() => {
+          setIsConfirmDeleteOpen(false);
+          setTargetDeleteTeacher(null);
+        }}
+      />
+
+      {/* 11. Toast Notification */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { UploadCloud, Plus } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { UploadCloud, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CharacterDetailDrawer,
@@ -31,11 +31,35 @@ type ContentTab = 'VOCABULARY' | 'CHARACTER' | 'GRAMMAR' | 'HSK_LEVEL';
 
 export const AdminHskRepositoryPage: React.FC = () => {
   const [dataVersion, setDataVersion] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 1. Data-driven HSK Levels
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      await hskRepositoryService.syncVocabulariesFromApi();
+      setDataVersion((v) => v + 1);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Không thể tải danh sách từ vựng từ máy chủ.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // 1. Data-driven HSK Levels (Chỉ hỗ trợ HSK 3.0 từ cấp 1 đến cấp 6)
   const levels = useMemo(() => {
     void dataVersion;
-    return hskRepositoryService.getLevels();
+    return hskRepositoryService
+      .getLevels()
+      .filter((l) => {
+        const num = Number(l.id.replace('level-hsk-', ''));
+        return !isNaN(num) && num >= 1 && num <= 6;
+      });
   }, [dataVersion]);
 
   // Active level filter ('ALL' or specific level id)
@@ -62,6 +86,8 @@ export const AdminHskRepositoryPage: React.FC = () => {
 
   // 3. Selection & Drawer states
   const [selectedVocab, setSelectedVocab] = useState<Vocabulary | null>(null);
+  const [vocabContextList, setVocabContextList] = useState<Vocabulary[]>([]);
+  const [vocabCurrentIndex, setVocabCurrentIndex] = useState<number>(0);
   const [isVocabDrawerOpen, setIsVocabDrawerOpen] = useState(false);
 
   const [selectedChar, setSelectedChar] = useState<ChineseCharacter | null>(null);
@@ -77,10 +103,33 @@ export const AdminHskRepositoryPage: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Handlers for Vocabulary
-  const handleOpenVocab = useCallback((vocab: Vocabulary) => {
+  const handleOpenVocab = useCallback((vocab: Vocabulary, index?: number, list?: Vocabulary[]) => {
     setSelectedVocab(vocab);
+    if (list && index !== undefined) {
+      setVocabContextList(list);
+      setVocabCurrentIndex(index);
+    } else {
+      setVocabContextList([vocab]);
+      setVocabCurrentIndex(0);
+    }
     setIsVocabDrawerOpen(true);
   }, []);
+
+  const handleNavigateVocabPrev = useCallback(() => {
+    if (vocabCurrentIndex > 0 && vocabContextList.length > 0) {
+      const prevIdx = vocabCurrentIndex - 1;
+      setVocabCurrentIndex(prevIdx);
+      setSelectedVocab(vocabContextList[prevIdx]);
+    }
+  }, [vocabCurrentIndex, vocabContextList]);
+
+  const handleNavigateVocabNext = useCallback(() => {
+    if (vocabCurrentIndex < vocabContextList.length - 1 && vocabContextList.length > 0) {
+      const nextIdx = vocabCurrentIndex + 1;
+      setVocabCurrentIndex(nextIdx);
+      setSelectedVocab(vocabContextList[nextIdx]);
+    }
+  }, [vocabCurrentIndex, vocabContextList]);
 
   const handleOpenCreateVocab = useCallback(() => {
     const defaultLevel = selectedLevelId !== 'ALL' ? selectedLevelId : (levels[0]?.id || 'level-hsk-1');
@@ -100,20 +149,60 @@ export const AdminHskRepositoryPage: React.FC = () => {
       examples: [],
     };
     setSelectedVocab(newDraft);
+    setVocabContextList([]);
+    setVocabCurrentIndex(0);
     setIsVocabDrawerOpen(true);
   }, [selectedLevelId, levels]);
 
-  const handleSaveVocab = useCallback((id: string, dto: UpdateVocabularyDTO) => {
-    if (id.startsWith('voc-new-')) {
-      const createDto: CreateVocabularyDTO = {
-        ...dto,
-      };
-      hskRepositoryService.createVocabulary(createDto);
-    } else {
-      hskRepositoryService.updateVocabulary(id, dto);
+  const handleSaveVocab = useCallback(async (id: string, dto: UpdateVocabularyDTO, andNext: boolean = false) => {
+    try {
+      let savedVocab: Vocabulary;
+      if (id.startsWith('voc-new-')) {
+        const createDto: CreateVocabularyDTO = {
+          ...dto,
+        };
+        savedVocab = await hskRepositoryService.createVocabularyAsync(createDto);
+      } else {
+        savedVocab = await hskRepositoryService.updateVocabularyAsync(id, dto);
+      }
+      setDataVersion((v) => v + 1);
+
+      if (andNext && vocabContextList.length > 0 && vocabCurrentIndex < vocabContextList.length - 1) {
+        const updatedContext = [...vocabContextList];
+        updatedContext[vocabCurrentIndex] = savedVocab;
+        const nextIdx = vocabCurrentIndex + 1;
+        setVocabContextList(updatedContext);
+        setVocabCurrentIndex(nextIdx);
+        setSelectedVocab(updatedContext[nextIdx]);
+      } else {
+        setIsVocabDrawerOpen(false);
+      }
+    } catch (err: any) {
+      console.error('Lỗi lưu từ vựng:', err);
+      alert(err?.message || 'Không thể lưu từ vựng vào máy chủ.');
     }
-    setDataVersion((v) => v + 1);
-    setIsVocabDrawerOpen(false);
+  }, [vocabContextList, vocabCurrentIndex]);
+
+  const handleBatchPublish = useCallback(async (ids: string[]) => {
+    try {
+      const result = await hskRepositoryService.batchPublishVocabulariesAsync(ids);
+      alert(`Đã xuất bản thành công ${result.publishedCount} từ vựng!${result.skippedCount > 0 ? ` (Bỏ qua ${result.skippedCount} từ chưa có nghĩa tiếng Việt)` : ''}`);
+      await loadData();
+    } catch (err: any) {
+      console.error('Lỗi xuất bản hàng loạt:', err);
+      alert(err?.message || 'Không thể xuất bản hàng loạt từ vựng.');
+    }
+  }, [loadData]);
+
+  const handleDeleteVocab = useCallback(async (id: string) => {
+    try {
+      await hskRepositoryService.deleteVocabularyAsync(id);
+      setDataVersion((v) => v + 1);
+      setIsVocabDrawerOpen(false);
+    } catch (err: any) {
+      console.error('Lỗi xóa từ vựng:', err);
+      alert(err?.message || 'Không thể xóa từ vựng khỏi máy chủ.');
+    }
   }, []);
 
   // Handlers for Characters
@@ -163,8 +252,9 @@ export const AdminHskRepositoryPage: React.FC = () => {
               type="button"
               className="ds-btn ds-btn-outline ds-btn-sm"
               onClick={() => setIsImportModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <UploadCloud size={14} /> Nhập dữ liệu
+              <UploadCloud size={14} /> Import Excel / CSV
             </button>
             <button
               type="button"
@@ -176,6 +266,42 @@ export const AdminHskRepositoryPage: React.FC = () => {
           </div>
         }
       />
+
+      {errorMessage && (
+        <div
+          style={{
+            background: 'var(--danger-bg, #fee2e2)',
+            border: '1px solid var(--danger-border, #fca5a5)',
+            color: 'var(--danger-text, #991b1b)',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={18} />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={loadData}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+        </div>
+      )}
+
+      {isLoading && (
+        <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--muted)' }}>
+          Đang tải dữ liệu HSK từ máy chủ...
+        </div>
+      )}
 
       {/* Level Selector Bar */}
       <LevelFilterBar
@@ -231,6 +357,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
           selectedLevelId={selectedLevelId}
           onSelectVocabulary={handleOpenVocab}
           onOpenCreate={handleOpenCreateVocab}
+          onBatchPublish={handleBatchPublish}
         />
       )}
 
@@ -264,8 +391,13 @@ export const AdminHskRepositoryPage: React.FC = () => {
         isOpen={isVocabDrawerOpen}
         vocabulary={selectedVocab}
         levels={levels}
+        currentIndex={vocabCurrentIndex}
+        totalCount={vocabContextList.length}
+        onNavigatePrev={handleNavigateVocabPrev}
+        onNavigateNext={handleNavigateVocabNext}
         onClose={() => setIsVocabDrawerOpen(false)}
         onSave={handleSaveVocab}
+        onDelete={handleDeleteVocab}
       />
 
       <CharacterDetailDrawer
@@ -297,8 +429,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
         levels={levels}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={() => {
-          setIsImportModalOpen(false);
-          setDataVersion((v) => v + 1);
+          loadData();
         }}
       />
     </div>

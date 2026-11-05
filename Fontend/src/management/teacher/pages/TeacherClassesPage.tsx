@@ -145,7 +145,7 @@ export const TeacherClassesPage: React.FC = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
           gap: 'var(--space-3)',
           marginBottom: 'var(--space-6)',
         }}

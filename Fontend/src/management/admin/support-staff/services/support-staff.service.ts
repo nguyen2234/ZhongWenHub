@@ -10,12 +10,106 @@ import type {
   SupportWorkStatus,
   UpdateSupportStaffDTO,
 } from '../types/support-staff.types';
-import { INITIAL_SUPPORT_STAFF_MOCK } from '../data/mockSupportStaffData';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
 
 class AdminSupportStaffService {
-  private staffList: SupportStaffDetail[] = [...INITIAL_SUPPORT_STAFF_MOCK];
+  private staffList: SupportStaffDetail[] = [];
+  private isSyncing = false;
+  private hasSynced = false;
+  private lastError: string | null = null;
+
+  constructor() {
+    this.staffList = [];
+    this.syncFromBackend();
+  }
+
+  public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
+    if (this.isSyncing) return { success: !this.lastError, error: this.lastError || undefined };
+    this.isSyncing = true;
+    this.lastError = null;
+
+    try {
+      const token = authTokenService.getAccessToken();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(getApiUrl('admin/users?role=SUPPORT&page=1&pageSize=100'), {
+        headers,
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errText = `Không thể tải danh sách nhân viên hỗ trợ từ máy chủ (HTTP ${res.status}).`;
+        this.lastError = errText;
+        this.staffList = [];
+        this.hasSynced = true;
+        return { success: false, error: errText };
+      }
+
+      const data = await res.json();
+      if (data && Array.isArray(data.items)) {
+        this.staffList = data.items.map((u: any) => {
+          const isLocked = u.status === 'LOCKED' || u.status === 'SUSPENDED';
+          return {
+            id: u.id,
+            name: u.name || u.displayName || 'Nhân viên Hỗ trợ',
+            email: u.email,
+            phone: u.phone || '',
+            avatarUrl: u.avatarUrl,
+            accountStatus: isLocked ? 'LOCKED' : (u.status || 'ACTIVE'),
+            workStatus: isLocked ? 'OFF_DUTY' : 'AVAILABLE',
+            supportScopes: ['ACCOUNT', 'TECHNICAL'] as SupportScope[],
+            shift: 'MORNING' as const,
+            joinedAt: u.joinedAt || (u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+            joinedDateRaw: u.joinedDateRaw || (u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()),
+            lastActiveAt: u.lastActiveAt || (u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+            lastActiveDateRaw: u.lastActiveDateRaw || (u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : new Date().toISOString()),
+            notes: u.notes || '',
+            lockReason: u.lockReason,
+            lockedAt: u.lockedAt,
+            performance: {
+              openTickets: 0,
+              inProgressTickets: 0,
+              resolvedTickets: 0,
+              avgResponseTime: 'Chưa có DL',
+              resolutionRate: 'Chưa có DL',
+            },
+            assignedScopes: ['ACCOUNT', 'TECHNICAL'],
+            recentActivities: [],
+          };
+        });
+        this.hasSynced = true;
+        this.lastError = null;
+      } else {
+        this.staffList = [];
+        this.hasSynced = true;
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      const msg = err?.message || 'Không thể kết nối đến máy chủ Backend.';
+      this.lastError = msg;
+      this.staffList = [];
+      this.hasSynced = true;
+      return { success: false, error: msg };
+    } finally {
+      this.isSyncing = false;
+    }
+  }
 
   public getKPIs(): SupportStaffSummaryKPIs {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     const totalStaff = this.staffList.length;
     const availableStaff = this.staffList.filter((s) => s.workStatus === 'AVAILABLE').length;
     const busyStaff = this.staffList.filter((s) => s.workStatus === 'BUSY').length;
@@ -37,6 +131,9 @@ class AdminSupportStaffService {
     pagination: { page: number; pageSize: number },
     sort: SupportStaffSort
   ): PaginatedResponse<SupportStaffListItem> {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     let result = [...this.staffList];
 
     // 1. Search (name, email)
@@ -100,7 +197,6 @@ class AdminSupportStaffService {
     const start = (page - 1) * pagination.pageSize;
     const end = start + pagination.pageSize;
 
-    // Convert full SupportStaffDetail to SupportStaffListItem
     const items: SupportStaffListItem[] = result.slice(start, end).map((s) => ({
       id: s.id,
       name: s.name,
@@ -140,9 +236,40 @@ class AdminSupportStaffService {
     );
   }
 
-  public createStaff(dto: CreateSupportStaffDTO): SupportStaffDetail {
+  public async createStaff(dto: CreateSupportStaffDTO): Promise<SupportStaffDetail> {
+    const token = authTokenService.getAccessToken();
+    let backendId: string | null = null;
+
+    if (token) {
+      const res = await fetch(getApiUrl('admin/users'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          password: 'Support12345!',
+          roles: ['SUPPORT'],
+          status: 'ACTIVE',
+          notes: `Ca làm việc: ${dto.shift}`,
+          phone: dto.phone,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản nhân viên hỗ trợ trên máy chủ.');
+      }
+
+      const createdUser = await res.json();
+      backendId = createdUser.id;
+    }
+
     const now = new Date();
-    const id = `sp-${Date.now().toString().slice(-4)}`;
+    const id = backendId || `sp-${Date.now().toString().slice(-4)}`;
     const joinedAt = now.toLocaleDateString('vi-VN');
     const joinedDateRaw = now.toISOString();
 
@@ -151,7 +278,7 @@ class AdminSupportStaffService {
       name: dto.name.trim(),
       email: dto.email.trim(),
       phone: dto.phone?.trim() || '',
-      accountStatus: 'PENDING', // Initial status is PENDING as specified
+      accountStatus: 'ACTIVE',
       workStatus: dto.initialWorkStatus,
       supportScopes: [...dto.supportScopes],
       shift: dto.shift,
@@ -159,7 +286,7 @@ class AdminSupportStaffService {
       joinedDateRaw,
       lastActiveAt: 'Chưa đăng nhập',
       lastActiveDateRaw: joinedDateRaw,
-      notes: 'Nhân viên mới tạo, đang chờ kích hoạt tài khoản.',
+      notes: 'Nhân viên hỗ trợ học viên.',
       performance: {
         openTickets: 0,
         inProgressTickets: 0,
@@ -171,7 +298,7 @@ class AdminSupportStaffService {
         {
           id: `act-${Date.now()}`,
           actionText: 'Tài khoản được tạo bởi Quản trị viên',
-          targetName: 'Hồ sơ nhân viên mới (Chờ kích hoạt)',
+          targetName: 'Hồ sơ nhân viên',
           timeAgo: 'Vừa xong',
           timestamp: joinedDateRaw,
         },
@@ -182,9 +309,33 @@ class AdminSupportStaffService {
     return { ...newStaff };
   }
 
-  public updateStaff(id: string, dto: UpdateSupportStaffDTO): SupportStaffDetail {
+  public async updateStaff(id: string, dto: UpdateSupportStaffDTO): Promise<SupportStaffDetail> {
     const index = this.staffList.findIndex((s) => s.id === id);
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          phone: dto.phone,
+          notes: dto.notes,
+          roles: ['SUPPORT'],
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật nhân viên hỗ trợ.');
+      }
+    }
 
     const current = this.staffList[index];
     const updated: SupportStaffDetail = {
@@ -211,7 +362,6 @@ class AdminSupportStaffService {
     return { ...updated };
   }
 
-  // DEDICATED WORK STATUS MUTATION - NEVER MODIFIES ACCOUNT STATUS
   public setWorkStatus(id: string, newWorkStatus: SupportWorkStatus): SupportStaffDetail {
     const index = this.staffList.findIndex((s) => s.id === id);
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
@@ -243,19 +393,38 @@ class AdminSupportStaffService {
     return { ...updated };
   }
 
-  // ACCOUNT LOCKING - NEVER MODIFIES WORK STATUS
-  public lockAccount(id: string, reason?: string): SupportStaffDetail {
+  public async lockAccount(id: string, reason?: string): Promise<SupportStaffDetail> {
     const index = this.staffList.findIndex((s) => s.id === id);
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
+
+    const lockReason = reason || 'Tài khoản bị tạm khóa bởi Quản trị viên';
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ reason: lockReason }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản nhân viên hỗ trợ.');
+      }
+    }
 
     const current = this.staffList[index];
     const updated: SupportStaffDetail = {
       ...current,
       accountStatus: 'LOCKED',
+      lockReason,
+      lockedAt: new Date().toLocaleDateString('vi-VN'),
       recentActivities: [
         {
           id: `act-${Date.now()}`,
-          actionText: reason || 'Tài khoản bị khóa bởi Quản trị viên',
+          actionText: lockReason,
           targetName: 'Bảo mật tài khoản',
           timeAgo: 'Vừa xong',
           timestamp: new Date().toISOString(),
@@ -268,15 +437,31 @@ class AdminSupportStaffService {
     return { ...updated };
   }
 
-  // ACCOUNT UNLOCKING - NEVER MODIFIES WORK STATUS
-  public unlockAccount(id: string): SupportStaffDetail {
+  public async unlockAccount(id: string): Promise<SupportStaffDetail> {
     const index = this.staffList.findIndex((s) => s.id === id);
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản nhân viên hỗ trợ.');
+      }
+    }
 
     const current = this.staffList[index];
     const updated: SupportStaffDetail = {
       ...current,
       accountStatus: 'ACTIVE',
+      lockReason: undefined,
+      lockedAt: undefined,
       recentActivities: [
         {
           id: `act-${Date.now()}`,
@@ -291,6 +476,25 @@ class AdminSupportStaffService {
 
     this.staffList[index] = updated;
     return { ...updated };
+  }
+
+  public async deleteStaff(id: string): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản nhân viên.');
+      }
+    }
+
+    this.staffList = this.staffList.filter((s) => s.id !== id);
   }
 }
 

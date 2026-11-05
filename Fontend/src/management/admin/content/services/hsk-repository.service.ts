@@ -5,6 +5,8 @@ import {
   MOCK_STANDARDS,
   MOCK_VOCABULARIES,
 } from '../data/mockHskRepositoryData';
+import { httpClient } from '../../../../core/api/client/http-client';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
 import type {
   CharacterFilters,
   ChineseCharacter,
@@ -19,15 +21,27 @@ import type {
   UpdateVocabularyDTO,
   Vocabulary,
   VocabularyFilters,
+  VocabularyImportResultDto,
+  BatchPublishResultDto,
+  BatchUpdateMeaningItemDTO,
+  BatchUpdateMeaningsResultDTO,
 } from '../types';
 
 let standards = [...MOCK_STANDARDS];
 let levels = [...MOCK_HSK_LEVELS];
-let vocabularies = [...MOCK_VOCABULARIES];
-let characters = [...MOCK_CHARACTERS];
-let grammarPoints = [...MOCK_GRAMMAR_POINTS];
+let vocabularies: Vocabulary[] = [];
+let characters: ChineseCharacter[] = [];
+let grammarPoints: GrammarPoint[] = [];
 
 class HskRepositoryService {
+  loadFixturesForTesting(): void {
+    standards = [...MOCK_STANDARDS];
+    levels = [...MOCK_HSK_LEVELS];
+    vocabularies = [...MOCK_VOCABULARIES];
+    characters = [...MOCK_CHARACTERS];
+    grammarPoints = [...MOCK_GRAMMAR_POINTS];
+  }
+
   getStandards(): HskStandard[] {
     return standards.map((s) => ({ ...s }));
   }
@@ -56,6 +70,329 @@ class HskRepositoryService {
   }
 
   // --- Vocabulary ---
+  async syncVocabulariesFromApi(params?: { hskLevel?: number; missingMeaningVi?: boolean; pageSize?: number }): Promise<void> {
+    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500, page: 1 };
+    if (params?.hskLevel) queryParams.hskLevel = params.hskLevel;
+    if (params?.missingMeaningVi !== undefined) queryParams.missingMeaningVi = params.missingMeaningVi;
+
+    const res = await httpClient.get<any>('/content/vocabularies', {
+      params: queryParams,
+    });
+    let items = Array.isArray(res) ? res : (res?.items || []);
+    const totalPages = res?.totalPages ?? 1;
+
+    if (totalPages > 1) {
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await httpClient.get<any>('/content/vocabularies', {
+          params: { ...queryParams, page: p },
+        });
+        const nextItems = Array.isArray(nextRes) ? nextRes : (nextRes?.items || []);
+        items = [...items, ...nextItems];
+      }
+    }
+
+    vocabularies = items.map((v: any) => ({
+      id: v.id,
+      hskLevelId: `level-hsk-${v.hskLevel || 1}`,
+      simplified: v.hanzi,
+      traditional: v.traditional || v.hanzi,
+      pinyin: v.pinyin,
+      meaningVi: v.meaningVi || '',
+      meaningEn: v.meaningEn || '',
+      partOfSpeech: v.partOfSpeech || 'danh từ',
+      audioUrl: v.audioUrl || '',
+      status: v.status || 'PUBLISHED',
+      sourceDataset: v.sourceDataset,
+      sourceEntryId: v.sourceEntryId,
+      sourceId: v.sourceId || v.sourceEntryId,
+      entry: v.entry,
+      homograph: v.homograph,
+      levelLabel: v.levelLabel,
+      sourcePdfPage: v.sourcePdfPage,
+      examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
+      source: (v.sourceDataset && v.sourceEntryId) ? `${v.sourceDataset} (ID: ${v.sourceEntryId})` : (v.sourceId ? `HSK 3.0 (ID: ${v.sourceId})` : 'Live SQL Server'),
+      createdAt: v.createdAt || new Date().toISOString(),
+      updatedAt: v.updatedAt || v.createdAt || new Date().toISOString(),
+    }));
+  }
+
+  async importVocabulariesCsvAsync(file: File, dryRun: boolean): Promise<VocabularyImportResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const raw = await httpClient.post<any>(
+      `/content/vocabularies/${dryRun ? 'import-preview' : 'import-csv'}?dryRun=${dryRun}`,
+      formData
+    );
+    return {
+      totalRows: raw.totalRows ?? 0,
+      importedCount: raw.successCount ?? raw.importedCount ?? 0,
+      skippedCount: raw.skippedDuplicateCount ?? raw.skippedCount ?? 0,
+      failedCount: raw.errorCount ?? raw.failedCount ?? 0,
+      isDryRun: raw.dryRun ?? raw.isDryRun ?? dryRun,
+      errors: (raw.errors || []).map((e: any) => ({
+        rowNumber: e.rowNumber,
+        sourceDataset: e.sourceDataset,
+        sourceEntryId: e.sourceEntryId,
+        sourceId: e.sourceId || e.sourceEntryId,
+        hanzi: e.hanzi,
+        errorMessage: e.reason || e.errorMessage || 'Lỗi định dạng',
+      })),
+      previewSample: (raw.previewItems || raw.previewSample || []).map((p: any) => ({
+        id: p.sourceEntryId || p.sourceId || `${p.rowNumber}`,
+        sourceDataset: p.sourceDataset,
+        sourceEntryId: p.sourceEntryId,
+        level: String(p.hskLevel),
+        hskLevel: p.hskLevel,
+        hanzi: p.hanzi,
+        pinyin: p.pinyin,
+        partOfSpeech: p.partOfSpeech,
+        entry: p.entry,
+        homograph: p.homograph,
+        levelLabel: p.levelLabel,
+        sourcePdfPage: p.sourcePdfPage,
+        isExisting: p.isDuplicate ?? p.isExisting ?? false,
+        status: p.status || 'DRAFT',
+      })),
+    };
+  }
+
+  async downloadVocabularyExcelTemplateAsync(): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch('/api/v1/content/vocabularies/import-template', {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Tải template thất bại (Mã lỗi ${response.status})`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Mau_Import_TuVung_HSK.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async exportVocabulariesExcelAsync(params?: {
+    hskLevel?: number;
+    partOfSpeech?: string;
+    status?: string;
+    search?: string;
+    missingMeaningVi?: boolean;
+    needsReview?: boolean;
+  }): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const query = new URLSearchParams();
+    if (params?.hskLevel && params.hskLevel > 0) query.append('hskLevel', String(params.hskLevel));
+    if (params?.partOfSpeech && params.partOfSpeech !== 'ALL') query.append('partOfSpeech', params.partOfSpeech);
+    if (params?.status && params.status !== 'ALL') query.append('status', params.status);
+    if (params?.search && params.search.trim()) query.append('search', params.search.trim());
+    if (params?.missingMeaningVi !== undefined) query.append('missingMeaningVi', String(params.missingMeaningVi));
+    if (params?.needsReview !== undefined) query.append('needsReview', String(params.needsReview));
+
+    const qs = query.toString();
+    const urlStr = `/api/v1/content/vocabularies/export-excel${qs ? `?${qs}` : ''}`;
+
+    const response = await fetch(urlStr, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Xuất file Excel thất bại (Mã lỗi ${response.status})`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const contentDisposition = response.headers.get('content-disposition');
+    let fileName = `ZhongWenHub_TuVung_HSK_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    if (contentDisposition && contentDisposition.includes('filename=')) {
+      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        fileName = match[1].replace(/['"]/g, '');
+      }
+    }
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async importVocabulariesExcelAsync(file: File, dryRun: boolean): Promise<VocabularyImportResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const raw = await httpClient.post<any>(
+      `/content/vocabularies/${dryRun ? 'import-excel/preview' : 'import-excel'}?dryRun=${dryRun}`,
+      formData
+    );
+    return {
+      totalRows: raw.totalRows ?? 0,
+      importedCount: raw.successCount ?? raw.importedCount ?? 0,
+      skippedCount: raw.skippedDuplicateCount ?? raw.skippedCount ?? 0,
+      failedCount: raw.errorCount ?? raw.failedCount ?? 0,
+      isDryRun: raw.dryRun ?? raw.isDryRun ?? dryRun,
+      errors: (raw.errors || []).map((e: any) => ({
+        rowNumber: e.rowNumber,
+        columnName: e.columnName,
+        sourceDataset: e.sourceDataset,
+        sourceEntryId: e.sourceEntryId,
+        sourceId: e.sourceId || e.sourceEntryId,
+        hanzi: e.hanzi,
+        errorMessage: (e.columnName ? `[Cột ${e.columnName}] ` : '') + (e.reason || e.errorMessage || 'Lỗi định dạng'),
+      })),
+      previewSample: (raw.previewItems || raw.previewSample || []).map((p: any) => ({
+        id: p.sourceEntryId || p.sourceId || `${p.rowNumber}`,
+        sourceDataset: p.sourceDataset,
+        sourceEntryId: p.sourceEntryId,
+        level: String(p.hskLevel),
+        hskLevel: p.hskLevel,
+        hanzi: p.hanzi,
+        pinyin: p.pinyin,
+        meaningVi: p.meaningVi || '',
+        meaningEn: p.meaningEn || '',
+        partOfSpeech: p.partOfSpeech,
+        exampleHanzi: p.exampleHanzi,
+        examplePinyin: p.examplePinyin,
+        exampleMeaningVi: p.exampleMeaningVi,
+        entry: p.entry,
+        homograph: p.homograph,
+        levelLabel: p.levelLabel,
+        sourcePdfPage: p.sourcePdfPage,
+        isExisting: p.isDuplicate ?? p.isExisting ?? false,
+        status: p.status || 'DRAFT',
+      })),
+    };
+  }
+
+  async createVocabularyAsync(dto: CreateVocabularyDTO): Promise<Vocabulary> {
+    const hskLevel = Number(dto.hskLevelId.replace('level-hsk-', '')) || 1;
+    const payload = {
+      hskLevel,
+      hanzi: dto.simplified.trim(),
+      traditional: dto.traditional?.trim() || dto.simplified.trim(),
+      pinyin: dto.pinyin.trim(),
+      meaningVi: dto.meaningVi?.trim() || '',
+      meaningEn: dto.meaningEn?.trim() || '',
+      partOfSpeech: dto.partOfSpeech.trim(),
+      audioUrl: dto.audioUrl?.trim() || '',
+      examplesJson: JSON.stringify(dto.examples || []),
+      status: dto.status || 'PUBLISHED',
+      sourceDataset: dto.sourceDataset,
+      sourceEntryId: dto.sourceEntryId || dto.sourceId,
+      sourceId: dto.sourceId || dto.sourceEntryId,
+      entry: dto.entry,
+      homograph: dto.homograph,
+      levelLabel: dto.levelLabel,
+      sourcePdfPage: dto.sourcePdfPage,
+    };
+
+    const res = await httpClient.post<any>('/content/vocabularies', payload);
+    const newVocab: Vocabulary = {
+      id: res.id,
+      hskLevelId: `level-hsk-${res.hskLevel || hskLevel}`,
+      simplified: res.hanzi,
+      traditional: res.traditional || res.hanzi,
+      pinyin: res.pinyin,
+      meaningVi: res.meaningVi || '',
+      meaningEn: res.meaningEn || '',
+      partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
+      audioUrl: res.audioUrl || '',
+      status: res.status || 'PUBLISHED',
+      sourceDataset: res.sourceDataset,
+      sourceEntryId: res.sourceEntryId,
+      sourceId: res.sourceId || res.sourceEntryId,
+      entry: res.entry,
+      homograph: res.homograph,
+      levelLabel: res.levelLabel,
+      sourcePdfPage: res.sourcePdfPage,
+      examples: (dto.examples || []).map((ex, idx) => ({ id: `ex-${res.id}-${idx}`, ...ex })),
+      source: (res.sourceDataset && res.sourceEntryId) ? `${res.sourceDataset} (ID: ${res.sourceEntryId})` : (res.sourceId ? `HSK 3.0 (ID: ${res.sourceId})` : 'Tạo từ CMS'),
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || res.createdAt || new Date().toISOString(),
+    };
+    vocabularies = [newVocab, ...vocabularies];
+    return newVocab;
+  }
+
+  async updateVocabularyAsync(id: string, dto: UpdateVocabularyDTO): Promise<Vocabulary> {
+    const hskLevel = Number(dto.hskLevelId.replace('level-hsk-', '')) || 1;
+    const payload = {
+      hskLevel,
+      hanzi: dto.simplified.trim(),
+      traditional: dto.traditional?.trim() || dto.simplified.trim(),
+      pinyin: dto.pinyin.trim(),
+      meaningVi: dto.meaningVi?.trim() || '',
+      meaningEn: dto.meaningEn?.trim() || '',
+      partOfSpeech: dto.partOfSpeech.trim(),
+      audioUrl: dto.audioUrl?.trim() || '',
+      examplesJson: JSON.stringify(dto.examples || []),
+      status: dto.status || 'PUBLISHED',
+      sourceDataset: dto.sourceDataset,
+      sourceEntryId: dto.sourceEntryId || dto.sourceId,
+      sourceId: dto.sourceId || dto.sourceEntryId,
+      entry: dto.entry,
+      homograph: dto.homograph,
+      levelLabel: dto.levelLabel,
+      sourcePdfPage: dto.sourcePdfPage,
+    };
+
+    const res = await httpClient.put<any>(`/content/vocabularies/${id}`, payload);
+    const updated: Vocabulary = {
+      id: res.id,
+      hskLevelId: `level-hsk-${res.hskLevel || hskLevel}`,
+      simplified: res.hanzi,
+      traditional: res.traditional || res.hanzi,
+      pinyin: res.pinyin,
+      meaningVi: res.meaningVi || '',
+      meaningEn: res.meaningEn || '',
+      partOfSpeech: res.partOfSpeech || dto.partOfSpeech,
+      audioUrl: res.audioUrl || '',
+      status: res.status || 'PUBLISHED',
+      sourceDataset: res.sourceDataset,
+      sourceEntryId: res.sourceEntryId,
+      sourceId: res.sourceId || res.sourceEntryId,
+      entry: res.entry,
+      homograph: res.homograph,
+      levelLabel: res.levelLabel,
+      sourcePdfPage: res.sourcePdfPage,
+      examples: dto.examples || [],
+      source: (res.sourceDataset && res.sourceEntryId) ? `${res.sourceDataset} (ID: ${res.sourceEntryId})` : (res.sourceId ? `HSK 3.0 (ID: ${res.sourceId})` : 'Cập nhật từ CMS'),
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || new Date().toISOString(),
+    };
+
+    vocabularies = vocabularies.map((v) => (v.id === id ? updated : v));
+    return updated;
+  }
+
+  async deleteVocabularyAsync(id: string): Promise<boolean> {
+    await httpClient.delete(`/content/vocabularies/${id}`);
+    vocabularies = vocabularies.filter((v) => v.id !== id);
+    return true;
+  }
+
+  async batchPublishVocabulariesAsync(ids: string[]): Promise<BatchPublishResultDto> {
+    const res = await httpClient.post<BatchPublishResultDto>('/content/vocabularies/batch-publish', { ids });
+    return res;
+  }
+
+  async batchUpdateMeaningsAsync(items: BatchUpdateMeaningItemDTO[]): Promise<BatchUpdateMeaningsResultDTO> {
+    const res = await httpClient.post<BatchUpdateMeaningsResultDTO>('/admin/vocabularies/batch-update-meanings', { items });
+    return res;
+  }
+
   getVocabularies(filters?: VocabularyFilters): Vocabulary[] {
     let result = [...vocabularies];
 
@@ -69,6 +406,10 @@ class HskRepositoryService {
 
     if (filters?.partOfSpeech && filters.partOfSpeech !== 'ALL') {
       result = result.filter((v) => v.partOfSpeech.toLowerCase().includes(filters.partOfSpeech.toLowerCase()));
+    }
+
+    if (filters?.missingMeaningVi) {
+      result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
     }
 
     if (filters?.search) {

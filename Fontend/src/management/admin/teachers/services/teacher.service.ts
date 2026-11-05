@@ -11,12 +11,117 @@ import type {
   TeachingLevel,
   UpdateTeacherDTO,
 } from '../types/teacher.types';
-import { INITIAL_TEACHERS_MOCK } from '../data/mockTeacherData';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
 
 class AdminTeacherService {
-  private teachers: TeacherDetail[] = [...INITIAL_TEACHERS_MOCK];
+  private teachers: TeacherDetail[] = [];
+  private isSyncing = false;
+  private hasSynced = false;
+  private lastError: string | null = null;
+
+  constructor() {
+    this.teachers = [];
+    this.syncFromBackend();
+  }
+
+  public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
+    if (this.isSyncing) return { success: !this.lastError, error: this.lastError || undefined };
+    this.isSyncing = true;
+    this.lastError = null;
+
+    try {
+      const token = authTokenService.getAccessToken();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(getApiUrl('admin/users?role=TEACHER&page=1&pageSize=100'), {
+        headers,
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errText = `Không thể tải danh sách giáo viên từ máy chủ (HTTP ${res.status}).`;
+        this.lastError = errText;
+        this.teachers = [];
+        this.hasSynced = true;
+        return { success: false, error: errText };
+      }
+
+      const data = await res.json();
+      if (data && Array.isArray(data.items)) {
+        this.teachers = data.items.map((u: any) => {
+          const isLocked = u.status === 'LOCKED' || u.status === 'SUSPENDED';
+          const hsk = (u.hskLevel || 'HSK 3') as TeachingLevel;
+          const levels: TeachingLevel[] = [hsk];
+          return {
+            id: u.id,
+            name: u.name || u.displayName || 'Giáo viên',
+            email: u.email,
+            phone: u.phone || '',
+            avatarUrl: u.avatarUrl,
+            accountStatus: isLocked ? 'LOCKED' : (u.status || 'ACTIVE'),
+            teachingStatus: isLocked ? 'INACTIVE' : 'ACTIVE',
+            teachingLevels: levels,
+            specializations: ['GRAMMAR', 'CONVERSATION'] as TeacherSpecialization[],
+            classCount: 0,
+            studentCount: 0,
+            lessonCount: 0,
+            joinedAt: u.joinedAt || (u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : 'Mới tham gia'),
+            joinedDateRaw: u.joinedDateRaw || (u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()),
+            lastActiveAt: u.lastActiveAt || (u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('vi-VN') : 'Chưa hoạt động'),
+            lastActiveDateRaw: u.lastActiveDateRaw || (u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : new Date().toISOString()),
+            notes: u.notes,
+            lockReason: u.lockReason,
+            lockedAt: u.lockedAt,
+            profile: {
+              teachingLevels: levels,
+              specializations: ['GRAMMAR', 'CONVERSATION'],
+              qualifications: u.notes || 'Giáo viên Tiếng Trung',
+              experienceYears: 0,
+              bio: u.notes || '',
+            },
+            teachingSummary: {
+              classCount: 0,
+              studentCount: 0,
+              lessonCount: 0,
+              assignmentCount: 0,
+              assignedClasses: [],
+            },
+            recentActivities: [],
+          };
+        });
+        this.hasSynced = true;
+        this.lastError = null;
+      } else {
+        this.teachers = [];
+        this.hasSynced = true;
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      const msg = err?.message || 'Không thể kết nối đến máy chủ Backend.';
+      this.lastError = msg;
+      this.teachers = [];
+      this.hasSynced = true;
+      return { success: false, error: msg };
+    } finally {
+      this.isSyncing = false;
+    }
+  }
 
   public getKPIs(): TeacherSummaryKPIs {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     const totalTeachers = this.teachers.length;
     const activeTeaching = this.teachers.filter((t) => t.teachingStatus === 'ACTIVE').length;
     const onLeaveTeaching = this.teachers.filter((t) => t.teachingStatus === 'ON_LEAVE').length;
@@ -37,6 +142,9 @@ class AdminTeacherService {
     pagination: { page: number; pageSize: number },
     sort: TeacherSort
   ): PaginatedResponse<TeacherListItem> {
+    if (!this.hasSynced) {
+      this.syncFromBackend();
+    }
     let result = [...this.teachers];
 
     // 1. Search (name, email)
@@ -100,7 +208,6 @@ class AdminTeacherService {
     const start = (page - 1) * pagination.pageSize;
     const end = start + pagination.pageSize;
 
-    // Convert full TeacherDetail to TeacherListItem
     const items: TeacherListItem[] = result.slice(start, end).map((t) => ({
       id: t.id,
       name: t.name,
@@ -142,9 +249,41 @@ class AdminTeacherService {
     );
   }
 
-  public createTeacher(dto: CreateTeacherDTO): TeacherDetail {
+  public async createTeacher(dto: CreateTeacherDTO): Promise<TeacherDetail> {
+    const token = authTokenService.getAccessToken();
+    let backendId: string | null = null;
+
+    if (token) {
+      const res = await fetch(getApiUrl('admin/users'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          password: 'Teacher12345!',
+          roles: ['TEACHER'],
+          initialHsk: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
+          status: 'ACTIVE',
+          notes: dto.bio || dto.qualifications || 'Giáo viên Tiếng Trung',
+          phone: dto.phone,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản giáo viên trên máy chủ.');
+      }
+
+      const createdUser = await res.json();
+      backendId = createdUser.id;
+    }
+
     const now = new Date();
-    const id = `t-${Date.now().toString().slice(-4)}`;
+    const id = backendId || `t-${Date.now().toString().slice(-4)}`;
     const joinedAt = now.toLocaleDateString('vi-VN');
     const joinedDateRaw = now.toISOString();
 
@@ -194,14 +333,39 @@ class AdminTeacherService {
     return { ...newTeacher };
   }
 
-  public updateTeacher(id: string, dto: UpdateTeacherDTO): TeacherDetail {
+  public async updateTeacher(id: string, dto: UpdateTeacherDTO): Promise<TeacherDetail> {
     const index = this.teachers.findIndex((t) => t.id === id);
     if (index === -1) {
-      throw new Error(`Teacher with id ${id} not found.`);
+      throw new Error(`Không tìm thấy giáo viên.`);
+    }
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: dto.name.trim(),
+          email: dto.email.trim().toLowerCase(),
+          phone: dto.phone,
+          notes: dto.bio || dto.notes,
+          hskLevel: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
+          status: dto.accountStatus || 'ACTIVE',
+          roles: ['TEACHER'],
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật thông tin giáo viên.');
+      }
     }
 
     const current = this.teachers[index];
-
     const updated: TeacherDetail = {
       ...current,
       name: dto.name.trim(),
@@ -236,15 +400,34 @@ class AdminTeacherService {
     return { ...updated };
   }
 
-  public lockTeacherAccount(id: string, reason?: string): TeacherDetail {
+  public async lockTeacherAccount(id: string, reason?: string): Promise<TeacherDetail> {
     const index = this.teachers.findIndex((t) => t.id === id);
-    if (index === -1) throw new Error(`Teacher with id ${id} not found.`);
+    if (index === -1) throw new Error(`Không tìm thấy giáo viên.`);
+
+    const lockReason = reason || 'Tài khoản bị tạm khóa bởi quản trị viên hệ thống.';
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ reason: lockReason }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản giáo viên.');
+      }
+    }
 
     const current = this.teachers[index];
     const updated: TeacherDetail = {
       ...current,
       accountStatus: 'LOCKED',
-      lockReason: reason || 'Tài khoản bị tạm khóa bởi quản trị viên hệ thống.',
+      teachingStatus: 'INACTIVE',
+      lockReason,
       lockedAt: new Date().toLocaleDateString('vi-VN'),
       recentActivities: [
         {
@@ -262,14 +445,30 @@ class AdminTeacherService {
     return { ...updated };
   }
 
-  public unlockTeacherAccount(id: string): TeacherDetail {
+  public async unlockTeacherAccount(id: string): Promise<TeacherDetail> {
     const index = this.teachers.findIndex((t) => t.id === id);
-    if (index === -1) throw new Error(`Teacher with id ${id} not found.`);
+    if (index === -1) throw new Error(`Không tìm thấy giáo viên.`);
+
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản giáo viên.');
+      }
+    }
 
     const current = this.teachers[index];
     const updated: TeacherDetail = {
       ...current,
       accountStatus: 'ACTIVE',
+      teachingStatus: 'ACTIVE',
       lockReason: undefined,
       lockedAt: undefined,
       recentActivities: [
@@ -288,9 +487,28 @@ class AdminTeacherService {
     return { ...updated };
   }
 
+  public async deleteTeacher(id: string): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    if (token && id.length > 20) {
+      const res = await fetch(getApiUrl(`admin/users/${id}`), {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản giáo viên.');
+      }
+    }
+
+    this.teachers = this.teachers.filter((t) => t.id !== id);
+  }
+
   public setTeachingStatus(id: string, teachingStatus: TeacherTeachingStatus): TeacherDetail {
     const index = this.teachers.findIndex((t) => t.id === id);
-    if (index === -1) throw new Error(`Teacher with id ${id} not found.`);
+    if (index === -1) throw new Error(`Không tìm thấy giáo viên.`);
 
     const current = this.teachers[index];
     const statusLabels: Record<TeacherTeachingStatus, string> = {
