@@ -30,6 +30,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
   onMobileClose,
   onRoleChange,
 }) => {
+  void onRoleChange;
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -128,10 +129,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
 
           {!isCollapsed && (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span
                   style={{
-                    fontSize: '14.5px',
+                    fontSize: '15px',
                     fontWeight: 800,
                     color: 'var(--foreground)',
                     letterSpacing: '-0.3px',
@@ -139,20 +140,6 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   }}
                 >
                   ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
-                </span>
-                <span
-                  style={{
-                    fontSize: '9.5px',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--primary-light)',
-                    color: 'var(--primary)',
-                    letterSpacing: '0.4px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {currentRole}
                 </span>
               </div>
               <span
@@ -457,50 +444,6 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           flexShrink: 0,
         }}
       >
-        {/* Workspace Quick Switcher */}
-        {!isCollapsed && (
-          <div style={{ marginBottom: 'var(--space-2)' }}>
-            <div
-              style={{
-                fontSize: '10px',
-                textTransform: 'uppercase',
-                color: 'var(--muted)',
-                fontWeight: 700,
-                marginBottom: '6px',
-                letterSpacing: '0.4px',
-              }}
-            >
-              Không gian quản trị:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
-              {(['ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
-                <Link
-                  key={r}
-                  to={r === 'CONTENT_MANAGER' ? '/management/content-manager/dashboard' : `/management/${r.toLowerCase()}/dashboard`}
-                  onClick={() => {
-                    if (onRoleChange) onRoleChange(r);
-                    if (onMobileClose) onMobileClose();
-                  }}
-                  style={{
-                    textAlign: 'center',
-                    padding: '5px 0',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '11px',
-                    fontWeight: currentRole === r ? 700 : 500,
-                    backgroundColor: currentRole === r ? 'var(--primary-light)' : 'var(--background)',
-                    color: currentRole === r ? 'var(--primary)' : 'var(--muted)',
-                    textDecoration: 'none',
-                    border: `1px solid ${currentRole === r ? 'rgba(230, 0, 18, 0.4)' : 'var(--border-strong)'}`,
-                    transition: 'all 0.12s ease',
-                  }}
-                  title={`Chuyển tới ${r} Workspace`}
-                >
-                  {r === 'ADMIN' ? 'Admin' : r === 'CONTENT_MANAGER' ? 'Content' : r === 'TEACHER' ? 'Teacher' : 'Support'}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Back to Student Portal */}
         <Link

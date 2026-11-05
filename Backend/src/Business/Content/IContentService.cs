@@ -35,6 +35,7 @@ public interface IContentService
     Task<bool> DeleteVocabularyAsync(Guid id, CancellationToken cancellationToken = default);
     Task<VocabularyImportResultDto> ImportVocabulariesFromCsvAsync(Stream csvStream, bool dryRun = false, CancellationToken cancellationToken = default);
     Task<byte[]> GenerateVocabularyExcelTemplateAsync(CancellationToken cancellationToken = default);
+    Task<byte[]> ExportVocabulariesExcelAsync(int? hskLevel = null, string? partOfSpeech = null, string? status = null, string? search = null, bool? missingMeaningVi = null, bool? needsReview = null, CancellationToken cancellationToken = default);
     Task<VocabularyImportResultDto> ImportVocabulariesFromExcelAsync(Stream excelStream, bool dryRun = false, CancellationToken cancellationToken = default);
     Task<BatchPublishResultDto> BatchPublishVocabulariesAsync(List<Guid> ids, CancellationToken cancellationToken = default);
     Task<BatchUpdateMeaningsResultDto> BatchUpdateMeaningsAsync(List<BatchUpdateMeaningItemDto> items, CancellationToken cancellationToken = default);

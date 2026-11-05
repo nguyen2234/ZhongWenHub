@@ -418,6 +418,27 @@ public class ContentController : BaseApiController
             "Mau_Import_TuVung_HSK.xlsx");
     }
 
+    [HttpGet("vocabularies/export-excel")]
+    [HttpGet("/api/v1/admin/vocabularies/export-excel")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportVocabulariesExcel(
+        [FromQuery] int? hskLevel = null,
+        [FromQuery] string? partOfSpeech = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? search = null,
+        [FromQuery] bool? missingMeaningVi = null,
+        [FromQuery] bool? needsReview = null,
+        CancellationToken cancellationToken = default)
+    {
+        var bytes = await _contentService.ExportVocabulariesExcelAsync(hskLevel, partOfSpeech, status, search, missingMeaningVi, needsReview, cancellationToken);
+        var fileName = $"ZhongWenHub_TuVung_HSK_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName);
+    }
+
     [HttpPost("vocabularies/import-excel/preview")]
     [HttpPost("/api/v1/admin/vocabularies/import-excel/preview")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]

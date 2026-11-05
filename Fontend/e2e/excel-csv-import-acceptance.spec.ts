@@ -49,7 +49,10 @@ test.describe('ZhongWenHub — Kiểm thử toàn diện Import Excel & CSV trê
     await page.goto('/ZhongWenHub/management/content-manager/hsk-repository');
     await page.waitForLoadState('networkidle');
 
-    // Chờ nút Tải Excel mẫu xuất hiện
+    // Mở modal import để tải template
+    await page.getByRole('button', { name: /Import Excel \/ CSV/i }).click();
+
+    // Chờ nút Tải Excel mẫu trong modal xuất hiện
     const downloadBtn = page.getByRole('button', { name: /Tải Excel mẫu/i });
     await expect(downloadBtn).toBeVisible({ timeout: 10000 });
 
@@ -65,6 +68,9 @@ test.describe('ZhongWenHub — Kiểm thử toàn diện Import Excel & CSV trê
       const stats = fs.statSync(downloadPath);
       expect(stats.size).toBeGreaterThan(5000); // File Excel .xlsx hợp lệ chứa 2 sheets
     }
+
+    // Đóng modal
+    await page.getByRole('button', { name: 'Đóng', exact: true }).click();
   });
 
   test('2. Quy trình Import Excel thành công: Chọn file -> Preview -> Lưu SQL Server -> Hiển thị từ mới', async ({ page }) => {

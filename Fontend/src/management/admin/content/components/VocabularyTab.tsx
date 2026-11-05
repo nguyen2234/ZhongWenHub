@@ -10,9 +10,12 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  Download,
+  RefreshCw,
 } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import { HSK1_DICTIONARY_SUGGESTIONS } from '../data/hsk1-dictionary.data';
+import { hskRepositoryService } from '../services/hsk-repository.service';
 import type { ContentStatus, HskLevel, Vocabulary } from '../types';
 
 export interface VocabularyTabProps {
@@ -41,6 +44,32 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
   const [currentBatchIndex, setCurrentBatchIndex] = useState<number>(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPublishingBatch, setIsPublishingBatch] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportExcel = async () => {
+    if (filteredList.length === 0) {
+      alert('Không có bản ghi từ vựng nào phù hợp với bộ lọc hiện tại để xuất Excel.');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const hskNum = selectedLevelId !== 'ALL' ? Number(selectedLevelId.replace('level-hsk-', '')) : undefined;
+      await hskRepositoryService.exportVocabulariesExcelAsync({
+        hskLevel: !isNaN(Number(hskNum)) && Number(hskNum) > 0 ? Number(hskNum) : undefined,
+        partOfSpeech: posFilter !== 'ALL' ? posFilter : undefined,
+        status: statusFilter !== 'ALL' ? statusFilter : undefined,
+        search: search.trim() ? search.trim() : undefined,
+        missingMeaningVi: missingMeaningOnly ? true : undefined,
+        needsReview: manualReviewOnly ? true : undefined,
+      });
+    } catch (err: any) {
+      console.error('Export error:', err);
+      alert(err?.message || 'Có lỗi xảy ra khi xuất file Excel.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Statistics for progress tracking
   const stats = useMemo(() => {
@@ -496,10 +525,46 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
         </div>
       )}
 
-      {/* Results Count */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-        <div>
-          Hiển thị <strong>{filteredList.length}</strong> từ vựng chuẩn
+      {/* Results Count & Export Excel */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '8px',
+          fontSize: 'var(--text-xs)',
+          color: 'var(--muted)',
+          margin: '4px 0',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div>
+            Hiển thị <strong>{filteredList.length}</strong> từ vựng chuẩn
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            onClick={handleExportExcel}
+            disabled={isExporting || filteredList.length === 0}
+            title="Xuất toàn bộ bản ghi theo bộ lọc hiện tại ra file Excel (.xlsx)"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              height: '28px',
+              padding: '0 10px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#16a34a',
+              borderColor: '#86efac',
+              backgroundColor: '#f0fdf4',
+              cursor: filteredList.length === 0 || isExporting ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {isExporting ? <RefreshCw size={13} className="animate-spin" /> : <Download size={13} />}
+            <span>{isExporting ? 'Đang xuất Excel...' : 'Export Excel'}</span>
+          </button>
         </div>
         {filteredList.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }} onClick={toggleSelectAll}>

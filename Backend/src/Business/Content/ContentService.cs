@@ -1395,6 +1395,129 @@ public class ContentService : IContentService
         return Task.FromResult(memoryStream.ToArray());
     }
 
+    public async Task<byte[]> ExportVocabulariesExcelAsync(
+        int? hskLevel = null,
+        string? partOfSpeech = null,
+        string? status = null,
+        string? search = null,
+        bool? missingMeaningVi = null,
+        bool? needsReview = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Vocabularies.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
+        {
+            query = query.Where(v => v.Status == status);
+        }
+
+        if (hskLevel.HasValue && hskLevel.Value > 0)
+        {
+            query = query.Where(v => v.HskLevel == hskLevel.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(partOfSpeech) && partOfSpeech != "ALL")
+        {
+            var pos = partOfSpeech.Trim().ToLower();
+            query = query.Where(v => v.PartOfSpeech != null && v.PartOfSpeech.ToLower().Contains(pos));
+        }
+
+        if (missingMeaningVi.HasValue)
+        {
+            if (missingMeaningVi.Value)
+            {
+                query = query.Where(v => string.IsNullOrWhiteSpace(v.MeaningVi));
+            }
+            else
+            {
+                query = query.Where(v => !string.IsNullOrWhiteSpace(v.MeaningVi));
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var q = search.Trim().ToLower();
+            query = query.Where(v => v.Hanzi.ToLower().Contains(q) || v.Pinyin.ToLower().Contains(q) || (v.MeaningVi != null && v.MeaningVi.ToLower().Contains(q)));
+        }
+
+        var list = await query
+            .OrderBy(v => v.HskLevel)
+            .ThenBy(v => v.Hanzi)
+            .ToListAsync(cancellationToken);
+
+        if (needsReview == true)
+        {
+            list = list.Where(v => !string.IsNullOrWhiteSpace(v.Homograph) || v.Pinyin.Contains(' ') || (v.Entry != null && v.Entry != v.Hanzi)).ToList();
+        }
+
+        using var workbook = new XLWorkbook();
+        var ws = workbook.Worksheets.Add("DuLieu");
+
+        // Headers
+        string[] headers = new[]
+        {
+            "SourceEntryId",
+            "SourceDataset",
+            "HskLevel",
+            "Hanzi",
+            "Pinyin",
+            "MeaningVi",
+            "MeaningEn",
+            "PartOfSpeech",
+            "Status",
+            "Homograph"
+        };
+
+        for (int col = 1; col <= headers.Length; col++)
+        {
+            var cell = ws.Cell(1, col);
+            cell.Value = headers[col - 1];
+            cell.Style.Font.Bold = true;
+            cell.Style.Font.FontColor = XLColor.White;
+            cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E293B");
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        }
+        ws.Row(1).Height = 24;
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            var item = list[i];
+            int r = i + 2;
+
+            ws.Cell(r, 1).SetValue(item.SourceEntryId ?? "");
+            ws.Cell(r, 2).SetValue(item.SourceDataset ?? "HSK 3.0");
+            ws.Cell(r, 3).SetValue(item.HskLevel);
+            ws.Cell(r, 4).SetValue(item.Hanzi);
+            ws.Cell(r, 5).SetValue(item.Pinyin);
+            ws.Cell(r, 6).SetValue(item.MeaningVi ?? "");
+            ws.Cell(r, 7).SetValue(item.MeaningEn ?? "");
+            ws.Cell(r, 8).SetValue(item.PartOfSpeech ?? "");
+            ws.Cell(r, 9).SetValue(item.Status);
+            ws.Cell(r, 10).SetValue(item.Homograph ?? "");
+
+            ws.Cell(r, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell(r, 4).Style.Font.Bold = true;
+            ws.Cell(r, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            if (item.Status == "PUBLISHED")
+            {
+                ws.Cell(r, 9).Style.Font.FontColor = XLColor.FromHtml("#15803D");
+            }
+            else
+            {
+                ws.Cell(r, 9).Style.Font.FontColor = XLColor.FromHtml("#B45309");
+            }
+
+            ws.Row(r).Height = 20;
+        }
+
+        ws.Columns().AdjustToContents(10, 50);
+
+        using var memoryStream = new MemoryStream();
+        workbook.SaveAs(memoryStream);
+        return memoryStream.ToArray();
+    }
+
     public async Task<VocabularyImportResultDto> ImportVocabulariesFromExcelAsync(Stream excelStream, bool dryRun = false, CancellationToken cancellationToken = default)
     {
         XLWorkbook workbook;

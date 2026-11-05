@@ -180,6 +180,56 @@ class HskRepositoryService {
     window.URL.revokeObjectURL(url);
   }
 
+  async exportVocabulariesExcelAsync(params?: {
+    hskLevel?: number;
+    partOfSpeech?: string;
+    status?: string;
+    search?: string;
+    missingMeaningVi?: boolean;
+    needsReview?: boolean;
+  }): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const query = new URLSearchParams();
+    if (params?.hskLevel && params.hskLevel > 0) query.append('hskLevel', String(params.hskLevel));
+    if (params?.partOfSpeech && params.partOfSpeech !== 'ALL') query.append('partOfSpeech', params.partOfSpeech);
+    if (params?.status && params.status !== 'ALL') query.append('status', params.status);
+    if (params?.search && params.search.trim()) query.append('search', params.search.trim());
+    if (params?.missingMeaningVi !== undefined) query.append('missingMeaningVi', String(params.missingMeaningVi));
+    if (params?.needsReview !== undefined) query.append('needsReview', String(params.needsReview));
+
+    const qs = query.toString();
+    const urlStr = `/api/v1/content/vocabularies/export-excel${qs ? `?${qs}` : ''}`;
+
+    const response = await fetch(urlStr, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Xuất file Excel thất bại (Mã lỗi ${response.status})`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const contentDisposition = response.headers.get('content-disposition');
+    let fileName = `ZhongWenHub_TuVung_HSK_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    if (contentDisposition && contentDisposition.includes('filename=')) {
+      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        fileName = match[1].replace(/['"]/g, '');
+      }
+    }
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
   async importVocabulariesExcelAsync(file: File, dryRun: boolean): Promise<VocabularyImportResultDto> {
     const formData = new FormData();
     formData.append('file', file);

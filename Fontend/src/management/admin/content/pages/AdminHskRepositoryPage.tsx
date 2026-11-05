@@ -1,5 +1,5 @@
-﻿import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { UploadCloud, Plus, AlertCircle, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { UploadCloud, Plus, AlertCircle, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CharacterDetailDrawer,
@@ -101,18 +101,6 @@ export const AdminHskRepositoryPage: React.FC = () => {
 
   // 4. Import Wizard Modal
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
-
-  const handleDownloadTemplate = async () => {
-    try {
-      setIsDownloadingTemplate(true);
-      await hskRepositoryService.downloadVocabularyExcelTemplateAsync();
-    } catch (err: any) {
-      alert(err?.message || 'Không thể tải template Excel mẫu.');
-    } finally {
-      setIsDownloadingTemplate(false);
-    }
-  };
 
   // Handlers for Vocabulary
   const handleOpenVocab = useCallback((vocab: Vocabulary, index?: number, list?: Vocabulary[]) => {
@@ -260,17 +248,6 @@ export const AdminHskRepositoryPage: React.FC = () => {
         subtitle="Quản lý kho từ vựng, chữ Hán và ngữ pháp chuẩn hóa."
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <button
-              type="button"
-              className="ds-btn ds-btn-outline ds-btn-sm"
-              onClick={handleDownloadTemplate}
-              disabled={isDownloadingTemplate}
-              title="Tải tệp Excel mẫu (.xlsx) chuẩn HSK 3.0"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              {isDownloadingTemplate ? <RefreshCw size={14} className="animate-spin" /> : <FileSpreadsheet size={14} style={{ color: '#16a34a' }} />}
-              Tải Excel mẫu
-            </button>
             <button
               type="button"
               className="ds-btn ds-btn-outline ds-btn-sm"

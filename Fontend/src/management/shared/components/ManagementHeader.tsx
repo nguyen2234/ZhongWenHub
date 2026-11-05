@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Info,
   CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
@@ -217,26 +216,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           RIGHT: ENVIRONMENT BADGE, SEARCH, NOTIFICATIONS, USER MENU
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        {/* Environment / Demo Indicator Tag */}
-        <div
-          className="env-indicator-pill"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            padding: '3px 9px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--primary-light)',
-            border: '1px solid rgba(230, 0, 18, 0.2)',
-            color: 'var(--primary)',
-            fontSize: '11px',
-            fontWeight: 600,
-          }}
-          title="Dữ liệu hiển thị ở chế độ mô phỏng vận hành"
-        >
-          <Info size={12} />
-          <span>Mô phỏng Demo</span>
-        </div>
 
         {/* Search Shortcut */}
         <div
