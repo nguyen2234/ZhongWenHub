@@ -289,6 +289,7 @@ public class Hsk3CsvRow
 public class VocabularyImportRowError
 {
     public int RowNumber { get; set; }
+    public string? ColumnName { get; set; }
     public string? SourceDataset { get; set; }
     public string? SourceEntryId { get; set; }
     public string? SourceId { get; set; }
@@ -306,7 +307,12 @@ public class VocabularyImportPreviewItem
     public string LevelLabel { get; set; } = string.Empty;
     public string Hanzi { get; set; } = string.Empty;
     public string Pinyin { get; set; } = string.Empty;
+    public string? MeaningVi { get; set; }
+    public string? MeaningEn { get; set; }
     public string? PartOfSpeech { get; set; }
+    public string? ExampleHanzi { get; set; }
+    public string? ExamplePinyin { get; set; }
+    public string? ExampleMeaningVi { get; set; }
     public string? Entry { get; set; }
     public string? Homograph { get; set; }
     public int? SourcePdfPage { get; set; }

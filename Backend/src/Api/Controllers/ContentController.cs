@@ -405,6 +405,69 @@ public class ContentController : BaseApiController
         return await ImportVocabulariesCsv(file, dryRun: true, cancellationToken);
     }
 
+    [HttpGet("vocabularies/import-template")]
+    [HttpGet("/api/v1/admin/vocabularies/import-template")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DownloadVocabularyExcelTemplate(CancellationToken cancellationToken)
+    {
+        var bytes = await _contentService.GenerateVocabularyExcelTemplateAsync(cancellationToken);
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Mau_Import_TuVung_HSK.xlsx");
+    }
+
+    [HttpPost("vocabularies/import-excel/preview")]
+    [HttpPost("/api/v1/admin/vocabularies/import-excel/preview")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<IActionResult> PreviewVocabulariesExcel(
+        IFormFile? file,
+        CancellationToken cancellationToken = default)
+    {
+        return await ImportVocabulariesExcel(file, dryRun: true, cancellationToken);
+    }
+
+    [HttpPost("vocabularies/import-excel")]
+    [HttpPost("/api/v1/admin/vocabularies/import-excel")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<IActionResult> ImportVocabulariesExcel(
+        IFormFile? file,
+        [FromQuery] bool dryRun = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Vui lòng chọn file Excel để tải lên." });
+        }
+
+        if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "Định dạng file không hợp lệ. Vui lòng chọn file .xlsx." });
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var result = await _contentService.ImportVocabulariesFromExcelAsync(stream, dryRun, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpDelete("vocabularies/{id:guid}")]
     [HttpDelete("/api/v1/admin/vocabularies/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]

@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
+using ClosedXML.Excel;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -1220,6 +1222,531 @@ public class ContentService : IContentService
             Errors = errors,
             PreviewItems = previewItems
         };
+    }
+
+    public Task<byte[]> GenerateVocabularyExcelTemplateAsync(CancellationToken cancellationToken = default)
+    {
+        using var workbook = new XLWorkbook();
+
+        // ----------------------------------------------------
+        // Sheet 1: DuLieu
+        // ----------------------------------------------------
+        var sheetData = workbook.Worksheets.Add("DuLieu");
+        sheetData.TabColor = XLColor.FromHtml("#E60012"); // Viettel Red
+
+        // Columns definition
+        string[] headers =
+        {
+            "SourceEntryId",
+            "HskLevel",
+            "Hanzi",
+            "Pinyin",
+            "MeaningVi",
+            "MeaningEn",
+            "PartOfSpeech",
+            "ExampleHanzi",
+            "ExamplePinyin",
+            "ExampleMeaningVi"
+        };
+
+        for (int col = 0; col < headers.Length; col++)
+        {
+            var cell = sheetData.Cell(1, col + 1);
+            cell.Value = headers[col];
+            cell.Style.Font.Bold = true;
+            cell.Style.Font.FontColor = XLColor.White;
+            cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#991B1B"); // Dark Red
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        }
+        sheetData.Row(1).Height = 28;
+
+        // Data validation for HskLevel (Column B: 1-6)
+        var levelValidation = sheetData.Range("B2:B5000").CreateDataValidation();
+        levelValidation.WholeNumber.Between(1, 6);
+        levelValidation.ErrorTitle = "Cấp độ HSK không hợp lệ";
+        levelValidation.ErrorMessage = "Chỉ cho phép nhập cấp độ HSK từ 1 đến 6 theo chuẩn HSK 3.0. Cấp 7-9 không được hỗ trợ.";
+        levelValidation.ShowErrorMessage = true;
+        levelValidation.InputTitle = "Cấp độ HSK 3.0";
+        levelValidation.InputMessage = "Nhập số nguyên từ 1 đến 6.";
+        levelValidation.ShowInputMessage = true;
+
+        // 3 sample rows (clearly labeled as examples)
+        object[,] sampleRows =
+        {
+            {
+                "HSK1-EX01",
+                1,
+                "你好",
+                "nǐ hǎo",
+                "Xin chào (DÒNG VÍ DỤ - HÃY XÓA TRƯỚC KHI IMPORT)",
+                "hello",
+                "Thán từ",
+                "你好！很高兴认识你。",
+                "Nǐ hǎo! Hěn gāoxìng rènshí nǐ.",
+                "Xin chào! Rất vui được gặp bạn."
+            },
+            {
+                "HSK1-EX02",
+                1,
+                "谢谢",
+                "xièxie",
+                "Cảm ơn (DÒNG VÍ DỤ - HÃY XÓA TRƯỚC KHI IMPORT)",
+                "thank you",
+                "Động từ",
+                "非常感谢你的帮助。",
+                "Fēicháng gǎnxiè nǐ de bāngzhù.",
+                "Rất cảm ơn sự giúp đỡ của bạn."
+            },
+            {
+                "HSK2-EX01",
+                2,
+                "帮助",
+                "bāngzhù",
+                "Giúp đỡ (DÒNG VÍ DỤ - HÃY XÓA TRƯỚC KHI IMPORT)",
+                "help",
+                "Động từ",
+                "你能帮助我吗？",
+                "Nǐ néng bāngzhù wǒ ma?",
+                "Bạn có thể giúp tôi không?"
+            }
+        };
+
+        for (int r = 0; r < 3; r++)
+        {
+            int rowIdx = r + 2;
+            for (int c = 0; c < headers.Length; c++)
+            {
+                var cell = sheetData.Cell(rowIdx, c + 1);
+                var val = sampleRows[r, c];
+                if (val is int intVal) cell.Value = intVal;
+                else cell.Value = val?.ToString() ?? "";
+
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#FEF3C7"); // Light amber for examples
+                cell.Style.Font.Italic = true;
+            }
+            sheetData.Row(rowIdx).Height = 22;
+        }
+
+        sheetData.Columns().AdjustToContents(15, 60);
+
+        // ----------------------------------------------------
+        // Sheet 2: HuongDan
+        // ----------------------------------------------------
+        var sheetGuide = workbook.Worksheets.Add("HuongDan");
+        sheetGuide.TabColor = XLColor.FromHtml("#2563EB");
+
+        sheetGuide.Cell("A1").Value = "HƯỚNG DẪN ĐIỀN DỮ LIỆU IMPORT TỪ VỰNG HSK 3.0";
+        sheetGuide.Cell("A1").Style.Font.Bold = true;
+        sheetGuide.Cell("A1").Style.Font.FontSize = 14;
+        sheetGuide.Cell("A1").Style.Font.FontColor = XLColor.FromHtml("#1E293B");
+
+        sheetGuide.Cell("A2").Value = "Hệ thống ZhongWenHub - Hỗ trợ HSK 3.0 (Cấp 1 đến Cấp 6). Không hỗ trợ HSK 7-9.";
+        sheetGuide.Cell("A2").Style.Font.Italic = true;
+        sheetGuide.Cell("A2").Style.Font.FontColor = XLColor.FromHtml("#64748B");
+
+        string[,] guideColumns =
+        {
+            { "SourceEntryId", "Tùy chọn", "Mã định danh nguồn từ vựng (ví dụ: HSK1-001). Dùng để chống trùng lặp khi import lại." },
+            { "HskLevel", "BẮT BUỘC", "Cấp độ HSK từ 1 đến 6. Cấp 7-9 không được hỗ trợ và hệ thống sẽ từ chối import." },
+            { "Hanzi", "BẮT BUỘC", "Chữ Hán giản thể chuẩn (không được để trống)." },
+            { "Pinyin", "BẮT BUỘC", "Phiên âm Pinyin có dấu thanh điệu chuẩn (ví dụ: nǐ hǎo, xièxie)." },
+            { "MeaningVi", "Tùy chọn", "Nghĩa tiếng Việt. Có thể để trống nếu lưu ở dạng DRAFT (Bản nháp) để kiểm duyệt sau." },
+            { "MeaningEn", "Tùy chọn", "Nghĩa tiếng Anh tham khảo." },
+            { "PartOfSpeech", "Tùy chọn", "Từ loại (Danh từ, Động từ, Tính từ, Phó từ, Đại từ, Thán từ...)." },
+            { "ExampleHanzi", "Tùy chọn", "Câu ví dụ minh họa bằng chữ Hán." },
+            { "ExamplePinyin", "Tùy chọn", "Phiên âm Pinyin của câu ví dụ." },
+            { "ExampleMeaningVi", "Tùy chọn", "Nghĩa tiếng Việt của câu ví dụ." }
+        };
+
+        sheetGuide.Cell(4, 1).Value = "Tên cột";
+        sheetGuide.Cell(4, 2).Value = "Bắt buộc";
+        sheetGuide.Cell(4, 3).Value = "Giải thích & Quy tắc";
+        var headerRange = sheetGuide.Range(4, 1, 4, 3);
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Font.FontColor = XLColor.White;
+        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E293B");
+
+        for (int i = 0; i < guideColumns.GetLength(0); i++)
+        {
+            int row = i + 5;
+            sheetGuide.Cell(row, 1).Value = guideColumns[i, 0];
+            sheetGuide.Cell(row, 1).Style.Font.Bold = true;
+            sheetGuide.Cell(row, 2).Value = guideColumns[i, 1];
+            sheetGuide.Cell(row, 2).Style.Font.FontColor = guideColumns[i, 1] == "BẮT BUỘC" ? XLColor.Red : XLColor.FromHtml("#475569");
+            sheetGuide.Cell(row, 3).Value = guideColumns[i, 2];
+            sheetGuide.Row(row).Height = 20;
+        }
+
+        int noteRow = 5 + guideColumns.GetLength(0) + 1;
+        sheetGuide.Cell(noteRow, 1).Value = "CÁC LƯU Ý QUAN TRỌNG:";
+        sheetGuide.Cell(noteRow, 1).Style.Font.Bold = true;
+        sheetGuide.Cell(noteRow, 1).Style.Font.FontColor = XLColor.FromHtml("#B91C1C");
+
+        sheetGuide.Cell(noteRow + 1, 1).Value = "1. Vui lòng XÓA các dòng dữ liệu mẫu màu vàng tại sheet 'DuLieu' trước khi nhập dữ liệu thật.";
+        sheetGuide.Cell(noteRow + 2, 1).Value = "2. Không đổi tên hoặc thay đổi thứ tự các cột ở sheet 'DuLieu'.";
+        sheetGuide.Cell(noteRow + 3, 1).Value = "3. Toàn bộ từ vựng mới nhập sẽ ở trạng thái DRAFT (Bản nháp), không tự động xuất bản (PUBLISHED).";
+        sheetGuide.Cell(noteRow + 4, 1).Value = "4. Hệ thống tự động chống trùng theo SourceDataset + SourceEntryId hoặc HskLevel + Hanzi + Pinyin.";
+
+        sheetGuide.Columns().AdjustToContents(15, 80);
+
+        using var memoryStream = new MemoryStream();
+        workbook.SaveAs(memoryStream);
+        return Task.FromResult(memoryStream.ToArray());
+    }
+
+    public async Task<VocabularyImportResultDto> ImportVocabulariesFromExcelAsync(Stream excelStream, bool dryRun = false, CancellationToken cancellationToken = default)
+    {
+        XLWorkbook workbook;
+        try
+        {
+            workbook = new XLWorkbook(excelStream);
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"Tệp tin không phải định dạng Excel (.xlsx) hợp lệ hoặc bị hỏng: {ex.Message}");
+        }
+
+        using (workbook)
+        {
+            // Find data worksheet
+            var sheet = workbook.Worksheets.FirstOrDefault(w =>
+                w.Name.Equals("DuLieu", StringComparison.OrdinalIgnoreCase) ||
+                w.Name.Equals("Dữ liệu", StringComparison.OrdinalIgnoreCase))
+                ?? workbook.Worksheets.FirstOrDefault();
+
+            if (sheet == null)
+            {
+                throw new ArgumentException("Tệp Excel không chứa sheet dữ liệu nào.");
+            }
+
+            const string datasetName = "HSK 3.0";
+
+            // Map headers in row 1
+            var headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var headerRow = sheet.Row(1);
+            int lastCol = sheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+            if (lastCol == 0)
+            {
+                throw new ArgumentException("Sheet dữ liệu trống, không tìm thấy hàng tiêu đề.");
+            }
+
+            for (int col = 1; col <= lastCol; col++)
+            {
+                var rawVal = headerRow.Cell(col).GetString()?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(rawVal)) continue;
+
+                var norm = rawVal.ToLowerInvariant()
+                    .Replace(" ", "")
+                    .Replace("_", "")
+                    .Replace("-", "");
+
+                if (norm.Contains("examplehanzi") || norm.Contains("viduchuhan") || norm.Contains("viduhanzi"))
+                    headerMap["examplehanzi"] = col;
+                else if (norm.Contains("examplepinyin") || norm.Contains("vidupinyin"))
+                    headerMap["examplepinyin"] = col;
+                else if (norm.Contains("examplemeaningvi") || norm.Contains("vidunghiatiengviet") || norm.Contains("vidunghiavi"))
+                    headerMap["examplemeaningvi"] = col;
+                else if (norm.Contains("sourceentryid") || norm.Equals("id") || norm.Equals("ma") || norm.Equals("matuvung"))
+                    headerMap["sourceentryid"] = col;
+                else if (norm.Contains("hsklevel") || norm.Equals("level") || norm.Contains("caphsk") || norm.Contains("capdo"))
+                    headerMap["hsklevel"] = col;
+                else if (norm.Equals("hanzi") || norm.Contains("chuhan") || norm.Contains("hantu"))
+                    headerMap["hanzi"] = col;
+                else if (norm.Equals("pinyin") || norm.Contains("phienam"))
+                    headerMap["pinyin"] = col;
+                else if (norm.Contains("meaningvi") || norm.Contains("nghiatiengviet") || norm.Contains("nghiavi"))
+                    headerMap["meaningvi"] = col;
+                else if (norm.Contains("meaningen") || norm.Contains("nghiatienganh") || norm.Contains("nghiaen"))
+                    headerMap["meaningen"] = col;
+                else if (norm.Contains("partofspeech") || norm.Contains("tuloai") || norm.Contains("pos"))
+                    headerMap["partofspeech"] = col;
+            }
+
+            // Validate mandatory headers
+            var missing = new List<string>();
+            if (!headerMap.ContainsKey("hsklevel")) missing.Add("HskLevel");
+            if (!headerMap.ContainsKey("hanzi")) missing.Add("Hanzi");
+            if (!headerMap.ContainsKey("pinyin")) missing.Add("Pinyin");
+
+            if (missing.Count > 0)
+            {
+                throw new ArgumentException($"Tệp Excel thiếu các cột bắt buộc: {string.Join(", ", missing)}. Vui lòng tải template mẫu để kiểm tra đúng cấu trúc.");
+            }
+
+            // Fetch existing keys to prevent duplicates
+            var existingSourceEntriesList = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.SourceDataset != null && v.SourceEntryId != null)
+                .Select(v => $"{v.SourceDataset}|{v.SourceEntryId}")
+                .ToListAsync(cancellationToken);
+            var existingSourceEntries = new HashSet<string>(existingSourceEntriesList, StringComparer.OrdinalIgnoreCase);
+
+            var existingSourceIdsList = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.SourceId != null && v.SourceId != "")
+                .Select(v => v.SourceId!)
+                .ToListAsync(cancellationToken);
+            var existingSourceIds = new HashSet<string>(existingSourceIdsList, StringComparer.OrdinalIgnoreCase);
+
+            var existingLookup = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Select(v => new { v.HskLevel, v.Hanzi, v.Pinyin, Homograph = v.Homograph ?? "" })
+                .ToListAsync(cancellationToken);
+
+            var existingLookupSet = existingLookup
+                .Select(x => $"{x.HskLevel}|{x.Hanzi}|{x.Pinyin}|{x.Homograph}")
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var seenInCurrentFile = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            int lastRow = sheet.LastRowUsed()?.RowNumber() ?? 1;
+            int totalRows = 0;
+            int successCount = 0;
+            int skippedDuplicateCount = 0;
+            var errors = new List<VocabularyImportRowError>();
+            var previewItems = new List<VocabularyImportPreviewItem>();
+            var toInsert = new List<VocabularyEntity>();
+
+            string GetSanitizedCell(IXLRow row, string key)
+            {
+                if (!headerMap.TryGetValue(key, out var colIdx)) return "";
+                var cell = row.Cell(colIdx);
+                var str = cell.GetString()?.Trim() ?? "";
+                if (string.IsNullOrEmpty(str)) return "";
+                // Prevent spreadsheet formula injection by sanitizing leading =, +, -, @
+                if (str.StartsWith("=") || str.StartsWith("+") || str.StartsWith("-") || str.StartsWith("@"))
+                {
+                    str = str.TrimStart('=', '+', '-', '@').Trim();
+                }
+                return str;
+            }
+
+            for (int r = 2; r <= lastRow; r++)
+            {
+                var row = sheet.Row(r);
+                if (row.IsEmpty()) continue;
+
+                string rawLevel = GetSanitizedCell(row, "hsklevel");
+                string hanzi = GetSanitizedCell(row, "hanzi");
+                string pinyin = GetSanitizedCell(row, "pinyin");
+                string sourceEntryId = GetSanitizedCell(row, "sourceentryid");
+                string meaningVi = GetSanitizedCell(row, "meaningvi");
+                string meaningEn = GetSanitizedCell(row, "meaningen");
+                string partOfSpeech = GetSanitizedCell(row, "partofspeech");
+                string exampleHanzi = GetSanitizedCell(row, "examplehanzi");
+                string examplePinyin = GetSanitizedCell(row, "examplepinyin");
+                string exampleMeaningVi = GetSanitizedCell(row, "examplemeaningvi");
+
+                // If entire row content is blank
+                if (string.IsNullOrWhiteSpace(rawLevel) && string.IsNullOrWhiteSpace(hanzi) && string.IsNullOrWhiteSpace(pinyin))
+                {
+                    continue;
+                }
+
+                // Skip template sample rows
+                if ((!string.IsNullOrEmpty(sourceEntryId) && sourceEntryId.StartsWith("HSK", StringComparison.OrdinalIgnoreCase) && sourceEntryId.Contains("-EX", StringComparison.OrdinalIgnoreCase)) ||
+                    meaningVi.Contains("DÒNG VÍ DỤ", StringComparison.OrdinalIgnoreCase) ||
+                    meaningVi.Contains("DONG VI DU", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                totalRows++;
+
+                // Validate Level: HSK 1-6 ONLY. Reject 7-9 or invalid numbers.
+                if (!int.TryParse(rawLevel, out var parsedLevel) || parsedLevel < 1 || parsedLevel > 6)
+                {
+                    errors.Add(new VocabularyImportRowError
+                    {
+                        RowNumber = r,
+                        ColumnName = "HskLevel",
+                        SourceDataset = datasetName,
+                        SourceEntryId = sourceEntryId,
+                        Hanzi = hanzi,
+                        Reason = $"Cấp độ HSK không hợp lệ ('{rawLevel}'). Hệ thống chỉ hỗ trợ chuẩn HSK 3.0 từ cấp 1 đến cấp 6, từ chối cấp 7–9."
+                    });
+                    continue;
+                }
+
+                int hskLevel = parsedLevel;
+
+                // Validate Hanzi
+                if (string.IsNullOrWhiteSpace(hanzi))
+                {
+                    errors.Add(new VocabularyImportRowError
+                    {
+                        RowNumber = r,
+                        ColumnName = "Hanzi",
+                        SourceDataset = datasetName,
+                        SourceEntryId = sourceEntryId,
+                        Hanzi = hanzi,
+                        Reason = "Chữ Hán không được để trống."
+                    });
+                    continue;
+                }
+
+                // Validate Pinyin
+                if (string.IsNullOrWhiteSpace(pinyin))
+                {
+                    errors.Add(new VocabularyImportRowError
+                    {
+                        RowNumber = r,
+                        ColumnName = "Pinyin",
+                        SourceDataset = datasetName,
+                        SourceEntryId = sourceEntryId,
+                        Hanzi = hanzi,
+                        Reason = "Pinyin không được để trống."
+                    });
+                    continue;
+                }
+
+                string sourceKey = !string.IsNullOrEmpty(sourceEntryId) ? $"{datasetName}|{sourceEntryId}" : "";
+                string naturalKey = $"{hskLevel}|{hanzi}|{pinyin}|";
+                string levelLabel = hskLevel.ToString();
+
+                // Check duplicates (unified with CSV)
+                bool isDuplicate = false;
+                if (!string.IsNullOrEmpty(sourceKey) && existingSourceEntries.Contains(sourceKey))
+                {
+                    isDuplicate = true;
+                }
+                else if (!string.IsNullOrEmpty(sourceEntryId) && existingSourceIds.Contains(sourceEntryId))
+                {
+                    isDuplicate = true;
+                }
+                else if (existingLookupSet.Contains(naturalKey))
+                {
+                    isDuplicate = true;
+                }
+                else if (!string.IsNullOrEmpty(sourceKey) && seenInCurrentFile.Contains(sourceKey))
+                {
+                    isDuplicate = true;
+                }
+                else if (seenInCurrentFile.Contains(naturalKey))
+                {
+                    isDuplicate = true;
+                }
+
+                if (isDuplicate)
+                {
+                    skippedDuplicateCount++;
+                    if (previewItems.Count < 50)
+                    {
+                        previewItems.Add(new VocabularyImportPreviewItem
+                        {
+                            RowNumber = r,
+                            SourceDataset = datasetName,
+                            SourceEntryId = sourceEntryId,
+                            SourceId = sourceEntryId,
+                            HskLevel = hskLevel,
+                            LevelLabel = levelLabel,
+                            Hanzi = hanzi,
+                            Pinyin = pinyin,
+                            MeaningVi = meaningVi,
+                            MeaningEn = meaningEn,
+                            PartOfSpeech = partOfSpeech,
+                            ExampleHanzi = exampleHanzi,
+                            ExamplePinyin = examplePinyin,
+                            ExampleMeaningVi = exampleMeaningVi,
+                            IsDuplicate = true,
+                            Status = "DRAFT"
+                        });
+                    }
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(sourceKey)) seenInCurrentFile.Add(sourceKey);
+                seenInCurrentFile.Add(naturalKey);
+
+                successCount++;
+
+                if (previewItems.Count < 50)
+                {
+                    previewItems.Add(new VocabularyImportPreviewItem
+                    {
+                        RowNumber = r,
+                        SourceDataset = datasetName,
+                        SourceEntryId = sourceEntryId,
+                        SourceId = sourceEntryId,
+                        HskLevel = hskLevel,
+                        LevelLabel = levelLabel,
+                        Hanzi = hanzi,
+                        Pinyin = pinyin,
+                        MeaningVi = meaningVi,
+                        MeaningEn = meaningEn,
+                        PartOfSpeech = partOfSpeech,
+                        ExampleHanzi = exampleHanzi,
+                        ExamplePinyin = examplePinyin,
+                        ExampleMeaningVi = exampleMeaningVi,
+                        IsDuplicate = false,
+                        Status = "DRAFT"
+                    });
+                }
+
+                if (!dryRun)
+                {
+                    string? examplesJson = null;
+                    if (!string.IsNullOrWhiteSpace(exampleHanzi))
+                    {
+                        var exList = new[]
+                        {
+                            new
+                            {
+                                hanzi = exampleHanzi,
+                                pinyin = examplePinyin ?? "",
+                                meaningVi = exampleMeaningVi ?? ""
+                            }
+                        };
+                        var jsonSerializerOptions = new JsonSerializerOptions
+                        {
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        };
+                        examplesJson = JsonSerializer.Serialize(exList, jsonSerializerOptions);
+                    }
+
+                    toInsert.Add(new VocabularyEntity
+                    {
+                        HskLevel = hskLevel,
+                        Hanzi = hanzi,
+                        Pinyin = pinyin,
+                        MeaningVi = meaningVi,
+                        MeaningEn = string.IsNullOrWhiteSpace(meaningEn) ? null : meaningEn,
+                        PartOfSpeech = string.IsNullOrWhiteSpace(partOfSpeech) ? null : partOfSpeech,
+                        ExamplesJson = examplesJson,
+                        LevelLabel = levelLabel,
+                        SourceDataset = datasetName,
+                        SourceEntryId = string.IsNullOrEmpty(sourceEntryId) ? null : sourceEntryId,
+                        SourceId = string.IsNullOrEmpty(sourceEntryId) ? null : sourceEntryId,
+                        Status = "DRAFT",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            // Save to SQL Server in batches if not dry run
+            if (!dryRun && toInsert.Count > 0)
+            {
+                const int batchSize = 500;
+                for (int i = 0; i < toInsert.Count; i += batchSize)
+                {
+                    var batch = toInsert.Skip(i).Take(batchSize).ToList();
+                    await _dbContext.Vocabularies.AddRangeAsync(batch, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
+            }
+
+            return new VocabularyImportResultDto
+            {
+                DryRun = dryRun,
+                TotalRows = totalRows,
+                SuccessCount = successCount,
+                SkippedDuplicateCount = skippedDuplicateCount,
+                ErrorCount = errors.Count,
+                Errors = errors,
+                PreviewItems = previewItems
+            };
+        }
     }
 
     public async Task<bool> DeleteVocabularyAsync(Guid id, CancellationToken cancellationToken = default)

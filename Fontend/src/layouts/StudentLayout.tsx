@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Flame,
@@ -19,6 +19,7 @@ import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
 import { useAuthContext } from '../features/auth/context/AuthContext';
+import { PortalSwitcher } from '../management/shared/components/PortalSwitcher';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -673,31 +674,8 @@ export const StudentLayout: React.FC = () => {
             </>
           )}
 
-          {/* Quick Management Switch (ONLY for Admin / SuperAdmin) */}
-          {isAdmin && (
-            <Link
-              to="/management/admin/dashboard"
-              className="header-admin-link"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                height: '32px',
-                padding: '0 10px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                color: '#64748b',
-                fontSize: '11px',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-              title="Cổng Quản trị"
-            >
-              <ShieldCheck size={14} />
-              <span className="header-admin-text">Quản trị</span>
-            </Link>
-          )}
+          {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
+          <PortalSwitcher variant="header" />
         </div>
       </header>
 
@@ -721,6 +699,9 @@ export const StudentLayout: React.FC = () => {
             overflow: 'hidden',
           }}
         >
+                <div style={{ padding: '4px 12px 8px 12px', borderBottom: '1px solid #f1f5f9' }}>
+                  <PortalSwitcher variant="drawer" onPortalChange={() => setIsMobileDrawerOpen(false)} />
+                </div>
           <StudentSidebar
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebarCollapse}

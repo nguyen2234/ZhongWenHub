@@ -92,6 +92,7 @@ export interface UpdateVocabularyDTO {
 
 export interface VocabularyImportRowError {
   rowNumber: number;
+  columnName?: string;
   sourceDataset?: string;
   sourceEntryId?: string;
   sourceId?: string;
@@ -107,7 +108,12 @@ export interface VocabularyImportPreviewItem {
   hskLevel: number;
   hanzi: string;
   pinyin: string;
+  meaningVi?: string;
+  meaningEn?: string;
   partOfSpeech?: string;
+  exampleHanzi?: string;
+  examplePinyin?: string;
+  exampleMeaningVi?: string;
   entry?: string;
   homograph?: string;
   levelLabel?: string;

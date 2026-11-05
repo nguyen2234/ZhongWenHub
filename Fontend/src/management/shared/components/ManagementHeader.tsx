@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
 import { authService } from '../../../features/auth/services/authService';
+import { PortalSwitcher } from './PortalSwitcher';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -273,6 +274,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
             ⌘K
           </kbd>
         </div>
+
+        {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
+        <PortalSwitcher variant="header" />
 
         {/* Notifications Popover */}
         <div style={{ position: 'relative' }} ref={notifyRef}>

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { UploadCloud, Plus, AlertCircle, RefreshCw } from 'lucide-react';
+﻿import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { UploadCloud, Plus, AlertCircle, RefreshCw, FileSpreadsheet } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CharacterDetailDrawer,
@@ -101,6 +101,18 @@ export const AdminHskRepositoryPage: React.FC = () => {
 
   // 4. Import Wizard Modal
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false);
+
+  const handleDownloadTemplate = async () => {
+    try {
+      setIsDownloadingTemplate(true);
+      await hskRepositoryService.downloadVocabularyExcelTemplateAsync();
+    } catch (err: any) {
+      alert(err?.message || 'Không thể tải template Excel mẫu.');
+    } finally {
+      setIsDownloadingTemplate(false);
+    }
+  };
 
   // Handlers for Vocabulary
   const handleOpenVocab = useCallback((vocab: Vocabulary, index?: number, list?: Vocabulary[]) => {
@@ -251,9 +263,21 @@ export const AdminHskRepositoryPage: React.FC = () => {
             <button
               type="button"
               className="ds-btn ds-btn-outline ds-btn-sm"
-              onClick={() => setIsImportModalOpen(true)}
+              onClick={handleDownloadTemplate}
+              disabled={isDownloadingTemplate}
+              title="Tải tệp Excel mẫu (.xlsx) chuẩn HSK 3.0"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <UploadCloud size={14} /> Nhập dữ liệu
+              {isDownloadingTemplate ? <RefreshCw size={14} className="animate-spin" /> : <FileSpreadsheet size={14} style={{ color: '#16a34a' }} />}
+              Tải Excel mẫu
+            </button>
+            <button
+              type="button"
+              className="ds-btn ds-btn-outline ds-btn-sm"
+              onClick={() => setIsImportModalOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <UploadCloud size={14} /> Import Excel / CSV
             </button>
             <button
               type="button"

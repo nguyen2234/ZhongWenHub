@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+﻿import React, { useState, useMemo, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { ManagementSidebar, ManagementHeader } from '../management/shared/components';
 import {
   ADMIN_NAV_GROUPS,
@@ -17,7 +17,16 @@ export const ManagementLayout: React.FC = () => {
     return managementAuthService.subscribe((updated) => setSession(updated));
   }, []);
 
-  const currentRole: UserRole = session?.role || 'ADMIN';
+  const location = useLocation();
+
+  const currentRole: UserRole = useMemo(() => {
+    const path = location.pathname;
+    if (path.startsWith('/management/teacher')) return 'TEACHER';
+    if (path.startsWith('/management/content-manager')) return 'CONTENT_MANAGER';
+    if (path.startsWith('/management/support')) return 'SUPPORT';
+    if (path.startsWith('/management/admin')) return 'ADMIN';
+    return session?.role || 'ADMIN';
+  }, [location.pathname, session?.role]);
 
   // Sidebar expanded / collapsed state (persisted or auto-collapsed on tablet)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {

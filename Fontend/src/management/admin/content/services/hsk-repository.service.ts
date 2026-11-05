@@ -6,6 +6,7 @@ import {
   MOCK_VOCABULARIES,
 } from '../data/mockHskRepositoryData';
 import { httpClient } from '../../../../core/api/client/http-client';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
 import type {
   CharacterFilters,
   ChineseCharacter,
@@ -145,6 +146,76 @@ class HskRepositoryService {
         hanzi: p.hanzi,
         pinyin: p.pinyin,
         partOfSpeech: p.partOfSpeech,
+        entry: p.entry,
+        homograph: p.homograph,
+        levelLabel: p.levelLabel,
+        sourcePdfPage: p.sourcePdfPage,
+        isExisting: p.isDuplicate ?? p.isExisting ?? false,
+        status: p.status || 'DRAFT',
+      })),
+    };
+  }
+
+  async downloadVocabularyExcelTemplateAsync(): Promise<void> {
+    const token = authTokenService.getAccessToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch('/api/v1/content/vocabularies/import-template', {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Tải template thất bại (Mã lỗi ${response.status})`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Mau_Import_TuVung_HSK.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  async importVocabulariesExcelAsync(file: File, dryRun: boolean): Promise<VocabularyImportResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const raw = await httpClient.post<any>(
+      `/content/vocabularies/${dryRun ? 'import-excel/preview' : 'import-excel'}?dryRun=${dryRun}`,
+      formData
+    );
+    return {
+      totalRows: raw.totalRows ?? 0,
+      importedCount: raw.successCount ?? raw.importedCount ?? 0,
+      skippedCount: raw.skippedDuplicateCount ?? raw.skippedCount ?? 0,
+      failedCount: raw.errorCount ?? raw.failedCount ?? 0,
+      isDryRun: raw.dryRun ?? raw.isDryRun ?? dryRun,
+      errors: (raw.errors || []).map((e: any) => ({
+        rowNumber: e.rowNumber,
+        columnName: e.columnName,
+        sourceDataset: e.sourceDataset,
+        sourceEntryId: e.sourceEntryId,
+        sourceId: e.sourceId || e.sourceEntryId,
+        hanzi: e.hanzi,
+        errorMessage: (e.columnName ? `[Cột ${e.columnName}] ` : '') + (e.reason || e.errorMessage || 'Lỗi định dạng'),
+      })),
+      previewSample: (raw.previewItems || raw.previewSample || []).map((p: any) => ({
+        id: p.sourceEntryId || p.sourceId || `${p.rowNumber}`,
+        sourceDataset: p.sourceDataset,
+        sourceEntryId: p.sourceEntryId,
+        level: String(p.hskLevel),
+        hskLevel: p.hskLevel,
+        hanzi: p.hanzi,
+        pinyin: p.pinyin,
+        meaningVi: p.meaningVi || '',
+        meaningEn: p.meaningEn || '',
+        partOfSpeech: p.partOfSpeech,
+        exampleHanzi: p.exampleHanzi,
+        examplePinyin: p.examplePinyin,
+        exampleMeaningVi: p.exampleMeaningVi,
         entry: p.entry,
         homograph: p.homograph,
         levelLabel: p.levelLabel,
