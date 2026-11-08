@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ZhongWenHub.Business.Authentication.DTOs;
 using ZhongWenHub.Business.Common.DTOs;
 using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
@@ -72,6 +73,27 @@ public class Hsk1ImportIntegrationTests : IClassFixture<CustomWebApplicationFact
             if (imported.Count > 0)
             {
                 db.Vocabularies.RemoveRange(imported);
+                await db.SaveChangesAsync();
+            }
+
+            // Ensure 9 baseline seed words exist with SourceDataset = null
+            var seedHanzis = new[] { "你", "好", "您", "谢谢", "不客气", "对不起", "叫", "什么", "名字" };
+            var existingSeedCount = await db.Vocabularies.CountAsync(v => v.HskLevel == 1 && seedHanzis.Contains(v.Hanzi));
+            if (existingSeedCount < 9)
+            {
+                var seedWords = new List<VocabularyEntity>
+                {
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "你", Pinyin = "nǐ", MeaningVi = "bạn, anh, chị (ngôi thứ 2 số ít)", PartOfSpeech = "Đại từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "好", Pinyin = "hǎo", MeaningVi = "tốt, đẹp, khỏe, được", PartOfSpeech = "Tính từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "您", Pinyin = "nín", MeaningVi = "ngài, ông (kính ngữ của 你)", PartOfSpeech = "Đại từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "谢谢", Pinyin = "xièxie", MeaningVi = "cảm ơn", PartOfSpeech = "Động từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "不客气", Pinyin = "bú kèqi", MeaningVi = "đừng khách sáo, không có gì", PartOfSpeech = "Cụm từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "对不起", Pinyin = "duìbuqǐ", MeaningVi = "xin lỗi", PartOfSpeech = "Cụm từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "叫", Pinyin = "jiào", MeaningVi = "tên là, gọi là", PartOfSpeech = "Động từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "什么", Pinyin = "shénme", MeaningVi = "cái gì, gì", PartOfSpeech = "Đại từ", Status = "PUBLISHED" },
+                    new() { Id = Guid.NewGuid(), HskLevel = 1, Hanzi = "名字", Pinyin = "míngzi", MeaningVi = "tên, họ tên", PartOfSpeech = "Danh từ", Status = "PUBLISHED" }
+                };
+                await db.Vocabularies.AddRangeAsync(seedWords);
                 await db.SaveChangesAsync();
             }
         }

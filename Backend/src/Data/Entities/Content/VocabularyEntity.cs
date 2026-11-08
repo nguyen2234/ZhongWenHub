@@ -7,6 +7,7 @@ public class VocabularyEntity : BaseEntity
     public string? Traditional { get; set; }
     public string Pinyin { get; set; } = string.Empty;
     public string MeaningVi { get; set; } = string.Empty;
+    public string? SuggestedMeaningVi { get; set; }
     public string? MeaningEn { get; set; }
     public string? PartOfSpeech { get; set; }
     public string? AudioUrl { get; set; }
@@ -21,6 +22,12 @@ public class VocabularyEntity : BaseEntity
     public string? Homograph { get; set; }
     public string? LevelLabel { get; set; }
     public int? SourcePdfPage { get; set; }
+
+    // Content Review & Audit
+    public Guid? UpdatedByUserId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
 
     public Guid? LessonId { get; set; }
     public LessonEntity? Lesson { get; set; }

@@ -57,9 +57,9 @@ describe('FE-13.2: Sticky Sidebars & Independent Scrolling Architecture', () => 
       expect(typeof StudentSidebar).toBe('function');
     });
 
-    it('provides all 4 student navigation groups with correct IDs', () => {
+    it('provides all 5 student navigation groups with correct IDs', () => {
       const groupIds = HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.id);
-      expect(groupIds).toEqual(['overview', 'courses', 'skills', 'personal']);
+      expect(groupIds).toEqual(['overview', 'courses', 'knowledge', 'skills', 'personal']);
     });
 
     it('validates student nav items have valid paths, icons, and non-empty labels', () => {

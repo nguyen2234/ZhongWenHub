@@ -25,6 +25,7 @@ export interface VocabularyTabProps {
   onSelectVocabulary: (vocab: Vocabulary, index?: number, list?: Vocabulary[]) => void;
   onOpenCreate: () => void;
   onBatchPublish?: (ids: string[]) => Promise<void>;
+  onBatchReview?: (ids: string[], status: ContentStatus, notes?: string) => Promise<void>;
 }
 
 export const VocabularyTab: React.FC<VocabularyTabProps> = ({
@@ -34,12 +35,14 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
   onSelectVocabulary,
   onOpenCreate,
   onBatchPublish,
+  onBatchReview,
 }) => {
   const [search, setSearch] = useState('');
   const [posFilter, setPosFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ContentStatus>('ALL');
   const [missingMeaningOnly, setMissingMeaningOnly] = useState(false);
   const [manualReviewOnly, setManualReviewOnly] = useState(false);
+  const [auditRiskFilter, setAuditRiskFilter] = useState<'ALL' | 'NEEDS_REVIEW' | 'HOMOGRAPH_DUOYINZI' | 'MISSING_MEANING'>('ALL');
   const [batchSize, setBatchSize] = useState<number>(25); // Default 25 words per batch (range 20-30)
   const [currentBatchIndex, setCurrentBatchIndex] = useState<number>(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -80,6 +83,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
     const withMeaning = list.filter((v) => v.meaningVi && v.meaningVi.trim() !== '').length;
     const missingMeaning = total - withMeaning;
     const published = list.filter((v) => v.status === 'PUBLISHED').length;
+    const pending = list.filter((v) => v.status === 'PENDING_REVIEW').length;
     const draft = list.filter((v) => v.status === 'DRAFT').length;
     const manualReview = list.filter((v) => {
       const entry = HSK1_DICTIONARY_SUGGESTIONS[v.simplified.trim()];
@@ -91,6 +95,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
       withMeaning,
       missingMeaning,
       published,
+      pending,
       draft,
       manualReview,
       percentWithMeaning: total > 0 ? Math.round((withMeaning / total) * 100) : 0,
@@ -124,6 +129,14 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
       });
     }
 
+    if (auditRiskFilter === 'NEEDS_REVIEW') {
+      result = result.filter((v) => v.status === 'PENDING_REVIEW' || !v.meaningVi);
+    } else if (auditRiskFilter === 'HOMOGRAPH_DUOYINZI') {
+      result = result.filter((v) => !!v.homograph || (v.entry && v.entry.includes('(')));
+    } else if (auditRiskFilter === 'MISSING_MEANING') {
+      result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       result = result.filter(
@@ -136,7 +149,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
     }
 
     return result;
-  }, [vocabularies, selectedLevelId, statusFilter, posFilter, missingMeaningOnly, manualReviewOnly, search]);
+  }, [vocabularies, selectedLevelId, statusFilter, posFilter, missingMeaningOnly, manualReviewOnly, auditRiskFilter, search]);
 
   const totalBatches = useMemo(() => {
     if (batchSize <= 0) return 1;
@@ -345,8 +358,21 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
             <option value="ALL">Tất cả trạng thái</option>
             <option value="PUBLISHED">Đã xuất bản (PUBLISHED)</option>
             <option value="DRAFT">Bản nháp (DRAFT)</option>
-            <option value="PENDING_REVIEW">Chờ duyệt</option>
-            <option value="ARCHIVED">Lưu trữ</option>
+            <option value="PENDING_REVIEW">Chờ duyệt (PENDING_REVIEW)</option>
+            <option value="ARCHIVED">Lưu trữ (ARCHIVED)</option>
+          </select>
+
+          <select
+            className="lcm-select-filter"
+            value={auditRiskFilter}
+            onChange={(e) => setAuditRiskFilter(e.target.value as any)}
+            title="Lọc theo mức độ rủi ro kiểm toán sư phạm"
+            style={{ minWidth: '170px' }}
+          >
+            <option value="ALL">Mọi mức độ rủi ro</option>
+            <option value="NEEDS_REVIEW">Cần kiểm tra sâu (Needs Review)</option>
+            <option value="HOMOGRAPH_DUOYINZI">Từ đa âm / Đồng hình</option>
+            <option value="MISSING_MEANING">Thiếu nghĩa tiếng Việt</option>
           </select>
 
           <label
@@ -500,6 +526,36 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
               className="ds-btn ds-btn-sm"
               disabled={isPublishingBatch || eligibleForPublish.length === 0}
               style={{
+                backgroundColor: eligibleForPublish.length > 0 ? '#d97706' : '#9ca3af',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                cursor: eligibleForPublish.length > 0 ? 'pointer' : 'not-allowed',
+              }}
+              onClick={async () => {
+                if (onBatchReview) {
+                  setIsPublishingBatch(true);
+                  try {
+                    await onBatchReview(eligibleForPublish.map(v => v.id), 'PENDING_REVIEW');
+                    setSelectedIds(new Set());
+                  } finally {
+                    setIsPublishingBatch(false);
+                  }
+                }
+              }}
+              title="Chuyển các từ đã có nghĩa sang trạng thái Chờ duyệt"
+            >
+              <span>Chuyển Chờ duyệt ({eligibleForPublish.length})</span>
+            </button>
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm"
+              disabled={isPublishingBatch || eligibleForPublish.length === 0}
+              style={{
                 backgroundColor: eligibleForPublish.length > 0 ? '#16a34a' : '#9ca3af',
                 color: '#fff',
                 border: 'none',
@@ -512,7 +568,28 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
               onClick={handleBatchPublishClick}
             >
               <CheckCircle size={14} />
-              <span>Xuất bản các từ đã chọn ({eligibleForPublish.length})</span>
+              <span>Phê duyệt & Xuất bản ({eligibleForPublish.length})</span>
+            </button>
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm ds-btn-outline"
+              disabled={isPublishingBatch || selectedIds.size === 0}
+              style={{ color: '#dc2626', borderColor: '#fca5a5' }}
+              onClick={async () => {
+                if (onBatchReview) {
+                  setIsPublishingBatch(true);
+                  try {
+                    await onBatchReview(Array.from(selectedIds), 'DRAFT');
+                    setSelectedIds(new Set());
+                  } finally {
+                    setIsPublishingBatch(false);
+                  }
+                }
+              }}
+              title="Trả các từ đã chọn về Bản nháp"
+            >
+              <span>Trả về Nháp ({selectedIds.size})</span>
             </button>
             <button
               type="button"
@@ -594,6 +671,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
               <th>Hán tự</th>
               <th>Pinyin</th>
               <th>Nghĩa Việt</th>
+              <th>Gợi ý (CVDICT)</th>
               <th>Loại từ</th>
               <th>Cấp HSK</th>
               <th>Trạng thái</th>
@@ -603,7 +681,7 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
           <tbody>
             {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--muted)' }}>
+                <td colSpan={9} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--muted)' }}>
                   Không tìm thấy từ vựng nào phù hợp với bộ lọc.
                 </td>
               </tr>
@@ -631,6 +709,23 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
                     </td>
                     <td className="lcm-hanzi-cell">
                       <span>{vocab.simplified}</span>
+                      {vocab.homograph && (
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            backgroundColor: '#fff7ed',
+                            color: '#c2410c',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            border: '1px solid #ffedd5',
+                            marginLeft: '4px',
+                            fontWeight: 600,
+                          }}
+                          title={`Từ đồng hình: ${vocab.homograph}`}
+                        >
+                          Đồng hình
+                        </span>
+                      )}
                       {isManualReview && (
                         <span
                           style={{
@@ -655,8 +750,15 @@ export const VocabularyTab: React.FC<VocabularyTabProps> = ({
                         vocab.meaningVi
                       ) : (
                         <span style={{ color: '#d97706', fontStyle: 'italic', fontSize: '12px' }}>
-                          Chưa có nghĩa (DRAFT)
+                          Chưa có nghĩa ({vocab.status})
                         </span>
+                      )}
+                    </td>
+                    <td style={{ maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={vocab.suggestedMeaningVi}>
+                      {vocab.suggestedMeaningVi ? (
+                        <span style={{ fontSize: '12px', color: '#0f766e' }}>{vocab.suggestedMeaningVi}</span>
+                      ) : (
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>—</span>
                       )}
                     </td>
                     <td>

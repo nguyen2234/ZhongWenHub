@@ -65,11 +65,12 @@ export interface StudentNavCollapsibleGroup {
 }
 
 /**
- * 4 Collapsible Navigation Groups (Phase FE-5 HanbeeGo Dashboard Alignment)
- * A. Nhóm Tổng quan
- * B. Nhóm Khóa học
- * C. Nhóm Kỹ năng
- * D. Nhóm Cá nhân hóa
+ * 5 Collapsible Navigation Groups (Aligned with Student Portal Redesign)
+ * 1. Nhóm Tổng quan
+ * 2. Nhóm Khóa học
+ * 3. Nhóm Kho kiến thức (Từ vựng & Ngữ pháp HSK 1–6)
+ * 4. Nhóm Luyện tập
+ * 5. Nhóm Cá nhân hóa
  */
 export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
   // 1. Nhóm Tổng quan
@@ -116,45 +117,40 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: Dumbbell,
         matchPrefixes: ['/practice', '/homework'],
       },
+    ],
+  },
+
+  // 3. Nhóm Kho kiến thức (Phân hệ Từ vựng & Ngữ pháp độc lập)
+  {
+    id: 'knowledge',
+    groupTitle: 'KHO KIẾN THỨC',
+    defaultOpen: true,
+    items: [
+      {
+        id: 'vocabulary',
+        path: '/vocabulary',
+        label: 'Từ vựng HSK 1–6',
+        icon: Languages,
+        badge: 'SRS',
+        badgeType: 'streak',
+        matchPrefixes: ['/vocabulary', '/srs-review'],
+      },
       {
         id: 'grammar',
         path: '/grammar',
-        label: 'Ngữ pháp',
+        label: 'Ngữ pháp HSK 1–6',
         icon: BookText,
+        badge: 'HSK 1-6',
+        badgeType: 'primary',
         matchPrefixes: ['/grammar'],
-      },
-      {
-        id: 'mock-exams',
-        path: '/mock-exams',
-        label: 'Luyện thi HSK',
-        icon: Award,
-        badge: 'Thi thử',
-        badgeType: 'streak',
-        matchPrefixes: ['/mock-exams'],
-      },
-      {
-        id: 'games',
-        path: '/games',
-        label: 'Trò chơi học tập',
-        icon: Gamepad2,
-        matchPrefixes: ['/games'],
-      },
-      {
-        id: 'videos',
-        path: '/videos',
-        label: 'Học qua video',
-        icon: Film,
-        badge: 'Mới',
-        badgeType: 'ai',
-        matchPrefixes: ['/videos'],
       },
     ],
   },
 
-  // 3. Nhóm Kỹ năng
+  // 4. Nhóm Luyện tập
   {
     id: 'skills',
-    groupTitle: 'KỸ NĂNG',
+    groupTitle: 'LUYỆN TẬP',
     defaultOpen: true,
     items: [
       {
@@ -172,6 +168,22 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         matchPrefixes: ['/skills/speaking'],
       },
       {
+        id: 'games',
+        path: '/games',
+        label: 'Trò chơi học tập',
+        icon: Gamepad2,
+        matchPrefixes: ['/games'],
+      },
+      {
+        id: 'mock-exams',
+        path: '/mock-exams',
+        label: 'Luyện thi HSK',
+        icon: Award,
+        badge: 'Thi thử',
+        badgeType: 'streak',
+        matchPrefixes: ['/mock-exams'],
+      },
+      {
         id: 'reading',
         path: '/skills/reading',
         label: 'Đọc hiểu',
@@ -185,24 +197,24 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: PenTool,
         matchPrefixes: ['/skills/writing'],
       },
+      {
+        id: 'videos',
+        path: '/videos',
+        label: 'Học qua video',
+        icon: Film,
+        badge: 'Mới',
+        badgeType: 'ai',
+        matchPrefixes: ['/videos'],
+      },
     ],
   },
 
-  // 4. Nhóm Cá nhân hóa
+  // 5. Nhóm Cá nhân hóa
   {
     id: 'personal',
     groupTitle: 'CÁ NHÂN HÓA',
     defaultOpen: true,
     items: [
-      {
-        id: 'vocabulary',
-        path: '/vocabulary',
-        label: 'Từ vựng',
-        icon: Languages,
-        badge: 'SRS',
-        badgeType: 'streak',
-        matchPrefixes: ['/vocabulary', '/srs-review'],
-      },
       {
         id: 'ai-tutor',
         path: '/ai-tutor',

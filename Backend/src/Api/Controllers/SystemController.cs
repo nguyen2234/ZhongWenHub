@@ -61,6 +61,24 @@ public class SystemController : BaseApiController
         return Ok(new { status = "Healthy", database = "Connected", timestamp = DateTime.UtcNow });
     }
 
+    [HttpGet("database-environment")]
+    [AllowAnonymous]
+    public IActionResult GetDatabaseEnvironment()
+    {
+        var dbConn = _dbContext.Database.GetDbConnection();
+        var dbName = dbConn.Database;
+        var isTestDb = dbName.EndsWith("_Test", StringComparison.OrdinalIgnoreCase) ||
+                       dbName.Contains("Test", StringComparison.OrdinalIgnoreCase);
+
+        return Ok(new
+        {
+            databaseName = dbName,
+            isTestDatabase = isTestDb,
+            environment = _env.EnvironmentName,
+            timestampUtc = DateTime.UtcNow
+        });
+    }
+
     // Role & Policy Verification Test Endpoints
     [HttpGet("admin-test")]
     [Authorize(Policy = PolicyConstants.AdminAccess)]

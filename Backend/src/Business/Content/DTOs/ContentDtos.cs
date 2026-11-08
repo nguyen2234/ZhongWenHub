@@ -126,6 +126,10 @@ public class LessonDto
     public int VocabularyCount { get; set; }
     public int GrammarCount { get; set; }
     public int ExerciseCount { get; set; }
+    public Guid? UpdatedByUserId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -202,6 +206,7 @@ public class VocabularyDto
     public string? Traditional { get; set; }
     public string Pinyin { get; set; } = string.Empty;
     public string MeaningVi { get; set; } = string.Empty;
+    public string? SuggestedMeaningVi { get; set; }
     public string? MeaningEn { get; set; }
     public string? PartOfSpeech { get; set; }
     public string? AudioUrl { get; set; }
@@ -215,6 +220,10 @@ public class VocabularyDto
     public string? LevelLabel { get; set; }
     public int? SourcePdfPage { get; set; }
     public Guid? LessonId { get; set; }
+    public Guid? UpdatedByUserId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -237,11 +246,13 @@ public class CreateVocabularyDto
     [StringLength(255)]
     public string? MeaningVi { get; set; }
 
+    public string? SuggestedMeaningVi { get; set; }
     public string? MeaningEn { get; set; }
     public string? PartOfSpeech { get; set; }
     public string? AudioUrl { get; set; }
     public string? ExamplesJson { get; set; }
     public string Status { get; set; } = "PUBLISHED";
+    public string? ReviewNotes { get; set; }
     public string? SourceDataset { get; set; }
     public string? SourceEntryId { get; set; }
     public string? SourceId { get; set; }
@@ -395,7 +406,16 @@ public class GrammarPointDto
     public string ExamplesJson { get; set; } = "[]";
     public string? PracticeJson { get; set; }
     public string Status { get; set; } = "PUBLISHED";
+    public string? GrammarType { get; set; }
+    public string? CategoryType { get; set; }
+    public string? RawExplanationCn { get; set; }
+    public string? SourceDataset { get; set; }
+    public string? SourceEntryId { get; set; }
     public Guid? LessonId { get; set; }
+    public Guid? UpdatedByUserId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -549,4 +569,88 @@ public class AdminExerciseStatsDto
     public Dictionary<int, int> ByHsk { get; set; } = new();
     public Dictionary<string, int> BySkill { get; set; } = new();
     public Dictionary<string, int> ByType { get; set; } = new();
+}
+
+public class ReviewContentDto
+{
+    [Required(ErrorMessage = "Trạng thái không được để trống.")]
+    public string Status { get; set; } = "PENDING_REVIEW"; // PENDING_REVIEW, PUBLISHED, DRAFT
+
+    public string? ReviewNotes { get; set; }
+}
+
+public class BatchReviewContentDto
+{
+    [Required(ErrorMessage = "Danh sách ID không được để trống.")]
+    public List<Guid> Ids { get; set; } = new();
+
+    [Required(ErrorMessage = "Trạng thái không được để trống.")]
+    public string Status { get; set; } = "PENDING_REVIEW";
+
+    public string? ReviewNotes { get; set; }
+}
+
+public class BatchReviewResultDto
+{
+    public int ProcessedCount { get; set; }
+    public int SkippedCount { get; set; }
+    public List<string> SkippedReasons { get; set; } = new();
+}
+
+public class HanziRequirementDto
+{
+    public int HskLevel { get; set; }
+    public int RequirementType { get; set; } // 1: Handwriting, 2: Recognition
+}
+
+public class HanziCharacterDto
+{
+    public Guid Id { get; set; }
+    public string Character { get; set; } = string.Empty;
+    public string? Pinyin { get; set; }
+    public string? SinoVietnamese { get; set; }
+    public string? MeaningVi { get; set; }
+    public int? StrokeCount { get; set; }
+    public string? Radical { get; set; }
+    public int FirstHskLevel { get; set; }
+    public List<HanziRequirementDto> Requirements { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class UpdateHanziCharacterDto
+{
+    [Required(ErrorMessage = "Pinyin không được để trống.")]
+    public string Pinyin { get; set; } = string.Empty;
+
+    public string? SinoVietnamese { get; set; }
+    public string? MeaningVi { get; set; }
+    public int? StrokeCount { get; set; }
+    public string? Radical { get; set; }
+    [Range(1, 6)]
+    public int FirstHskLevel { get; set; } = 1;
+}
+
+public class AdminHanziStatsDto
+{
+    public int Total { get; set; }
+    public Dictionary<int, int> ByHsk { get; set; } = new();
+}
+
+public class LessonReleaseReadinessDto
+{
+    public Guid LessonId { get; set; }
+    public int LessonNumber { get; set; }
+    public string TitleZh { get; set; } = string.Empty;
+    public string TitleVi { get; set; } = string.Empty;
+    public string CurrentStatus { get; set; } = string.Empty;
+    public bool IsReadyForPublish { get; set; }
+    public bool DialogueValid { get; set; }
+    public bool ListeningValid { get; set; }
+    public int VocabCount { get; set; }
+    public int GrammarCount { get; set; }
+    public int ExerciseCount { get; set; }
+    public bool AudioFilesExist { get; set; }
+    public bool HumanReviewCompleted { get; set; }
+    public List<string> BlockerReasons { get; set; } = new();
 }

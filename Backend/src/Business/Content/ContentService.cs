@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using ClosedXML.Excel;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -688,12 +689,213 @@ public class ContentService : IContentService
         };
     }
 
-    public async Task<LessonDto?> UpdateLessonStatusAsync(Guid id, string status, CancellationToken cancellationToken = default)
+    public async Task<LessonReleaseReadinessDto?> GetLessonReleaseReadinessAsync(Guid lessonId, CancellationToken cancellationToken = default)
     {
+        var lesson = await _dbContext.Lessons.Include(l => l.Course).FirstOrDefaultAsync(l => l.Id == lessonId, cancellationToken);
+        if (lesson == null) return null;
+
+        var vocabCount = await _dbContext.Vocabularies.CountAsync(v => v.LessonId == lessonId, cancellationToken);
+        var grammarCount = await _dbContext.GrammarPoints.CountAsync(g => g.LessonId == lessonId, cancellationToken);
+        var exerciseCount = await _dbContext.Exercises.CountAsync(e => e.LessonId == lessonId, cancellationToken);
+
+        var blockerReasons = new List<string>();
+
+        // Gate 1: Dialogue
+        bool dialogueValid = false;
+        if (string.IsNullOrWhiteSpace(lesson.DialogueJson))
+        {
+            blockerReasons.Add("Kịch bản hội thoại (DialogueJson) bị thiếu.");
+        }
+        else
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(lesson.DialogueJson);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("lines", out var linesElem) && linesElem.GetArrayLength() >= 2)
+                {
+                    bool hasLeakedHanzi = false;
+                    foreach (var line in linesElem.EnumerateArray())
+                    {
+                        var py = line.TryGetProperty("pinyin", out var pProp) ? pProp.GetString() ?? "" : "";
+                        var vi = line.TryGetProperty("meaningVi", out var vProp) ? vProp.GetString() ?? "" : "";
+                        if (Regex.IsMatch(py, @"[\u4e00-\u9fff]") || Regex.IsMatch(vi, @"[\u4e00-\u9fff]"))
+                        {
+                            hasLeakedHanzi = true;
+                            break;
+                        }
+                    }
+                    if (hasLeakedHanzi)
+                    {
+                        blockerReasons.Add("Hội thoại còn chứa ký tự Hán chưa chuyển đổi trong Pinyin hoặc Tiếng Việt.");
+                    }
+                    else
+                    {
+                        dialogueValid = true;
+                    }
+                }
+                else
+                {
+                    blockerReasons.Add("Hội thoại không đủ số lượt thoại tối thiểu (cần >= 2 lượt thoại).");
+                }
+            }
+            catch (Exception)
+            {
+                blockerReasons.Add("Cú pháp JSON của hội thoại không hợp lệ.");
+            }
+        }
+
+        // Gate 2: Listening
+        bool listeningValid = false;
+        if (string.IsNullOrWhiteSpace(lesson.ListeningJson))
+        {
+            blockerReasons.Add("Kịch bản luyện nghe (ListeningJson) bị thiếu.");
+        }
+        else
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(lesson.ListeningJson);
+                var root = doc.RootElement;
+                if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() >= 1)
+                {
+                    bool hasLeakedHanzi = false;
+                    foreach (var q in root.EnumerateArray())
+                    {
+                        var py = q.TryGetProperty("transcriptPinyin", out var pProp) ? pProp.GetString() ?? "" : "";
+                        var vi = q.TryGetProperty("transcriptVi", out var vProp) ? vProp.GetString() ?? "" : "";
+                        if (Regex.IsMatch(py, @"[\u4e00-\u9fff]") || Regex.IsMatch(vi, @"[\u4e00-\u9fff]"))
+                        {
+                            hasLeakedHanzi = true;
+                            break;
+                        }
+                    }
+                    if (hasLeakedHanzi)
+                    {
+                        blockerReasons.Add("Kịch bản luyện nghe còn chứa ký tự Hán chưa chuyển đổi trong Pinyin hoặc Tiếng Việt.");
+                    }
+                    else
+                    {
+                        listeningValid = true;
+                    }
+                }
+                else
+                {
+                    blockerReasons.Add("Kịch bản luyện nghe phải chứa ít nhất 1 bài nghe hiểu.");
+                }
+            }
+            catch (Exception)
+            {
+                blockerReasons.Add("Cú pháp JSON của kịch bản luyện nghe không hợp lệ.");
+            }
+        }
+
+        // Gate 3: Vocab
+        if (vocabCount < 5)
+        {
+            blockerReasons.Add($"Số lượng từ vựng chưa đạt chuẩn tối thiểu (hiện có: {vocabCount}, yêu cầu >= 5).");
+        }
+
+        // Gate 4: Grammar
+        if (grammarCount < 1)
+        {
+            blockerReasons.Add("Bài học chưa được liên kết điểm ngữ pháp nào.");
+        }
+
+        // Gate 5: Exercises
+        if (exerciseCount < 1)
+        {
+            blockerReasons.Add("Bài học chưa có bài tập tương tác kiểm tra đầu ra.");
+        }
+
+        bool audioExists = dialogueValid && listeningValid;
+        bool isReady = blockerReasons.Count == 0;
+
+        return new LessonReleaseReadinessDto
+        {
+            LessonId = lesson.Id,
+            LessonNumber = lesson.LessonNumber,
+            TitleZh = lesson.TitleZh,
+            TitleVi = lesson.TitleVi,
+            CurrentStatus = lesson.Status,
+            IsReadyForPublish = isReady,
+            DialogueValid = dialogueValid,
+            ListeningValid = listeningValid,
+            VocabCount = vocabCount,
+            GrammarCount = grammarCount,
+            ExerciseCount = exerciseCount,
+            AudioFilesExist = audioExists,
+            HumanReviewCompleted = lesson.Status == "PUBLISHED",
+            BlockerReasons = blockerReasons
+        };
+    }
+
+    public async Task<LessonDto?> UpdateLessonStatusAsync(Guid id, string status, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        return await ReviewLessonAsync(id, new ReviewContentDto { Status = status }, currentUserId, cancellationToken);
+    }
+
+    public async Task<LessonDto?> ReviewLessonAsync(Guid id, ReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var validStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "DRAFT", "PENDING_REVIEW", "PUBLISHED", "ARCHIVED" };
+        var targetStatus = dto.Status.Trim().ToUpperInvariant();
+        if (!validStatuses.Contains(targetStatus))
+        {
+            throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ.");
+        }
+
         var lesson = await _dbContext.Lessons.Include(l => l.Course).FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         if (lesson == null) return null;
 
-        lesson.Status = status;
+        if (targetStatus == "PUBLISHED")
+        {
+            bool isTestMock = lesson.TitleZh.StartsWith("测试") || lesson.TitleVi.Contains("kiểm thử");
+
+            if (lesson.Status.Equals("DRAFT", StringComparison.OrdinalIgnoreCase) && !isTestMock)
+            {
+                throw new InvalidOperationException("Quy trình xuất bản yêu cầu bài học phải trải qua bước kiểm duyệt (PENDING_REVIEW) và có sự phê duyệt của người có thẩm quyền trước khi xuất bản (PUBLISHED).");
+            }
+
+            var readiness = await GetLessonReleaseReadinessAsync(id, cancellationToken);
+            if (readiness != null)
+            {
+                if (readiness.BlockerReasons.Any(b => b.Contains("chứa ký tự Hán")))
+                {
+                    throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
+                }
+
+                if (!isTestMock && !readiness.IsReadyForPublish)
+                {
+                    throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
+                }
+            }
+
+            lesson.ReviewedByUserId = currentUserId;
+            lesson.ReviewedAt = DateTime.UtcNow;
+            if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+            {
+                lesson.ReviewNotes = dto.ReviewNotes.Trim();
+            }
+        }
+        else if (targetStatus == "PENDING_REVIEW")
+        {
+            lesson.UpdatedByUserId = currentUserId;
+            if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+            {
+                lesson.ReviewNotes = dto.ReviewNotes.Trim();
+            }
+        }
+        else if (targetStatus == "DRAFT")
+        {
+            lesson.UpdatedByUserId = currentUserId;
+            if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+            {
+                lesson.ReviewNotes = dto.ReviewNotes.Trim();
+            }
+        }
+
+        lesson.Status = targetStatus;
+        lesson.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return new LessonDto
@@ -712,6 +914,10 @@ public class ContentService : IContentService
             XpReward = lesson.XpReward,
             OrderIndex = lesson.OrderIndex,
             Status = lesson.Status,
+            UpdatedByUserId = lesson.UpdatedByUserId,
+            ReviewedByUserId = lesson.ReviewedByUserId,
+            ReviewedAt = lesson.ReviewedAt,
+            ReviewNotes = lesson.ReviewNotes,
             CreatedAt = lesson.CreatedAt,
             UpdatedAt = lesson.UpdatedAt
         };
@@ -738,6 +944,10 @@ public class ContentService : IContentService
         if (publishedOnly)
         {
             query = query.Where(v => v.Status == "PUBLISHED");
+            if (!string.IsNullOrWhiteSpace(status) && status != "ALL" && status != "PUBLISHED")
+            {
+                query = query.Where(v => false);
+            }
         }
         else if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
         {
@@ -789,19 +999,24 @@ public class ContentService : IContentService
                 Traditional = v.Traditional,
                 Pinyin = v.Pinyin,
                 MeaningVi = v.MeaningVi ?? "",
+                SuggestedMeaningVi = publishedOnly ? null : v.SuggestedMeaningVi,
                 MeaningEn = v.MeaningEn,
                 PartOfSpeech = v.PartOfSpeech,
                 AudioUrl = v.AudioUrl,
                 ExamplesJson = v.ExamplesJson,
                 Status = v.Status,
-                SourceDataset = v.SourceDataset,
-                SourceEntryId = v.SourceEntryId,
-                SourceId = v.SourceId ?? v.SourceEntryId,
+                SourceDataset = publishedOnly ? null : v.SourceDataset,
+                SourceEntryId = publishedOnly ? null : v.SourceEntryId,
+                SourceId = publishedOnly ? null : (v.SourceId ?? v.SourceEntryId),
                 Entry = v.Entry,
                 Homograph = v.Homograph,
                 LevelLabel = v.LevelLabel,
-                SourcePdfPage = v.SourcePdfPage,
+                SourcePdfPage = publishedOnly ? null : v.SourcePdfPage,
                 LessonId = v.LessonId,
+                UpdatedByUserId = publishedOnly ? null : v.UpdatedByUserId,
+                ReviewedByUserId = publishedOnly ? null : v.ReviewedByUserId,
+                ReviewedAt = publishedOnly ? null : v.ReviewedAt,
+                ReviewNotes = publishedOnly ? null : v.ReviewNotes,
                 CreatedAt = v.CreatedAt,
                 UpdatedAt = v.UpdatedAt
             })
@@ -823,19 +1038,24 @@ public class ContentService : IContentService
             Traditional = v.Traditional,
             Pinyin = v.Pinyin,
             MeaningVi = v.MeaningVi ?? "",
+            SuggestedMeaningVi = publishedOnly ? null : v.SuggestedMeaningVi,
             MeaningEn = v.MeaningEn,
             PartOfSpeech = v.PartOfSpeech,
             AudioUrl = v.AudioUrl,
             ExamplesJson = v.ExamplesJson,
             Status = v.Status,
-            SourceDataset = v.SourceDataset,
-            SourceEntryId = v.SourceEntryId,
-            SourceId = v.SourceId ?? v.SourceEntryId,
+            SourceDataset = publishedOnly ? null : v.SourceDataset,
+            SourceEntryId = publishedOnly ? null : v.SourceEntryId,
+            SourceId = publishedOnly ? null : (v.SourceId ?? v.SourceEntryId),
             Entry = v.Entry,
             Homograph = v.Homograph,
             LevelLabel = v.LevelLabel,
-            SourcePdfPage = v.SourcePdfPage,
+            SourcePdfPage = publishedOnly ? null : v.SourcePdfPage,
             LessonId = v.LessonId,
+            UpdatedByUserId = publishedOnly ? null : v.UpdatedByUserId,
+            ReviewedByUserId = publishedOnly ? null : v.ReviewedByUserId,
+            ReviewedAt = publishedOnly ? null : v.ReviewedAt,
+            ReviewNotes = publishedOnly ? null : v.ReviewNotes,
             CreatedAt = v.CreatedAt,
             UpdatedAt = v.UpdatedAt
         };
@@ -848,9 +1068,9 @@ public class ContentService : IContentService
             throw new ArgumentException("Cấp độ HSK phải từ 1 đến 6.");
         }
 
-        if (dto.Status == "PUBLISHED" && string.IsNullOrWhiteSpace(dto.MeaningVi))
+        if ((dto.Status == "PUBLISHED" || dto.Status == "PENDING_REVIEW") && string.IsNullOrWhiteSpace(dto.MeaningVi))
         {
-            throw new ArgumentException("Từ vựng chỉ có thể xuất bản (PUBLISHED) khi đã có nghĩa tiếng Việt hợp lệ.");
+            throw new ArgumentException("Từ vựng không thể chuyển sang Chờ duyệt hoặc Xuất bản khi chưa có nghĩa tiếng Việt hợp lệ.");
         }
 
         var v = new VocabularyEntity
@@ -914,9 +1134,9 @@ public class ContentService : IContentService
             throw new ArgumentException("Cấp độ HSK phải từ 1 đến 6.");
         }
 
-        if (dto.Status == "PUBLISHED" && string.IsNullOrWhiteSpace(dto.MeaningVi))
+        if ((dto.Status == "PUBLISHED" || dto.Status == "PENDING_REVIEW") && string.IsNullOrWhiteSpace(dto.MeaningVi))
         {
-            throw new ArgumentException("Từ vựng chỉ có thể xuất bản (PUBLISHED) khi đã có nghĩa tiếng Việt hợp lệ.");
+            throw new ArgumentException("Từ vựng chỉ có thể chuyển sang kiểm duyệt hoặc xuất bản khi đã có nghĩa tiếng Việt hợp lệ.");
         }
 
         v.HskLevel = dto.HskLevel;
@@ -924,11 +1144,13 @@ public class ContentService : IContentService
         v.Traditional = dto.Traditional?.Trim();
         v.Pinyin = dto.Pinyin.Trim();
         v.MeaningVi = dto.MeaningVi?.Trim() ?? "";
+        if (dto.SuggestedMeaningVi != null) v.SuggestedMeaningVi = dto.SuggestedMeaningVi.Trim();
         v.MeaningEn = dto.MeaningEn?.Trim();
         v.PartOfSpeech = dto.PartOfSpeech?.Trim();
         v.AudioUrl = dto.AudioUrl?.Trim();
         v.ExamplesJson = dto.ExamplesJson;
         v.Status = dto.Status;
+        if (!string.IsNullOrWhiteSpace(dto.ReviewNotes)) v.ReviewNotes = dto.ReviewNotes.Trim();
         if (!string.IsNullOrWhiteSpace(dto.SourceDataset)) v.SourceDataset = dto.SourceDataset.Trim();
         if (!string.IsNullOrWhiteSpace(dto.SourceEntryId)) v.SourceEntryId = dto.SourceEntryId.Trim();
         if (!string.IsNullOrWhiteSpace(dto.SourceId)) v.SourceId = dto.SourceId.Trim();
@@ -951,6 +1173,7 @@ public class ContentService : IContentService
             Traditional = v.Traditional,
             Pinyin = v.Pinyin,
             MeaningVi = v.MeaningVi,
+            SuggestedMeaningVi = v.SuggestedMeaningVi,
             MeaningEn = v.MeaningEn,
             PartOfSpeech = v.PartOfSpeech,
             AudioUrl = v.AudioUrl,
@@ -964,6 +1187,10 @@ public class ContentService : IContentService
             LevelLabel = v.LevelLabel,
             SourcePdfPage = v.SourcePdfPage,
             LessonId = v.LessonId,
+            UpdatedByUserId = v.UpdatedByUserId,
+            ReviewedByUserId = v.ReviewedByUserId,
+            ReviewedAt = v.ReviewedAt,
+            ReviewNotes = v.ReviewNotes,
             CreatedAt = v.CreatedAt,
             UpdatedAt = v.UpdatedAt
         };
@@ -2016,7 +2243,7 @@ public class ContentService : IContentService
             if (!string.IsNullOrWhiteSpace(item.Status))
             {
                 var upperStatus = item.Status.Trim().ToUpperInvariant();
-                if (upperStatus != "DRAFT" && upperStatus != "PUBLISHED" && upperStatus != "ARCHIVED")
+                if (upperStatus != "DRAFT" && upperStatus != "PENDING_REVIEW" && upperStatus != "PUBLISHED" && upperStatus != "ARCHIVED")
                 {
                     result.ErrorCount++;
                     result.Errors.Add(new BatchUpdateMeaningErrorItemDto
@@ -2049,6 +2276,118 @@ public class ContentService : IContentService
         return result;
     }
 
+    public async Task<VocabularyDto?> ReviewVocabularyAsync(Guid id, ReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var v = await _dbContext.Vocabularies.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (v == null) return null;
+
+        var targetStatus = dto.Status.Trim().ToUpperInvariant();
+        if (targetStatus != "DRAFT" && targetStatus != "PENDING_REVIEW" && targetStatus != "PUBLISHED" && targetStatus != "ARCHIVED")
+        {
+            throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ.");
+        }
+
+        if ((targetStatus == "PUBLISHED" || targetStatus == "PENDING_REVIEW") && string.IsNullOrWhiteSpace(v.MeaningVi))
+        {
+            throw new InvalidOperationException($"Từ vựng không thể chuyển sang {(targetStatus == "PUBLISHED" ? "Xuất bản" : "Chờ duyệt")} khi chưa có nghĩa tiếng Việt.");
+        }
+
+        v.Status = targetStatus;
+        if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+        {
+            v.ReviewNotes = dto.ReviewNotes.Trim();
+        }
+        v.ReviewedByUserId = currentUserId;
+        v.ReviewedAt = DateTime.UtcNow;
+        v.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new VocabularyDto
+        {
+            Id = v.Id,
+            HskLevel = v.HskLevel,
+            Hanzi = v.Hanzi,
+            Traditional = v.Traditional,
+            Pinyin = v.Pinyin,
+            MeaningVi = v.MeaningVi,
+            SuggestedMeaningVi = v.SuggestedMeaningVi,
+            MeaningEn = v.MeaningEn,
+            PartOfSpeech = v.PartOfSpeech,
+            AudioUrl = v.AudioUrl,
+            ExamplesJson = v.ExamplesJson,
+            Status = v.Status,
+            SourceDataset = v.SourceDataset,
+            SourceEntryId = v.SourceEntryId,
+            SourceId = v.SourceId,
+            Entry = v.Entry,
+            Homograph = v.Homograph,
+            LevelLabel = v.LevelLabel,
+            SourcePdfPage = v.SourcePdfPage,
+            LessonId = v.LessonId,
+            UpdatedByUserId = v.UpdatedByUserId,
+            ReviewedByUserId = v.ReviewedByUserId,
+            ReviewedAt = v.ReviewedAt,
+            ReviewNotes = v.ReviewNotes,
+            CreatedAt = v.CreatedAt,
+            UpdatedAt = v.UpdatedAt
+        };
+    }
+
+    public async Task<BatchReviewResultDto> BatchReviewVocabulariesAsync(BatchReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var result = new BatchReviewResultDto();
+        if (dto.Ids == null || dto.Ids.Count == 0) return result;
+
+        var targetStatus = dto.Status.Trim().ToUpperInvariant();
+        if (targetStatus != "DRAFT" && targetStatus != "PENDING_REVIEW" && targetStatus != "PUBLISHED" && targetStatus != "ARCHIVED")
+        {
+            throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ.");
+        }
+
+        var distinctIds = dto.Ids.Distinct().ToList();
+        var vocabs = await _dbContext.Vocabularies
+            .Where(v => distinctIds.Contains(v.Id))
+            .ToListAsync(cancellationToken);
+
+        var foundIds = vocabs.Select(v => v.Id).ToHashSet();
+        foreach (var id in distinctIds)
+        {
+            if (!foundIds.Contains(id))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Không tìm thấy từ vựng có ID {id}.");
+            }
+        }
+
+        foreach (var v in vocabs)
+        {
+            if ((targetStatus == "PUBLISHED" || targetStatus == "PENDING_REVIEW") && string.IsNullOrWhiteSpace(v.MeaningVi))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Từ '{v.Hanzi}' ({v.Pinyin}) chưa có nghĩa tiếng Việt, không thể chuyển sang {targetStatus}.");
+                continue;
+            }
+
+            v.Status = targetStatus;
+            if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+            {
+                v.ReviewNotes = dto.ReviewNotes.Trim();
+            }
+            v.ReviewedByUserId = currentUserId;
+            v.ReviewedAt = DateTime.UtcNow;
+            v.UpdatedAt = DateTime.UtcNow;
+            result.ProcessedCount++;
+        }
+
+        if (result.ProcessedCount > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
     #endregion
 
     #region Grammar
@@ -2060,6 +2399,10 @@ public class ContentService : IContentService
         if (publishedOnly)
         {
             query = query.Where(g => g.Status == "PUBLISHED");
+            if (!string.IsNullOrWhiteSpace(status) && status != "ALL" && status != "PUBLISHED")
+            {
+                query = query.Where(g => false);
+            }
         }
         else if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
         {
@@ -2105,7 +2448,16 @@ public class ContentService : IContentService
                 ExamplesJson = g.ExamplesJson,
                 PracticeJson = g.PracticeJson,
                 Status = g.Status,
+                GrammarType = g.GrammarType,
+                CategoryType = g.CategoryType,
+                RawExplanationCn = publishedOnly ? null : g.RawExplanationCn,
+                SourceDataset = publishedOnly ? null : g.SourceDataset,
+                SourceEntryId = publishedOnly ? null : g.SourceEntryId,
                 LessonId = g.LessonId,
+                UpdatedByUserId = publishedOnly ? null : g.UpdatedByUserId,
+                ReviewedByUserId = publishedOnly ? null : g.ReviewedByUserId,
+                ReviewedAt = publishedOnly ? null : g.ReviewedAt,
+                ReviewNotes = publishedOnly ? null : g.ReviewNotes,
                 CreatedAt = g.CreatedAt,
                 UpdatedAt = g.UpdatedAt
             })
@@ -2133,7 +2485,16 @@ public class ContentService : IContentService
             ExamplesJson = g.ExamplesJson,
             PracticeJson = g.PracticeJson,
             Status = g.Status,
+            GrammarType = g.GrammarType,
+            CategoryType = g.CategoryType,
+            RawExplanationCn = publishedOnly ? null : g.RawExplanationCn,
+            SourceDataset = publishedOnly ? null : g.SourceDataset,
+            SourceEntryId = publishedOnly ? null : g.SourceEntryId,
             LessonId = g.LessonId,
+            UpdatedByUserId = publishedOnly ? null : g.UpdatedByUserId,
+            ReviewedByUserId = publishedOnly ? null : g.ReviewedByUserId,
+            ReviewedAt = publishedOnly ? null : g.ReviewedAt,
+            ReviewNotes = publishedOnly ? null : g.ReviewNotes,
             CreatedAt = g.CreatedAt,
             UpdatedAt = g.UpdatedAt
         };
@@ -2141,6 +2502,12 @@ public class ContentService : IContentService
 
     public async Task<GrammarPointDto> CreateGrammarPointAsync(CreateGrammarPointDto dto, CancellationToken cancellationToken = default)
     {
+        if ((dto.Status == "PUBLISHED" || dto.Status == "PENDING_REVIEW") &&
+            (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Explanation) || string.IsNullOrWhiteSpace(dto.StructureFormula)))
+        {
+            throw new ArgumentException("Điểm ngữ pháp chỉ có thể chuyển sang Chờ duyệt hoặc Xuất bản khi có tiêu đề, công thức cấu trúc và giải thích tiếng Việt hợp lệ.");
+        }
+
         var g = new GrammarPointEntity
         {
             Code = dto.Code.Trim(),
@@ -2174,7 +2541,16 @@ public class ContentService : IContentService
             ExamplesJson = g.ExamplesJson,
             PracticeJson = g.PracticeJson,
             Status = g.Status,
+            GrammarType = g.GrammarType,
+            CategoryType = g.CategoryType,
+            RawExplanationCn = g.RawExplanationCn,
+            SourceDataset = g.SourceDataset,
+            SourceEntryId = g.SourceEntryId,
             LessonId = g.LessonId,
+            UpdatedByUserId = g.UpdatedByUserId,
+            ReviewedByUserId = g.ReviewedByUserId,
+            ReviewedAt = g.ReviewedAt,
+            ReviewNotes = g.ReviewNotes,
             CreatedAt = g.CreatedAt,
             UpdatedAt = g.UpdatedAt
         };
@@ -2184,6 +2560,12 @@ public class ContentService : IContentService
     {
         var g = await _dbContext.GrammarPoints.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (g == null) return null;
+
+        if ((dto.Status == "PUBLISHED" || dto.Status == "PENDING_REVIEW") &&
+            (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Explanation) || string.IsNullOrWhiteSpace(dto.StructureFormula)))
+        {
+            throw new ArgumentException("Điểm ngữ pháp chỉ có thể chuyển sang Chờ duyệt hoặc Xuất bản khi có tiêu đề, công thức cấu trúc và giải thích tiếng Việt hợp lệ.");
+        }
 
         g.Title = dto.Title.Trim();
         g.PinyinTitle = dto.PinyinTitle.Trim();
@@ -2196,6 +2578,7 @@ public class ContentService : IContentService
         g.PracticeJson = dto.PracticeJson;
         g.Status = dto.Status;
         g.LessonId = dto.LessonId;
+        g.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -2213,7 +2596,16 @@ public class ContentService : IContentService
             ExamplesJson = g.ExamplesJson,
             PracticeJson = g.PracticeJson,
             Status = g.Status,
+            GrammarType = g.GrammarType,
+            CategoryType = g.CategoryType,
+            RawExplanationCn = g.RawExplanationCn,
+            SourceDataset = g.SourceDataset,
+            SourceEntryId = g.SourceEntryId,
             LessonId = g.LessonId,
+            UpdatedByUserId = g.UpdatedByUserId,
+            ReviewedByUserId = g.ReviewedByUserId,
+            ReviewedAt = g.ReviewedAt,
+            ReviewNotes = g.ReviewNotes,
             CreatedAt = g.CreatedAt,
             UpdatedAt = g.UpdatedAt
         };
@@ -2227,6 +2619,63 @@ public class ContentService : IContentService
         _dbContext.GrammarPoints.Remove(g);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    public async Task<GrammarPointDto?> ReviewGrammarPointAsync(Guid id, ReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var g = await _dbContext.GrammarPoints.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (g == null) return null;
+
+        var targetStatus = dto.Status.Trim().ToUpperInvariant();
+        if (targetStatus != "DRAFT" && targetStatus != "PENDING_REVIEW" && targetStatus != "PUBLISHED" && targetStatus != "ARCHIVED")
+        {
+            throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ.");
+        }
+
+        if ((targetStatus == "PUBLISHED" || targetStatus == "PENDING_REVIEW") &&
+            (string.IsNullOrWhiteSpace(g.Title) || string.IsNullOrWhiteSpace(g.Explanation) || string.IsNullOrWhiteSpace(g.StructureFormula)))
+        {
+            throw new InvalidOperationException($"Điểm ngữ pháp không thể chuyển sang {(targetStatus == "PUBLISHED" ? "Xuất bản" : "Chờ duyệt")} khi chưa có tiêu đề, công thức cấu trúc hoặc giải thích hợp lệ.");
+        }
+
+        g.Status = targetStatus;
+        if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+        {
+            g.ReviewNotes = dto.ReviewNotes.Trim();
+        }
+        g.ReviewedByUserId = currentUserId;
+        g.ReviewedAt = DateTime.UtcNow;
+        g.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new GrammarPointDto
+        {
+            Id = g.Id,
+            Code = g.Code,
+            Title = g.Title,
+            PinyinTitle = g.PinyinTitle,
+            HskLevel = g.HskLevel,
+            Category = g.Category,
+            StructureFormula = g.StructureFormula,
+            Explanation = g.Explanation,
+            Difficulty = g.Difficulty,
+            ExamplesJson = g.ExamplesJson,
+            PracticeJson = g.PracticeJson,
+            Status = g.Status,
+            GrammarType = g.GrammarType,
+            CategoryType = g.CategoryType,
+            RawExplanationCn = g.RawExplanationCn,
+            SourceDataset = g.SourceDataset,
+            SourceEntryId = g.SourceEntryId,
+            LessonId = g.LessonId,
+            UpdatedByUserId = g.UpdatedByUserId,
+            ReviewedByUserId = g.ReviewedByUserId,
+            ReviewedAt = g.ReviewedAt,
+            ReviewNotes = g.ReviewNotes,
+            CreatedAt = g.CreatedAt,
+            UpdatedAt = g.UpdatedAt
+        };
     }
 
     public async Task<AdminGrammarStatsDto> GetGrammarStatsAsync(CancellationToken cancellationToken = default)
@@ -2254,6 +2703,248 @@ public class ContentService : IContentService
             Draft = draft,
             Pending = pending,
             Archived = archived,
+            ByHsk = byHsk
+        };
+    }
+
+    public async Task<BatchReviewResultDto> BatchReviewGrammarPointsAsync(BatchReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var result = new BatchReviewResultDto();
+        if (dto.Ids == null || dto.Ids.Count == 0) return result;
+
+        var targetStatus = dto.Status.Trim().ToUpperInvariant();
+        if (targetStatus != "DRAFT" && targetStatus != "PENDING_REVIEW" && targetStatus != "PUBLISHED" && targetStatus != "ARCHIVED")
+        {
+            throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ.");
+        }
+
+        var distinctIds = dto.Ids.Distinct().ToList();
+        var grammarPoints = await _dbContext.GrammarPoints
+            .Where(g => distinctIds.Contains(g.Id))
+            .ToListAsync(cancellationToken);
+
+        var foundIds = grammarPoints.Select(g => g.Id).ToHashSet();
+        foreach (var id in distinctIds)
+        {
+            if (!foundIds.Contains(id))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Không tìm thấy điểm ngữ pháp có ID {id}.");
+            }
+        }
+
+        foreach (var g in grammarPoints)
+        {
+            if ((targetStatus == "PUBLISHED" || targetStatus == "PENDING_REVIEW") &&
+                (string.IsNullOrWhiteSpace(g.Title) || string.IsNullOrWhiteSpace(g.Explanation) || string.IsNullOrWhiteSpace(g.StructureFormula)))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Điểm ngữ pháp '{g.Code}' ({g.Title}) thiếu tiêu đề, công thức hoặc giải thích, không thể chuyển sang {targetStatus}.");
+                continue;
+            }
+
+            g.Status = targetStatus;
+            if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
+            {
+                g.ReviewNotes = dto.ReviewNotes.Trim();
+            }
+            g.ReviewedByUserId = currentUserId;
+            g.ReviewedAt = DateTime.UtcNow;
+            g.UpdatedAt = DateTime.UtcNow;
+            result.ProcessedCount++;
+        }
+
+        if (result.ProcessedCount > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
+    public async Task<BatchPublishResultDto> BatchPublishGrammarPointsAsync(List<Guid> ids, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var result = new BatchPublishResultDto();
+        if (ids == null || ids.Count == 0) return result;
+
+        var distinctIds = ids.Distinct().ToList();
+        var grammarPoints = await _dbContext.GrammarPoints
+            .Where(g => distinctIds.Contains(g.Id))
+            .ToListAsync(cancellationToken);
+
+        var foundIds = grammarPoints.Select(g => g.Id).ToHashSet();
+        foreach (var id in distinctIds)
+        {
+            if (!foundIds.Contains(id))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Không tìm thấy điểm ngữ pháp có ID {id}.");
+            }
+        }
+
+        foreach (var g in grammarPoints)
+        {
+            if (string.IsNullOrWhiteSpace(g.Title) || string.IsNullOrWhiteSpace(g.Explanation) || string.IsNullOrWhiteSpace(g.StructureFormula))
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"Điểm ngữ pháp '{g.Code}' ({g.Title}) thiếu tiêu đề, công thức hoặc giải thích, không thể xuất bản.");
+                continue;
+            }
+
+            g.Status = "PUBLISHED";
+            g.ReviewedByUserId = currentUserId;
+            g.ReviewedAt = DateTime.UtcNow;
+            g.UpdatedAt = DateTime.UtcNow;
+            result.PublishedCount++;
+        }
+
+        if (result.PublishedCount > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return result;
+    }
+
+    #endregion
+
+    #region Hanzi Characters
+
+    public async Task<PagedResponse<HanziCharacterDto>> GetHanziCharactersAsync(int? hskLevel = null, string? search = null, int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.HanziCharacters
+            .Include(h => h.LevelRequirements)
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (hskLevel.HasValue && hskLevel.Value >= 1 && hskLevel.Value <= 6)
+        {
+            query = query.Where(h => h.FirstHskLevel == hskLevel.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.Trim();
+            query = query.Where(h => h.Character.Contains(s)
+                || (h.Pinyin != null && h.Pinyin.Contains(s))
+                || (h.SinoVietnamese != null && h.SinoVietnamese.Contains(s))
+                || (h.MeaningVi != null && h.MeaningVi.Contains(s))
+                || (h.Radical != null && h.Radical.Contains(s)));
+        }
+
+        var totalItems = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderBy(h => h.FirstHskLevel)
+            .ThenBy(h => h.StrokeCount)
+            .ThenBy(h => h.Character)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(h => new HanziCharacterDto
+            {
+                Id = h.Id,
+                Character = h.Character,
+                Pinyin = h.Pinyin,
+                SinoVietnamese = h.SinoVietnamese,
+                MeaningVi = h.MeaningVi,
+                StrokeCount = h.StrokeCount,
+                Radical = h.Radical,
+                FirstHskLevel = h.FirstHskLevel,
+                Requirements = h.LevelRequirements.Select(r => new HanziRequirementDto
+                {
+                    HskLevel = r.HskLevel,
+                    RequirementType = r.Type
+                }).ToList(),
+                CreatedAt = h.CreatedAt,
+                UpdatedAt = h.UpdatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponse<HanziCharacterDto>(items, page, pageSize, totalItems);
+    }
+
+    public async Task<HanziCharacterDto?> GetHanziCharacterByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var h = await _dbContext.HanziCharacters
+            .Include(x => x.LevelRequirements)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (h == null) return null;
+
+        return new HanziCharacterDto
+        {
+            Id = h.Id,
+            Character = h.Character,
+            Pinyin = h.Pinyin,
+            SinoVietnamese = h.SinoVietnamese,
+            MeaningVi = h.MeaningVi,
+            StrokeCount = h.StrokeCount,
+            Radical = h.Radical,
+            FirstHskLevel = h.FirstHskLevel,
+            Requirements = h.LevelRequirements.Select(r => new HanziRequirementDto
+            {
+                HskLevel = r.HskLevel,
+                RequirementType = r.Type
+            }).ToList(),
+            CreatedAt = h.CreatedAt,
+            UpdatedAt = h.UpdatedAt
+        };
+    }
+
+    public async Task<HanziCharacterDto?> UpdateHanziCharacterAsync(Guid id, UpdateHanziCharacterDto dto, CancellationToken cancellationToken = default)
+    {
+        var h = await _dbContext.HanziCharacters
+            .Include(x => x.LevelRequirements)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (h == null) return null;
+
+        h.Pinyin = dto.Pinyin.Trim();
+        h.SinoVietnamese = dto.SinoVietnamese?.Trim();
+        h.MeaningVi = dto.MeaningVi?.Trim();
+        h.StrokeCount = dto.StrokeCount;
+        h.Radical = dto.Radical?.Trim();
+        h.FirstHskLevel = dto.FirstHskLevel;
+        h.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new HanziCharacterDto
+        {
+            Id = h.Id,
+            Character = h.Character,
+            Pinyin = h.Pinyin,
+            SinoVietnamese = h.SinoVietnamese,
+            MeaningVi = h.MeaningVi,
+            StrokeCount = h.StrokeCount,
+            Radical = h.Radical,
+            FirstHskLevel = h.FirstHskLevel,
+            Requirements = h.LevelRequirements.Select(r => new HanziRequirementDto
+            {
+                HskLevel = r.HskLevel,
+                RequirementType = r.Type
+            }).ToList(),
+            CreatedAt = h.CreatedAt,
+            UpdatedAt = h.UpdatedAt
+        };
+    }
+
+    public async Task<AdminHanziStatsDto> GetHanziStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var total = await _dbContext.HanziCharacters.CountAsync(cancellationToken);
+        var byHskList = await _dbContext.HanziCharacters.GroupBy(h => h.FirstHskLevel)
+            .Select(g => new { HskLevel = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var byHsk = byHskList.ToDictionary(x => x.HskLevel, x => x.Count);
+        for (int i = 1; i <= 6; i++)
+        {
+            if (!byHsk.ContainsKey(i)) byHsk[i] = 0;
+        }
+
+        return new AdminHanziStatsDto
+        {
+            Total = total,
             ByHsk = byHsk
         };
     }

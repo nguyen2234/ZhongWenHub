@@ -27,6 +27,13 @@ public class ContentController : BaseApiController
             || User.IsInRole(RoleConstants.ContentManager);
     }
 
+    private Guid? GetCurrentUserId()
+    {
+        var idStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        return Guid.TryParse(idStr, out var id) ? id : null;
+    }
+
     // ==========================================
     // COURSES
     // ==========================================
@@ -240,20 +247,76 @@ public class ContentController : BaseApiController
         return Ok(updated);
     }
 
+    [HttpGet("lessons/{id:guid}/release-readiness")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(LessonReleaseReadinessDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLessonReleaseReadiness(Guid id, CancellationToken cancellationToken)
+    {
+        var readiness = await _contentService.GetLessonReleaseReadinessAsync(id, cancellationToken);
+        if (readiness == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy bài học với ID {id}.", code = "LESSON_NOT_FOUND" });
+        }
+        return Ok(readiness);
+    }
+
     [HttpPut("lessons/{id:guid}/status")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLessonStatus(Guid id, [FromBody] UpdateContentStatusDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var updated = await _contentService.UpdateLessonStatusAsync(id, dto.Status, cancellationToken);
-        if (updated == null)
+        var currentUserId = GetCurrentUserId();
+        try
         {
-            return NotFound(new { message = $"Không tìm thấy bài học với ID {id}." });
+            var updated = await _contentService.UpdateLessonStatusAsync(id, dto.Status, currentUserId, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy bài học với ID {id}.", code = "LESSON_NOT_FOUND" });
+            }
+            return Ok(updated);
         }
-        return Ok(updated);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "INVALID_STATUS" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "RELEASE_GATE_VALIDATION_FAILED" });
+        }
+    }
+
+    [HttpPut("lessons/{id:guid}/review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReviewLesson(Guid id, [FromBody] ReviewContentDto dto, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var updated = await _contentService.ReviewLessonAsync(id, dto, currentUserId, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy bài học với ID {id}.", code = "LESSON_NOT_FOUND" });
+            }
+            return Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "INVALID_STATUS" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "RELEASE_GATE_VALIDATION_FAILED" });
+        }
     }
 
     [HttpDelete("lessons/{id:guid}")]
@@ -539,6 +602,63 @@ public class ContentController : BaseApiController
         return Ok(result);
     }
 
+    [HttpPut("vocabularies/{id:guid}/review")]
+    [HttpPut("/api/v1/admin/vocabularies/{id:guid}/review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReviewVocabulary(
+        Guid id,
+        [FromBody] ReviewContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var updated = await _contentService.ReviewVocabularyAsync(id, dto, currentUserId, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy từ vựng với ID {id}." });
+            }
+            return Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("vocabularies/batch-review")]
+    [HttpPost("/api/v1/admin/vocabularies/batch-review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchReviewVocabularies(
+        [FromBody] BatchReviewContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var result = await _contentService.BatchReviewVocabulariesAsync(dto, currentUserId, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
     // ==========================================
     // GRAMMAR
     // ==========================================
@@ -630,6 +750,82 @@ public class ContentController : BaseApiController
         }
         return NoContent();
     }
+
+    [HttpPut("grammar/{id:guid}/review")]
+    [HttpPut("/api/v1/admin/grammar/{id:guid}/review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(GrammarPointDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReviewGrammarPoint(
+        Guid id,
+        [FromBody] ReviewContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var updated = await _contentService.ReviewGrammarPointAsync(id, dto, currentUserId, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy điểm ngữ pháp với ID {id}." });
+            }
+            return Ok(updated);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("grammar/batch-review")]
+    [HttpPost("/api/v1/admin/grammar/batch-review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchReviewGrammarPoints(
+        [FromBody] BatchReviewContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var result = await _contentService.BatchReviewGrammarPointsAsync(dto, currentUserId, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("grammar/batch-publish")]
+    [HttpPost("/api/v1/admin/grammar/batch-publish")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchPublishResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchPublishGrammarPoints(
+        [FromBody] BatchPublishRequestDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (dto == null || dto.Ids == null || dto.Ids.Count == 0)
+        {
+            return BadRequest(new { message = "Vui lòng chọn ít nhất một điểm ngữ pháp để xuất bản." });
+        }
+
+        var currentUserId = GetCurrentUserId();
+        var result = await _contentService.BatchPublishGrammarPointsAsync(dto.Ids, currentUserId, cancellationToken);
+        return Ok(result);
+    }
+
 
     // ==========================================
     // EXERCISES
@@ -723,5 +919,70 @@ public class ContentController : BaseApiController
             return NotFound(new { message = $"Không tìm thấy bài tập với ID {id}." });
         }
         return NoContent();
+    }
+
+    // ==========================================
+    // HANZI CHARACTERS
+    // ==========================================
+
+    [HttpGet("characters")]
+    [HttpGet("/api/v1/admin/characters")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(PagedResponse<HanziCharacterDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetHanziCharacters(
+        [FromQuery] int? hskLevel,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var items = await _contentService.GetHanziCharactersAsync(hskLevel, search, page, pageSize, cancellationToken);
+        return Ok(items);
+    }
+
+    [HttpGet("characters/stats")]
+    [HttpGet("/api/v1/admin/characters/stats")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AdminHanziStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetHanziStats(CancellationToken cancellationToken)
+    {
+        var stats = await _contentService.GetHanziStatsAsync(cancellationToken);
+        return Ok(stats);
+    }
+
+    [HttpGet("characters/{id:guid}")]
+    [HttpGet("/api/v1/admin/characters/{id:guid}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(HanziCharacterDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHanziCharacterById(Guid id, CancellationToken cancellationToken)
+    {
+        var item = await _contentService.GetHanziCharacterByIdAsync(id, cancellationToken);
+        if (item == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy chữ Hán với ID {id}." });
+        }
+        return Ok(item);
+    }
+
+    [HttpPut("characters/{id:guid}")]
+    [HttpPut("/api/v1/admin/characters/{id:guid}")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(HanziCharacterDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateHanziCharacter(
+        Guid id,
+        [FromBody] UpdateHanziCharacterDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var updated = await _contentService.UpdateHanziCharacterAsync(id, dto, cancellationToken);
+        if (updated == null)
+        {
+            return NotFound(new { message = $"Không tìm thấy chữ Hán với ID {id}." });
+        }
+        return Ok(updated);
     }
 }

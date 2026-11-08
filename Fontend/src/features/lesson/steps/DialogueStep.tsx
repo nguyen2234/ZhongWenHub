@@ -225,8 +225,8 @@ export const DialogueStep: React.FC<DialogueStepProps> = ({ dialogue }) => {
                   </span>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <AudioPlayerButton textToSpeak={line.hanzi} variant="icon-only" size="sm" />
-                    <AudioPlayerButton textToSpeak={line.hanzi} isSlow variant="icon-only" size="sm" />
+                    <AudioPlayerButton textToSpeak={line.hanzi} audioUrl={line.audioUrl} variant="icon-only" size="sm" />
+                    <AudioPlayerButton textToSpeak={line.hanzi} audioUrl={line.audioUrl} isSlow variant="icon-only" size="sm" />
                   </div>
                 </div>
 

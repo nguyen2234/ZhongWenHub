@@ -11,6 +11,9 @@ import {
   Eye,
   CheckCircle2,
   AlertTriangle,
+  CheckCircle,
+  Send,
+  Clock,
 } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import type {
@@ -66,6 +69,8 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
   const [commonMistakeWrong, setCommonMistakeWrong] = useState('');
   const [commonMistakeRight, setCommonMistakeRight] = useState('');
   const [commonMistakeNote, setCommonMistakeNote] = useState('');
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Interactive preview state
   const [userPracticeAnswer, setUserPracticeAnswer] = useState('');
@@ -86,6 +91,8 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
       setCommonMistakeWrong(grammar.commonMistake?.wrong || '');
       setCommonMistakeRight(grammar.commonMistake?.right || '');
       setCommonMistakeNote(grammar.commonMistake?.note || '');
+      setReviewNotes(grammar.reviewNotes || '');
+      setValidationError(null);
       setIsEditing(false);
       setUserPracticeAnswer('');
       setPracticeEvaluated(null);
@@ -95,6 +102,11 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
   if (!isOpen || !grammar) return null;
 
   const handleSave = () => {
+    if (status === 'PUBLISHED' && (!title.trim() || !structureFormula.trim() || !explanation.trim())) {
+      setValidationError('Cần điền đủ Tên ngữ pháp, Công thức và Giải thích trước khi xuất bản.');
+      return;
+    }
+    setValidationError(null);
     onSave(grammar.id, {
       code,
       title,
@@ -105,6 +117,7 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
       explanation,
       difficulty,
       status,
+      reviewNotes: reviewNotes.trim() || undefined,
       examples,
       commonMistake:
         commonMistakeWrong.trim() || commonMistakeRight.trim()
@@ -115,6 +128,38 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
             }
           : undefined,
     });
+    setIsEditing(false);
+  };
+
+
+  const handleQuickReview = (targetStatus: ContentStatus) => {
+    if (targetStatus === 'PUBLISHED' && (!title.trim() || !structureFormula.trim() || !explanation.trim())) {
+      setValidationError('Không thể xuất bản: Điểm ngữ pháp phải có đầy đủ Tên, Công thức cấu trúc và Giải thích.');
+      return;
+    }
+    setValidationError(null);
+    onSave(grammar.id, {
+      code,
+      title,
+      pinyinTitle,
+      hskLevel,
+      category,
+      structureFormula,
+      explanation,
+      difficulty,
+      status: targetStatus,
+      reviewNotes: reviewNotes.trim() || (targetStatus === 'PUBLISHED' ? 'Đã phê duyệt qua CMS' : targetStatus === 'PENDING_REVIEW' ? 'Gửi chờ duyệt qua CMS' : 'Chuyển về bản nháp'),
+      examples,
+      commonMistake:
+        commonMistakeWrong.trim() || commonMistakeRight.trim()
+          ? {
+              wrong: commonMistakeWrong.trim(),
+              right: commonMistakeRight.trim(),
+              note: commonMistakeNote.trim(),
+            }
+          : undefined,
+    });
+    setStatus(targetStatus);
     setIsEditing(false);
   };
 
@@ -468,6 +513,20 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
                       style={{ width: '100%', padding: '8px' }}
                     />
                   </div>
+
+                  <div>
+                    <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
+                      Ghi chú kiểm duyệt (Review Notes)
+                    </label>
+                    <textarea
+                      className="ds-input"
+                      rows={2}
+                      placeholder="Ghi chú cho Content Manager / Admin khi kiểm duyệt..."
+                      value={reviewNotes}
+                      onChange={(e) => setReviewNotes(e.target.value)}
+                      style={{ width: '100%', padding: '8px' }}
+                    />
+                  </div>
                 </>
               ) : (
                 <>
@@ -506,6 +565,36 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
                       {grammar.explanation}
                     </p>
                   </div>
+
+                  {(grammar.reviewedAt || grammar.reviewNotes || grammar.reviewedByUserId) && (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        backgroundColor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#334155' }}>
+                        <Clock size={14} color="#64748b" />
+                        <span>Thông tin kiểm duyệt (Review Audit):</span>
+                      </div>
+                      {grammar.reviewedAt && (
+                        <div style={{ color: '#64748b' }}>
+                          Thời gian duyệt: <strong>{new Date(grammar.reviewedAt).toLocaleString('vi-VN')}</strong>
+                        </div>
+                      )}
+                      {grammar.reviewNotes && (
+                        <div style={{ color: '#0f172a' }}>
+                          Ghi chú: <em>{grammar.reviewNotes}</em>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Deep Linking Hub */}
                   <div
@@ -827,6 +916,24 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
           )}
         </div>
 
+        {validationError && (
+          <div
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#fee2e2',
+              color: '#b91c1c',
+              fontSize: '12px',
+              borderTop: '1px solid #fca5a5',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <AlertTriangle size={14} />
+            <span>{validationError}</span>
+          </div>
+        )}
+
         {/* Drawer Footer */}
         <div
           style={{
@@ -836,8 +943,68 @@ export const AdminGrammarDetailDrawer: React.FC<AdminGrammarDetailDrawerProps> =
             alignItems: 'center',
             justifyContent: 'space-between',
             backgroundColor: 'var(--background)',
+            gap: '8px',
           }}
         >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {grammar.status === 'DRAFT' && (
+              <>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-sm"
+                  style={{ backgroundColor: '#d97706', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => handleQuickReview('PENDING_REVIEW')}
+                  title="Gửi điểm ngữ pháp này vào hàng đợi chờ duyệt"
+                >
+                  <Send size={13} /> Gửi chờ duyệt
+                </button>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-primary ds-btn-sm"
+                  style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => handleQuickReview('PUBLISHED')}
+                  title="Phê duyệt và xuất bản điểm ngữ pháp"
+                >
+                  <CheckCircle size={13} /> Duyệt & Xuất bản
+                </button>
+              </>
+            )}
+
+            {grammar.status === 'PENDING_REVIEW' && (
+              <>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-outline ds-btn-sm"
+                  style={{ color: '#dc2626', borderColor: '#fca5a5' }}
+                  onClick={() => handleQuickReview('DRAFT')}
+                  title="Từ chối duyệt và chuyển về Bản nháp"
+                >
+                  Từ chối (Trả về Nháp)
+                </button>
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-primary ds-btn-sm"
+                  style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => handleQuickReview('PUBLISHED')}
+                  title="Phê duyệt và xuất bản điểm ngữ pháp"
+                >
+                  <CheckCircle size={13} /> Phê duyệt & Xuất bản
+                </button>
+              </>
+            )}
+
+            {grammar.status === 'PUBLISHED' && (
+              <button
+                type="button"
+                className="ds-btn ds-btn-outline ds-btn-sm"
+                style={{ color: '#64748b', borderColor: '#cbd5e1' }}
+                onClick={() => handleQuickReview('DRAFT')}
+                title="Chuyển điểm ngữ pháp về DRAFT để hiệu chỉnh"
+              >
+                Chuyển về Nháp
+              </button>
+            )}
+          </div>
           {onDelete && (
             <button
               type="button"

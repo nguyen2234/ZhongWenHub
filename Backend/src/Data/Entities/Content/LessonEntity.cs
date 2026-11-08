@@ -21,6 +21,12 @@ public class LessonEntity : BaseEntity
     public string? DialogueJson { get; set; }
     public string? ListeningJson { get; set; }
 
+    // Content Review & Audit
+    public Guid? UpdatedByUserId { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
+
     public ICollection<VocabularyEntity> Vocabularies { get; set; } = new List<VocabularyEntity>();
     public ICollection<GrammarPointEntity> GrammarPoints { get; set; } = new List<GrammarPointEntity>();
     public ICollection<ExerciseEntity> Exercises { get; set; } = new List<ExerciseEntity>();

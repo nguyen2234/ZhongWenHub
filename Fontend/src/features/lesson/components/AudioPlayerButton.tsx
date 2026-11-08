@@ -3,6 +3,7 @@ import { Volume2, Play } from 'lucide-react';
 
 interface AudioPlayerButtonProps {
   textToSpeak: string;
+  audioUrl?: string;
   pinyin?: string;
   isSlow?: boolean;
   variant?: 'primary' | 'secondary' | 'outline' | 'icon-only';
@@ -13,6 +14,7 @@ interface AudioPlayerButtonProps {
 
 export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = ({
   textToSpeak,
+  audioUrl,
   isSlow = false,
   variant = 'secondary',
   size = 'md',
@@ -20,9 +22,7 @@ export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleSpeak = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const playSpeechFallback = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel(); // cancel any ongoing speech
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -48,6 +48,30 @@ export const AudioPlayerButton: React.FC<AudioPlayerButtonProps> = ({
       setIsPlaying(true);
       setTimeout(() => setIsPlaying(false), 1200);
     }
+  };
+
+  const handleSpeak = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (audioUrl) {
+      const resolvedUrl = audioUrl.startsWith('http')
+        ? audioUrl
+        : `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${audioUrl.replace(/^\//, '')}`;
+      const audio = new Audio(resolvedUrl);
+      setIsPlaying(true);
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => {
+        setIsPlaying(false);
+        playSpeechFallback();
+      };
+      audio.play().catch(() => {
+        setIsPlaying(false);
+        playSpeechFallback();
+      });
+      return;
+    }
+
+    playSpeechFallback();
   };
 
   // Sizing styles

@@ -25,6 +25,7 @@ export interface Vocabulary {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
@@ -38,6 +39,10 @@ export interface Vocabulary {
   homograph?: string;
   levelLabel?: string;
   sourcePdfPage?: number;
+  updatedByUserId?: string;
+  reviewedByUserId?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,6 +53,7 @@ export interface VocabularyFilters {
   partOfSpeech: string;
   status: 'ALL' | ContentStatus;
   missingMeaningVi?: boolean;
+  auditRisk?: 'ALL' | 'NEEDS_REVIEW' | 'HOMOGRAPH_DUOYINZI' | 'MISSING_MEANING';
 }
 
 export interface CreateVocabularyDTO {
@@ -56,11 +62,13 @@ export interface CreateVocabularyDTO {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
   examples: Omit<VocabularyExample, 'id'>[];
   status: ContentStatus;
+  reviewNotes?: string;
   sourceDataset?: string;
   sourceEntryId?: string;
   sourceId?: string;
@@ -76,11 +84,13 @@ export interface UpdateVocabularyDTO {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
   examples: VocabularyExample[];
   status: ContentStatus;
+  reviewNotes?: string;
   sourceDataset?: string;
   sourceEntryId?: string;
   sourceId?: string;
@@ -163,4 +173,21 @@ export interface BatchUpdateMeaningsResultDTO {
   updatedCount: number;
   errorCount: number;
   errors: BatchUpdateMeaningErrorItemDTO[];
+}
+
+export interface ReviewContentDTO {
+  status: ContentStatus;
+  reviewNotes?: string;
+}
+
+export interface BatchReviewContentDTO {
+  ids: string[];
+  status: ContentStatus;
+  reviewNotes?: string;
+}
+
+export interface BatchReviewResultDto {
+  processedCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
 }

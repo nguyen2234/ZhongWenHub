@@ -18,6 +18,8 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ContentStatus>('ALL');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 50;
 
   const filteredList = useMemo(() => {
     let result = characters;
@@ -49,6 +51,13 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
     levels.forEach((lvl) => map.set(lvl.id, lvl.name));
     return map;
   }, [levels]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pagedList = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredList.slice(start, start + pageSize);
+  }, [filteredList, safeCurrentPage]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -118,7 +127,7 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
                 </td>
               </tr>
             ) : (
-              filteredList.map((char) => (
+              pagedList.map((char) => (
                 <tr
                   key={char.id}
                   className="lcm-row-clickable"
@@ -170,6 +179,36 @@ export const CharacterTab: React.FC<CharacterTabProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px', fontSize: '13px' }}>
+          <span style={{ color: 'var(--muted)' }}>
+            Hiển thị {(safeCurrentPage - 1) * pageSize + 1} - {Math.min(safeCurrentPage * pageSize, filteredList.length)} trong tổng số {filteredList.length} chữ Hán
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm ds-btn-outline"
+              disabled={safeCurrentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              Trang trước
+            </button>
+            <span style={{ fontWeight: 600 }}>
+              {safeCurrentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm ds-btn-outline"
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Trang sau
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Card List */}
       <div className="lcm-card-list">

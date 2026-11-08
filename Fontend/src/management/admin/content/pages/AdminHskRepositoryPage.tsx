@@ -15,6 +15,7 @@ import {
 } from '../components';
 import { hskRepositoryService } from '../services/hsk-repository.service';
 import type {
+  ContentStatus,
   ChineseCharacter,
   CreateVocabularyDTO,
   GrammarPoint,
@@ -38,10 +39,14 @@ export const AdminHskRepositoryPage: React.FC = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      await hskRepositoryService.syncVocabulariesFromApi();
+      await Promise.all([
+        hskRepositoryService.syncVocabulariesFromApi(),
+        hskRepositoryService.syncCharactersFromApi(),
+        hskRepositoryService.syncGrammarFromApi(),
+      ]);
       setDataVersion((v) => v + 1);
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Không thể tải danh sách từ vựng từ máy chủ.');
+      setErrorMessage(err?.message || 'Không thể tải danh sách dữ liệu từ máy chủ.');
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +199,17 @@ export const AdminHskRepositoryPage: React.FC = () => {
     }
   }, [loadData]);
 
+  const handleBatchReview = useCallback(async (ids: string[], status: ContentStatus, notes?: string) => {
+    try {
+      const result = await hskRepositoryService.batchReviewVocabulariesAsync({ ids, status, reviewNotes: notes });
+      alert(`Đã cập nhật trạng thái (${status}) cho ${result.processedCount} từ vựng!${result.skippedCount > 0 ? ` (Bỏ qua ${result.skippedCount} từ)` : ''}`);
+      await loadData();
+    } catch (err: any) {
+      console.error('Lỗi duyệt hàng loạt:', err);
+      alert(err?.message || 'Không thể cập nhật trạng thái hàng loạt.');
+    }
+  }, [loadData]);
+
   const handleDeleteVocab = useCallback(async (id: string) => {
     try {
       await hskRepositoryService.deleteVocabularyAsync(id);
@@ -211,8 +227,12 @@ export const AdminHskRepositoryPage: React.FC = () => {
     setIsCharDrawerOpen(true);
   }, []);
 
-  const handleSaveChar = useCallback((id: string, dto: UpdateCharacterDTO) => {
-    hskRepositoryService.updateCharacter(id, dto);
+  const handleSaveChar = useCallback(async (id: string, dto: UpdateCharacterDTO) => {
+    try {
+      await hskRepositoryService.updateCharacterAsync(id, dto);
+    } catch {
+      hskRepositoryService.updateCharacter(id, dto);
+    }
     setDataVersion((v) => v + 1);
     setIsCharDrawerOpen(false);
   }, []);
@@ -223,10 +243,45 @@ export const AdminHskRepositoryPage: React.FC = () => {
     setIsGrammarDrawerOpen(true);
   }, []);
 
-  const handleSaveGrammar = useCallback((id: string, dto: UpdateGrammarDTO) => {
-    hskRepositoryService.updateGrammar(id, dto);
+  const handleSaveGrammar = useCallback(async (id: string, dto: UpdateGrammarDTO) => {
+    try {
+      await hskRepositoryService.reviewGrammarAsync(id, {
+        status: dto.status,
+        reviewNotes: dto.reviewNotes,
+      });
+    } catch {
+      hskRepositoryService.updateGrammar(id, dto);
+    }
     setDataVersion((v) => v + 1);
     setIsGrammarDrawerOpen(false);
+  }, []);
+
+  const handleBatchPublishGrammar = useCallback(async (ids: string[]) => {
+    try {
+      setIsLoading(true);
+      const res = await hskRepositoryService.batchPublishGrammarPointsAsync(ids);
+      alert(`Xuất bản thành công ${res.publishedCount} điểm ngữ pháp.${res.skippedCount > 0 ? ` Bỏ qua: ${res.skippedCount}` : ''}`);
+      await hskRepositoryService.syncGrammarFromApi();
+      setDataVersion((v) => v + 1);
+    } catch (err: any) {
+      alert(err?.message || 'Có lỗi khi xuất bản điểm ngữ pháp.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleBatchReviewGrammar = useCallback(async (ids: string[], status: ContentStatus, notes?: string) => {
+    try {
+      setIsLoading(true);
+      const res = await hskRepositoryService.batchReviewGrammarPointsAsync({ ids, status, reviewNotes: notes });
+      alert(`Chuyển trạng thái ${status} thành công cho ${res.processedCount} điểm ngữ pháp.${res.skippedCount > 0 ? ` Bỏ qua: ${res.skippedCount}` : ''}`);
+      await hskRepositoryService.syncGrammarFromApi();
+      setDataVersion((v) => v + 1);
+    } catch (err: any) {
+      alert(err?.message || 'Có lỗi khi kiểm duyệt điểm ngữ pháp.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   // Handlers for HSK Levels
@@ -358,6 +413,7 @@ export const AdminHskRepositoryPage: React.FC = () => {
           onSelectVocabulary={handleOpenVocab}
           onOpenCreate={handleOpenCreateVocab}
           onBatchPublish={handleBatchPublish}
+          onBatchReview={handleBatchReview}
         />
       )}
 
@@ -376,6 +432,8 @@ export const AdminHskRepositoryPage: React.FC = () => {
           levels={levels}
           selectedLevelId={selectedLevelId}
           onSelectGrammar={handleOpenGrammar}
+          onBatchPublish={handleBatchPublishGrammar}
+          onBatchReview={handleBatchReviewGrammar}
         />
       )}
 
@@ -422,6 +480,16 @@ export const AdminHskRepositoryPage: React.FC = () => {
         onClose={() => setIsLevelDrawerOpen(false)}
         onSave={handleSaveLevel}
       />
+
+      {/* Footer License Attribution */}
+      <footer style={{ marginTop: 'var(--space-6)', padding: '12px 16px', backgroundColor: 'var(--background-secondary, #f8fafc)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <strong>Bản quyền học liệu:</strong> Danh mục từ vựng và ngữ pháp đối chiếu theo chuẩn HSK 3.0. Dữ liệu nghĩa gợi ý tham khảo từ dự án <em>CVDICT (Giấy phép CC BY-SA 4.0)</em>.
+        </div>
+        <div>
+          Hệ thống yêu cầu kiểm duyệt thủ công đối với 100% học liệu HSK trước khi chuyển sang trạng thái <code>PUBLISHED</code>.
+        </div>
+      </footer>
 
       {/* Import Wizard Modal */}
       <ImportDataWizardModal

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -174,7 +174,7 @@ public class AdminUserService : IAdminUserService
 
         var page = Math.Max(1, filter.Page);
 
-        var pageSize = Math.Clamp(filter.PageSize, 1, 100);
+        var pageSize = Math.Clamp(filter.PageSize, 1, 1000);
 
 
 

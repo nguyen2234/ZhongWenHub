@@ -25,6 +25,9 @@ import type {
   BatchPublishResultDto,
   BatchUpdateMeaningItemDTO,
   BatchUpdateMeaningsResultDTO,
+  ReviewContentDTO,
+  BatchReviewContentDTO,
+  BatchReviewResultDto,
 } from '../types';
 
 let standards = [...MOCK_STANDARDS];
@@ -98,6 +101,7 @@ class HskRepositoryService {
       traditional: v.traditional || v.hanzi,
       pinyin: v.pinyin,
       meaningVi: v.meaningVi || '',
+      suggestedMeaningVi: v.suggestedMeaningVi || '',
       meaningEn: v.meaningEn || '',
       partOfSpeech: v.partOfSpeech || 'danh từ',
       audioUrl: v.audioUrl || '',
@@ -109,6 +113,10 @@ class HskRepositoryService {
       homograph: v.homograph,
       levelLabel: v.levelLabel,
       sourcePdfPage: v.sourcePdfPage,
+      updatedByUserId: v.updatedByUserId,
+      reviewedByUserId: v.reviewedByUserId,
+      reviewedAt: v.reviewedAt,
+      reviewNotes: v.reviewNotes,
       examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
       source: (v.sourceDataset && v.sourceEntryId) ? `${v.sourceDataset} (ID: ${v.sourceEntryId})` : (v.sourceId ? `HSK 3.0 (ID: ${v.sourceId})` : 'Live SQL Server'),
       createdAt: v.createdAt || new Date().toISOString(),
@@ -393,6 +401,49 @@ class HskRepositoryService {
     return res;
   }
 
+  async reviewVocabularyAsync(id: string, dto: ReviewContentDTO): Promise<Vocabulary> {
+    const res = await httpClient.put<any>(`/content/vocabularies/${id}/review`, dto);
+    const updated: Vocabulary = {
+      id: res.id,
+      hskLevelId: `level-hsk-${res.hskLevel || 1}`,
+      simplified: res.hanzi,
+      traditional: res.traditional || res.hanzi,
+      pinyin: res.pinyin,
+      meaningVi: res.meaningVi || '',
+      suggestedMeaningVi: res.suggestedMeaningVi || '',
+      meaningEn: res.meaningEn || '',
+      partOfSpeech: res.partOfSpeech || 'danh từ',
+      audioUrl: res.audioUrl || '',
+      status: res.status || 'PUBLISHED',
+      sourceDataset: res.sourceDataset,
+      sourceEntryId: res.sourceEntryId,
+      sourceId: res.sourceId || res.sourceEntryId,
+      entry: res.entry,
+      homograph: res.homograph,
+      levelLabel: res.levelLabel,
+      sourcePdfPage: res.sourcePdfPage,
+      updatedByUserId: res.updatedByUserId,
+      reviewedByUserId: res.reviewedByUserId,
+      reviewedAt: res.reviewedAt,
+      reviewNotes: res.reviewNotes,
+      examples: typeof res.examplesJson === 'string' && res.examplesJson ? JSON.parse(res.examplesJson) : (res.examples || []),
+      source: (res.sourceDataset && res.sourceEntryId) ? `${res.sourceDataset} (ID: ${res.sourceEntryId})` : (res.sourceId ? `HSK 3.0 (ID: ${res.sourceId})` : 'Live SQL Server'),
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || new Date().toISOString(),
+    };
+
+    const idx = vocabularies.findIndex((v) => v.id === id);
+    if (idx !== -1) {
+      vocabularies[idx] = updated;
+    }
+    return updated;
+  }
+
+  async batchReviewVocabulariesAsync(dto: BatchReviewContentDTO): Promise<BatchReviewResultDto> {
+    const res = await httpClient.post<BatchReviewResultDto>('/content/vocabularies/batch-review', dto);
+    return res;
+  }
+
   getVocabularies(filters?: VocabularyFilters): Vocabulary[] {
     let result = [...vocabularies];
 
@@ -409,6 +460,14 @@ class HskRepositoryService {
     }
 
     if (filters?.missingMeaningVi) {
+      result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
+    }
+
+    if (filters?.auditRisk === 'NEEDS_REVIEW') {
+      result = result.filter((v) => v.status === 'PENDING_REVIEW' || !v.meaningVi);
+    } else if (filters?.auditRisk === 'HOMOGRAPH_DUOYINZI') {
+      result = result.filter((v) => !!v.homograph || (v.entry && v.entry.includes('(')));
+    } else if (filters?.auditRisk === 'MISSING_MEANING') {
       result = result.filter((v) => !v.meaningVi || v.meaningVi.trim() === '');
     }
 
@@ -480,6 +539,73 @@ class HskRepositoryService {
   }
 
   // --- Chinese Characters ---
+  async syncCharactersFromApi(params?: { hskLevel?: number; search?: string; pageSize?: number }): Promise<void> {
+    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500, page: 1 };
+    if (params?.hskLevel) queryParams.hskLevel = params.hskLevel;
+    if (params?.search) queryParams.search = params.search;
+
+    const res = await httpClient.get<any>('/content/characters', { params: queryParams });
+    let items = Array.isArray(res) ? res : (res?.items || []);
+    const totalPages = res?.totalPages ?? 1;
+
+    if (totalPages > 1) {
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await httpClient.get<any>('/content/characters', {
+          params: { ...queryParams, page: p },
+        });
+        const nextItems = Array.isArray(nextRes) ? nextRes : (nextRes?.items || []);
+        items = [...items, ...nextItems];
+      }
+    }
+
+    characters = items.map((c: any) => ({
+      id: c.id,
+      character: c.character,
+      pinyin: c.pinyin || '',
+      sinoVietnamese: c.sinoVietnamese || '',
+      meaningVi: c.meaningVi || '',
+      radical: c.radical || '',
+      strokeCount: c.strokeCount || 0,
+      hskLevelId: `level-hsk-${c.firstHskLevel || 1}`,
+      status: 'PUBLISHED',
+      createdAt: c.createdAt || new Date().toISOString(),
+      updatedAt: c.updatedAt || new Date().toISOString(),
+    }));
+  }
+
+  async updateCharacterAsync(id: string, dto: UpdateCharacterDTO): Promise<ChineseCharacter> {
+    const hskLevel = Number(dto.hskLevelId.replace('level-hsk-', '')) || 1;
+    const payload = {
+      pinyin: dto.pinyin.trim(),
+      sinoVietnamese: dto.sinoVietnamese?.trim(),
+      meaningVi: dto.meaningVi?.trim(),
+      strokeCount: dto.strokeCount,
+      radical: dto.radical?.trim(),
+      firstHskLevel: hskLevel,
+    };
+
+    const res = await httpClient.put<any>(`/content/characters/${id}`, payload);
+    const updated: ChineseCharacter = {
+      id: res.id,
+      character: res.character,
+      pinyin: res.pinyin || '',
+      sinoVietnamese: res.sinoVietnamese || '',
+      meaningVi: res.meaningVi || '',
+      radical: res.radical || '',
+      strokeCount: res.strokeCount || 0,
+      hskLevelId: `level-hsk-${res.firstHskLevel || hskLevel}`,
+      status: 'PUBLISHED',
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || new Date().toISOString(),
+    };
+
+    const idx = characters.findIndex((c) => c.id === id);
+    if (idx !== -1) {
+      characters[idx] = updated;
+    }
+    return updated;
+  }
+
   getCharacters(filters?: CharacterFilters): ChineseCharacter[] {
     let result = [...characters];
 
@@ -529,6 +655,90 @@ class HskRepositoryService {
   }
 
   // --- Grammar Points ---
+  async syncGrammarFromApi(params?: { hskLevel?: number; status?: string; pageSize?: number }): Promise<void> {
+    const queryParams: Record<string, any> = { pageSize: params?.pageSize ?? 500, page: 1 };
+    if (params?.hskLevel) queryParams.hskLevel = params.hskLevel;
+    if (params?.status && params.status !== 'ALL') queryParams.status = params.status;
+
+    const res = await httpClient.get<any>('/admin/grammar', { params: queryParams });
+    let items = Array.isArray(res) ? res : (res?.items || []);
+    const totalPages = res?.totalPages ?? 1;
+
+    if (totalPages > 1) {
+      for (let p = 2; p <= totalPages; p++) {
+        const nextRes = await httpClient.get<any>('/admin/grammar', {
+          params: { ...queryParams, page: p },
+        });
+        const nextItems = Array.isArray(nextRes) ? nextRes : (nextRes?.items || []);
+        items = [...items, ...nextItems];
+      }
+    }
+
+    grammarPoints = items.map((g: any) => {
+      let examples = [];
+      if (typeof g.examplesJson === 'string' && g.examplesJson) {
+        try { examples = JSON.parse(g.examplesJson); } catch { examples = []; }
+      } else if (Array.isArray(g.examples)) {
+        examples = g.examples;
+      }
+      return {
+        id: g.id,
+        code: g.code || `g-${g.id?.substring(0, 8)}`,
+        title: g.title,
+        pinyinTitle: g.pinyinTitle || '',
+        hskLevelId: `level-hsk-${g.hskLevel || 1}`,
+        category: g.category || 'cơ bản',
+        structureFormula: g.structureFormula || '',
+        explanation: g.explanation || '',
+        difficulty: g.difficulty || 'Dễ',
+        status: g.status || 'PUBLISHED',
+        reviewedAt: g.reviewedAt,
+        reviewedByUserId: g.reviewedByUserId,
+        reviewNotes: g.reviewNotes,
+        examples,
+        createdAt: g.createdAt || new Date().toISOString(),
+        updatedAt: g.updatedAt || new Date().toISOString(),
+      };
+    });
+  }
+
+  async reviewGrammarAsync(id: string, dto: ReviewContentDTO): Promise<GrammarPoint> {
+    const res = await httpClient.put<any>(`/content/grammar/${id}/review`, dto);
+    const updated: GrammarPoint = {
+      id: res.id,
+      code: res.code,
+      title: res.title,
+      pinyinTitle: res.pinyinTitle || '',
+      hskLevelId: `level-hsk-${res.hskLevel || 1}`,
+      category: res.category || 'cơ bản',
+      structureFormula: res.structureFormula || '',
+      explanation: res.explanation || '',
+      difficulty: res.difficulty || 'Dễ',
+      status: res.status,
+      reviewedAt: res.reviewedAt,
+      reviewedByUserId: res.reviewedByUserId,
+      reviewNotes: res.reviewNotes,
+      examples: typeof res.examplesJson === 'string' && res.examplesJson ? JSON.parse(res.examplesJson) : (res.examples || []),
+      createdAt: res.createdAt || new Date().toISOString(),
+      updatedAt: res.updatedAt || new Date().toISOString(),
+    };
+
+    const idx = grammarPoints.findIndex((g) => g.id === id);
+    if (idx !== -1) {
+      grammarPoints[idx] = updated;
+    }
+    return updated;
+  }
+
+  async batchReviewGrammarPointsAsync(dto: BatchReviewContentDTO): Promise<BatchReviewResultDto> {
+    const res = await httpClient.post<BatchReviewResultDto>('/content/grammar/batch-review', dto);
+    return res;
+  }
+
+  async batchPublishGrammarPointsAsync(ids: string[]): Promise<BatchPublishResultDto> {
+    const res = await httpClient.post<BatchPublishResultDto>('/content/grammar/batch-publish', { ids });
+    return res;
+  }
   getGrammarPoints(filters?: GrammarFilters): GrammarPoint[] {
     let result = [...grammarPoints];
 

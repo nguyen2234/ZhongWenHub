@@ -68,7 +68,7 @@ class AdminUserService {
 
       // Fetch users and KPIs in parallel
       const [usersRes, kpisRes] = await Promise.all([
-        fetch(getApiUrl('admin/users?page=1&pageSize=100'), {
+        fetch(getApiUrl('admin/users?page=1&pageSize=500'), {
           headers,
           credentials: 'include',
         }),

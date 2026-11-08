@@ -32,6 +32,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<VocabularyEntity> Vocabularies => Set<VocabularyEntity>();
     public DbSet<GrammarPointEntity> GrammarPoints => Set<GrammarPointEntity>();
     public DbSet<ExerciseEntity> Exercises => Set<ExerciseEntity>();
+    public DbSet<HanziCharacterEntity> HanziCharacters => Set<HanziCharacterEntity>();
+    public DbSet<HanziLevelRequirementEntity> HanziLevelRequirements => Set<HanziLevelRequirementEntity>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -339,6 +341,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.Traditional).HasMaxLength(50);
             b.Property(v => v.Pinyin).HasMaxLength(100).IsRequired();
             b.Property(v => v.MeaningVi).HasMaxLength(255).IsRequired(false);
+            b.Property(v => v.SuggestedMeaningVi).HasMaxLength(1000);
             b.Property(v => v.MeaningEn).HasMaxLength(255);
             b.Property(v => v.PartOfSpeech).HasMaxLength(50);
             b.Property(v => v.AudioUrl).HasMaxLength(500);
@@ -354,6 +357,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.Homograph).HasMaxLength(20);
             b.Property(v => v.LevelLabel).HasMaxLength(50);
             b.Property(v => v.SourcePdfPage).HasColumnType("int");
+            b.Property(v => v.ReviewNotes).HasMaxLength(1000);
 
             b.HasOne(v => v.Lesson)
                 .WithMany(l => l.Vocabularies)
@@ -383,6 +387,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(g => g.ExamplesJson).HasColumnType("nvarchar(max)").IsRequired();
             b.Property(g => g.PracticeJson).HasColumnType("nvarchar(max)");
             b.Property(g => g.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(g => g.GrammarType).HasMaxLength(100);
+            b.Property(g => g.CategoryType).HasMaxLength(100);
+            b.Property(g => g.RawExplanationCn).HasColumnType("nvarchar(max)");
+            b.Property(g => g.SourceDataset).HasMaxLength(100);
+            b.Property(g => g.SourceEntryId).HasMaxLength(50);
+            b.Property(g => g.ReviewNotes).HasMaxLength(1000);
+
             b.Property(g => g.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(g => g.UpdatedAt).HasColumnType("datetime2");
 
@@ -394,6 +405,44 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(g => g.Code).IsUnique().HasDatabaseName("idx_grammar_points_code");
             b.HasIndex(g => g.HskLevel).HasDatabaseName("idx_grammar_points_hsk_level");
             b.HasIndex(g => g.Status).HasDatabaseName("idx_grammar_points_status");
+            b.HasIndex(g => new { g.SourceDataset, g.SourceEntryId }).HasDatabaseName("idx_grammar_points_source_entry");
+        });
+
+        // HanziCharacter Configuration
+        builder.Entity<HanziCharacterEntity>(b =>
+        {
+            b.ToTable("hanzi_characters");
+            b.HasKey(h => h.Id);
+            b.Property(h => h.Character).HasMaxLength(10).IsRequired();
+            b.Property(h => h.Pinyin).HasMaxLength(100);
+            b.Property(h => h.SinoVietnamese).HasMaxLength(100);
+            b.Property(h => h.MeaningVi).HasMaxLength(500);
+            b.Property(h => h.Radical).HasMaxLength(10);
+            b.Property(h => h.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(h => h.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasIndex(h => h.Character).IsUnique().HasDatabaseName("idx_hanzi_characters_character");
+            b.HasIndex(h => h.FirstHskLevel).HasDatabaseName("idx_hanzi_characters_first_level");
+        });
+
+        // HanziLevelRequirement Configuration
+        builder.Entity<HanziLevelRequirementEntity>(b =>
+        {
+            b.ToTable("hanzi_level_requirements");
+            b.HasKey(r => r.Id);
+            b.Property(r => r.Character).HasMaxLength(10).IsRequired();
+            b.Property(r => r.TypeName).HasMaxLength(50).IsRequired();
+            b.Property(r => r.SourceDataset).HasMaxLength(100);
+            b.Property(r => r.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(r => r.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(r => r.CharacterEntity)
+                .WithMany(h => h.LevelRequirements)
+                .HasForeignKey(r => r.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(r => new { r.Character, r.HskLevel, r.Type }).IsUnique().HasDatabaseName("idx_hanzi_req_char_level_type");
+            b.HasIndex(r => new { r.HskLevel, r.Type }).HasDatabaseName("idx_hanzi_req_level_type");
         });
 
         // Exercise Configuration

@@ -1,9 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
+import { verifyTestDatabaseOrThrow } from './helpers/e2e-database-guard';
+import { testCredentials } from './config/test-credentials.config';
 
 async function loginViaUi(
   page: Page,
-  email = 'contentmanager@zhongwenhub.edu.vn',
-  password = 'ContentManager123!'
+  email = 'content.hongphuc.demo@zhongwenhub.edu.vn',
+  password = 'Demo@2026!ZhongWen'
 ) {
   await page.goto('/ZhongWenHub/login');
   await page.fill('#login-email', email);
@@ -29,6 +31,11 @@ async function loginViaUi(
  */
 test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQL Server)', () => {
   test.describe.configure({ mode: 'serial' });
+
+  test.beforeAll(async ({ request }) => {
+    // Strictly verify backend is connected to ZhongWenHub_Test before running write operations
+    await verifyTestDatabaseOrThrow(request);
+  });
 
   test.beforeEach(async ({ context }) => {
     await context.clearCookies();
@@ -75,8 +82,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 2.1 Log in as seeded student
     const studentLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'student@zhongwenhub.edu.vn',
-        password: 'StudentPassword123!',
+        email: 'student.an.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     expect(studentLogin.status()).toBe(200);
@@ -132,7 +139,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
         );
         localStorage.setItem('auth_token', token);
       },
-      { token: studentToken, email: 'student@zhongwenhub.edu.vn' }
+      { token: studentToken, email: 'student.an.demo@zhongwenhub.edu.vn' }
     );
 
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
@@ -146,8 +153,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 3.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     expect(cmLogin.status()).toBe(200);
@@ -194,8 +201,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 4.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -262,8 +269,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 5.1 Login as Content Manager via API
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -342,8 +349,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 6.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -424,8 +431,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 8.1 Login as Content Manager
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -456,6 +463,13 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
       await page.goto('/ZhongWenHub/management/content-manager/hsk-repository');
       await page.waitForLoadState('networkidle');
 
+      // Search for created word in UI
+      const searchBox = page.locator('input[placeholder*="Tìm theo chữ Hán"]');
+      if (await searchBox.isVisible()) {
+        await searchBox.fill(hanzi);
+        await page.waitForTimeout(500);
+      }
+
       // Verify created word appears in UI
       await expect(page.getByText(hanzi).first()).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Máy vi tính test').first()).toBeVisible();
@@ -477,6 +491,10 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
       // 8.5 Reload browser and verify updated meaning
       await page.reload();
       await page.waitForLoadState('networkidle');
+      if (await searchBox.isVisible()) {
+        await searchBox.fill(hanzi);
+        await page.waitForTimeout(500);
+      }
       await expect(page.getByText('Máy tính cập nhật').first()).toBeVisible({ timeout: 10000 });
     } finally {
       // 8.6 Delete vocabulary from SQL Server
@@ -488,6 +506,11 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
       // 8.7 Reload browser and verify deleted word is removed
       await page.reload();
       await page.waitForLoadState('networkidle');
+      const searchBox = page.locator('input[placeholder*="Tìm theo chữ Hán"]');
+      if (await searchBox.isVisible()) {
+        await searchBox.fill(hanzi);
+        await page.waitForTimeout(500);
+      }
       await expect(page.getByText(hanzi)).not.toBeVisible();
     }
   });
@@ -498,8 +521,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -580,8 +603,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -665,8 +688,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -791,8 +814,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 12.3 Content Manager attempting to access Admin Users receives 403 Forbidden
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'contentmanager@zhongwenhub.edu.vn',
-        password: 'ContentManager123!',
+        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
+        password: 'Demo@2026!ZhongWen',
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();

@@ -18,7 +18,7 @@ export const VocabularyFilters: React.FC<VocabularyFiltersProps> = ({
   onChange,
   counts,
 }) => {
-  const hskOptions: (HSKLevelNumber | 'all')[] = ['all', 1, 2, 3];
+  const hskOptions: (HSKLevelNumber | 'all')[] = ['all', 1, 2, 3, 4, 5, 6];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', width: '100%' }}>

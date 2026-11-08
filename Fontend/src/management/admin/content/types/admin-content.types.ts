@@ -41,6 +41,9 @@ export interface AdminGrammarPoint {
   practice?: GrammarPracticeExercise;
   linkedLessonIds: string[];
   linkedExerciseIds: string[];
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
   createdAt: string;
   updatedAt: string;
   [key: string]: unknown;
@@ -71,6 +74,9 @@ export interface CreateAdminGrammarDTO {
   };
   practice?: GrammarPracticeExercise;
   linkedLessonIds?: string[];
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
 }
 
 export interface UpdateAdminGrammarDTO extends Partial<CreateAdminGrammarDTO> {}

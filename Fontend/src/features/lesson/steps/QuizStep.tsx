@@ -14,6 +14,29 @@ export const QuizStep: React.FC<QuizStepProps> = ({ quiz, onCompleteQuiz }) => {
   const [hasChecked, setHasChecked] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
 
+  if (!quiz || quiz.length === 0 || !quiz[currentQIndex]) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', alignItems: 'center', padding: 'var(--space-6)' }}>
+        <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)' }}>Bài học này chưa có câu hỏi mini quiz.</p>
+        <button
+          type="button"
+          onClick={() => onCompleteQuiz(0, 0)}
+          style={{
+            padding: '10px 24px',
+            backgroundColor: 'var(--primary)',
+            color: '#fff',
+            borderRadius: 'var(--radius-md)',
+            border: 'none',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Hoàn thành bài học
+        </button>
+      </div>
+    );
+  }
+
   const currentQ = quiz[currentQIndex];
   const isCorrect = selectedOption === currentQ.correctIndex;
 

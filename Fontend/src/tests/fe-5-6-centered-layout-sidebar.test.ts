@@ -20,10 +20,10 @@ import { StudentLayout } from '../layouts/StudentLayout';
 
 describe('Phase FE-5.6: Centered Layout, Better Spacing & Invisible Sidebar Scrollbar', () => {
   describe('1. Sidebar Navigation Structure & Badges Integrity', () => {
-    it('contains all 4 required HanbeeGo navigation groups in correct order', () => {
-      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(4);
+    it('contains all 5 required navigation groups including knowledge repository', () => {
+      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(5);
       const groupIds = HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.id);
-      expect(groupIds).toEqual(['overview', 'courses', 'skills', 'personal']);
+      expect(groupIds).toEqual(['overview', 'courses', 'knowledge', 'skills', 'personal']);
     });
 
     it('validates badges for AI Tutor, Lộ trình mới and SRS features in sidebar', () => {

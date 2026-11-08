@@ -29,10 +29,11 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Manage collapsible state for the 4 HanbeeGo groups
+  // Manage collapsible state for the 5 navigation groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     overview: true,
     courses: true,
+    knowledge: true,
     skills: true,
     personal: true,
   });
@@ -149,10 +150,10 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? '12px 6px 24px' : '12px 12px 24px',
+          padding: isCollapsed ? '12px 6px 32px' : '12px 12px 32px',
           display: 'flex',
           flexDirection: 'column',
-          gap: isCollapsed ? '12px' : '18px',
+          gap: isCollapsed ? '10px' : '14px',
         }}
       >
         {HANBEEGO_STUDENT_NAV_GROUPS.map((group) => {
@@ -326,14 +327,14 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
       {!isCollapsed ? (
         <div
           style={{
-            margin: '10px 12px 14px',
-            padding: '12px 14px',
-            borderRadius: '14px',
+            margin: '6px 12px 10px',
+            padding: '10px 12px',
+            borderRadius: '12px',
             backgroundColor: '#FFF0F1',
             border: '1px solid #fed7da',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
+            gap: '8px',
             flexShrink: 0,
           }}
         >

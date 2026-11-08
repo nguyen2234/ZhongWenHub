@@ -859,7 +859,7 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .mobile-hamburger-btn {
-            display: none !important;
+            display: inline-flex !important;
           }
           .header-brand-box {
             width: auto !important;

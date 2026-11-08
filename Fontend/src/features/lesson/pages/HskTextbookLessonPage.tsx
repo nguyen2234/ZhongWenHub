@@ -34,10 +34,13 @@ import { findNextLessonId } from '../../learning/data/curriculumData';
 import { Button, StickerIllustration } from '../../../design-system';
 import './HskTextbookLessonPage.css';
 
-// Text-to-Speech Audio Helper
+// Text-to-Speech Audio Helper with Vite Base Path Resolution
 const playChineseTTS = (text: string, audioUrl?: string) => {
   if (audioUrl) {
-    const audio = new Audio(audioUrl);
+    const resolvedUrl = audioUrl.startsWith('http')
+      ? audioUrl
+      : `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${audioUrl.replace(/^\//, '')}`;
+    const audio = new Audio(resolvedUrl);
     audio.play().catch(() => playSpeechFallback(text));
     return;
   }

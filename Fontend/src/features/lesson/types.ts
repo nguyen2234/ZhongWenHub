@@ -70,6 +70,7 @@ export interface DialogueLine {
   hanzi: string;
   pinyin: string;
   meaning: string;
+  audioUrl?: string;
 }
 
 export interface ListeningData {
