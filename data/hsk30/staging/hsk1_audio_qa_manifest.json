@@ -1,0 +1,279 @@
+{
+  "auditDate": "2026-11-09",
+  "hskLevel": 1,
+  "totalFiles": 30,
+  "validFiles": 30,
+  "audioDirectory": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1",
+  "files": [
+    {
+      "filename": "les10_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les10_dialogue.mp3",
+      "sizeBytes": 67824,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les10_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les10_listening.mp3",
+      "sizeBytes": 70848,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les11_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les11_dialogue.mp3",
+      "sizeBytes": 93024,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les11_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les11_listening.mp3",
+      "sizeBytes": 93168,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les12_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les12_dialogue.mp3",
+      "sizeBytes": 87264,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les12_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les12_listening.mp3",
+      "sizeBytes": 86400,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les13_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les13_dialogue.mp3",
+      "sizeBytes": 79776,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les13_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les13_listening.mp3",
+      "sizeBytes": 77616,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les14_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les14_dialogue.mp3",
+      "sizeBytes": 80208,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les14_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les14_listening.mp3",
+      "sizeBytes": 78912,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les15_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les15_dialogue.mp3",
+      "sizeBytes": 87696,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les15_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les15_listening.mp3",
+      "sizeBytes": 84672,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les1_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les1_dialogue.mp3",
+      "sizeBytes": 68976,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les1_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les1_listening.mp3",
+      "sizeBytes": 143424,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les2_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les2_dialogue.mp3",
+      "sizeBytes": 85824,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les2_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les2_listening.mp3",
+      "sizeBytes": 145152,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les3_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les3_dialogue.mp3",
+      "sizeBytes": 92160,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les3_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les3_listening.mp3",
+      "sizeBytes": 165456,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les4_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les4_dialogue.mp3",
+      "sizeBytes": 71712,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les4_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les4_listening.mp3",
+      "sizeBytes": 71136,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les5_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les5_dialogue.mp3",
+      "sizeBytes": 67536,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les5_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les5_listening.mp3",
+      "sizeBytes": 67392,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les6_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les6_dialogue.mp3",
+      "sizeBytes": 78192,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les6_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les6_listening.mp3",
+      "sizeBytes": 77904,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les7_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les7_dialogue.mp3",
+      "sizeBytes": 68688,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les7_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les7_listening.mp3",
+      "sizeBytes": 66096,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les8_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les8_dialogue.mp3",
+      "sizeBytes": 80496,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les8_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les8_listening.mp3",
+      "sizeBytes": 79344,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les9_dialogue.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les9_dialogue.mp3",
+      "sizeBytes": 59184,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    },
+    {
+      "filename": "les9_listening.mp3",
+      "filePath": "D:\\ZhongWenHub\\Fontend\\public\\audio\\hsk1\\les9_listening.mp3",
+      "sizeBytes": 59472,
+      "hasId3": false,
+      "hasSyncFrame": true,
+      "isValidMp3": true,
+      "status": "VALID_MP3"
+    }
+  ]
+}

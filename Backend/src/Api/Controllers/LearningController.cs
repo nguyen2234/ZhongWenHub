@@ -79,8 +79,15 @@ public class LearningController : BaseApiController
             return Unauthorized(new { message = "Người dùng chưa xác thực." });
         }
 
-        var result = await _learningService.UpdateLessonStepAsync(userId.Value, lessonId, dto, cancellationToken);
-        return Ok(result);
+        try
+        {
+            var result = await _learningService.UpdateLessonStepAsync(userId.Value, lessonId, dto, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost("me/lessons/{lessonId}/complete")]
@@ -95,8 +102,15 @@ public class LearningController : BaseApiController
             return Unauthorized(new { message = "Người dùng chưa xác thực." });
         }
 
-        var state = await _learningService.CompleteLessonAsync(userId.Value, lessonId, dto, cancellationToken);
-        return Ok(state);
+        try
+        {
+            var state = await _learningService.CompleteLessonAsync(userId.Value, lessonId, dto, cancellationToken);
+            return Ok(state);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpGet("me/activities")]

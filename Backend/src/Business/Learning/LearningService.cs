@@ -424,9 +424,59 @@ public class LearningService : ILearningService
         }).ToList();
     }
 
+    private async Task<string> ResolveAndValidateLessonIdAsync(string? lessonId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(lessonId))
+        {
+            throw new KeyNotFoundException("Mã bài học không được để trống.");
+        }
+
+        var trimmed = lessonId.Trim();
+
+        // 1. Check if it's a legacy slug like 'les-1', 'les-2', ...
+        if (trimmed.StartsWith("les-", StringComparison.OrdinalIgnoreCase) || trimmed.StartsWith("les_", StringComparison.OrdinalIgnoreCase))
+        {
+            var slugNumStr = trimmed.Substring(4);
+            if (int.TryParse(slugNumStr, out int lessonNum))
+            {
+                var matched = await _context.Lessons.AsNoTracking()
+                    .Include(l => l.Course)
+                    .Where(l => (l.Course == null || l.Course.HskLevel == 1) && (l.LessonNumber == lessonNum || l.OrderIndex == lessonNum))
+                    .Select(l => l.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (matched != Guid.Empty)
+                {
+                    return matched.ToString().ToLowerInvariant();
+                }
+
+                if (lessonNum == 1)
+                {
+                    return Lesson1Guid;
+                }
+
+                throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
+            }
+            throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
+        }
+
+        // 2. Check if it's a GUID
+        if (Guid.TryParse(trimmed, out var guid))
+        {
+            var exists = await _context.Lessons.AsNoTracking().AnyAsync(l => l.Id == guid, cancellationToken);
+            if (exists || guid == Guid.Parse(Lesson1Guid))
+            {
+                return guid.ToString().ToLowerInvariant();
+            }
+            throw new KeyNotFoundException($"Không tìm thấy bài học với GUID '{lessonId}'.");
+        }
+
+        throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
+    }
+
     public async Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default)
     {
-        var normalizedId = NormalizeLessonId(lessonId);
+        var normalizedId = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
         var isLesson1 = IsLesson1(lessonId);
 
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
@@ -487,7 +537,7 @@ public class LearningService : ILearningService
 
     public async Task<StudentLearningStateDto> CompleteLessonAsync(Guid userId, string lessonId, CompleteLessonDto dto, CancellationToken cancellationToken = default)
     {
-        var normalizedId = NormalizeLessonId(lessonId);
+        var normalizedId = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
         var isLesson1 = IsLesson1(lessonId);
 
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);

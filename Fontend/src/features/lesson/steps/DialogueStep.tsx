@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Play, Users } from 'lucide-react';
 import { type DialogueLine } from '../types';
 import { AudioPlayerButton } from '../components/AudioPlayerButton';
+import { ReadingPassageCard } from '../components/ReadingPassageCard';
+import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
 
 interface DialogueStepProps {
   dialogue: {
@@ -9,9 +11,10 @@ interface DialogueStepProps {
     situation: string;
     lines: DialogueLine[];
   };
+  readingPassage?: LessonReadingPassageDTO;
 }
 
-export const DialogueStep: React.FC<DialogueStepProps> = ({ dialogue }) => {
+export const DialogueStep: React.FC<DialogueStepProps> = ({ dialogue, readingPassage }) => {
   const [showPinyin, setShowPinyin] = useState(true);
   const [showMeaning, setShowMeaning] = useState(true);
   const [activeSpeakingLineId, setActiveSpeakingLineId] = useState<number | null>(null);
@@ -276,6 +279,12 @@ export const DialogueStep: React.FC<DialogueStepProps> = ({ dialogue }) => {
           );
         })}
       </div>
+
+      {readingPassage && (
+        <div style={{ marginTop: 'var(--space-6, 24px)' }}>
+          <ReadingPassageCard passage={readingPassage} />
+        </div>
+      )}
     </div>
   );
 };

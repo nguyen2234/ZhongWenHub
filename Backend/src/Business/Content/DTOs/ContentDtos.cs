@@ -134,11 +134,37 @@ public class LessonDto
     public DateTime? UpdatedAt { get; set; }
 }
 
+public class ReadingComprehensionQuestionDto
+{
+    public string QuestionZh { get; set; } = string.Empty;
+    public string? QuestionPinyin { get; set; }
+    public string QuestionVi { get; set; } = string.Empty;
+    public List<string> Options { get; set; } = new();
+    public int CorrectIndex { get; set; }
+    public string Explanation { get; set; } = string.Empty;
+}
+
+public class ReadingPassageDto
+{
+    public int UnitNumber { get; set; }
+    public int LessonNumber { get; set; }
+    public string TitleZh { get; set; } = string.Empty;
+    public string TitleVi { get; set; } = string.Empty;
+    public string PassageZh { get; set; } = string.Empty;
+    public string PassagePinyin { get; set; } = string.Empty;
+    public string PassageVi { get; set; } = string.Empty;
+    public int CharacterCount { get; set; }
+    public List<string> TargetWords { get; set; } = new();
+    public List<string> TargetGrammar { get; set; } = new();
+    public List<ReadingComprehensionQuestionDto> ComprehensionQuestions { get; set; } = new();
+}
+
 public class LessonDetailDto : LessonDto
 {
     public List<VocabularyDto> Vocabularies { get; set; } = new();
     public List<GrammarPointDto> GrammarPoints { get; set; } = new();
     public List<ExerciseDto> Exercises { get; set; } = new();
+    public ReadingPassageDto? ReadingPassage { get; set; }
 }
 
 public class CreateLessonDto

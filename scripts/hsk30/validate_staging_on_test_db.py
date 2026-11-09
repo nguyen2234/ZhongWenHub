@@ -15,20 +15,18 @@ import sys
 import json
 import pyodbc
 from pathlib import Path
+from db_safety_guard import connect_test_database, assert_safe_test_connection
 
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
-TEST_CONN_STR = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=yes;"
-
 def validate_staging_on_test():
-    print("=== ZHONGWENHUB PHASE 9.1B: STAGING VALIDATION ON TEST DB ===")
+    print("=== ZHONGWENHUB PHASE 9.1C: STAGING VALIDATION ON TEST DB ===")
 
-    # 1. Strict Database Guard Check
-    if "ZHONGWENHUB_DEV" in TEST_CONN_STR.upper():
-        raise SystemExit("CRITICAL SECURITY VIOLATION: Target connection string points to ZhongWenHub_Dev! Aborting immediately.")
-
-    print(f"Target Database: ZhongWenHub_Test (Verified Guard Passed)")
+    # 1. Strict Database Guard Check with live DB_NAME() verification
+    conn = connect_test_database()
+    guard_info = assert_safe_test_connection(conn)
+    print(f"Target Database: {guard_info['database']} on {guard_info['server']} (Verified Guard Passed)")
 
     # 2. Load Staging Files
     vocab_file = Path("data/hsk30/staging/hsk1_vocabulary_examples.json")
@@ -48,7 +46,6 @@ def validate_staging_on_test():
 
     print(f"Loaded staging data: {len(vocab_entries)} vocab examples, {len(exercise_entries)} exercises, {len(passage_entries)} reading passages.")
 
-    conn = pyodbc.connect(TEST_CONN_STR, autocommit=False)
     cursor = conn.cursor()
 
     try:

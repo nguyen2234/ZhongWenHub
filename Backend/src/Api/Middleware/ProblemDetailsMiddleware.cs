@@ -33,6 +33,28 @@ public class ProblemDetailsMiddleware
     private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/problem+json";
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
+        if (exception is KeyNotFoundException)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            var notFoundDetails = new ApiProblemDetailsDto
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                Title = "Không tìm thấy tài nguyên",
+                Status = StatusCodes.Status404NotFound,
+                Detail = exception.Message,
+                Instance = context.Request.Path,
+                TraceId = context.TraceIdentifier
+            };
+            return context.Response.WriteAsync(JsonSerializer.Serialize(notFoundDetails, options));
+        }
+
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
         var detail = _env.IsDevelopment()
@@ -47,12 +69,6 @@ public class ProblemDetailsMiddleware
             Detail = detail,
             Instance = context.Request.Path,
             TraceId = context.TraceIdentifier
-        };
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
         };
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails, options));

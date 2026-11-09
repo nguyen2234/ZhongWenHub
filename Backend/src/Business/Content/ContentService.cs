@@ -491,6 +491,26 @@ public class ContentService : IContentService
                 UpdatedAt = e.UpdatedAt
             }).ToList();
 
+        ReadingPassageDto? readingPassage = null;
+        if (!string.IsNullOrWhiteSpace(lesson.DialogueJson))
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(lesson.DialogueJson);
+                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object && doc.RootElement.TryGetProperty("readingPassage", out var rpElem))
+                {
+                    readingPassage = System.Text.Json.JsonSerializer.Deserialize<ReadingPassageDto>(rpElem.GetRawText(), new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+            }
+            catch
+            {
+                // Graceful fallback if dialogueJson is not JSON or does not contain readingPassage
+            }
+        }
+
         return new LessonDetailDto
         {
             Id = lesson.Id,
@@ -514,6 +534,7 @@ public class ContentService : IContentService
             Vocabularies = vocabList,
             GrammarPoints = grammarList,
             Exercises = exerciseList,
+            ReadingPassage = readingPassage,
             CreatedAt = lesson.CreatedAt,
             UpdatedAt = lesson.UpdatedAt
         };

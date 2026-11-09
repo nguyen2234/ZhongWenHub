@@ -279,4 +279,78 @@ public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactor
             Assert.Equal(4, lesson1Entries[0].CurrentStepIndex);
         }
     }
+    [Fact]
+    public async Task NonExistentLesson_ReturnsNotFound()
+    {
+        var token = await GetStudentTokenAsync();
+
+        // 1. Non-existent slug 'les-999'
+        var stepPayload = new UpdateLessonStepDto
+        {
+            CurrentStepIndex = 1,
+            MaxUnlockedStepIndex = 1
+        };
+        using (var stepReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/learning/me/lessons/les-999/progress"))
+        {
+            stepReq.Content = JsonContent.Create(stepPayload);
+            stepReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var stepRes = await _client.SendAsync(stepReq);
+            Assert.Equal(HttpStatusCode.NotFound, stepRes.StatusCode);
+        }
+
+        // 2. Non-existent random GUID
+        var randomGuid = Guid.NewGuid().ToString();
+        using (var stepReq2 = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/learning/me/lessons/{randomGuid}/progress"))
+        {
+            stepReq2.Content = JsonContent.Create(stepPayload);
+            stepReq2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var stepRes2 = await _client.SendAsync(stepReq2);
+            Assert.Equal(HttpStatusCode.NotFound, stepRes2.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task UserIsolation_ProgressDoesNotLeakBetweenStudents()
+    {
+        var tokenA = await GetStudentTokenAsync();
+
+        // Login as Student B
+        var loginB = new LoginRequestDto
+        {
+            UsernameOrEmail = "student.binh.demo@zhongwenhub.edu.vn",
+            Password = "Demo@2026!ZhongWen"
+        };
+        var loginBRes = await _client.PostAsJsonAsync("/api/v1/auth/login", loginB);
+        loginBRes.EnsureSuccessStatusCode();
+        var bodyB = await loginBRes.Content.ReadFromJsonAsync<LoginResponseDto>(_jsonOptions);
+        var tokenB = bodyB!.AccessToken;
+
+        // Student A updates lesson 1 progress
+        const string lesson1Guid = "aaaaaaaa-1111-1111-1111-111111111111";
+        var stepPayload = new UpdateLessonStepDto
+        {
+            CurrentStepIndex = 3,
+            MaxUnlockedStepIndex = 3
+        };
+        using (var reqA = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/learning/me/lessons/{lesson1Guid}/progress"))
+        {
+            reqA.Content = JsonContent.Create(stepPayload);
+            reqA.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
+            var resA = await _client.SendAsync(reqA);
+            Assert.Equal(HttpStatusCode.OK, resA.StatusCode);
+        }
+
+        // Fetch Student B state and verify Student A's step does not leak into Student B's state
+        using (var reqB = new HttpRequestMessage(HttpMethod.Get, "/api/v1/learning/me"))
+        {
+            reqB.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenB);
+            var resB = await _client.SendAsync(reqB);
+            Assert.Equal(HttpStatusCode.OK, resB.StatusCode);
+
+            var stateB = await resB.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
+            Assert.NotNull(stateB);
+            Assert.NotEqual(bodyB.User.Id.ToString(), tokenA);
+        }
+    }
 }
+

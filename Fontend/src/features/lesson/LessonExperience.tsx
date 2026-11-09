@@ -377,7 +377,7 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
                 />
               )}
               {currentStepIndex === 2 && <GrammarStep grammar={lessonData.grammar} />}
-              {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} />}
+              {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} readingPassage={(lessonData as any).readingPassage} />}
               {currentStepIndex === 4 && <ListeningStep listening={lessonData.listening} />}
               {currentStepIndex === 5 && (
                 <ExerciseStep

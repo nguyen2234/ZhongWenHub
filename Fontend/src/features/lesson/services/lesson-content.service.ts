@@ -156,6 +156,18 @@ class LessonContentService {
         })
       : [];
 
+    let readingPassage: any = live.readingPassage;
+    if (!readingPassage && live.dialogueJson) {
+      try {
+        const parsed = typeof live.dialogueJson === 'string' ? JSON.parse(live.dialogueJson) : live.dialogueJson;
+        if (parsed && parsed.readingPassage) {
+          readingPassage = parsed.readingPassage;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     return {
       id: live.id,
       courseLevelId: 'level-hsk-1',
@@ -202,6 +214,7 @@ class LessonContentService {
       },
       listenings: [],
       exercises,
+      readingPassage,
     };
   }
 
