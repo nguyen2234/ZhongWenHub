@@ -1,8 +1,8 @@
 {
   "$schema": "./source_schema.json",
-  "generatedAt": "2026-11-09T19:55:00+07:00",
+  "generatedAt": "2026-11-09T20:45:00+07:00",
   "compiler": "ZhongWenHub Academic Research & Quality Engineering Team",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "sources": [
     {
       "sourceId": "HSK-OFFICIAL-001",
@@ -18,10 +18,10 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6", "HSK7-9"],
       "hasAppendix": true,
       "format": "PDF",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "ACCESS_BLOCKED",
       "licenseStatus": "PUBLIC_STANDARD_METADATA_ONLY",
-      "copyrightNotes": "Văn bản tiêu chuẩn quốc gia do nhà nước công bố. Được phép trích dẫn thông số định lượng và chỉ tiêu năng lực; không cấp phép tái phân phối thương mại nguyên văn toàn bộ ấn phẩm độc quyền.",
-      "retrievedAt": "2026-11-09T19:51:00+07:00",
+      "copyrightNotes": "Văn bản tiêu chuẩn quốc gia. Kết quả kiểm tra trực tiếp ngày 2026-11-09: URL cũ trên cổng MOE trả về HTTP 404 (đường dẫn đã thay đổi hoặc di chuyển cấu trúc thư mục). Cần truy cập qua lưu trữ thư viện tiêu chuẩn quốc gia.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -38,10 +38,10 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6", "HSK7-9"],
       "hasAppendix": true,
       "format": "PRINT_BOOK",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "LANDING_PAGE_ONLY",
       "licenseStatus": "PUBLIC_STANDARD_METADATA_ONLY",
-      "copyrightNotes": "Danh mục từ vựng chuẩn (500 từ HSK 1, 1272 từ lũy kế HSK 2, 5456 từ lũy kế HSK 1-6) và 572 điểm ngữ pháp. Được tham chiếu mã điểm, Hán tự và Pinyin; nghĩa tiếng Việt và bài tập phải do ZhongWenHub biên soạn độc lập.",
-      "retrievedAt": "2026-11-09T19:52:00+07:00",
+      "copyrightNotes": "URL dạng Single Page Application (SPA) container shell. Plain HTTP GET chỉ trả về mã khung JavaScript (3.364 bytes), không chứa danh mục dữ liệu thô. Cần đối chiếu với ấn bản sách in chính thức hoặc API nội bộ.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -58,10 +58,10 @@
       "levels": ["HSK7-9"],
       "hasAppendix": true,
       "format": "PDF",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "ACCESS_BLOCKED",
       "licenseStatus": "OFFICIAL_TEST_SYLLABUS_RESTRICTED",
-      "copyrightNotes": "Bản quyền thuộc CTI. Cấm sao chép nguyên văn đề thi và audio độc quyền; chỉ được trích xuất ma trận kỹ năng và chủ đề giao tiếp cấp cao.",
-      "retrievedAt": "2026-11-09T19:51:30+07:00",
+      "copyrightNotes": "Kết quả kiểm tra trực tiếp ngày 2026-11-09: HTTP Error 404: Not Found trên cổng CTI. Tài liệu đã được chuyển vào cổng quản lý thi dành riêng cho điểm thi được ủy quyền.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -78,10 +78,10 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6"],
       "hasAppendix": true,
       "format": "PDF",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "LANDING_PAGE_ONLY",
       "licenseStatus": "OFFICIAL_TEST_SYLLABUS_RESTRICTED",
-      "copyrightNotes": "Đề cương thi hiện hành đang được áp dụng tại các hội đồng thi quốc tế đến hết kỳ chuyển tiếp 2026. Bao gồm 150 từ (HSK 1), 300 từ (HSK 2), 600 từ (HSK 3), 1200 từ (HSK 4), 2500 từ (HSK 5), 5000 từ (HSK 6).",
-      "retrievedAt": "2026-11-09T19:52:40+07:00",
+      "copyrightNotes": "URL trả về trang giới thiệu tổng quan HSK của CTI (HTTP 200, 575KB), không chứa liên kết tải trực tiếp tệp PDF đề cương thô 2015.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -98,10 +98,10 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6", "HSK7-9"],
       "hasAppendix": false,
       "format": "HTML",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "LANDING_PAGE_ONLY",
       "licenseStatus": "PUBLIC_STANDARD_METADATA_ONLY",
-      "copyrightNotes": "Xác nhận HSK 1-6 tiếp tục áp dụng định dạng truyền thống song song trong giai đoạn hoàn thiện, tổ chức thi thử nghiệm toàn cầu năm 2026 trước khi chính thức áp dụng toàn diện.",
-      "retrievedAt": "2026-11-09T19:51:35+07:00",
+      "copyrightNotes": "URL trả về danh mục tin tức/phát triển của CTI (HTTP 200, 547KB). Các thông báo cụ thể về ngày thi 2026-12-13 nằm rải rác trong các bài viết con.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -118,10 +118,10 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6"],
       "hasAppendix": true,
       "format": "PRINT_AND_AUDIO",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "ACCESS_BLOCKED",
       "licenseStatus": "ALL_RIGHTS_RESERVED_COMMERCIAL",
-      "copyrightNotes": "Toàn bộ bài khóa, hội thoại, bài đọc, tranh minh họa và file ghi âm thuộc bản quyền thương mại của BLCUP. CẤM SAO CHÉP NGUYÊN VĂN dưới mọi hình thức lên ZhongWenHub.",
-      "retrievedAt": "2026-11-09T19:53:00+07:00",
+      "copyrightNotes": "Kiểm tra trực tiếp ngày 2026-11-09: Máy chủ BLCUP trả về HTTP Error 503 (Service Unavailable hoặc WAF Anti-Scraping). Tài liệu giáo trình thương mại có bản quyền nghiêm ngặt, cấm sao chép.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
       "sha256": null
     },
     {
@@ -138,10 +138,30 @@
       "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6"],
       "hasAppendix": true,
       "format": "PRINT_BOOK",
-      "verificationStatus": "VERIFIED_OFFICIAL",
+      "verificationStatus": "LANDING_PAGE_ONLY",
       "licenseStatus": "ALL_RIGHTS_RESERVED_COMMERCIAL",
-      "copyrightNotes": "Tài liệu phương pháp giảng dạy. Dùng để tham khảo lộ trình sư phạm, phân chia số tiết học và ma trận chủ đề giao tiếp.",
-      "retrievedAt": "2026-11-09T19:53:20+07:00",
+      "copyrightNotes": "URL chỉ là trang chủ chính của Sinolingua, không phải trang sản phẩm chi tiết. Đánh dấu LANDING_PAGE_ONLY.",
+      "retrievedAt": "2026-11-09T20:38:00+07:00",
+      "sha256": null
+    },
+    {
+      "sourceId": "HSK-OFFICIAL-008",
+      "titleZh": "新版 HSK 考试大纲（一级至六级）",
+      "titleEn": "New HSK Test Syllabus (Levels 1-6, 2025/2026 Official Edition)",
+      "titleVi": "Đề cương thi HSK 3.0 Mới Cấp 1–6 (Ấn bản CTI/CLEC 2025/2026)",
+      "publisher": "中外语言交流合作中心 (CLEC) / 汉考国际 (Chinese Testing International - CTI)",
+      "officialUrl": "https://www.chinesetest.cn/",
+      "publicationDate": "2025-11-15",
+      "effectiveDate": "2026-07-01",
+      "version": "HSK 3.0 Exam Syllabus 2025-2026",
+      "documentType": "EXAM_SYLLABUS",
+      "levels": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6"],
+      "hasAppendix": true,
+      "format": "PDF_AND_PORTAL",
+      "verificationStatus": "PARTIALLY_BLOCKED",
+      "licenseStatus": "OFFICIAL_TEST_SYLLABUS_RESTRICTED",
+      "copyrightNotes": "Đề cương thi chính thức mới nhất gồm 5 phần: Nhiệm vụ (Task), Chủ đề (Topic), Từ vựng (Vocabulary), Chữ Hán (Hanzi), Ngữ pháp (Grammar). Áp dụng từ 07/2026; thi thử nghiệm và chính thức toàn cầu ngày 2026-12-13. Tài liệu tải về yêu cầu cổng phân phối chuyên biệt của CTI.",
+      "retrievedAt": "2026-11-09T20:39:00+07:00",
       "sha256": null
     }
   ]

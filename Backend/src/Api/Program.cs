@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using ZhongWenHub.Api.Middleware;
@@ -129,8 +130,11 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Seed Database and apply pending migrations on startup
-if (!app.Environment.IsEnvironment("Testing"))
+// Seed Database and apply pending migrations on startup (guarded to protect Dev database)
+var autoMigrate = app.Configuration.GetValue<bool>("Database:AutoMigrate", false);
+var enableSeed = app.Configuration.GetValue<bool>("Database:EnableSeed", false);
+
+if (!app.Environment.IsEnvironment("Testing") && (autoMigrate || enableSeed))
 {
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
@@ -141,11 +145,19 @@ if (!app.Environment.IsEnvironment("Testing"))
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
 
-        await DbInitializer.SeedAsync(dbContext, userManager, roleManager, logger);
-
-        if (app.Environment.IsDevelopment())
+        if (autoMigrate && dbContext.Database.IsRelational())
         {
-            await DbInitializer.SeedDevelopmentAdminAsync(dbContext, userManager, roleManager, app.Configuration, app.Environment, logger);
+            await dbContext.Database.MigrateAsync();
+        }
+
+        if (enableSeed)
+        {
+            await DbInitializer.SeedAsync(dbContext, userManager, roleManager, logger);
+
+            if (app.Environment.IsDevelopment())
+            {
+                await DbInitializer.SeedDevelopmentAdminAsync(dbContext, userManager, roleManager, app.Configuration, app.Environment, logger);
+            }
         }
     }
     catch (Exception ex)

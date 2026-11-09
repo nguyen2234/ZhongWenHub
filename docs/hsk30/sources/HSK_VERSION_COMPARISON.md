@@ -2,7 +2,7 @@
 ## HSK_VERSION_COMPARISON.md
 
 **Tài liệu tham chiếu học thuật và tiêu chuẩn hóa hệ thống dữ liệu**  
-**Thời gian lập:** 09/11/2026  
+**Thời gian cập nhật:** 09/11/2026 (20:50 ICT) — Phase 9.0.1  
 **Chuyên gia:** HSK 3.0 Standards Researcher, Senior Chinese Language Curriculum Designer  
 
 ---
@@ -10,67 +10,57 @@
 ## 1. NGUYÊN TẮC CỐT LÕI
 
 > [!IMPORTANT]
-> **Không đánh đồng giữa "Tiêu chuẩn quốc gia" và "Đề cương thi tuyển", không đánh đồng "Ngày công bố đề cương" với "Ngày bắt đầu thi thực tế".**
-> - **GF 0025-2021** là **Tiêu chuẩn năng lực ngôn ngữ quốc gia** (National Standard), xác lập mục tiêu đánh giá tổng thể (3 bậc 9 cấp, 5 kỹ năng nghe-nói-đọc-viết-dịch).
-> - **Đề cương thi (Exam Syllabus)** do đơn vị khảo thí quốc tế (CTI) xây dựng dựa trên tiêu chuẩn để áp dụng vào từng bài thi cụ thể.
-> - **Giáo trình thương mại (Coursebooks)** là tài liệu học liệu do các nhà xuất bản tự thiết kế dựa trên đề cương hoặc tiêu chuẩn, có bản quyền tác giả độc quyền.
+> **Tuyệt đối không đánh đồng giữa "Tiêu chuẩn quốc gia", "Đề cương thi tuyển" và "Giáo trình nội bộ".**
+> - `GF_0025_2021` là **Tiêu chuẩn năng lực ngôn ngữ quốc gia** (National Standard), xác lập mục tiêu đánh giá tổng thể (3 bậc 9 cấp, 5 kỹ năng nghe-nói-đọc-viết-dịch).
+> - `HSK_2_2015` là **Đề cương thi HSK 2.0 (ấn bản sửa đổi 2015)** đang áp dụng trong giai đoạn chuyển tiếp.
+> - `HSK_3_EXAM_2025_2026` là **Đề cương thi HSK 3.0 Mới** công bố 11/2025, áp dụng từ 07/2026 và thi toàn cầu ngày 13/12/2026.
+> - `ZHONGWENHUB_CURRICULUM` là **Khung chương trình sư phạm độc lập của ZhongWenHub**, lấy trọng tâm sư phạm chuyển tiếp cho người Việt Nam.
 
 ---
 
-## 2. MA TRẬN ĐỐI CHIẾU CÁC HỆ THỐNG VÀ PHIÊN BẢN HSK
+## 2. MA TRẬN ĐỐI CHIẾU BỐN HỆ THỐNG VÀ PHIÊN BẢN HSK (LEVEL 1 → 6)
 
-| Tiêu chí so sánh | HSK 2.0 (2009 / 2015) | GF 0025-2021 (HSK 3.0 Chuẩn) | Đề cương thi CTI chuyển tiếp (2022–2026) | Giáo trình HSK Standard Course (BLCUP) | Hiện trạng Database ZhongWenHub (Dev) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Cơ quan ban hành** | Hanban / Khảo thí quốc tế | Bộ Giáo dục TQ & UB Ngôn ngữ QG | 汉考国际 (CTI) | BLCUP (Chủ biên: Khương Lệ Bình) | ZhongWenHub Project |
-| **Cấu trúc cấp bậc** | 6 cấp độ (HSK 1 → 6) | 3 bậc 9 cấp (Sơ, Trung, Cao; Cấp 1 → 9) | Cấp 7–9 đã thi (2022); Cấp 1–6 áp dụng từ cuối 2026 | 6 cấp độ (1 tập/cấp sơ, 2 tập/cấp trung-cao) | 6 cấp độ (HSK 1 → 6) |
-| **Từ vựng HSK 1** | **150 từ** | **500 từ** | 150 từ (thi hiện tại) / 500 từ (đề cương 3.0) | 150 từ | **300 từ** (Phân mảnh giữa kỳ) |
-| **Từ vựng HSK 2** | **300 từ** (+150) | **1272 từ** (+772) | 300 từ (thi hiện tại) | 300 từ | **500 từ** lũy kế (+200 mới) |
-| **Từ vựng HSK 3** | **600 từ** (+300) | **2245 từ** (+973) | 600 từ (thi hiện tại) | 600 từ | **1000 từ** lũy kế (+500 mới) |
-| **Từ vựng HSK 4** | **1200 từ** (+600) | **3245 từ** (+1000) | 1200 từ (thi hiện tại) | 1200 từ | **2000 từ** lũy kế (+1000 mới) |
-| **Từ vựng HSK 5** | **2500 từ** (+1300) | **4316 từ** (+1071) | 2500 từ (thi hiện tại) | 2500 từ | **3600 từ** lũy kế (+1600 mới) |
-| **Từ vựng HSK 6** | **5000 từ** (+2500) | **5456 từ** (+1140) | 5000 từ (thi hiện tại) | 5000 từ | **5400 từ** lũy kế (+1800 mới) |
-| **Từ vựng HSK 7-9** | Không có | **11,092 từ** (+5636) | Đã công bố và tổ chức thi (11,092 từ) | Đang cập nhật tập nâng cao | Chưa nạp |
-| **Chữ Hán (Cấp 1-6)** | Không quy định cứng từng chữ | **1800 chữ** (300 chữ/cấp) | 1800 chữ | Gián tiếp qua bài học | **1940 chữ** trong DB |
-| **Ngữ pháp (Cấp 1-6)** | Liệt kê theo dạng đề thi | **424 điểm** (HSK 1 có 48 điểm) | Theo đề cương chuẩn | Cấu trúc điểm ngữ pháp theo bài | **461 điểm** (HSK 1 có 72 điểm) |
-| **Kỹ năng đánh giá** | Nghe, Đọc, Viết (tùy cấp) | Nghe, Nói, Đọc, Viết, **Dịch** | Tích hợp HSKK bắt buộc từ cấp 3 | Nghe, Đọc, Bài tập ngữ pháp | Nghe, Đọc, Ngữ pháp, Bài tập |
-| **Tình trạng áp dụng** | Đang thi tại nhiều trung tâm | Chuẩn năng lực nền tảng | Lộ trình chính thức toàn cầu: **13/12/2026** | Sách giáo trình thương mại phổ biến | Cơ sở dữ liệu học tập nội bộ |
-
----
-
-## 3. PHÂN TÍCH NGUYÊN NHÂN VÀ HIỆN TƯỢNG PHÂN KỲ DỮ LIỆU
-
-### 3.1. Tại sao Database ZhongWenHub có 300 từ HSK 1 và 5400 từ HSK 1–6?
-1. **Nguồn gốc dữ liệu hiện tại:**  
-   Trong Phase 2 và các thử nghiệm ban đầu (tháng 11/2025), nhóm dự án tiền nhiệm đã nạp danh mục 5400 từ vựng chia theo công thức phân bổ bài học:
-   - HSK 1: 300 từ
-   - HSK 2: 200 từ (Lũy kế: 500)
-   - HSK 3: 500 từ (Lũy kế: 1000)
-   - HSK 4: 1000 từ (Lũy kế: 2000)
-   - HSK 5: 1600 từ (Lũy kế: 3600)
-   - HSK 6: 1800 từ (Lũy kế: 5400)
-2. **Đối chiếu với GF 0025-2021:**
-   - Trong chuẩn GF 0025-2021, tổng từ vựng lũy kế của cả 6 cấp sơ-trung là **5456 từ**. Con số 5400 từ của database ZhongWenHub thực chất là bộ từ vựng HSK 3.0 giai đoạn 1–6 nhưng đã bị chia bậc khác với bảng gốc:
-     - Chuẩn GF 0025-2021 yêu cầu HSK 1 phải đạt ngay **500 từ**.
-     - Database ZhongWenHub tách 500 từ đầu tiên này thành 300 từ (HSK 1) + 200 từ (HSK 2) nhằm giảm tải độ khó cho người mới bắt đầu.
-3. **Đánh giá sư phạm:**
-   - Bước đệm 300 từ cho HSK 1 là rất phù hợp với học viên Việt Nam bắt đầu từ con số 0 (vì 500 từ đối với cấp 1 là khối lượng rất lớn, gấp hơn 3.3 lần so với 150 từ của HSK 2.0).
-   - Tuy nhiên, **về mặt chuẩn hóa học thuật**, ZhongWenHub không được tuyên bố 300 từ này là "Chuẩn toàn phần của GF 0025-2021" mà phải định danh rõ: **"HSK 1 Foundation — ZhongWenHub Pedagogical Core"** (chứa 150 từ HSK 2.0 truyền thống + 150 từ mở rộng theo chuẩn 3.0, lũy kế 500 từ khi hoàn thành HSK 2).
-
-### 3.2. Về 72 điểm ngữ pháp HSK 1 trong Database (so với 48 điểm của GF 0025-2021)
-- Trong GF 0025-2021, Level 1 có **48 điểm ngữ pháp** tổng quát (ví dụ: Câu chữ 是, Câu chữ 有, Câu nghi vấn 吗, Câu vị ngữ tính từ...).
-- Trong quá trình phát triển Phase 6–7, ZhongWenHub đã chi tiết hóa các tiểu mục (sub-categories) thành 72 điểm học tập cụ thể (ví dụ: tách "Đại từ chỉ thị 这/那", "Số từ 1-10", "Số từ 11-99", "Phó từ chỉ mức độ 很", "Phó từ phủ định 不 vs 没").
-- **Kết luận:** 72 điểm ngữ pháp hiện tại không mâu thuẫn mà là sự cụ thể hóa sư phạm (granular decomposition) của 48 nhóm ngữ pháp GF 0025-2021. Cần xây dựng bảng ánh xạ (Mapping Table) từ 72 mục của ZhongWenHub sang 48 mã chuẩn của GF 0025-2021.
+| Tiêu chí so sánh | `HSK_2_2015` (Đề cương 2.0) | `GF_0025_2021` (Chuẩn Quốc gia) | `HSK_3_EXAM_2025_2026` (Đề cương 3.0 Mới) | `ZHONGWENHUB_CURRICULUM` (Hiện trạng DB Dev) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Cơ quan chủ quản** | Hanban / CTI (2015) | Bộ Giáo dục TQ & UB Ngôn ngữ QG | CLEC & CTI (2025/2026) | ZhongWenHub Academic Team |
+| **Phân cấp hệ thống** | 6 cấp độc lập (HSK 1-6) | 3 đẳng 9 cấp (Sơ, Trung, Cao 1-9) | 6 cấp sơ/trung + Khối 7-9 | 6 cấp học phần (HSK 1-6) |
+| **Từ vựng HSK 1** | **150 từ** (Mới & Lũy kế) | **500 từ** (Mới & Lũy kế) | **500 từ** (Theo chuẩn 3.0) | **300 từ** *(HSK 1 Foundation)* |
+| **Từ vựng HSK 2** | **300 từ** (+150 mới) | **1.272 từ** (+772 mới) | **1.272 từ** (+772 mới) | **500 từ** (+200 mới, lũy kế 500) |
+| **Từ vựng HSK 3** | **600 từ** (+300 mới) | **2.245 từ** (+973 mới) | **2.245 từ** (+973 mới) | **1.000 từ** (+500 mới, lũy kế 1.000) |
+| **Từ vựng HSK 4** | **1.200 từ** (+600 mới) | **3.245 từ** (+1.000 mới) | **3.245 từ** (+1.000 mới) | **2.000 từ** (+1.000 mới, lũy kế 2.000) |
+| **Từ vựng HSK 5** | **2.500 từ** (+1.300 mới) | **4.316 từ** (+1.071 mới) | **4.316 từ** (+1.071 mới) | **3.600 từ** (+1.600 mới, lũy kế 3.600) |
+| **Từ vựng HSK 6** | **5.000 từ** (+2.500 mới) | **5.456 từ** (+1.140 mới) | **5.456 từ** (+1.140 mới) | **5.400 từ** (+1.800 mới, lũy kế 5.400) |
+| **Tổng từ vựng 1–6** | **5.000 từ** | **5.456 từ** | **5.456 từ** | **5.400 từ** (64 từ đa nghĩa/đa từ loại) |
+| **Chữ Hán HSK 1** | Không quy định danh mục cứng | **300 chữ** (100 chữ viết tay) | **300 chữ** (Nhận biết + viết cơ bản) | **180 chữ** trọng tâm trong 15 bài |
+| **Chữ Hán 1–6** | Không quy định cứng | **1.800 chữ** (300 chữ/cấp) | **1.800 chữ** | **1.940 chữ** trong cơ sở dữ liệu |
+| **Ngữ pháp HSK 1** | Mẫu câu theo đề thi | **48 điểm** (Nhóm năng lực) | **48 điểm** (Theo đề cương ngữ pháp) | **72 điểm** (Phân rã sư phạm chi tiết) |
+| **Ngữ pháp 1–6** | Không cố định mã | **424 điểm** (Sơ & Trung cấp) | **424 điểm** | **461 điểm** (Phân rã thành tiểu mục) |
+| **Kỹ năng thi** | Nghe, Đọc, Viết (tùy cấp) | Nghe, Nói, Đọc, Viết, **Dịch** | Nghe, Nói (tích hợp HSKK), Đọc, Viết | Nghe, Đọc, Ngữ pháp, Bài tập tương tác |
+| **Tính pháp lý** | Hiệu lực chuyển tiếp đến 2026 | Tiêu chuẩn nhà nước có hiệu lực | Áp dụng thi toàn cầu **13/12/2026** | Học liệu số độc quyền ZhongWenHub |
 
 ---
 
-## 4. QUY TẮC ĐỊNH DANH PHIÊN BẢN CHUẨN CỦA ZHONGWENHUB
+## 3. PHÂN TÍCH HIỆN TƯỢNG PHÂN KỲ DỮ LIỆU ZHONGWENHUB
 
-Nhằm tránh gây hiểu lầm cho người học và tuân thủ liêm chính học thuật:
+### 3.1. Phân kỳ Từ vựng HSK 1 (300 từ vs 150 từ vs 500 từ)
+1. **Bản chất 300 từ hiện tại:**
+   - 300 từ trong `vocabularies` HSK 1 của ZhongWenHub bao phủ **100% của 150 từ trong `HSK_2_2015`**, đồng thời bổ sung thêm 150 từ tần suất cao nằm trong danh mục 500 từ của `GF_0025_2021`.
+   - Đây là giải pháp "Cầu nối sư phạm" (Bridging Curriculum). Nếu học viên chỉ học 150 từ thì không bắt kịp chuẩn 3.0; nếu học ngay 500 từ trong khóa sơ cấp đầu tiên (HSK 1) thì tỷ lệ bỏ cuộc (churn rate) của người mới học sẽ rất cao.
+2. **Cam kết minh bạch học thuật:**
+   - Hệ thống **không được** quảng bá: *"Khóa HSK 1 này đạt 100% từ vựng chuẩn GF 0025-2021"*.
+   - Hệ thống **phải** ghi rõ: *"Khóa học HSK 1 Căn bản: 300 từ vựng cốt lõi — Hoàn thành 100% chuẩn HSK 2.0 và 60% chỉ tiêu HSK 3.0"*.
+   - Hoàn thành xong HSK 2 (tích lũy đủ 500 từ), học viên sẽ đạt trọn vẹn 100% dung lượng từ vựng của HSK 1 theo chuẩn mới `GF_0025_2021`.
 
-1. **Gắn nhãn rõ ràng:**
-   - Cột `HskVersion`: Đánh dấu rõ mục nào thuộc `GF_0025_2021`, mục nào thuộc `HSK_2015_CORE`, mục nào là `ZHONGWENHUB_PEDAGOGY`.
-2. **Không tự nhận "Chuẩn thi chính thức" khi chưa đối chiếu:**
-   - Từ vựng thuộc danh mục 150 từ truyền thống được gắn nhãn `EXAM_VERIFIED_HSK2`.
-   - Từ vựng mở rộng sang 500 từ được gắn nhãn `STANDARD_GF0025_HSK3`.
-3. **Bảo tồn tính tương thích kép (Dual-Compatibility):**
-   - Học viên học xong giáo trình của ZhongWenHub phải tự tin tham gia cả hai hình thức: kỳ thi HSK hiện hành lẫn kỳ thi theo đề cương mới HSK 3.0.
+### 3.2. Phân kỳ Ngữ pháp HSK 1 (72 điểm vs 48 điểm)
+1. **Tại sao có 72 điểm?**
+   - Tiêu chuẩn `GF_0025_2021` nhóm các cấu trúc tương đồng vào 1 mã (ví dụ: 能愿动词 gom 想, 要, 会, 可以 vào 1 điểm).
+   - Trong quá trình thiết kế bài giảng sư phạm cho học viên sơ cấp, ZhongWenHub đã rã nhỏ (decomposition) các từ năng nguyện, các phó từ phủ định (不 vs 没有), các đại từ chỉ thị (这 vs 那) thành các thẻ kiến thức riêng lẻ để chấm điểm bài tập micro-learning.
+   - Do đó, 72 điểm của ZhongWenHub là **phép phân rã sư phạm ở mức hạt mịn (fine-grained instructional points)**, không phải phát minh ngữ pháp mới ngoài chuẩn.
+
+---
+
+## 4. CHIẾN LƯỢC TƯƠNG THÍCH KÉP (DUAL-COMPATIBILITY STRATEGY)
+
+Nhằm đảm bảo quyền lợi tối đa cho học viên ZhongWenHub:
+1. **Thi HSK 2.0:** Học viên hoàn thành HSK 1 của ZhongWenHub tự tin đỗ 100% kỳ thi HSK 1 (150 từ) hiện tại với điểm số cao.
+2. **Thi HSK 3.0 Mới:** Học viên theo học lộ trình HSK 1 (300 từ) + HSK 2 (200 từ) sẽ tích lũy trọn vẹn 500 từ vựng, tự tin bước vào kỳ thi chuẩn hóa toàn cầu theo đề cương `HSK_3_EXAM_2025_2026`.

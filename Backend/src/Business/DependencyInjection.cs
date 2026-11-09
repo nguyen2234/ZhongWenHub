@@ -24,7 +24,8 @@ public static class DependencyInjection
         {
             throw new InvalidOperationException(
                 "Cấu hình 'JwtSettings:Secret' là bắt buộc và phải có độ dài tối thiểu 32 ký tự (256-bit). " +
-                "Vui lòng cấu hình trong appsettings.json hoặc biến môi trường JwtSettings__Secret.");
+                "Vui lòng cấu hình qua .NET User Secrets (Development) hoặc biến môi trường JwtSettings__Secret (Production/Testing). " +
+                "Không được đặt secret thật trong appsettings.json.");
         }
         services.Configure<JwtSettings>(options =>
         {
