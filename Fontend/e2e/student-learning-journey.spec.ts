@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { testCredentials } from './config/test-credentials.config';
 
 test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server & Browser UI)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,9 +13,9 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
     await page.goto('/ZhongWenHub/login');
     await expect(page).toHaveURL(/.*\/login/);
 
-    // 1.2 Fill student credentials
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    // 1.2 Fill student credentials from secure config
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
 
     // 1.3 Verify redirection to student dashboard
@@ -32,8 +33,8 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
   test('2. HSK 1-6 Course Exploration: Navigate to HSK Curriculum and verify levels 1 to 6', async ({ page }) => {
     // 2.1 Login
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -55,8 +56,8 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
   test('3. Textbook Reading & Study: Open Lesson 1 (PUBLISHED), view Vocab, Pinyin, Grammar & Hanzi', async ({ page }) => {
     // 3.1 Login
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -77,8 +78,8 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
   test('4. Interactive Lesson Experience: Run focus mode, navigate through steps and verify learning progress', async ({ page }) => {
     // 4.1 Login
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -102,8 +103,8 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
   test('5. Progress Persistence: Student completes action, logs out, logs back in and verifies session state', async ({ page }) => {
     // 5.1 Login
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 

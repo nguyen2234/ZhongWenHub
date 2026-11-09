@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { testCredentials } from './config/test-credentials.config';
 
 test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Grammar Modules', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,8 +12,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
   test('1. Sidebar Organization: 5 Groups, Knowledge Repository & Clean Scrolling', async ({ page }) => {
     // 1.1 Login as student
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -43,8 +44,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
   test('2. Dedicated Vocabulary Module: Real SQL Server Data, Search, Filter & Drawer', async ({ page }) => {
     // 2.1 Login and navigate to Vocabulary via Sidebar
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -89,8 +90,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
   test('3. Dedicated Grammar Module: Real Count, Formula, Examples & Practice', async ({ page }) => {
     // 3.1 Login and navigate to Grammar via Sidebar
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -137,8 +138,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
   test('4. URL Refresh & Active Menu State Verification', async ({ page }) => {
     // 4.1 Login
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -199,8 +200,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await page.setViewportSize({ width: 375, height: 667 });
 
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 

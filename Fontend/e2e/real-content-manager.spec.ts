@@ -82,8 +82,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 2.1 Log in as seeded student
     const studentLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'student.an.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.student.email,
+        password: testCredentials.student.password(),
       },
     });
     expect(studentLogin.status()).toBe(200);
@@ -153,8 +153,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 3.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     expect(cmLogin.status()).toBe(200);
@@ -201,8 +201,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 4.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -235,24 +235,37 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
       const studentAttemptRes = await request.get(`/api/v1/content/lessons/${lessonId}`);
       expect(studentAttemptRes.status()).toBe(404);
 
-      // 4.4 Content Manager publishes the lesson
-      const publishRes = await request.put(`/api/v1/content/lessons/${lessonId}/status`, {
+      // 4.4 Release Gate Enforcement: Direct publish from DRAFT is rejected (400)
+      const directPublishRes = await request.put(`/api/v1/content/lessons/${lessonId}/status`, {
         headers: cmHeaders,
         data: {
           status: 'PUBLISHED',
         },
       });
-      expect(publishRes.status()).toBe(200);
-      const updated = await publishRes.json();
-      expect(updated.status).toBe('PUBLISHED');
+      expect(directPublishRes.status()).toBe(400);
 
-      // 4.5 Student CAN NOW immediately view the published lesson!
-      const studentSuccessRes = await request.get(`/api/v1/content/lessons/${lessonId}`);
-      expect(studentSuccessRes.status()).toBe(200);
-      const studentView = await studentSuccessRes.json();
-      expect(studentView.id).toBe(lessonId);
-      expect(studentView.status).toBe('PUBLISHED');
-      expect(studentView.titleVi).toBe(`Bài học kiểm thử ${uniqueSuffix}`);
+      // 4.5 Content Manager moves lesson to PENDING_REVIEW (valid state transition)
+      const submitReviewRes = await request.put(`/api/v1/content/lessons/${lessonId}/status`, {
+        headers: cmHeaders,
+        data: {
+          status: 'PENDING_REVIEW',
+        },
+      });
+      expect(submitReviewRes.status()).toBe(200);
+
+      // 4.6 Segregation of Duties Enforcement: Author cannot self-approve lesson (400)
+      const selfApproveRes = await request.put(`/api/v1/content/lessons/${lessonId}/review`, {
+        headers: cmHeaders,
+        data: {
+          status: 'PUBLISHED',
+          reviewNotes: 'Self approval attempt',
+        },
+      });
+      expect(selfApproveRes.status()).toBe(400);
+
+      // 4.7 Student STILL CANNOT view lesson while in PENDING_REVIEW (404)
+      const studentPendingRes = await request.get(`/api/v1/content/lessons/${lessonId}`);
+      expect(studentPendingRes.status()).toBe(404);
     } finally {
       // 4.6 Cleanup test lesson from SQL Server
       const deleteRes = await request.delete(`/api/v1/content/lessons/${lessonId}`, {
@@ -269,8 +282,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 5.1 Login as Content Manager via API
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -311,7 +324,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
         durationMinutes: 30,
         xpReward: 60,
         orderIndex: 6,
-        status: 'PUBLISHED',
+        status: 'DRAFT',
       },
     });
     expect([200, 201]).toContain(createLessonRes.status());
@@ -349,8 +362,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 6.1 Content Manager login
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -431,8 +444,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 8.1 Login as Content Manager
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -521,8 +534,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -603,8 +616,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -688,8 +701,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
   }) => {
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();
@@ -750,7 +763,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
         listeningJson: JSON.stringify(listeningData),
         durationMinutes: 45,
         xpReward: 60,
-        status: 'PUBLISHED',
+        status: 'DRAFT',
       },
     });
     expect(createRes.status()).toBe(201);
@@ -814,8 +827,8 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     // 12.3 Content Manager attempting to access Admin Users receives 403 Forbidden
     const cmLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'content.hongphuc.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.contentManager.email,
+        password: testCredentials.contentManager.password(),
       },
     });
     const { accessToken: cmToken } = await cmLogin.json();

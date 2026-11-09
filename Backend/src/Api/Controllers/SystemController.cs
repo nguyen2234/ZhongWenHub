@@ -65,15 +65,22 @@ public class SystemController : BaseApiController
     [AllowAnonymous]
     public IActionResult GetDatabaseEnvironment()
     {
+        if (_env.IsProduction())
+        {
+            return NotFound(new { message = "Endpoint chỉ khả dụng trong môi trường kiểm thử/phát triển." });
+        }
+
         var dbConn = _dbContext.Database.GetDbConnection();
-        var dbName = dbConn.Database;
-        var isTestDb = dbName.EndsWith("_Test", StringComparison.OrdinalIgnoreCase) ||
-                       dbName.Contains("Test", StringComparison.OrdinalIgnoreCase);
+        var dbName = dbConn.Database ?? string.Empty;
+        var sqlDataSource = dbConn.DataSource ?? string.Empty;
+        var isExactTestDb = string.Equals(dbName, "ZhongWenHub_Test", StringComparison.OrdinalIgnoreCase);
+        var isTestingEnv = string.Equals(_env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase);
 
         return Ok(new
         {
             databaseName = dbName,
-            isTestDatabase = isTestDb,
+            dataSource = sqlDataSource,
+            isTestDatabase = isExactTestDb && isTestingEnv,
             environment = _env.EnvironmentName,
             timestampUtc = DateTime.UtcNow
         });

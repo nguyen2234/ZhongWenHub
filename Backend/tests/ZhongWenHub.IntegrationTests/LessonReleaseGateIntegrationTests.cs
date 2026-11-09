@@ -287,7 +287,8 @@ public class LessonReleaseGateIntegrationTests : IClassFixture<CustomWebApplicat
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
 
             var res = await _client.SendAsync(req);
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            var errStr = await res.Content.ReadAsStringAsync();
+            Assert.True(res.StatusCode == HttpStatusCode.OK, errStr);
 
             var updated = await res.Content.ReadFromJsonAsync<LessonDto>(_jsonOptions);
             Assert.NotNull(updated);
@@ -451,29 +452,84 @@ public class LessonReleaseGateIntegrationTests : IClassFixture<CustomWebApplicat
         var adminToken = await GetAdminTokenAsync();
         Guid testLessonId = Guid.NewGuid();
         Guid testCourseId = Guid.NewGuid();
+        Guid testVocabId = Guid.NewGuid();
+        Guid testGrammarId = Guid.NewGuid();
+        Guid testExerciseId = Guid.NewGuid();
 
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var cmUser = await db.Users.FirstAsync(u => u.Email == "contentmanager@zhongwenhub.edu.vn");
+
             var course = new CourseEntity
             {
                 Id = testCourseId,
                 Code = "TEST-AUDIT-" + Guid.NewGuid().ToString("N")[..4],
                 Title = "Khoá học Audit " + Guid.NewGuid().ToString("N")[..6],
                 HskLevel = 1,
-                Status = "DRAFT"
+                Status = "PUBLISHED"
             };
+
             var lesson = new LessonEntity
             {
                 Id = testLessonId,
                 CourseId = testCourseId,
                 LessonNumber = 94,
-                TitleZh = "测试审核追踪",
-                TitleVi = "Kiểm tra audit trail",
-                Status = "PENDING_REVIEW"
+                TitleZh = "完整测试课",
+                TitleVi = "Bài học đầy đủ điều kiện",
+                Status = "PENDING_REVIEW",
+                UpdatedByUserId = cmUser.Id, // Authored by Content Manager, reviewed by Admin
+                DialogueJson = "{\"lines\":[{\"speaker\":\"A\",\"hanzi\":\"你好\",\"pinyin\":\"nǐ hǎo\",\"meaningVi\":\"Chào bạn\"},{\"speaker\":\"B\",\"hanzi\":\"你好\",\"pinyin\":\"nǐ hǎo\",\"meaningVi\":\"Chào bạn\"}]}",
+                ListeningJson = "[{\"id\":\"1\",\"transcriptZh\":\"你好\",\"transcriptPinyin\":\"nǐ hǎo\",\"transcriptVi\":\"Chào bạn\"}]"
             };
+
+            var vocabList = new List<VocabularyEntity>();
+            for (int vi = 1; vi <= 5; vi++)
+            {
+                vocabList.Add(new VocabularyEntity
+                {
+                    Id = Guid.NewGuid(),
+                    LessonId = testLessonId,
+                    HskLevel = 1,
+                    Hanzi = "字" + vi,
+                    Pinyin = "zi" + vi,
+                    MeaningVi = "Nghĩa " + vi,
+                    Status = "PUBLISHED"
+                });
+            }
+
+            var grammar = new GrammarPointEntity
+            {
+                Id = testGrammarId,
+                LessonId = testLessonId,
+                HskLevel = 1,
+                Code = "HSK1-AUDIT-TEST",
+                Title = "Ngữ pháp chào hỏi",
+                PinyinTitle = "Wenhou",
+                StructureFormula = "A + B",
+                Explanation = "Giải thích chào hỏi",
+                Status = "PUBLISHED"
+            };
+
+            var exercise = new ExerciseEntity
+            {
+                Id = testExerciseId,
+                LessonId = testLessonId,
+                HskLevel = 1,
+                Type = "multiple-choice",
+                Title = "Nǐ hǎo nghĩa là gì?",
+                Instruction = "Chọn đáp án đúng",
+                OptionsJson = "[\"Chào bạn\", \"Tạm biệt\", \"Cảm ơn\", \"Không có chi\"]",
+                CorrectAnswer = "Chào bạn",
+                Explanation = "Nǐ hǎo là xin chào",
+                Status = "PUBLISHED"
+            };
+
             db.Courses.Add(course);
             db.Lessons.Add(lesson);
+            db.Vocabularies.AddRange(vocabList);
+            db.GrammarPoints.Add(grammar);
+            db.Exercises.Add(exercise);
             await db.SaveChangesAsync();
         }
 
@@ -490,7 +546,8 @@ public class LessonReleaseGateIntegrationTests : IClassFixture<CustomWebApplicat
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
 
             var res = await _client.SendAsync(req);
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+            var errStr = await res.Content.ReadAsStringAsync();
+            Assert.True(res.StatusCode == HttpStatusCode.OK, errStr);
 
             var updated = await res.Content.ReadFromJsonAsync<LessonDto>(_jsonOptions);
             Assert.NotNull(updated);
@@ -510,6 +567,259 @@ public class LessonReleaseGateIntegrationTests : IClassFixture<CustomWebApplicat
                 Assert.NotNull(dbLesson.ReviewedAt);
                 Assert.Equal("Phê duyệt phát hành chính thức sau khi thẩm định", dbLesson.ReviewNotes);
             }
+        }
+        finally
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var ex = await db.Exercises.FindAsync(testExerciseId);
+            if (ex != null) db.Exercises.Remove(ex);
+            var g = await db.GrammarPoints.FindAsync(testGrammarId);
+            if (g != null) db.GrammarPoints.Remove(g);
+            var vocabs = await db.Vocabularies.Where(v => v.LessonId == testLessonId).ToListAsync();
+            db.Vocabularies.RemoveRange(vocabs);
+            var l = await db.Lessons.FindAsync(testLessonId);
+            if (l != null) db.Lessons.Remove(l);
+            var c = await db.Courses.FindAsync(testCourseId);
+            if (c != null) db.Courses.Remove(c);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Regression_LessonTitleStartingWithCeShi_CannotBypassReleaseGate()
+    {
+        var testCourseId = Guid.NewGuid();
+        var testLessonId = Guid.NewGuid();
+        var adminToken = await GetAdminTokenAsync();
+
+        try
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Courses.Add(new CourseEntity
+                {
+                    Id = testCourseId,
+                    Title = "Test Course CeShi Bypass",
+                    Code = "TEST-CESHI-BYPASS",
+                    HskLevel = 1,
+                    Status = "PUBLISHED"
+                });
+
+                db.Lessons.Add(new LessonEntity
+                {
+                    Id = testLessonId,
+                    CourseId = testCourseId,
+                    LessonNumber = 88,
+                    TitleZh = "测试 Bypass Release Gate Title",
+                    TitleVi = "Bài kiểm thử bypass",
+                    Status = "DRAFT",
+                    DialogueJson = "[]",
+                    ListeningJson = "[]"
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var reviewReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/content/lessons/{testLessonId}/review");
+            reviewReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            reviewReq.Content = JsonContent.Create(new ReviewContentDto
+            {
+                Status = "PUBLISHED",
+                ReviewNotes = "Cố gắng bypass bằng tiền tố 测试"
+            }, options: _jsonOptions);
+
+            var res = await _client.SendAsync(reviewReq);
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+
+            var errBody = await res.Content.ReadAsStringAsync();
+            Assert.Contains("PENDING_REVIEW", errBody);
+        }
+        finally
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var l = await db.Lessons.FindAsync(testLessonId);
+            if (l != null) db.Lessons.Remove(l);
+            var c = await db.Courses.FindAsync(testCourseId);
+            if (c != null) db.Courses.Remove(c);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Regression_CreateLesson_DirectlyWithPublishedStatus_IsRejected()
+    {
+        var testCourseId = Guid.NewGuid();
+        var adminToken = await GetAdminTokenAsync();
+
+        try
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Courses.Add(new CourseEntity
+                {
+                    Id = testCourseId,
+                    Title = "Course For Direct Publish Test",
+                    Code = "TEST-DIRECT-PUB",
+                    HskLevel = 1,
+                    Status = "PUBLISHED"
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/lessons");
+            createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            createReq.Content = JsonContent.Create(new CreateLessonDto
+            {
+                CourseId = testCourseId,
+                LessonNumber = 99,
+                TitleZh = "Direct Published Lesson",
+                TitleVi = "Bài học tạo trực tiếp published",
+                Status = "PUBLISHED",
+                DialogueJson = "[]",
+                ListeningJson = "[]"
+            }, options: _jsonOptions);
+
+            var res = await _client.SendAsync(createReq);
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+
+            var errBody = await res.Content.ReadAsStringAsync();
+            Assert.Contains("RELEASE_GATE_VIOLATION", errBody);
+        }
+        finally
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var c = await db.Courses.FindAsync(testCourseId);
+            if (c != null) db.Courses.Remove(c);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Regression_UpdateLesson_DirectlyWithPublishedStatus_OnDraftLesson_IsRejected()
+    {
+        var testCourseId = Guid.NewGuid();
+        var testLessonId = Guid.NewGuid();
+        var adminToken = await GetAdminTokenAsync();
+
+        try
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Courses.Add(new CourseEntity
+                {
+                    Id = testCourseId,
+                    Title = "Course For Update Publish Test",
+                    Code = "TEST-UPDATE-PUB",
+                    HskLevel = 1,
+                    Status = "PUBLISHED"
+                });
+
+                db.Lessons.Add(new LessonEntity
+                {
+                    Id = testLessonId,
+                    CourseId = testCourseId,
+                    LessonNumber = 77,
+                    TitleZh = "Draft Lesson For Update Test",
+                    TitleVi = "Bài học nháp thử nghiệm PUT",
+                    Status = "DRAFT",
+                    DialogueJson = "[]",
+                    ListeningJson = "[]"
+                });
+                await db.SaveChangesAsync();
+            }
+
+            var updateReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/content/lessons/{testLessonId}");
+            updateReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            updateReq.Content = JsonContent.Create(new UpdateLessonDto
+            {
+                LessonNumber = 77,
+                TitleZh = "Draft Lesson For Update Test",
+                TitleVi = "Bài học nháp thử nghiệm PUT",
+                Status = "PUBLISHED"
+            }, options: _jsonOptions);
+
+            var res = await _client.SendAsync(updateReq);
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+
+            var errBody = await res.Content.ReadAsStringAsync();
+            Assert.Contains("RELEASE_GATE_VIOLATION", errBody);
+        }
+        finally
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var l = await db.Lessons.FindAsync(testLessonId);
+            if (l != null) db.Lessons.Remove(l);
+            var c = await db.Courses.FindAsync(testCourseId);
+            if (c != null) db.Courses.Remove(c);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Regression_ContentManager_CannotSelfApprove_SegregationOfDuties()
+    {
+        var testCourseId = Guid.NewGuid();
+        var testLessonId = Guid.NewGuid();
+        var cmToken = await GetContentManagerTokenAsync();
+
+        Guid cmUserId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var cmUser = await db.Users.FirstAsync(u => u.Email == "contentmanager@zhongwenhub.edu.vn");
+            cmUserId = cmUser.Id;
+        }
+
+        try
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Courses.Add(new CourseEntity
+                {
+                    Id = testCourseId,
+                    Title = "Course For SoD Test",
+                    Code = "TEST-SOD-PUB",
+                    HskLevel = 1,
+                    Status = "PUBLISHED"
+                });
+
+                // Author of this lesson is the Content Manager
+                db.Lessons.Add(new LessonEntity
+                {
+                    Id = testLessonId,
+                    CourseId = testCourseId,
+                    LessonNumber = 66,
+                    TitleZh = "Lesson Authored by CM",
+                    TitleVi = "Bài học do CM biên soạn",
+                    Status = "PENDING_REVIEW",
+                    UpdatedByUserId = cmUserId,
+                    DialogueJson = "[]",
+                    ListeningJson = "[]"
+                });
+                await db.SaveChangesAsync();
+            }
+
+            // The SAME Content Manager attempts to approve their own lesson
+            var selfApproveReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/content/lessons/{testLessonId}/review");
+            selfApproveReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            selfApproveReq.Content = JsonContent.Create(new ReviewContentDto
+            {
+                Status = "PUBLISHED",
+                ReviewNotes = "Tác giả tự duyệt bài học của chính mình"
+            }, options: _jsonOptions);
+
+            var res = await _client.SendAsync(selfApproveReq);
+            Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+
+            var errBody = await res.Content.ReadAsStringAsync();
+            Assert.Contains("Segregation of Duties", errBody);
         }
         finally
         {

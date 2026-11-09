@@ -519,12 +519,22 @@ public class ContentService : IContentService
         };
     }
 
-    public async Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, CancellationToken cancellationToken = default)
+    public async Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
     {
         var course = await _dbContext.Courses.FindAsync(new object[] { dto.CourseId }, cancellationToken);
         if (course == null)
         {
             throw new InvalidOperationException("Không tìm thấy khóa học tương ứng.");
+        }
+
+        var targetStatus = (dto.Status ?? "DRAFT").Trim().ToUpperInvariant();
+        if (targetStatus == "PUBLISHED")
+        {
+            throw new InvalidOperationException("Không thể tạo trực tiếp bài học ở trạng thái PUBLISHED. Mọi bài học mới bắt buộc phải khởi tạo ở trạng thái DRAFT và trải qua quy trình kiểm duyệt Release Gate.");
+        }
+        if (targetStatus != "DRAFT" && targetStatus != "PENDING_REVIEW")
+        {
+            targetStatus = "DRAFT";
         }
 
         var lesson = new LessonEntity
@@ -539,7 +549,8 @@ public class ContentService : IContentService
             DurationMinutes = dto.DurationMinutes,
             XpReward = dto.XpReward,
             OrderIndex = dto.OrderIndex,
-            Status = dto.Status,
+            Status = targetStatus,
+            UpdatedByUserId = currentUserId,
             DialogueJson = dto.DialogueJson,
             ListeningJson = dto.ListeningJson
         };
@@ -572,7 +583,7 @@ public class ContentService : IContentService
         };
     }
 
-    public async Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, CancellationToken cancellationToken = default)
+    public async Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
     {
         var lesson = await _dbContext.Lessons.Include(l => l.Course).FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         if (lesson == null) return null;
@@ -589,7 +600,21 @@ public class ContentService : IContentService
         lesson.DurationMinutes = dto.DurationMinutes;
         lesson.XpReward = dto.XpReward;
         lesson.OrderIndex = dto.OrderIndex;
-        lesson.Status = dto.Status;
+
+        if (!string.IsNullOrWhiteSpace(dto.Status))
+        {
+            var requestedStatus = dto.Status.Trim().ToUpperInvariant();
+            if (requestedStatus == "PUBLISHED" && !string.Equals(lesson.Status, "PUBLISHED", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Không thể thay đổi trạng thái thành PUBLISHED thông qua API cập nhật thông thường. Bài học bắt buộc phải trải qua API kiểm duyệt chính thức (/review hoặc /status) và thỏa mãn Release Gate.");
+            }
+            if (requestedStatus == "DRAFT" || requestedStatus == "PENDING_REVIEW" || requestedStatus == "ARCHIVED")
+            {
+                lesson.Status = requestedStatus;
+            }
+        }
+
+        lesson.UpdatedByUserId = currentUserId;
         if (dto.DialogueJson != null)
         {
             lesson.DialogueJson = dto.DialogueJson;
@@ -825,7 +850,7 @@ public class ContentService : IContentService
             GrammarCount = grammarCount,
             ExerciseCount = exerciseCount,
             AudioFilesExist = audioExists,
-            HumanReviewCompleted = lesson.Status == "PUBLISHED",
+            HumanReviewCompleted = lesson.ReviewedByUserId.HasValue && lesson.ReviewedAt.HasValue,
             BlockerReasons = blockerReasons
         };
     }
@@ -849,28 +874,28 @@ public class ContentService : IContentService
 
         if (targetStatus == "PUBLISHED")
         {
-            bool isTestMock = lesson.TitleZh.StartsWith("测试") || lesson.TitleVi.Contains("kiểm thử");
-
-            if (lesson.Status.Equals("DRAFT", StringComparison.OrdinalIgnoreCase) && !isTestMock)
+            if (!lesson.Status.Equals("PENDING_REVIEW", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Quy trình xuất bản yêu cầu bài học phải trải qua bước kiểm duyệt (PENDING_REVIEW) và có sự phê duyệt của người có thẩm quyền trước khi xuất bản (PUBLISHED).");
+                throw new InvalidOperationException("Quy trình xuất bản yêu cầu bài học phải trải qua bước kiểm duyệt (PENDING_REVIEW) và có sự phê duyệt của người có thẩm quyền trước khi xuất bản (PUBLISHED). Không thể chuyển thẳng từ DRAFT sang PUBLISHED.");
+            }
+
+            if (!currentUserId.HasValue || currentUserId.Value == Guid.Empty)
+            {
+                throw new InvalidOperationException("Yêu cầu thông tin định danh của người thẩm định (ReviewedByUserId) để hoàn tất phê duyệt xuất bản.");
+            }
+
+            if (lesson.UpdatedByUserId.HasValue && lesson.UpdatedByUserId.Value == currentUserId.Value)
+            {
+                throw new InvalidOperationException("Vi phạm nguyên tắc phân tách nhiệm vụ (Segregation of Duties): Người tạo hoặc gửi yêu cầu kiểm duyệt bài học không được phép tự phê duyệt xuất bản bài học của chính mình.");
             }
 
             var readiness = await GetLessonReleaseReadinessAsync(id, cancellationToken);
-            if (readiness != null)
+            if (readiness != null && !readiness.IsReadyForPublish)
             {
-                if (readiness.BlockerReasons.Any(b => b.Contains("chứa ký tự Hán")))
-                {
-                    throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
-                }
-
-                if (!isTestMock && !readiness.IsReadyForPublish)
-                {
-                    throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
-                }
+                throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
             }
 
-            lesson.ReviewedByUserId = currentUserId;
+            lesson.ReviewedByUserId = currentUserId.Value;
             lesson.ReviewedAt = DateTime.UtcNow;
             if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
             {

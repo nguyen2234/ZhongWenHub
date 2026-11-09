@@ -227,24 +227,41 @@ public class ContentController : BaseApiController
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var created = await _contentService.CreateLessonAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetLessonById), new { id = created.Id }, created);
+        var currentUserId = GetCurrentUserId();
+        try
+        {
+            var created = await _contentService.CreateLessonAsync(dto, currentUserId, cancellationToken);
+            return CreatedAtAction(nameof(GetLessonById), new { id = created.Id }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "RELEASE_GATE_VIOLATION" });
+        }
     }
 
     [HttpPut("lessons/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLesson(Guid id, [FromBody] UpdateLessonDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var updated = await _contentService.UpdateLessonAsync(id, dto, cancellationToken);
-        if (updated == null)
+        var currentUserId = GetCurrentUserId();
+        try
         {
-            return NotFound(new { message = $"Không tìm thấy bài học với ID {id}." });
+            var updated = await _contentService.UpdateLessonAsync(id, dto, currentUserId, cancellationToken);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Không tìm thấy bài học với ID {id}." });
+            }
+            return Ok(updated);
         }
-        return Ok(updated);
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "RELEASE_GATE_VIOLATION" });
+        }
     }
 
     [HttpGet("lessons/{id:guid}/release-readiness")]

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { testCredentials } from './config/test-credentials.config';
 
 test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & UI)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -10,8 +11,8 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
   test('1. Student opens PUBLISHED lesson, launches interactive practice, tests question & answer submission', async ({ page }) => {
     // 1.1 Login as student
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -45,8 +46,8 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
   test('2. Focus Mode Runner: Step progression, Quiz answers, Scoring & Completion XP', async ({ page }) => {
     // 2.1 Login as student
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -97,8 +98,8 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
     // 3.1 Login as student via API
     const studentLogin = await request.post('/api/v1/auth/login', {
       data: {
-        email: 'student.an.demo@zhongwenhub.edu.vn',
-        password: 'Demo@2026!ZhongWen',
+        email: testCredentials.student.email,
+        password: testCredentials.student.password(),
       },
     });
     expect(studentLogin.status()).toBe(200);
@@ -124,8 +125,8 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
   test('4. Progress Persistence & Anti-Duplication: Completed action persists across logout / re-login', async ({ page }) => {
     // 4.1 Login as student
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
@@ -139,8 +140,8 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
     // 4.3 Re-login
     await page.context().clearCookies();
     await page.goto('/ZhongWenHub/login');
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 

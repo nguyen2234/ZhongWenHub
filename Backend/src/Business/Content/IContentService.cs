@@ -22,8 +22,8 @@ public interface IContentService
     // Lessons
     Task<PagedResponse<LessonDto>> GetLessonsAsync(Guid? courseId = null, Guid? unitId = null, string? status = null, string? search = null, int page = 1, int pageSize = 20, bool publishedOnly = false, CancellationToken cancellationToken = default);
     Task<LessonDetailDto?> GetLessonByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default);
-    Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, CancellationToken cancellationToken = default);
-    Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, CancellationToken cancellationToken = default);
+    Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
+    Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonDto?> UpdateLessonStatusAsync(Guid id, string status, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonDto?> ReviewLessonAsync(Guid id, ReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonReleaseReadinessDto?> GetLessonReleaseReadinessAsync(Guid lessonId, CancellationToken cancellationToken = default);
