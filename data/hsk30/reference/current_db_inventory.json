@@ -1,0 +1,1832 @@
+{
+  "courses": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "hskLevel": 1,
+      "code": "HSK1",
+      "title": "Giáo trình Chuẩn HSK 1",
+      "description": "Khóa học HSK 1 nền tảng dành cho người mới bắt đầu học tiếng Trung.",
+      "status": "PUBLISHED",
+      "orderIndex": 1
+    },
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "hskLevel": 2,
+      "code": "HSK2",
+      "title": "Giáo trình Chuẩn HSK 2",
+      "description": "Khóa học HSK 2 sơ cấp củng cố ngữ pháp và mở rộng 300 từ vựng.",
+      "status": "PUBLISHED",
+      "orderIndex": 2
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "hskLevel": 3,
+      "code": "HSK3",
+      "title": "Giáo trình Chuẩn HSK 3",
+      "description": "Khóa học HSK 3 trung cấp giao tiếp thực tế và 600 từ vựng cốt lõi.",
+      "status": "PUBLISHED",
+      "orderIndex": 3
+    },
+    {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "hskLevel": 4,
+      "code": "HSK4",
+      "title": "Giáo trình Chuẩn HSK 4",
+      "description": "Khóa học HSK 4 bán cao cấp thảo luận các chủ đề xã hội và công việc.",
+      "status": "PUBLISHED",
+      "orderIndex": 4
+    },
+    {
+      "id": "55555555-5555-5555-5555-555555555555",
+      "hskLevel": 5,
+      "code": "HSK5",
+      "title": "Giáo trình Chuẩn HSK 5",
+      "description": "Khóa học HSK 5 cao cấp đọc hiểu báo chí và xem phim Trung Quốc.",
+      "status": "PUBLISHED",
+      "orderIndex": 5
+    },
+    {
+      "id": "66666666-6666-6666-6666-666666666666",
+      "hskLevel": 6,
+      "code": "HSK6",
+      "title": "Giáo trình Chuẩn HSK 6",
+      "description": "Khóa học HSK 6 tinh thông tiếng Trung học thuật và dịch thuật chuyên sâu.",
+      "status": "PUBLISHED",
+      "orderIndex": 6
+    }
+  ],
+  "unitsByHsk": [
+    {
+      "hskLevel": 1,
+      "unitCount": 6,
+      "publishedCount": 2
+    },
+    {
+      "hskLevel": 2,
+      "unitCount": 5,
+      "publishedCount": 0
+    },
+    {
+      "hskLevel": 3,
+      "unitCount": 5,
+      "publishedCount": 0
+    },
+    {
+      "hskLevel": 4,
+      "unitCount": 5,
+      "publishedCount": 0
+    },
+    {
+      "hskLevel": 5,
+      "unitCount": 6,
+      "publishedCount": 0
+    },
+    {
+      "hskLevel": 6,
+      "unitCount": 8,
+      "publishedCount": 0
+    }
+  ],
+  "unitsTotal": {
+    "total": 35,
+    "published": 2,
+    "draft": 33
+  },
+  "lessonsByHsk": [
+    {
+      "hskLevel": 1,
+      "total": 15,
+      "published": 3,
+      "draft": 12,
+      "pending": 0
+    },
+    {
+      "hskLevel": 2,
+      "total": 15,
+      "published": 0,
+      "draft": 15,
+      "pending": 0
+    },
+    {
+      "hskLevel": 3,
+      "total": 20,
+      "published": 0,
+      "draft": 20,
+      "pending": 0
+    },
+    {
+      "hskLevel": 4,
+      "total": 20,
+      "published": 0,
+      "draft": 20,
+      "pending": 0
+    },
+    {
+      "hskLevel": 5,
+      "total": 30,
+      "published": 0,
+      "draft": 30,
+      "pending": 0
+    },
+    {
+      "hskLevel": 6,
+      "total": 40,
+      "published": 0,
+      "draft": 40,
+      "pending": 0
+    }
+  ],
+  "lessonsAggregate": {
+    "total": 140,
+    "published": 3,
+    "draft": 137,
+    "pendingReview": 0,
+    "missingDialogue": 0,
+    "missingListening": 0,
+    "humanReviewedCount": 0
+  },
+  "lessonsWithoutExercises": 0,
+  "vocabTotal": {
+    "total": 5400,
+    "published": 10,
+    "draft": 290
+  },
+  "vocabByHsk": [
+    {
+      "hskLevel": 1,
+      "total": 300,
+      "published": 10
+    },
+    {
+      "hskLevel": 2,
+      "total": 200,
+      "published": 0
+    },
+    {
+      "hskLevel": 3,
+      "total": 500,
+      "published": 0
+    },
+    {
+      "hskLevel": 4,
+      "total": 1000,
+      "published": 0
+    },
+    {
+      "hskLevel": 5,
+      "total": 1600,
+      "published": 0
+    },
+    {
+      "hskLevel": 6,
+      "total": 1800,
+      "published": 0
+    }
+  ],
+  "vocabSources": [
+    {
+      "sourceId": "NULL",
+      "sourceDataset": "HSK 3.0 (2025-11)",
+      "count": 5100
+    },
+    {
+      "sourceId": "NULL",
+      "sourceDataset": "NULL",
+      "count": 9
+    },
+    {
+      "sourceId": "1",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "10",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "100",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "101",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "102",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "103",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "104",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "105",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "106",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "107",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "108",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "109",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "11",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "110",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "111",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "112",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "113",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "114",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "115",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "116",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "117",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "118",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "119",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "12",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "120",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "121",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "122",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "123",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "124",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "125",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "126",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "127",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "128",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "129",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "13",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "131",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "132",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "133",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "134",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "135",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "136",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "137",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "138",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "139",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "140",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "141",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "142",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "143",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "144",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "145",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "147",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "148",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "149",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "15",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "151",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "152",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "153",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "154",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "155",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "156",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "157",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "158",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "159",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "16",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "160",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "161",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "162",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "163",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "164",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "165",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "166",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "167",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "168",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "169",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "17",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "170",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "171",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "172",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "173",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "174",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "175",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "176",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "177",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "178",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "179",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "18",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "180",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "181",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "183",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "184",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "185",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "186",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "187",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "188",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "189",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "19",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "190",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "191",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "192",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "193",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "194",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "195",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "196",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "197",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "198",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "199",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "2",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "20",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "200",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "201",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "202",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "203",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "204",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "205",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "206",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "207",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "208",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "209",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "21",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "210",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "211",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "212",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "213",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "214",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "215",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "216",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "217",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "218",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "219",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "22",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "220",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "221",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "222",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "223",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "224",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "225",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "226",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "227",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "228",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "229",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "23",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "230",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "231",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "232",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "233",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "234",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "235",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "236",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "237",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "238",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "239",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "24",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "240",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "242",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "243",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "244",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "245",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "246",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "247",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "248",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "249",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "25",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "250",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "251",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "252",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "253",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "254",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "255",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "256",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "257",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "258",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "259",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "26",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "260",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "261",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "262",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "263",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "264",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "265",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "266",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "267",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "268",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "269",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "27",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "270",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "271",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "272",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "273",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "274",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "275",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "276",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "277",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "278",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "279",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "28",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "280",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "281",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "282",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "283",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "284",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "285",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "286",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "287",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "288",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "289",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "29",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "290",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "291",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "292",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "293",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "294",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "295",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "296",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "297",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "298",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "299",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "3",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "30",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "300",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "31",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "32",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "33",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "34",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "35",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "36",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "37",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "38",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "39",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "4",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "40",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "41",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "42",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "43",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "44",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "46",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "47",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "48",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "49",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "5",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "50",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "51",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "52",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "53",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "54",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "55",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "56",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "57",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "58",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "59",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "6",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "60",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "61",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "62",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "63",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "64",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "65",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "66",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "67",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "68",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "69",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "7",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "70",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "72",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "73",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "74",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "75",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "76",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "77",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "78",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "79",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "8",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "80",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "81",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "82",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "83",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "84",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "85",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "86",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "87",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "88",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "89",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "9",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "90",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "92",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "93",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "94",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "95",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "96",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "97",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "98",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    },
+    {
+      "sourceId": "99",
+      "sourceDataset": "HSK 3.0",
+      "count": 1
+    }
+  ],
+  "vocabMissingMeaningVi": 0,
+  "vocabMissingPinyin": 0,
+  "grammarTotal": {
+    "total": 461,
+    "published": 2,
+    "draft": 0
+  },
+  "grammarByHsk": [
+    {
+      "hskLevel": 1,
+      "total": 72,
+      "published": 2
+    },
+    {
+      "hskLevel": 2,
+      "total": 78,
+      "published": 0
+    },
+    {
+      "hskLevel": 3,
+      "total": 96,
+      "published": 0
+    },
+    {
+      "hskLevel": 4,
+      "total": 95,
+      "published": 0
+    },
+    {
+      "hskLevel": 5,
+      "total": 70,
+      "published": 0
+    },
+    {
+      "hskLevel": 6,
+      "total": 50,
+      "published": 0
+    }
+  ],
+  "grammarColumns": [
+    "Id",
+    "Code",
+    "Title",
+    "PinyinTitle",
+    "HskLevel",
+    "Category",
+    "StructureFormula",
+    "Explanation",
+    "Difficulty",
+    "ExamplesJson",
+    "PracticeJson",
+    "Status",
+    "LessonId",
+    "CreatedAt",
+    "UpdatedAt",
+    "GrammarType",
+    "CategoryType",
+    "RawExplanationCn",
+    "SourceDataset",
+    "SourceEntryId",
+    "UpdatedByUserId",
+    "ReviewedByUserId",
+    "ReviewedAt",
+    "ReviewNotes"
+  ],
+  "grammarMissingExplanation": 0,
+  "grammarMissingStructureFormula": 0,
+  "hanziCharactersTotal": 1940,
+  "hanziByHsk": [
+    {
+      "firstHskLevel": 1,
+      "count": 246
+    },
+    {
+      "firstHskLevel": 2,
+      "count": 125
+    },
+    {
+      "firstHskLevel": 3,
+      "count": 284
+    },
+    {
+      "firstHskLevel": 4,
+      "count": 441
+    },
+    {
+      "firstHskLevel": 5,
+      "count": 431
+    },
+    {
+      "firstHskLevel": 6,
+      "count": 413
+    }
+  ],
+  "hanziLevelRequirementsTotal": 2640,
+  "hanziLevelRequirements": [
+    {
+      "hskLevel": 1,
+      "count": 246,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    },
+    {
+      "hskLevel": 2,
+      "count": 225,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    },
+    {
+      "hskLevel": 3,
+      "count": 434,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    },
+    {
+      "hskLevel": 4,
+      "count": 591,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    },
+    {
+      "hskLevel": 5,
+      "count": 581,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    },
+    {
+      "hskLevel": 6,
+      "count": 563,
+      "sourceDataset": "HSK 3.0 (2025-11)"
+    }
+  ],
+  "exercisesTotal": {
+    "total": 278,
+    "published": 2,
+    "draft": 276
+  },
+  "exercisesByHsk": [
+    {
+      "hskLevel": 1,
+      "total": 28,
+      "published": 2
+    },
+    {
+      "hskLevel": 2,
+      "total": 30,
+      "published": 0
+    },
+    {
+      "hskLevel": 3,
+      "total": 40,
+      "published": 0
+    },
+    {
+      "hskLevel": 4,
+      "total": 40,
+      "published": 0
+    },
+    {
+      "hskLevel": 5,
+      "total": 60,
+      "published": 0
+    },
+    {
+      "hskLevel": 6,
+      "total": 80,
+      "published": 0
+    }
+  ],
+  "exercisesBySkill": [
+    {
+      "skill": "reading",
+      "count": 139
+    },
+    {
+      "skill": "grammar",
+      "count": 138
+    },
+    {
+      "skill": "writing",
+      "count": 1
+    }
+  ],
+  "usersCount": 39
+}

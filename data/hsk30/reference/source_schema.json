@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ZhongWenHubOfficialSourceSchema",
+  "description": "Standard schema for official and authoritative HSK / Chinese language curriculum reference sources.",
+  "type": "object",
+  "required": [
+    "sourceId",
+    "titleZh",
+    "publisher",
+    "officialUrl",
+    "publicationDate",
+    "documentType",
+    "levels",
+    "verificationStatus",
+    "licenseStatus",
+    "retrievedAt"
+  ],
+  "properties": {
+    "sourceId": {
+      "type": "string",
+      "pattern": "^HSK-OFFICIAL-[0-9]{3}$",
+      "description": "Unique stable identifier for the source (e.g., HSK-OFFICIAL-001)"
+    },
+    "titleZh": {
+      "type": "string",
+      "description": "Official Chinese title of the standard or publication"
+    },
+    "titleEn": {
+      "type": "string",
+      "description": "Official English title or translation"
+    },
+    "titleVi": {
+      "type": "string",
+      "description": "Vietnamese descriptive title for ZhongWenHub pedagogy"
+    },
+    "publisher": {
+      "type": "string",
+      "description": "Issuing or publishing authority (e.g., Ministry of Education, CLEC, CTI, BLCUP)"
+    },
+    "officialUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Direct canonical URL on official government or authorized publisher website"
+    },
+    "publicationDate": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Official announcement or publication date (YYYY-MM-DD)"
+    },
+    "effectiveDate": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Official effective or implementation date (YYYY-MM-DD)"
+    },
+    "version": {
+      "type": "string",
+      "description": "Standard code, edition or version string (e.g., GF 0025-2021, 2015 Syllabus)"
+    },
+    "documentType": {
+      "type": "string",
+      "enum": [
+        "NATIONAL_STANDARD",
+        "EXAM_SYLLABUS",
+        "IMPLEMENTATION_NOTICE",
+        "VOCABULARY_APPENDIX",
+        "GRAMMAR_APPENDIX",
+        "CHARACTER_APPENDIX",
+        "SAMPLE_TEST_PACKAGE",
+        "TEACHING_GUIDE",
+        "COMMERCIAL_COURSEBOOK"
+      ]
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["HSK1", "HSK2", "HSK3", "HSK4", "HSK5", "HSK6", "HSK7-9"]
+      },
+      "minItems": 1
+    },
+    "hasAppendix": {
+      "type": "boolean",
+      "description": "Whether the source contains formal appendices (vocab list, grammar outline, character list)"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["PDF", "HTML", "XLSX", "PRINT_BOOK", "PRINT_AND_AUDIO"]
+    },
+    "verificationStatus": {
+      "type": "string",
+      "enum": ["VERIFIED_OFFICIAL", "ACCESS_BLOCKED", "UNVERIFIED", "REJECTED"]
+    },
+    "licenseStatus": {
+      "type": "string",
+      "enum": [
+        "PUBLIC_STANDARD_METADATA_ONLY",
+        "OFFICIAL_TEST_SYLLABUS_RESTRICTED",
+        "ALL_RIGHTS_RESERVED_COMMERCIAL",
+        "OPEN_REUSE_PERMITTED",
+        "UNKNOWN"
+      ]
+    },
+    "copyrightNotes": {
+      "type": "string",
+      "description": "Detailed legal boundaries regarding verbatim copying vs editorial adaptation"
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp of inspection or retrieval"
+    },
+    "sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Cryptographic hash of document file if downloaded locally"
+    }
+  },
+  "additionalProperties": false
+}

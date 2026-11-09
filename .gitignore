@@ -24,6 +24,7 @@ publish/
 
 # IDE & OS
 .vs/
+.vscode/
 .idea/
 *.user
 .DS_Store
