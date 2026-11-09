@@ -13,9 +13,9 @@ class LessonContentService {
    * Fetch normalized lesson details by ID.
    * Connects to live Backend SQL Server API with graceful fallback to mock data.
    */
-  async getLessonDetail(lessonId: string = 'les-8'): Promise<LessonDetailDTO> {
-    // 1. Try fetching from live Backend API
-    if (lessonId && lessonId !== 'les-8') {
+  async getLessonDetail(lessonId: string = 'les-1'): Promise<LessonDetailDTO> {
+    // 1. Always attempt to fetch from live Backend API for any lessonId
+    if (lessonId) {
       try {
         const live = await httpClient.get<any>(`/content/lessons/${lessonId}`);
         if (live && live.id) {
@@ -30,10 +30,10 @@ class LessonContentService {
       }
     }
 
-    // 2. In mock mode / local dev without API, resolve Lesson 8 draft or customize based on curriculum metadata
+    // 2. In mock mode / local dev without API, resolve metadata from curriculumData
     try {
       const detail = adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
-      if (lessonId && lessonId !== 'les-8' && lessonId !== '8') {
+      if (lessonId) {
         const { findLessonMetadata } = await import('../../learning/data/curriculumData');
         const lessonMeta = findLessonMetadata(lessonId);
         if (lessonMeta) {

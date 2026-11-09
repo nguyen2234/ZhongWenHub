@@ -20,6 +20,28 @@ public class LearningService : ILearningService
         _context = context;
     }
 
+    public const string Lesson1Guid = "aaaaaaaa-1111-1111-1111-111111111111";
+    public const string LegacyLesson1Id = "les-1";
+
+    public static string NormalizeLessonId(string? lessonId)
+    {
+        if (string.IsNullOrWhiteSpace(lessonId)) return string.Empty;
+        var trimmed = lessonId.Trim();
+        if (string.Equals(trimmed, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
+        {
+            return Lesson1Guid;
+        }
+        return trimmed.ToLowerInvariant();
+    }
+
+    public static bool IsLesson1(string? lessonId)
+    {
+        if (string.IsNullOrWhiteSpace(lessonId)) return false;
+        var trimmed = lessonId.Trim();
+        return string.Equals(trimmed, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(trimmed, Lesson1Guid, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string GetLocalDateString(DateTime? utc = null)
     {
         var time = (utc ?? DateTime.UtcNow).AddHours(7); // Vietnam UTC+7
@@ -43,7 +65,7 @@ public class LearningService : ILearningService
             {
                 UserId = userId,
                 SelectedHskLevel = 1,
-                CurrentLessonId = "les-1",
+                CurrentLessonId = Lesson1Guid,
                 XpTotal = 0,
                 StreakDays = 0,
                 LastActivityDate = string.Empty,
@@ -56,7 +78,7 @@ public class LearningService : ILearningService
             var firstLesson = new StudentLessonProgress
             {
                 UserId = userId,
-                LessonId = "les-1",
+                LessonId = Lesson1Guid,
                 Status = "NOT_STARTED",
                 CurrentStepIndex = 0,
                 MaxUnlockedStepIndex = 0,
@@ -196,8 +218,8 @@ public class LearningService : ILearningService
             SchemaVersion = 1,
             StudentId = userId.ToString(),
             SelectedHskLevel = profile.SelectedHskLevel,
-            CurrentLessonId = profile.CurrentLessonId,
-            CompletedLessonIds = lessons.Where(l => l.Status == "COMPLETED").Select(l => l.LessonId).Distinct().ToList(),
+            CurrentLessonId = NormalizeLessonId(profile.CurrentLessonId),
+            CompletedLessonIds = lessons.Where(l => l.Status == "COMPLETED").Select(l => NormalizeLessonId(l.LessonId)).Distinct().ToList(),
             XpTotal = profile.XpTotal,
             StreakDays = profile.StreakDays,
             LastActivityDate = profile.LastActivityDate,
@@ -211,9 +233,10 @@ public class LearningService : ILearningService
 
         foreach (var l in lessons)
         {
-            state.LessonProgress[l.LessonId] = new LessonProgressDto
+            var normalized = NormalizeLessonId(l.LessonId);
+            var dto = new LessonProgressDto
             {
-                LessonId = l.LessonId,
+                LessonId = normalized,
                 UserId = userId.ToString(),
                 Status = l.Status,
                 CurrentStepIndex = l.CurrentStepIndex,
@@ -224,6 +247,12 @@ public class LearningService : ILearningService
                 CompletedAt = l.CompletedAt?.ToString("o"),
                 UpdatedAt = (l.UpdatedAt ?? l.CreatedAt).ToString("o")
             };
+            state.LessonProgress[normalized] = dto;
+            if (normalized == Lesson1Guid)
+            {
+                // Backward compatibility alias for legacy frontends / tests
+                state.LessonProgress[LegacyLesson1Id] = dto;
+            }
         }
 
         foreach (var a in attempts)
@@ -366,7 +395,7 @@ public class LearningService : ILearningService
 
         if (!string.IsNullOrWhiteSpace(dto.CurrentLessonId))
         {
-            profile.CurrentLessonId = dto.CurrentLessonId;
+            profile.CurrentLessonId = NormalizeLessonId(dto.CurrentLessonId);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -382,7 +411,7 @@ public class LearningService : ILearningService
 
         return lessons.Select(l => new LessonProgressDto
         {
-            LessonId = l.LessonId,
+            LessonId = NormalizeLessonId(l.LessonId),
             UserId = userId.ToString(),
             Status = l.Status,
             CurrentStepIndex = l.CurrentStepIndex,
@@ -397,21 +426,24 @@ public class LearningService : ILearningService
 
     public async Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default)
     {
+        var normalizedId = NormalizeLessonId(lessonId);
+        var isLesson1 = IsLesson1(lessonId);
+
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
         var todayStr = GetLocalDateString();
         var yesterdayStr = GetYesterdayDateString();
 
         var lesson = _context.StudentLessonProgresses.Local
-            .FirstOrDefault(l => l.UserId == userId && l.LessonId == lessonId)
+            .FirstOrDefault(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)))
             ?? await _context.StudentLessonProgresses
-                .FirstOrDefaultAsync(l => l.UserId == userId && l.LessonId == lessonId, cancellationToken);
+                .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
 
         if (lesson == null)
         {
             lesson = new StudentLessonProgress
             {
                 UserId = userId,
-                LessonId = lessonId,
+                LessonId = normalizedId,
                 Status = "IN_PROGRESS",
                 CurrentStepIndex = dto.CurrentStepIndex,
                 MaxUnlockedStepIndex = Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex)
@@ -420,13 +452,17 @@ public class LearningService : ILearningService
         }
         else
         {
+            if (lesson.LessonId == LegacyLesson1Id)
+            {
+                lesson.LessonId = Lesson1Guid;
+            }
             if (lesson.Status == "NOT_STARTED") lesson.Status = "IN_PROGRESS";
             lesson.CurrentStepIndex = dto.CurrentStepIndex;
             lesson.MaxUnlockedStepIndex = Math.Max(lesson.MaxUnlockedStepIndex,
                 Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex));
         }
 
-        profile.CurrentLessonId = lessonId;
+        profile.CurrentLessonId = normalizedId;
         UpdateStreak(profile, todayStr, yesterdayStr);
 
         var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
@@ -451,14 +487,17 @@ public class LearningService : ILearningService
 
     public async Task<StudentLearningStateDto> CompleteLessonAsync(Guid userId, string lessonId, CompleteLessonDto dto, CancellationToken cancellationToken = default)
     {
+        var normalizedId = NormalizeLessonId(lessonId);
+        var isLesson1 = IsLesson1(lessonId);
+
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
         var todayStr = GetLocalDateString();
         var yesterdayStr = GetYesterdayDateString();
 
         var lesson = _context.StudentLessonProgresses.Local
-            .FirstOrDefault(l => l.UserId == userId && l.LessonId == lessonId)
+            .FirstOrDefault(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)))
             ?? await _context.StudentLessonProgresses
-                .FirstOrDefaultAsync(l => l.UserId == userId && l.LessonId == lessonId, cancellationToken);
+                .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
 
         var now = DateTime.UtcNow;
         var xpAmount = dto.XpEarned > 0 ? dto.XpEarned : 100;
@@ -468,7 +507,7 @@ public class LearningService : ILearningService
             lesson = new StudentLessonProgress
             {
                 UserId = userId,
-                LessonId = lessonId,
+                LessonId = normalizedId,
                 Status = "COMPLETED",
                 CurrentStepIndex = 5,
                 MaxUnlockedStepIndex = 5,
@@ -481,6 +520,10 @@ public class LearningService : ILearningService
         }
         else
         {
+            if (lesson.LessonId == LegacyLesson1Id)
+            {
+                lesson.LessonId = Lesson1Guid;
+            }
             lesson.Status = "COMPLETED";
             lesson.CurrentStepIndex = 5;
             lesson.MaxUnlockedStepIndex = 5;
@@ -490,9 +533,9 @@ public class LearningService : ILearningService
             lesson.CompletedAt = now;
         }
 
-        // Award XP idempotently
-        var eventId = $"lesson_complete_{lessonId}";
-        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "LESSON_COMPLETION", $"Hoàn thành bài học {lessonId}", todayStr, cancellationToken);
+        // Award XP idempotently using normalizedId
+        var eventId = $"lesson_complete_{normalizedId}";
+        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "LESSON_COMPLETION", $"Hoàn thành bài học {normalizedId}", todayStr, cancellationToken);
 
         // Update streak
         UpdateStreak(profile, todayStr, yesterdayStr);
@@ -510,9 +553,9 @@ public class LearningService : ILearningService
         {
             completedLessons = new List<string>();
         }
-        if (!completedLessons.Contains(lessonId))
+        if (!completedLessons.Contains(normalizedId))
         {
-            completedLessons.Add(lessonId);
+            completedLessons.Add(normalizedId);
             daily.CompletedLessonsJson = JsonSerializer.Serialize(completedLessons);
         }
 

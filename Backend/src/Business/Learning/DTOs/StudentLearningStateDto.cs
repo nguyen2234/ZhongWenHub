@@ -13,7 +13,7 @@ public class StudentLearningStateDto
     public int SchemaVersion { get; set; } = 1;
     public string StudentId { get; set; } = string.Empty;
     public int SelectedHskLevel { get; set; } = 1;
-    public string CurrentLessonId { get; set; } = "les-1";
+    public string CurrentLessonId { get; set; } = "aaaaaaaa-1111-1111-1111-111111111111";
     public List<string> CompletedLessonIds { get; set; } = new();
     public Dictionary<string, LessonProgressDto> LessonProgress { get; set; } = new();
     public List<PracticeAttemptDto> ExerciseAttempts { get; set; } = new();

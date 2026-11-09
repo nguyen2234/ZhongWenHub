@@ -199,4 +199,84 @@ public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactor
             Assert.True(vocab.ReviewCount >= 1);
         }
     }
+
+    [Fact]
+    public async Task LegacyProgressCompatibility_WithLes1AndGuid_HandlesBothGracefullyWithoutCrash()
+    {
+        var token = await GetStudentTokenAsync();
+        const string lesson1Guid = "aaaaaaaa-1111-1111-1111-111111111111";
+
+        // 1. Set current lesson to legacy 'les-1' and verify it normalizes to GUID in state
+        var updatePrefPayload = new UpdateLearningPreferencesDto
+        {
+            CurrentLessonId = "les-1"
+        };
+        using (var prefReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/learning/me/preferences")
+        {
+            Content = JsonContent.Create(updatePrefPayload)
+        })
+        {
+            prefReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var prefRes = await _client.SendAsync(prefReq);
+            Assert.Equal(HttpStatusCode.OK, prefRes.StatusCode);
+
+            var state = await prefRes.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
+            Assert.NotNull(state);
+            Assert.Equal(lesson1Guid, state.CurrentLessonId);
+            Assert.True(state.LessonProgress.ContainsKey(lesson1Guid));
+            Assert.True(state.LessonProgress.ContainsKey("les-1"));
+        }
+
+        // 2. Update step using legacy 'les-1'
+        var stepPayload = new UpdateLessonStepDto
+        {
+            CurrentStepIndex = 2,
+            MaxUnlockedStepIndex = 2
+        };
+        using (var stepReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/learning/me/lessons/les-1/progress"))
+        {
+            stepReq.Content = JsonContent.Create(stepPayload);
+            stepReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var stepRes = await _client.SendAsync(stepReq);
+            Assert.Equal(HttpStatusCode.OK, stepRes.StatusCode);
+
+            var progress = await stepRes.Content.ReadFromJsonAsync<LessonProgressDto>(_jsonOptions);
+            Assert.NotNull(progress);
+            Assert.Equal(lesson1Guid, progress.LessonId);
+            Assert.Equal(2, progress.CurrentStepIndex);
+        }
+
+        // 3. Update step using canonical GUID - must update the SAME record, not duplicate
+        var step2Payload = new UpdateLessonStepDto
+        {
+            CurrentStepIndex = 4,
+            MaxUnlockedStepIndex = 4
+        };
+        using (var step2Req = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/learning/me/lessons/{lesson1Guid}/progress"))
+        {
+            step2Req.Content = JsonContent.Create(step2Payload);
+            step2Req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var step2Res = await _client.SendAsync(step2Req);
+            Assert.Equal(HttpStatusCode.OK, step2Res.StatusCode);
+
+            var progress = await step2Res.Content.ReadFromJsonAsync<LessonProgressDto>(_jsonOptions);
+            Assert.NotNull(progress);
+            Assert.Equal(lesson1Guid, progress.LessonId);
+            Assert.Equal(4, progress.CurrentStepIndex);
+        }
+
+        // 4. Verify all lesson progresses returned - only one entry for Lesson 1
+        using (var listReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/learning/me/lessons"))
+        {
+            listReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var listRes = await _client.SendAsync(listReq);
+            Assert.Equal(HttpStatusCode.OK, listRes.StatusCode);
+
+            var progresses = await listRes.Content.ReadFromJsonAsync<List<LessonProgressDto>>(_jsonOptions);
+            Assert.NotNull(progresses);
+            var lesson1Entries = progresses.Where(p => p.LessonId == lesson1Guid).ToList();
+            Assert.Single(lesson1Entries);
+            Assert.Equal(4, lesson1Entries[0].CurrentStepIndex);
+        }
+    }
 }
