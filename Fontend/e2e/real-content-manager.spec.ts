@@ -16,6 +16,7 @@ async function loginViaUi(
   ]);
   await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 10000 });
   await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(500);
 }
 
 /**

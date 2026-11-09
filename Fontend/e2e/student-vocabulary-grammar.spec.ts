@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { testCredentials } from './config/test-credentials.config';
 
 test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Grammar Modules', () => {
+  test.describe.configure({ mode: 'serial' });
+
   test.beforeEach(async ({ page }) => {
     // Reset session storage
     await page.addInitScript(() => {

@@ -3,6 +3,8 @@ import { LessonPlayerAdapter } from '../adapters/lesson-player.adapter';
 import { findLessonMetadata, getAllCurriculumLessons, HSK_CURRICULUM } from '../../learning/data/curriculumData';
 import { INITIAL_VOCABULARY_LIST } from '../../vocabulary/data/vocabularyBank';
 import { MOCK_GRAMMAR_POINTS } from '../../grammar/mock/mockGrammarData';
+import { HSK1_READING_PASSAGES } from '../data/hsk1ReadingPassages';
+import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
 import type { LessonData, DialogueLine } from '../types';
 
 export interface TextbookVocabulary {
@@ -57,6 +59,7 @@ export interface HskTextbookData {
   vocabularies: TextbookVocabulary[];
   grammars: TextbookGrammar[];
   dialogue: TextbookDialogue;
+  readingPassage?: LessonReadingPassageDTO;
   playerLessonData: LessonData;
   isAvailable: boolean;
   isDraftFallback: boolean;
@@ -224,6 +227,12 @@ class HskTextbookService {
       lines: dialogueLines,
     };
 
+    const readingPassage =
+      detailDto.readingPassage ||
+      HSK1_READING_PASSAGES.find(
+        (p) => p.lessonNumber === lessonNumber || p.lessonNumber === meta?.lessonNumber
+      );
+
     return {
       lessonId,
       hskLevel,
@@ -240,6 +249,7 @@ class HskTextbookService {
       vocabularies,
       grammars,
       dialogue,
+      readingPassage,
       playerLessonData,
       isAvailable: true,
       isDraftFallback: !meta,

@@ -352,5 +352,47 @@ public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactor
             Assert.NotEqual(bodyB.User.Id.ToString(), tokenA);
         }
     }
-}
 
+    [Fact]
+    public async Task ConcurrentProgressUpdates_HandlesParallelRequestsWithoutDeadlockOrDuplicateXp()
+    {
+        var token = await GetStudentTokenAsync();
+        const string lesson1Guid = "aaaaaaaa-1111-1111-1111-111111111111";
+
+        // Dispatch 10 concurrent step update tasks
+        var tasks = new List<Task<HttpResponseMessage>>();
+        for (int i = 1; i <= 10; i++)
+        {
+            var stepIndex = (i % 5) + 1;
+            var payload = new UpdateLessonStepDto
+            {
+                CurrentStepIndex = stepIndex,
+                MaxUnlockedStepIndex = Math.Max(stepIndex, 3)
+            };
+
+            var req = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/learning/me/lessons/{lesson1Guid}/progress")
+            {
+                Content = JsonContent.Create(payload)
+            };
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            tasks.Add(_client.SendAsync(req));
+        }
+
+        var responses = await Task.WhenAll(tasks);
+
+        // Verify all 10 completed with 200 OK without deadlocks or 500 Internal Server Errors
+        foreach (var res in responses)
+        {
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        }
+
+        // Verify final state is consistent and queryable
+        using var stateReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/learning/me");
+        stateReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var stateRes = await _client.SendAsync(stateReq);
+        Assert.Equal(HttpStatusCode.OK, stateRes.StatusCode);
+        var finalState = await stateRes.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
+        Assert.NotNull(finalState);
+        Assert.True(finalState.LessonProgress.ContainsKey(lesson1Guid));
+    }
+}

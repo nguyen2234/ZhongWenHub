@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import {
+  BookOpen,
   Languages,
   BookText,
   MessageSquare,
@@ -29,6 +30,7 @@ import {
 } from '../services/hsk-textbook.service';
 import { LessonTableOfContents } from '../components/LessonTableOfContents';
 import { LessonPracticeModal } from '../components/LessonPracticeModal';
+import { ReadingPassageCard } from '../components/ReadingPassageCard';
 import { useLearningState } from '../../learning';
 import { findNextLessonId } from '../../learning/data/curriculumData';
 import { Button, StickerIllustration } from '../../../design-system';
@@ -782,6 +784,13 @@ export const HskTextbookLessonPage: React.FC = () => {
             </div>
           </section>
 
+          {/* SECTION: BÀI ĐỌC HIỂU TẬP TRUNG (#reading) */}
+          {textbookData.readingPassage && (
+            <section id="reading" className="hsk-textbook-section" aria-label="Bài đọc hiểu bổ trợ">
+              <ReadingPassageCard passage={textbookData.readingPassage} />
+            </section>
+          )}
+
           {/* SECTION 5: LUYỆN TẬP CỦNG CỐ (#practice) — EMBEDDED LESSONEXPERIENCE */}
           <section id="practice" className="hsk-textbook-section" aria-label="Luyện tập củng cố kiến thức">
             <div className="hsk-section-header-box">
@@ -950,6 +959,19 @@ export const HskTextbookLessonPage: React.FC = () => {
         <LessonTableOfContents
           activeSectionId={activeSection}
           readingProgress={readingProgress}
+          sections={
+            textbookData.readingPassage
+              ? [
+                  { id: 'overview', label: 'Tổng quan', icon: BookOpen },
+                  { id: 'vocabulary', label: 'Từ vựng', icon: Languages },
+                  { id: 'grammar', label: 'Ngữ pháp', icon: BookText },
+                  { id: 'dialogue', label: 'Hội thoại', icon: MessageSquare },
+                  { id: 'reading', label: 'Đọc hiểu', icon: BookOpen },
+                  { id: 'practice', label: 'Luyện tập củng cố', icon: Dumbbell },
+                  { id: 'complete', label: 'Kết quả', icon: CheckCircle2 },
+                ]
+              : undefined
+          }
           vocabCount={textbookData.vocabularies.length}
           grammarCount={textbookData.grammars.length}
           dialogueCount={1}
