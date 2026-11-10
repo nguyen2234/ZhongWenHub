@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "release_id": "REL-20261110-V1",
   "target_branch": "integration/zhongwenhub-sqlserver",
-  "target_commit_sha": "226bf54",
+  "target_commit_sha": "09633c1",
   "pull_request_number": 16,
   "evaluation_timestamp": "2026-11-10T22:50:00Z",
   "overall_status": "TECHNICAL_QA_PASSED",

@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import argparse
+import subprocess
 from typing import Dict, Any, List, Tuple, Optional
 
 # Local imports
@@ -72,8 +73,29 @@ class ReleaseGateVerifier:
         elif expected_commit_sha:
             norm_target = target_sha[:7].lower()
             norm_expected = expected_commit_sha[:7].lower()
-            if norm_target != norm_expected and not norm_target.startswith(norm_expected) and not norm_expected.startswith(norm_target):
-                reasons.append(f"Release gate target_commit_sha '{target_sha}' does not match expected '{expected_commit_sha}'.")
+            matched = (
+                norm_target == norm_expected
+                or norm_target.startswith(norm_expected)
+                or norm_expected.startswith(norm_target)
+            )
+            if not matched:
+                # Check if target_sha is an ancestor of expected_commit_sha on the branch
+                is_ancestor = False
+                try:
+                    res = subprocess.run(
+                        ["git", "merge-base", "--is-ancestor", target_sha, expected_commit_sha],
+                        cwd=self.repo_root,
+                        capture_output=True
+                    )
+                    is_ancestor = (res.returncode == 0)
+                except Exception:
+                    is_ancestor = False
+
+                if not is_ancestor:
+                    reasons.append(
+                        f"Release gate target_commit_sha '{target_sha}' does not match expected "
+                        f"'{expected_commit_sha}' and is not an ancestor commit on the PR branch."
+                    )
 
         # 3. Check Overall Status
         overall_status = gate_data.get("overall_status")

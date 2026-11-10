@@ -3,7 +3,7 @@
   "project": "ZhongWenHub",
   "assessed_at": "2026-11-10T22:50:00Z",
   "branch": "integration/zhongwenhub-sqlserver",
-  "commit_sha": "226bf54",
+  "commit_sha": "09633c1",
   "scanners_executed": [
     "Secret Scanning Engine",
     "SQL Injection Risk Analyzer",

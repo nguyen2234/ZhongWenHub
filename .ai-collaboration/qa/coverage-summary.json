@@ -3,7 +3,7 @@
   "project": "ZhongWenHub",
   "last_assessed_at": "2026-11-10T22:50:00Z",
   "branch": "integration/zhongwenhub-sqlserver",
-  "commit_sha": "226bf54",
+  "commit_sha": "09633c1",
   "backend": {
     "framework": "ASP.NET Core .NET 10 / xUnit",
     "unit_tests": { "total": 38, "passed": 38, "failed": 0, "skipped": 0 },
