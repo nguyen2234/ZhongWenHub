@@ -125,6 +125,11 @@ class GitHubSyncEngine:
 
         try:
             res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if res.returncode != 0 and "label" in res.stderr.lower():
+                # Retry without label if label does not exist on target repository
+                cmd_no_label = ["gh", "issue", "create", "--repo", self.repo, "--title", title, "--body", body]
+                res = subprocess.run(cmd_no_label, capture_output=True, text=True, timeout=15)
+
             if res.returncode == 0:
                 match = re.search(r'/issues/(\d+)', res.stdout)
                 if match:
