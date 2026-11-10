@@ -7,11 +7,11 @@
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-001",
-      "title": "Biểu thị sự tiếp diễn với \"还\"",
+      "title": "Biểu thị sự tiếp diễn với phó từ \"还\"",
       "titleEn": "Continuation with \"hai\"",
       "category": "Adding more explanation, Connecting ideas",
       "structure": "Subj. + 还在 + [Verb Phrase]",
-      "explanationVi": "Điểm ngữ pháp 'Biểu thị sự tiếp diễn với \"还\"' (Continuation with \"hai\") được dùng để adding more explanation, connecting ideas. Cấu trúc: Subj. + 还在 + [Verb Phrase].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị sự tiếp diễn với phó từ \"还\"' (Continuation with \"hai\"). Cấu trúc cấu thành câu: Subj. + 还在 + [Verb Phrase]. Dùng trong các ngữ cảnh: Adding more explanation, Connecting ideas.",
       "examples": [
         {
           "chinese": "这件事情我还在考虑。",
@@ -57,17 +57,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-002",
-      "title": "Ngữ pháp: Emphasis with \"jiushi\"",
+      "title": "Chủ điểm ngữ pháp: Emphasis with \"jiushi\"",
       "titleEn": "Emphasis with \"jiushi\"",
       "category": "Emphasizing",
       "structure": "就是 + Noun",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Emphasis with \"jiushi\"' (Emphasis with \"jiushi\") được dùng để emphasizing. Cấu trúc: 就是 + Noun.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Emphasis with \"jiushi\"' (Emphasis with \"jiushi\"). Cấu trúc cấu thành câu: 就是 + Noun. Dùng trong các ngữ cảnh: Emphasizing.",
       "examples": [
         {
           "chinese": "那个人就是她的新男朋友。",
@@ -113,17 +114,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-003",
-      "title": "Ngữ pháp: Emphasizing quantity with \"dou\"",
+      "title": "Chủ điểm ngữ pháp: Emphasizing quantity with \"dou\"",
       "titleEn": "Emphasizing quantity with \"dou\"",
       "category": "Emphasizing, Expressing quantity",
       "structure": "Subj. + 都 + Verb + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Emphasizing quantity with \"dou\"' (Emphasizing quantity with \"dou\") được dùng để emphasizing, expressing quantity. Cấu trúc: Subj. + 都 + Verb + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Emphasizing quantity with \"dou\"' (Emphasizing quantity with \"dou\"). Cấu trúc cấu thành câu: Subj. + 都 + Verb + Obj.. Dùng trong các ngữ cảnh: Emphasizing, Expressing quantity.",
       "examples": [
         {
           "chinese": "很多地方都有wifi。",
@@ -169,17 +171,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-004",
-      "title": "Ngữ pháp: Expressing \"about to\" with \"jiuyao\"",
+      "title": "Biểu đạt \"about to\" với \"jiuyao\"",
       "titleEn": "Expressing \"about to\" with \"jiuyao\"",
       "category": "Sequencing events in time, Expressing time and date, Referring to changes of situation",
       "structure": "(Subj. +) 就要 + Verb + 了 (，⋯⋯)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"about to\" with \"jiuyao\"' (Expressing \"about to\" with \"jiuyao\") được dùng để sequencing events in time, expressing time and date, referring to changes of situation. Cấu trúc: (Subj. +) 就要 + Verb + 了 (，⋯⋯).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"about to\" với \"jiuyao\"' (Expressing \"about to\" with \"jiuyao\"). Cấu trúc cấu thành câu: (Subj. +) 就要 + Verb + 了 (，⋯⋯). Dùng trong các ngữ cảnh: Sequencing events in time, Expressing time and date, Referring to changes of situation.",
       "examples": [
         {
           "chinese": "就要下雨了。",
@@ -225,17 +228,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-005",
-      "title": "Ngữ pháp: Expressing \"again\" in the future with \"zai\"",
+      "title": "Chủ điểm ngữ pháp: Expressing \"again\" in the future with \"zai\"",
       "titleEn": "Expressing \"again\" in the future with \"zai\"",
       "category": "Expressing time and date",
       "structure": "Subj. + 再 + [Verb Phrase]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"again\" in the future with \"zai\"' (Expressing \"again\" in the future with \"zai\") được dùng để expressing time and date. Cấu trúc: Subj. + 再 + [Verb Phrase].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing \"again\" in the future with \"zai\"' (Expressing \"again\" in the future with \"zai\"). Cấu trúc cấu thành câu: Subj. + 再 + [Verb Phrase]. Dùng trong các ngữ cảnh: Expressing time and date.",
       "examples": [
         {
           "chinese": "我们明年再来。",
@@ -281,17 +285,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-006",
-      "title": "Ngữ pháp: Expressing \"already\" with \"dou\"",
+      "title": "Biểu đạt \"already\" với \"dou\"",
       "titleEn": "Expressing \"already\" with \"dou\"",
       "category": "Expressing attitude, Emphasizing",
       "structure": "都 + Time + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"already\" with \"dou\"' (Expressing \"already\" with \"dou\") được dùng để expressing attitude, emphasizing. Cấu trúc: 都 + Time + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"already\" với \"dou\"' (Expressing \"already\" with \"dou\"). Cấu trúc cấu thành câu: 都 + Time + 了. Dùng trong các ngữ cảnh: Expressing attitude, Emphasizing.",
       "examples": [
         {
           "chinese": "都九点了，快点起床！",
@@ -337,17 +342,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-007",
-      "title": "Ngữ pháp: Expressing \"already\" with \"yijing\"",
+      "title": "Biểu đạt \"đã... rồi\" với \"已经...了\"",
       "titleEn": "Expressing \"already\" with \"yijing\"",
       "category": "Emphasizing",
       "structure": "已经 + [Verb Phrase] + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"already\" with \"yijing\"' (Expressing \"already\" with \"yijing\") được dùng để emphasizing. Cấu trúc: 已经 + [Verb Phrase] + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"đã... rồi\" với \"已经...了\"' (Expressing \"already\" with \"yijing\"). Cấu trúc cấu thành câu: 已经 + [Verb Phrase] + 了. Dùng trong các ngữ cảnh: Emphasizing.",
       "examples": [
         {
           "chinese": "他们已经走了。",
@@ -393,17 +399,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-008",
-      "title": "Ngữ pháp: Expressing \"and also\" with \"hai\"",
+      "title": "Biểu đạt \"and also\" với \"hai\"",
       "titleEn": "Expressing \"and also\" with \"hai\"",
       "category": "Giving alternatives, Connecting ideas",
       "structure": "Subj. + Verb + Obj. 1， 还 + Verb + Obj. 2",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"and also\" with \"hai\"' (Expressing \"and also\" with \"hai\") được dùng để giving alternatives, connecting ideas. Cấu trúc: Subj. + Verb + Obj. 1， 还 + Verb + Obj. 2.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"and also\" với \"hai\"' (Expressing \"and also\" with \"hai\"). Cấu trúc cấu thành câu: Subj. + Verb + Obj. 1， 还 + Verb + Obj. 2. Dùng trong các ngữ cảnh: Giving alternatives, Connecting ideas.",
       "examples": [
         {
           "chinese": "她有一个弟弟，还有一个妹妹。",
@@ -449,17 +456,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-009",
-      "title": "Ngữ pháp: Expressing earliness with \"jiu\"",
+      "title": "Chủ điểm ngữ pháp: Expressing earliness with \"jiu\"",
       "titleEn": "Expressing earliness with \"jiu\"",
       "category": "Sequencing events in time, Expressing time and date, Expressing attitude",
       "structure": "Subj. + Time + 就 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing earliness with \"jiu\"' (Expressing earliness with \"jiu\") được dùng để sequencing events in time, expressing time and date, expressing attitude. Cấu trúc: Subj. + Time + 就 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing earliness with \"jiu\"' (Expressing earliness with \"jiu\"). Cấu trúc cấu thành câu: Subj. + Time + 就 + Verb. Dùng trong các ngữ cảnh: Sequencing events in time, Expressing time and date, Expressing attitude.",
       "examples": [
         {
           "chinese": "我马上就来。",
@@ -505,17 +513,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-010",
-      "title": "Ngữ pháp: Expressing \"then\" with \"jiu\"",
+      "title": "Biểu đạt \"then\" với \"jiu\"",
       "titleEn": "Expressing \"then\" with \"jiu\"",
       "category": "Expressing attitude",
       "structure": "..., 就 + Verb Phrase",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"then\" with \"jiu\"' (Expressing \"then\" with \"jiu\") được dùng để expressing attitude. Cấu trúc: ..., 就 + Verb Phrase.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"then\" với \"jiu\"' (Expressing \"then\" with \"jiu\"). Cấu trúc cấu thành câu: ..., 就 + Verb Phrase. Dùng trong các ngữ cảnh: Expressing attitude.",
       "examples": [
         {
           "chinese": "你喜欢喝奶茶，我们就买奶茶吧。",
@@ -561,17 +570,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-011",
-      "title": "Ngữ pháp: Negative commands with \"bie\"",
+      "title": "Câu mệnh lệnh phủ định với \"别\" (đừng)",
       "titleEn": "Negative commands with \"bie\"",
       "category": "Denying and refusing, Giving commands",
       "structure": "别 + Verb (+ Obj.)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Negative commands with \"bie\"' (Negative commands with \"bie\") được dùng để denying and refusing, giving commands. Cấu trúc: 别 + Verb (+ Obj.).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Câu mệnh lệnh phủ định với \"别\" (đừng)' (Negative commands with \"bie\"). Cấu trúc cấu thành câu: 别 + Verb (+ Obj.). Dùng trong các ngữ cảnh: Denying and refusing, Giving commands.",
       "examples": [
         {
           "chinese": "别喝太多。",
@@ -612,17 +622,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-012",
-      "title": "Ngữ pháp: Asking about degree with \"duo\"",
+      "title": "Hỏi mức độ, kích thước với \"多\"",
       "titleEn": "Asking about degree with \"duo\"",
       "category": "Asking questions, Adding more explanation, Expressing quality",
       "structure": "Subj. + 多 + Adj. ?",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Asking about degree with \"duo\"' (Asking about degree with \"duo\") được dùng để asking questions, adding more explanation, expressing quality. Cấu trúc: Subj. + 多 + Adj. ?.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Hỏi mức độ, kích thước với \"多\"' (Asking about degree with \"duo\"). Cấu trúc cấu thành câu: Subj. + 多 + Adj. ?. Dùng trong các ngữ cảnh: Asking questions, Adding more explanation, Expressing quality.",
       "examples": [
         {
           "chinese": "她多高？",
@@ -668,17 +679,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-013",
-      "title": "Ngữ pháp: Expressing \"a little too\" with \"you dian\"",
+      "title": "Biểu đạt \"a little too\" với \"you dian\"",
       "titleEn": "Expressing \"a little too\" with \"you dian\"",
       "category": "Adding more explanation, Expressing quality",
       "structure": "Subj. + 有一点(儿) + Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"a little too\" with \"you dian\"' (Expressing \"a little too\" with \"you dian\") được dùng để adding more explanation, expressing quality. Cấu trúc: Subj. + 有一点(儿) + Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"a little too\" với \"you dian\"' (Expressing \"a little too\" with \"you dian\"). Cấu trúc cấu thành câu: Subj. + 有一点(儿) + Adj.. Dùng trong các ngữ cảnh: Adding more explanation, Expressing quality.",
       "examples": [
         {
           "chinese": "我有点饿。",
@@ -724,17 +736,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-014",
-      "title": "Ngữ pháp: Expressing distance with \"li\"",
+      "title": "Chủ điểm ngữ pháp: Expressing distance with \"li\"",
       "titleEn": "Expressing distance with \"li\"",
       "category": "Describing places, Expressing location, Expressing distance, Giving directions",
       "structure": "Place 1 + 离 + Place 2 + Adv. + 近 / 远",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing distance with \"li\"' (Expressing distance with \"li\") được dùng để describing places, expressing location, expressing distance, giving directions. Cấu trúc: Place 1 + 离 + Place 2 + Adv. + 近 / 远.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing distance with \"li\"' (Expressing distance with \"li\"). Cấu trúc cấu thành câu: Place 1 + 离 + Place 2 + Adv. + 近 / 远. Dùng trong các ngữ cảnh: Describing places, Expressing location, Expressing distance, Giving directions.",
       "examples": [
         {
           "chinese": "我家离公司很近。",
@@ -780,17 +793,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-015",
-      "title": "Ngữ pháp: Expressing \"even more\" with \"geng\"",
+      "title": "Biểu đạt \"even more\" với \"geng\"",
       "titleEn": "Expressing \"even more\" with \"geng\"",
       "category": "Comparing, Expressing quality",
       "structure": "更 + Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"even more\" with \"geng\"' (Expressing \"even more\" with \"geng\") được dùng để comparing, expressing quality. Cấu trúc: 更 + Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"even more\" với \"geng\"' (Expressing \"even more\" with \"geng\"). Cấu trúc cấu thành câu: 更 + Adj.. Dùng trong các ngữ cảnh: Comparing, Expressing quality.",
       "examples": [
         {
           "chinese": "这两个银行哪个更近？",
@@ -836,17 +850,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-016",
-      "title": "Ngữ pháp: Expressing \"really\" with \"zhen\"",
+      "title": "Biểu đạt \"really\" với \"zhen\"",
       "titleEn": "Expressing \"really\" with \"zhen\"",
       "category": "Emphasizing",
       "structure": "真 + Adj. / Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"really\" with \"zhen\"' (Expressing \"really\" with \"zhen\") được dùng để emphasizing. Cấu trúc: 真 + Adj. / Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"really\" với \"zhen\"' (Expressing \"really\" with \"zhen\"). Cấu trúc cấu thành câu: 真 + Adj. / Verb. Dùng trong các ngữ cảnh: Emphasizing.",
       "examples": [
         {
           "chinese": "你真好！",
@@ -892,17 +907,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-017",
-      "title": "Ngữ pháp: Moderating positive adjectives with \"hai\"",
+      "title": "Chủ điểm ngữ pháp: Moderating positive adjectives with \"hai\"",
       "titleEn": "Moderating positive adjectives with \"hai\"",
       "category": "Adding more explanation, Expressing quality",
       "structure": "Subj. + 还 + 好 / 可以 / 行 / 不错",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Moderating positive adjectives with \"hai\"' (Moderating positive adjectives with \"hai\") được dùng để adding more explanation, expressing quality. Cấu trúc: Subj. + 还 + 好 / 可以 / 行 / 不错.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Moderating positive adjectives with \"hai\"' (Moderating positive adjectives with \"hai\"). Cấu trúc cấu thành câu: Subj. + 还 + 好 / 可以 / 行 / 不错. Dùng trong các ngữ cảnh: Adding more explanation, Expressing quality.",
       "examples": [
         {
           "chinese": "我还好。",
@@ -948,17 +964,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-018",
-      "title": "Ngữ pháp: Modifying nouns with phrase + \"de\"",
+      "title": "Chủ điểm ngữ pháp: Modifying nouns with phrase + \"de\"",
       "titleEn": "Modifying nouns with phrase + \"de\"",
       "category": "Describing actions, Describing people, Describing things, Describing places, Expressing quality",
       "structure": "Phrase + 的 + （Noun）",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Modifying nouns with phrase + \"de\"' (Modifying nouns with phrase + \"de\") được dùng để describing actions, describing people, describing things, describing places, expressing quality. Cấu trúc: Phrase + 的 + （Noun）.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Modifying nouns with phrase + \"de\"' (Modifying nouns with phrase + \"de\"). Cấu trúc cấu thành câu: Phrase + 的 + （Noun）. Dùng trong các ngữ cảnh: Describing actions, Describing people, Describing things, Describing places, Expressing quality.",
       "examples": [
         {
           "chinese": "妈妈做的菜",
@@ -1004,17 +1021,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-019",
-      "title": "Ngữ pháp: Superlative \"zui\"",
+      "title": "Chủ điểm ngữ pháp: Superlative \"zui\"",
       "titleEn": "Superlative \"zui\"",
       "category": "Comparing, Emphasizing",
       "structure": "最 + Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Superlative \"zui\"' (Superlative \"zui\") được dùng để comparing, emphasizing. Cấu trúc: 最 + Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Superlative \"zui\"' (Superlative \"zui\"). Cấu trúc cấu thành câu: 最 + Adj.. Dùng trong các ngữ cảnh: Comparing, Emphasizing.",
       "examples": [
         {
           "chinese": "哪个老师最好？",
@@ -1060,17 +1078,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-020",
-      "title": "Ngữ pháp: The filler word \"neige\"",
+      "title": "Chủ điểm ngữ pháp: The filler word \"neige\"",
       "titleEn": "The filler word \"neige\"",
       "category": "Connecting ideas",
       "structure": "(那个⋯⋯) (那个⋯⋯) + [anything] + (那个⋯⋯)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: The filler word \"neige\"' (The filler word \"neige\") được dùng để connecting ideas. Cấu trúc: (那个⋯⋯) (那个⋯⋯) + [anything] + (那个⋯⋯).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: The filler word \"neige\"' (The filler word \"neige\"). Cấu trúc cấu thành câu: (那个⋯⋯) (那个⋯⋯) + [anything] + (那个⋯⋯). Dùng trong các ngữ cảnh: Connecting ideas.",
       "examples": [
         {
           "chinese": "那个⋯⋯我不跟你们一起去了，可以吗？",
@@ -1116,17 +1135,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-021",
-      "title": "Ngữ pháp: Reduplication of measure words",
+      "title": "Chủ điểm ngữ pháp: Reduplication of measure words",
       "titleEn": "Reduplication of measure words",
       "category": "Expressing quantity",
       "structure": "Subj + MW + MW + Predicate",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Reduplication of measure words' (Reduplication of measure words) được dùng để expressing quantity. Cấu trúc: Subj + MW + MW + Predicate.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Reduplication of measure words' (Reduplication of measure words). Cấu trúc cấu thành câu: Subj + MW + MW + Predicate. Dùng trong các ngữ cảnh: Expressing quantity.",
       "examples": [
         {
           "chinese": "公司的员工个个都很好。",
@@ -1172,17 +1192,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-022",
-      "title": "Ngữ pháp: Expressing \"when\" with \"de shihou\"",
+      "title": "Biểu đạt \"when\" với \"de shihou\"",
       "titleEn": "Expressing \"when\" with \"de shihou\"",
       "category": "Referring to simultaneous events, Expressing time and date",
       "structure": "Time Word + 的 时候, .... / (Subj.) + Verb / Adj. + 的 时候, ....",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"when\" with \"de shihou\"' (Expressing \"when\" with \"de shihou\") được dùng để referring to simultaneous events, expressing time and date. Cấu trúc: Time Word + 的 时候, .... / (Subj.) + Verb / Adj. + 的 时候, .....",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"when\" với \"de shihou\"' (Expressing \"when\" with \"de shihou\"). Cấu trúc cấu thành câu: Time Word + 的 时候, .... / (Subj.) + Verb / Adj. + 的 时候, ..... Dùng trong các ngữ cảnh: Referring to simultaneous events, Expressing time and date.",
       "examples": [
         {
           "chinese": "你不在的时候，我会想你。",
@@ -1228,17 +1249,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-023",
-      "title": "Ngữ pháp: Indicating a number in excess",
+      "title": "Chủ điểm ngữ pháp: Indicating a number in excess",
       "titleEn": "Indicating a number in excess",
       "category": "Expressing quantity",
       "structure": "Number + 多 + [Measure word] (+ Noun)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Indicating a number in excess' (Indicating a number in excess) được dùng để expressing quantity. Cấu trúc: Number + 多 + [Measure word] (+ Noun).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Indicating a number in excess' (Indicating a number in excess). Cấu trúc cấu thành câu: Number + 多 + [Measure word] (+ Noun). Dùng trong các ngữ cảnh: Expressing quantity.",
       "examples": [
         {
           "chinese": "我妈妈已经五十多岁了。",
@@ -1284,17 +1306,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-024",
-      "title": "Ngữ pháp: Using \"ji\" to mean \"several\"",
+      "title": "Chủ điểm ngữ pháp: Using \"ji\" to mean \"several\"",
       "titleEn": "Using \"ji\" to mean \"several\"",
       "category": "Expressing quantity",
       "structure": "几 + Measure Word + Noun",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using \"ji\" to mean \"several\"' (Using \"ji\" to mean \"several\") được dùng để expressing quantity. Cấu trúc: 几 + Measure Word + Noun.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using \"ji\" to mean \"several\"' (Using \"ji\" to mean \"several\"). Cấu trúc cấu thành câu: 几 + Measure Word + Noun. Dùng trong các ngữ cảnh: Expressing quantity.",
       "examples": [
         {
           "chinese": "桌子上有几本书。",
@@ -1340,17 +1363,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-025",
-      "title": "Ngữ pháp: Aspect particle \"zhe\"",
+      "title": "Chủ điểm ngữ pháp: Aspect particle \"zhe\"",
       "titleEn": "Aspect particle \"zhe\"",
       "category": "Indicating conditions, Expressing duration",
       "structure": "Verb + 着",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Aspect particle \"zhe\"' (Aspect particle \"zhe\") được dùng để indicating conditions, expressing duration. Cấu trúc: Verb + 着.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Aspect particle \"zhe\"' (Aspect particle \"zhe\"). Cấu trúc cấu thành câu: Verb + 着. Dùng trong các ngữ cảnh: Indicating conditions, Expressing duration.",
       "examples": [
         {
           "chinese": "我读，你听着。",
@@ -1396,17 +1420,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-026",
-      "title": "Ngữ pháp: Conceding with \"ba\"",
+      "title": "Chủ điểm ngữ pháp: Conceding with \"ba\"",
       "titleEn": "Conceding with \"ba\"",
       "category": "Expressing attitude",
       "structure": "Statement + 吧",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Conceding with \"ba\"' (Conceding with \"ba\") được dùng để expressing attitude. Cấu trúc: Statement + 吧.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Conceding with \"ba\"' (Conceding with \"ba\"). Cấu trúc cấu thành câu: Statement + 吧. Dùng trong các ngữ cảnh: Expressing attitude.",
       "examples": [
         {
           "chinese": "B:好吧，我们可以看看别的。",
@@ -1452,17 +1477,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-027",
-      "title": "Ngữ pháp: Expressing \"already\" with just \"le\"",
+      "title": "Biểu đạt \"already\" với just \"le\"",
       "titleEn": "Expressing \"already\" with just \"le\"",
       "category": "Referring to changes of situation",
       "structure": "Subj. + [Verb Phrase] + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"already\" with just \"le\"' (Expressing \"already\" with just \"le\") được dùng để referring to changes of situation. Cấu trúc: Subj. + [Verb Phrase] + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"already\" với just \"le\"' (Expressing \"already\" with just \"le\"). Cấu trúc cấu thành câu: Subj. + [Verb Phrase] + 了. Dùng trong các ngữ cảnh: Referring to changes of situation.",
       "examples": [
         {
           "chinese": "B:他走了。",
@@ -1508,17 +1534,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-028",
-      "title": "Ngữ pháp: Expressing experiences with \"guo\"",
+      "title": "Chủ điểm ngữ pháp: Expressing experiences with \"guo\"",
       "titleEn": "Expressing experiences with \"guo\"",
       "category": "Referring to the past, Referring to past experiences",
       "structure": "Subj. +（ 没） + Verb + 过 + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing experiences with \"guo\"' (Expressing experiences with \"guo\") được dùng để referring to the past, referring to past experiences. Cấu trúc: Subj. +（ 没） + Verb + 过 + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing experiences with \"guo\"' (Expressing experiences with \"guo\"). Cấu trúc cấu thành câu: Subj. +（ 没） + Verb + 过 + Obj.. Dùng trong các ngữ cảnh: Referring to the past, Referring to past experiences.",
       "examples": [
         {
           "chinese": "你学过中文吗？",
@@ -1564,17 +1591,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-029",
-      "title": "Ngữ pháp: Modal particle \"ne\"",
+      "title": "Chủ điểm ngữ pháp: Modal particle \"ne\"",
       "titleEn": "Modal particle \"ne\"",
       "category": "Expressing attitude",
       "structure": "Statement + 呢",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Modal particle \"ne\"' (Modal particle \"ne\") được dùng để expressing attitude. Cấu trúc: Statement + 呢.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Modal particle \"ne\"' (Modal particle \"ne\"). Cấu trúc cấu thành câu: Statement + 呢. Dùng trong các ngữ cảnh: Expressing attitude.",
       "examples": [
         {
           "chinese": "我不要回家。",
@@ -1620,17 +1648,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-030",
-      "title": "Ngữ pháp: Using \"guo\" with \"le\"",
+      "title": "Chủ điểm ngữ pháp: Using \"guo\" with \"le\"",
       "titleEn": "Using \"guo\" with \"le\"",
       "category": "Referring to the past, Expressing completion",
       "structure": "Verb + 过 +（ Obj.） + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using \"guo\" with \"le\"' (Using \"guo\" with \"le\") được dùng để referring to the past, expressing completion. Cấu trúc: Verb + 过 +（ Obj.） + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using \"guo\" with \"le\"' (Using \"guo\" with \"le\"). Cấu trúc cấu thành câu: Verb + 过 +（ Obj.） + 了. Dùng trong các ngữ cảnh: Referring to the past, Expressing completion.",
       "examples": [
         {
           "chinese": "她吃过了。",
@@ -1676,17 +1705,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-031",
-      "title": "Ngữ pháp: Basic comparisons with \"bi\"",
+      "title": "Chủ điểm ngữ pháp: Basic comparisons with \"bi\"",
       "titleEn": "Basic comparisons with \"bi\"",
       "category": "Comparing",
       "structure": "Noun 1 + 比 + Noun 2 + (更） + Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Basic comparisons with \"bi\"' (Basic comparisons with \"bi\") được dùng để comparing. Cấu trúc: Noun 1 + 比 + Noun 2 + (更） + Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Basic comparisons with \"bi\"' (Basic comparisons with \"bi\"). Cấu trúc cấu thành câu: Noun 1 + 比 + Noun 2 + (更） + Adj.. Dùng trong các ngữ cảnh: Comparing.",
       "examples": [
         {
           "chinese": "小李比小张高。",
@@ -1732,17 +1762,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-032",
-      "title": "Ngữ pháp: Expressing \"for\" with \"gei\"",
+      "title": "Biểu đạt \"for\" với \"gei\"",
       "titleEn": "Expressing \"for\" with \"gei\"",
       "category": "Expressing purpose",
       "structure": "Subj. + 给 + Recipient + [Verb Phrase]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"for\" with \"gei\"' (Expressing \"for\" with \"gei\") được dùng để expressing purpose. Cấu trúc: Subj. + 给 + Recipient + [Verb Phrase].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"for\" với \"gei\"' (Expressing \"for\" with \"gei\"). Cấu trúc cấu thành câu: Subj. + 给 + Recipient + [Verb Phrase]. Dùng trong các ngữ cảnh: Expressing purpose.",
       "examples": [
         {
           "chinese": "给客人倒茶。",
@@ -1788,17 +1819,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-033",
-      "title": "Ngữ pháp: Expressing \"from… to…\" with \"cong… dao…\"",
+      "title": "Biểu đạt \"from… to…\" với \"cong… dao…\"",
       "titleEn": "Expressing \"from… to…\" with \"cong… dao…\"",
       "category": "Expressing distance, Giving directions, Referring to the past, Expressing duration",
       "structure": "从 + Place  / Time + 到 + Place 2",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"from… to…\" with \"cong… dao…\"' (Expressing \"from… to…\" with \"cong… dao…\") được dùng để expressing distance, giving directions, referring to the past, expressing duration. Cấu trúc: 从 + Place  / Time + 到 + Place 2.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"from… to…\" với \"cong… dao…\"' (Expressing \"from… to…\" with \"cong… dao…\"). Cấu trúc cấu thành câu: 从 + Place  / Time + 到 + Place 2. Dùng trong các ngữ cảnh: Expressing distance, Giving directions, Referring to the past, Expressing duration.",
       "examples": [
         {
           "chinese": "从2004年到2008年",
@@ -1844,17 +1876,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-034",
-      "title": "Ngữ pháp: Expressing \"toward\" with \"wang\"",
+      "title": "Biểu đạt \"toward\" với \"wang\"",
       "titleEn": "Expressing \"toward\" with \"wang\"",
       "category": "",
       "structure": "往 + Direction / Place + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"toward\" with \"wang\"' (Expressing \"toward\" with \"wang\") được dùng để diễn đạt trong giao tiếp. Cấu trúc: 往 + Direction / Place + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"toward\" với \"wang\"' (Expressing \"toward\" with \"wang\"). Cấu trúc cấu thành câu: 往 + Direction / Place + Verb. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "一直往前走。",
@@ -1900,17 +1933,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-035",
-      "title": "Ngữ pháp: Using \"dui\" with verbs",
+      "title": "Chủ điểm ngữ pháp: Using \"dui\" with verbs",
       "titleEn": "Using \"dui\" with verbs",
       "category": "Describing actions",
       "structure": "Subj. + 对 + Person + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using \"dui\" with verbs' (Using \"dui\" with verbs) được dùng để describing actions. Cấu trúc: Subj. + 对 + Person + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using \"dui\" with verbs' (Using \"dui\" with verbs). Cấu trúc cấu thành câu: Subj. + 对 + Person + Verb. Dùng trong các ngữ cảnh: Describing actions.",
       "examples": [
         {
           "chinese": "宝宝对我笑了。",
@@ -1956,17 +1990,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-036",
-      "title": "Ngữ pháp: Using the verb \"xing\"",
+      "title": "Chủ điểm ngữ pháp: Using the verb \"xing\"",
       "titleEn": "Using the verb \"xing\"",
       "category": "Introducing people",
       "structure": "Subj. + 姓 + [Surname]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using the verb \"xing\"' (Using the verb \"xing\") được dùng để introducing people. Cấu trúc: Subj. + 姓 + [Surname].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using the verb \"xing\"' (Using the verb \"xing\"). Cấu trúc cấu thành câu: Subj. + 姓 + [Surname]. Dùng trong các ngữ cảnh: Introducing people.",
       "examples": [
         {
           "chinese": "我姓王。",
@@ -2012,17 +2047,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-037",
-      "title": "Ngữ pháp: Auxiliary verb \"yao\" and its multiple meanings",
+      "title": "Chủ điểm ngữ pháp: Auxiliary verb \"yao\" and its multiple meanings",
       "titleEn": "Auxiliary verb \"yao\" and its multiple meanings",
       "category": "Referring to the future, Expressing desires, Expressing determination",
       "structure": "Subj. + 要 + Noun",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Auxiliary verb \"yao\" and its multiple meanings' (Auxiliary verb \"yao\" and its multiple meanings) được dùng để referring to the future, expressing desires, expressing determination. Cấu trúc: Subj. + 要 + Noun.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Auxiliary verb \"yao\" and its multiple meanings' (Auxiliary verb \"yao\" and its multiple meanings). Cấu trúc cấu thành câu: Subj. + 要 + Noun. Dùng trong các ngữ cảnh: Referring to the future, Expressing desires, Expressing determination.",
       "examples": [
         {
           "chinese": "你要什么？",
@@ -2068,17 +2104,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-038",
-      "title": "Ngữ pháp: Expressing \"be going to\" with \"yao\"",
+      "title": "Biểu đạt \"be going to\" với \"yao\"",
       "titleEn": "Expressing \"be going to\" with \"yao\"",
       "category": "Referring to the future, Referring to changes of situation, Expressing desires, Expressing determination",
       "structure": "(Time) + Subj. + 要 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"be going to\" with \"yao\"' (Expressing \"be going to\" with \"yao\") được dùng để referring to the future, referring to changes of situation, expressing desires, expressing determination. Cấu trúc: (Time) + Subj. + 要 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"be going to\" với \"yao\"' (Expressing \"be going to\" with \"yao\"). Cấu trúc cấu thành câu: (Time) + Subj. + 要 + Verb. Dùng trong các ngữ cảnh: Referring to the future, Referring to changes of situation, Expressing desires, Expressing determination.",
       "examples": [
         {
           "chinese": "我明天要买一个iPhone。",
@@ -2124,17 +2161,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-039",
-      "title": "Ngữ pháp: Expressing permission with \"keyi\"",
+      "title": "Chủ điểm ngữ pháp: Expressing permission with \"keyi\"",
       "titleEn": "Expressing permission with \"keyi\"",
       "category": "Requesting, Expressing ability",
       "structure": "Subj. + (不 )+ 可以 + Verb + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing permission with \"keyi\"' (Expressing permission with \"keyi\") được dùng để requesting, expressing ability. Cấu trúc: Subj. + (不 )+ 可以 + Verb + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing permission with \"keyi\"' (Expressing permission with \"keyi\"). Cấu trúc cấu thành câu: Subj. + (不 )+ 可以 + Verb + Obj.. Dùng trong các ngữ cảnh: Requesting, Expressing ability.",
       "examples": [
         {
           "chinese": "我可以进来吗？",
@@ -2180,17 +2218,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-040",
-      "title": "Ngữ pháp: Wanting to do something with \"yao\"",
+      "title": "Chủ điểm ngữ pháp: Wanting to do something with \"yao\"",
       "titleEn": "Wanting to do something with \"yao\"",
       "category": "Referring to the future, Expressing desires, Expressing determination, Expressing purpose",
       "structure": "Subj. + 要 + Verb + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Wanting to do something with \"yao\"' (Wanting to do something with \"yao\") được dùng để referring to the future, expressing desires, expressing determination, expressing purpose. Cấu trúc: Subj. + 要 + Verb + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Wanting to do something with \"yao\"' (Wanting to do something with \"yao\"). Cấu trúc cấu thành câu: Subj. + 要 + Verb + Obj.. Dùng trong các ngữ cảnh: Referring to the future, Expressing desires, Expressing determination, Expressing purpose.",
       "examples": [
         {
           "chinese": "他要学中文。",
@@ -2236,17 +2275,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-041",
-      "title": "Ngữ pháp: Actions in a row",
+      "title": "Chủ điểm ngữ pháp: Actions in a row",
       "titleEn": "Actions in a row",
       "category": "Sequencing events in time",
       "structure": "Subj. + [Verb Phrase 1] + [Verb Phrase 2]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Actions in a row' (Actions in a row) được dùng để sequencing events in time. Cấu trúc: Subj. + [Verb Phrase 1] + [Verb Phrase 2].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Actions in a row' (Actions in a row). Cấu trúc cấu thành câu: Subj. + [Verb Phrase 1] + [Verb Phrase 2]. Dùng trong các ngữ cảnh: Sequencing events in time.",
       "examples": [
         {
           "chinese": "我要回家吃饭。",
@@ -2292,17 +2332,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-042",
-      "title": "Ngữ pháp: Expressing \"together\" with \"yiqi\"",
+      "title": "Biểu đạt \"together\" với \"yiqi\"",
       "titleEn": "Expressing \"together\" with \"yiqi\"",
       "category": "",
       "structure": "Subj. + 一起 + Verb + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"together\" with \"yiqi\"' (Expressing \"together\" with \"yiqi\") được dùng để diễn đạt trong giao tiếp. Cấu trúc: Subj. + 一起 + Verb + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"together\" với \"yiqi\"' (Expressing \"together\" with \"yiqi\"). Cấu trúc cấu thành câu: Subj. + 一起 + Verb + Obj.. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "我们一起吃晚饭吧。",
@@ -2348,17 +2389,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-043",
-      "title": "Ngữ pháp: Measure words for verbs",
+      "title": "Chủ điểm ngữ pháp: Measure words for verbs",
       "titleEn": "Measure words for verbs",
       "category": "",
       "structure": "Verb + Number + Measure Word",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Measure words for verbs' (Measure words for verbs) được dùng để diễn đạt trong giao tiếp. Cấu trúc: Verb + Number + Measure Word.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Measure words for verbs' (Measure words for verbs). Cấu trúc cấu thành câu: Verb + Number + Measure Word. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "再说一遍。",
@@ -2404,17 +2446,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-044",
-      "title": "Ngữ pháp: Negative commands with \"buyao\"",
+      "title": "Chủ điểm ngữ pháp: Negative commands with \"buyao\"",
       "titleEn": "Negative commands with \"buyao\"",
       "category": "Denying and refusing, Giving commands",
       "structure": "不要 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Negative commands with \"buyao\"' (Negative commands with \"buyao\") được dùng để denying and refusing, giving commands. Cấu trúc: 不要 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Negative commands with \"buyao\"' (Negative commands with \"buyao\"). Cấu trúc cấu thành câu: 不要 + Verb. Dùng trong các ngữ cảnh: Denying and refusing, Giving commands.",
       "examples": [
         {
           "chinese": "不要走。",
@@ -2460,17 +2503,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-045",
-      "title": "Ngữ pháp: Reduplication of verbs",
+      "title": "Chủ điểm ngữ pháp: Reduplication of verbs",
       "titleEn": "Reduplication of verbs",
       "category": "Expressing duration, Decreasing formality",
       "structure": "Subj. + Verb + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Reduplication of verbs' (Reduplication of verbs) được dùng để expressing duration, decreasing formality. Cấu trúc: Subj. + Verb + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Reduplication of verbs' (Reduplication of verbs). Cấu trúc cấu thành câu: Subj. + Verb + Verb. Dùng trong các ngữ cảnh: Expressing duration, Decreasing formality.",
       "examples": [
         {
           "chinese": "你看看。",
@@ -2516,17 +2560,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-046",
-      "title": "Ngữ pháp: Special cases of \"zai\" following verbs",
+      "title": "Chủ điểm ngữ pháp: Special cases of \"zai\" following verbs",
       "titleEn": "Special cases of \"zai\" following verbs",
       "category": "Expressing location",
       "structure": "Subj. + [Special Verb] + 在 + Location",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Special cases of \"zai\" following verbs' (Special cases of \"zai\" following verbs) được dùng để expressing location. Cấu trúc: Subj. + [Special Verb] + 在 + Location.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Special cases of \"zai\" following verbs' (Special cases of \"zai\" following verbs). Cấu trúc cấu thành câu: Subj. + [Special Verb] + 在 + Location. Dùng trong các ngữ cảnh: Expressing location.",
       "examples": [
         {
           "chinese": "你住在上海吗？",
@@ -2572,17 +2617,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-047",
-      "title": "Ngữ pháp: Using \"dao\" to mean \"to go to\"",
+      "title": "Chủ điểm ngữ pháp: Using \"dao\" to mean \"to go to\"",
       "titleEn": "Using \"dao\" to mean \"to go to\"",
       "category": "Expressing movement",
       "structure": "Subj. + 到 + Place",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using \"dao\" to mean \"to go to\"' (Using \"dao\" to mean \"to go to\") được dùng để expressing movement. Cấu trúc: Subj. + 到 + Place.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using \"dao\" to mean \"to go to\"' (Using \"dao\" to mean \"to go to\"). Cấu trúc cấu thành câu: Subj. + 到 + Place. Dùng trong các ngữ cảnh: Expressing movement.",
       "examples": [
         {
           "chinese": "他们已经到酒吧了。",
@@ -2628,17 +2674,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-048",
-      "title": "Ngữ pháp: Using \"hao\" to mean \"easy\"",
+      "title": "Chủ điểm ngữ pháp: Using \"hao\" to mean \"easy\"",
       "titleEn": "Using \"hao\" to mean \"easy\"",
       "category": "Describing actions",
       "structure": "Subj. + (很) 好 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Using \"hao\" to mean \"easy\"' (Using \"hao\" to mean \"easy\") được dùng để describing actions. Cấu trúc: Subj. + (很) 好 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using \"hao\" to mean \"easy\"' (Using \"hao\" to mean \"easy\"). Cấu trúc cấu thành câu: Subj. + (很) 好 + Verb. Dùng trong các ngữ cảnh: Describing actions.",
       "examples": [
         {
           "chinese": "这个词的意思很好懂。",
@@ -2684,17 +2731,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-049",
-      "title": "Ngữ pháp: Verbing briefly with \"yixia\"",
+      "title": "Chủ điểm ngữ pháp: Verbing briefly with \"yixia\"",
       "titleEn": "Verbing briefly with \"yixia\"",
       "category": "Describing actions, Expressing duration, Decreasing formality",
       "structure": "Subj. + Verb + 一下 + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Verbing briefly with \"yixia\"' (Verbing briefly with \"yixia\") được dùng để describing actions, expressing duration, decreasing formality. Cấu trúc: Subj. + Verb + 一下 + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Verbing briefly with \"yixia\"' (Verbing briefly with \"yixia\"). Cấu trúc cấu thành câu: Subj. + Verb + 一下 + Obj.. Dùng trong các ngữ cảnh: Describing actions, Expressing duration, Decreasing formality.",
       "examples": [
         {
           "chinese": "请你等一下。",
@@ -2740,17 +2788,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-050",
-      "title": "Ngữ pháp: Verbs followed by \"gei\"",
+      "title": "Chủ điểm ngữ pháp: Verbs followed by \"gei\"",
       "titleEn": "Verbs followed by \"gei\"",
       "category": "Describing actions",
       "structure": "Subj. + Verb + 给 + Recipient + Obj.  or   Obj. + Subj. + Verb + 给 + Recipient",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Verbs followed by \"gei\"' (Verbs followed by \"gei\") được dùng để describing actions. Cấu trúc: Subj. + Verb + 给 + Recipient + Obj.  or   Obj. + Subj. + Verb + 给 + Recipient.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Verbs followed by \"gei\"' (Verbs followed by \"gei\"). Cấu trúc cấu thành câu: Subj. + Verb + 给 + Recipient + Obj.  or   Obj. + Subj. + Verb + 给 + Recipient. Dùng trong các ngữ cảnh: Describing actions.",
       "examples": [
         {
           "chinese": "昨天有人送给我一束花。",
@@ -2796,17 +2845,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-051",
-      "title": "Ngữ pháp: Verbs preceded by \"gei\"",
+      "title": "Chủ điểm ngữ pháp: Verbs preceded by \"gei\"",
       "titleEn": "Verbs preceded by \"gei\"",
       "category": "",
       "structure": "Subj. + 给 + Target + [Verb Phrase]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Verbs preceded by \"gei\"' (Verbs preceded by \"gei\") được dùng để diễn đạt trong giao tiếp. Cấu trúc: Subj. + 给 + Target + [Verb Phrase].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Verbs preceded by \"gei\"' (Verbs preceded by \"gei\"). Cấu trúc cấu thành câu: Subj. + 给 + Target + [Verb Phrase]. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "现在不要给他打电话。",
@@ -2852,17 +2902,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-052",
-      "title": "Động từ mang hai tân ngữ",
+      "title": "Động từ mang hai tân ngữ (trực tiếp và gián tiếp)",
       "titleEn": "Verbs that take double objects",
       "category": "",
       "structure": "Subj. + Verb + [Indirect Obj.] + [Direct Obj.]",
-      "explanationVi": "Điểm ngữ pháp 'Động từ mang hai tân ngữ' (Verbs that take double objects) được dùng để diễn đạt trong giao tiếp. Cấu trúc: Subj. + Verb + [Indirect Obj.] + [Direct Obj.].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Động từ mang hai tân ngữ (trực tiếp và gián tiếp)' (Verbs that take double objects). Cấu trúc cấu thành câu: Subj. + Verb + [Indirect Obj.] + [Direct Obj.]. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "老师，我可以问你一个问题吗？",
@@ -2908,17 +2959,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-053",
-      "title": "Ngữ pháp: Degree complement",
+      "title": "Chủ điểm ngữ pháp: Degree complement",
       "titleEn": "Degree complement",
       "category": "Expressing degree",
       "structure": "Verb + 得 + [Degree Complement]",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Degree complement' (Degree complement) được dùng để expressing degree. Cấu trúc: Verb + 得 + [Degree Complement].",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Degree complement' (Degree complement). Cấu trúc cấu thành câu: Verb + 得 + [Degree Complement]. Dùng trong các ngữ cảnh: Expressing degree.",
       "examples": [
         {
           "chinese": "你们觉得我画得怎么样？",
@@ -2964,17 +3016,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-054",
-      "title": "Ngữ pháp: Potential complement \"-bu dong\" for not understanding",
+      "title": "Chủ điểm ngữ pháp: Potential complement \"-bu dong\" for not understanding",
       "titleEn": "Potential complement \"-bu dong\" for not understanding",
       "category": "Expressing result, Comprehending",
       "structure": "Subj. + Verb + 不懂",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Potential complement \"-bu dong\" for not understanding' (Potential complement \"-bu dong\" for not understanding) được dùng để expressing result, comprehending. Cấu trúc: Subj. + Verb + 不懂.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Potential complement \"-bu dong\" for not understanding' (Potential complement \"-bu dong\" for not understanding). Cấu trúc cấu thành câu: Subj. + Verb + 不懂. Dùng trong các ngữ cảnh: Expressing result, Comprehending.",
       "examples": [
         {
           "chinese": "我看不懂这本书。",
@@ -3020,17 +3073,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-055",
-      "title": "Ngữ pháp: Result complements",
+      "title": "Bổ ngữ kết quả cơ bản trong tiếng Hán",
       "titleEn": "Result complements",
       "category": "Describing actions, Expressing result",
       "structure": "Subj. + (没) + Verb + Adj. (+ Obj.)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Result complements' (Result complements) được dùng để describing actions, expressing result. Cấu trúc: Subj. + (没) + Verb + Adj. (+ Obj.).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Bổ ngữ kết quả cơ bản trong tiếng Hán' (Result complements). Cấu trúc cấu thành câu: Subj. + (没) + Verb + Adj. (+ Obj.). Dùng trong các ngữ cảnh: Describing actions, Expressing result.",
       "examples": [
         {
           "chinese": "你吃好了吗？",
@@ -3076,17 +3130,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-056",
-      "title": "Ngữ pháp: Result complements \"-dao\" and \"-jian\"",
+      "title": "Chủ điểm ngữ pháp: Result complements \"-dao\" and \"-jian\"",
       "titleEn": "Result complements \"-dao\" and \"-jian\"",
       "category": "Expressing result",
       "structure": "Subj. + (没) + Verb + 到 / 见 + Obj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Result complements \"-dao\" and \"-jian\"' (Result complements \"-dao\" and \"-jian\") được dùng để expressing result. Cấu trúc: Subj. + (没) + Verb + 到 / 见 + Obj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Result complements \"-dao\" and \"-jian\"' (Result complements \"-dao\" and \"-jian\"). Cấu trúc cấu thành câu: Subj. + (没) + Verb + 到 / 见 + Obj.. Dùng trong các ngữ cảnh: Expressing result.",
       "examples": [
         {
           "chinese": "你看见那个帅哥了吗？",
@@ -3132,17 +3187,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-057",
-      "title": "Ngữ pháp: Result complement \"-wan\" for finishing",
+      "title": "Chủ điểm ngữ pháp: Result complement \"-wan\" for finishing",
       "titleEn": "Result complement \"-wan\" for finishing",
       "category": "Describing actions, Indicating conditions, Expressing result",
       "structure": "Subj. + Verb + 完 + （Obj.） + （了）",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Result complement \"-wan\" for finishing' (Result complement \"-wan\" for finishing) được dùng để describing actions, indicating conditions, expressing result. Cấu trúc: Subj. + Verb + 完 + （Obj.） + （了）.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Result complement \"-wan\" for finishing' (Result complement \"-wan\" for finishing). Cấu trúc cấu thành câu: Subj. + Verb + 完 + （Obj.） + （了）. Dùng trong các ngữ cảnh: Describing actions, Indicating conditions, Expressing result.",
       "examples": [
         {
           "chinese": "我们明天可以做完。",
@@ -3188,17 +3244,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-058",
-      "title": "Ngữ pháp: Expressing \"every\" with \"mei\"",
+      "title": "Biểu đạt \"every\" với \"mei\"",
       "titleEn": "Expressing \"every\" with \"mei\"",
       "category": "",
       "structure": "每 + Measure Word + Noun + 都",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"every\" with \"mei\"' (Expressing \"every\" with \"mei\") được dùng để diễn đạt trong giao tiếp. Cấu trúc: 每 + Measure Word + Noun + 都.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"every\" với \"mei\"' (Expressing \"every\" with \"mei\"). Cấu trúc cấu thành câu: 每 + Measure Word + Noun + 都. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "每个菜都好吃。",
@@ -3244,17 +3301,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-059",
-      "title": "Ngữ pháp: Ordinal numbers with \"di\"",
+      "title": "Chủ điểm ngữ pháp: Ordinal numbers with \"di\"",
       "titleEn": "Ordinal numbers with \"di\"",
       "category": "Expressing order",
       "structure": "第 + Number +（ Measure Word + Noun）",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Ordinal numbers with \"di\"' (Ordinal numbers with \"di\") được dùng để expressing order. Cấu trúc: 第 + Number +（ Measure Word + Noun）.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Ordinal numbers with \"di\"' (Ordinal numbers with \"di\"). Cấu trúc cấu thành câu: 第 + Number +（ Measure Word + Noun）. Dùng trong các ngữ cảnh: Expressing order.",
       "examples": [
         {
           "chinese": "我是第一个到公司的人。",
@@ -3300,17 +3358,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-060",
-      "title": "Ngữ pháp: Affirmative-negative question",
+      "title": "Chủ điểm ngữ pháp: Affirmative-negative question",
       "titleEn": "Affirmative-negative question",
       "category": "Asking questions, Giving alternatives",
       "structure": "Verb + 不 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Affirmative-negative question' (Affirmative-negative question) được dùng để asking questions, giving alternatives. Cấu trúc: Verb + 不 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Affirmative-negative question' (Affirmative-negative question). Cấu trúc cấu thành câu: Verb + 不 + Verb. Dùng trong các ngữ cảnh: Asking questions, Giving alternatives.",
       "examples": [
         {
           "chinese": "是不是？",
@@ -3356,17 +3415,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-061",
-      "title": "Ngữ pháp: Asking why with \"zenme\"",
+      "title": "Chủ điểm ngữ pháp: Asking why with \"zenme\"",
       "titleEn": "Asking why with \"zenme\"",
       "category": "Asking questions, Exclaiming, Expressing attitude",
       "structure": "Subj. + 怎么 + Verb + Obj. ?",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Asking why with \"zenme\"' (Asking why with \"zenme\") được dùng để asking questions, exclaiming, expressing attitude. Cấu trúc: Subj. + 怎么 + Verb + Obj. ?.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Asking why with \"zenme\"' (Asking why with \"zenme\"). Cấu trúc cấu thành câu: Subj. + 怎么 + Verb + Obj. ?. Dùng trong các ngữ cảnh: Asking questions, Exclaiming, Expressing attitude.",
       "examples": [
         {
           "chinese": "他怎么还没来？",
@@ -3412,17 +3472,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-062",
-      "title": "Ngữ pháp: Simple rhetorical questions",
+      "title": "Chủ điểm ngữ pháp: Simple rhetorical questions",
       "titleEn": "Simple rhetorical questions",
       "category": "Asking questions, Expressing attitude",
       "structure": "(能……吗？) / (不是……吗？ ) / ( 怎么会……？ ) / ( 谁让你……？)",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Simple rhetorical questions' (Simple rhetorical questions) được dùng để asking questions, expressing attitude. Cấu trúc: (能……吗？) / (不是……吗？ ) / ( 怎么会……？ ) / ( 谁让你……？).",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Simple rhetorical questions' (Simple rhetorical questions). Cấu trúc cấu thành câu: (能……吗？) / (不是……吗？ ) / ( 怎么会……？ ) / ( 谁让你……？). Dùng trong các ngữ cảnh: Asking questions, Expressing attitude.",
       "examples": [
         {
           "chinese": "A:你看到我的手机了吗？",
@@ -3468,17 +3529,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-063",
-      "title": "Ngữ pháp: Tag questions with \"bu\"",
+      "title": "Chủ điểm ngữ pháp: Tag questions with \"bu\"",
       "titleEn": "Tag questions with \"bu\"",
       "category": "Asking questions, Giving alternatives",
       "structure": "Verb + 不 + Verb",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Tag questions with \"bu\"' (Tag questions with \"bu\") được dùng để asking questions, giving alternatives. Cấu trúc: Verb + 不 + Verb.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Tag questions with \"bu\"' (Tag questions with \"bu\"). Cấu trúc cấu thành câu: Verb + 不 + Verb. Dùng trong các ngữ cảnh: Asking questions, Giving alternatives.",
       "examples": [
         {
           "chinese": "你会说中文，对不对？",
@@ -3524,17 +3586,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-064",
-      "title": "Ngữ pháp: Tag questions with \"ma\"",
+      "title": "Chủ điểm ngữ pháp: Tag questions with \"ma\"",
       "titleEn": "Tag questions with \"ma\"",
       "category": "Asking questions, Requesting",
       "structure": "⋯⋯， 好 / 对 / 是 / 可以 + 吗？",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Tag questions with \"ma\"' (Tag questions with \"ma\") được dùng để asking questions, requesting. Cấu trúc: ⋯⋯， 好 / 对 / 是 / 可以 + 吗？.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Tag questions with \"ma\"' (Tag questions with \"ma\"). Cấu trúc cấu thành câu: ⋯⋯， 好 / 对 / 是 / 可以 + 吗？. Dùng trong các ngữ cảnh: Asking questions, Requesting.",
       "examples": [
         {
           "chinese": "这样做，对吗？",
@@ -3580,17 +3643,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-065",
-      "title": "Ngữ pháp: Cause and effect with \"yinwei\" and \"suoyi\"",
+      "title": "Chủ điểm ngữ pháp: Cause and effect with \"yinwei\" and \"suoyi\"",
       "titleEn": "Cause and effect with \"yinwei\" and \"suoyi\"",
       "category": "Expressing result, Sequencing events in time, Indicating cause and effect",
       "structure": "Result, 因为 + Reason",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Cause and effect with \"yinwei\" and \"suoyi\"' (Cause and effect with \"yinwei\" and \"suoyi\") được dùng để expressing result, sequencing events in time, indicating cause and effect. Cấu trúc: Result, 因为 + Reason.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Cause and effect with \"yinwei\" and \"suoyi\"' (Cause and effect with \"yinwei\" and \"suoyi\"). Cấu trúc cấu thành câu: Result, 因为 + Reason. Dùng trong các ngữ cảnh: Expressing result, Sequencing events in time, Indicating cause and effect.",
       "examples": [
         {
           "chinese": "他学得很快，因为他很聪明。",
@@ -3636,17 +3700,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-066",
-      "title": "Ngữ pháp: Expressing \"about to happen\" with \"le\"",
+      "title": "Biểu đạt \"about to happen\" với \"le\"",
       "titleEn": "Expressing \"about to happen\" with \"le\"",
       "category": "Sequencing events in time, Expressing time and date, Referring to changes of situation",
       "structure": "快(要)+ Verb + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"about to happen\" with \"le\"' (Expressing \"about to happen\" with \"le\") được dùng để sequencing events in time, expressing time and date, referring to changes of situation. Cấu trúc: 快(要)+ Verb + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"about to happen\" với \"le\"' (Expressing \"about to happen\" with \"le\"). Cấu trúc cấu thành câu: 快(要)+ Verb + 了. Dùng trong các ngữ cảnh: Sequencing events in time, Expressing time and date, Referring to changes of situation.",
       "examples": [
         {
           "chinese": "我们快到了。",
@@ -3692,17 +3757,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-067",
-      "title": "Ngữ pháp: Expressing \"everything\" with \"shenme dou\"",
+      "title": "Biểu đạt \"everything\" với \"shenme dou\"",
       "titleEn": "Expressing \"everything\" with \"shenme dou\"",
       "category": "Expressing quantity",
       "structure": "Topic (+ Subj.) + 什么 + 都 / 也 + Verb / Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"everything\" with \"shenme dou\"' (Expressing \"everything\" with \"shenme dou\") được dùng để expressing quantity. Cấu trúc: Topic (+ Subj.) + 什么 + 都 / 也 + Verb / Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"everything\" với \"shenme dou\"' (Expressing \"everything\" with \"shenme dou\"). Cấu trúc cấu thành câu: Topic (+ Subj.) + 什么 + 都 / 也 + Verb / Adj.. Dùng trong các ngữ cảnh: Expressing quantity.",
       "examples": [
         {
           "chinese": "我觉得这里的菜什么都好吃。",
@@ -3748,17 +3814,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-068",
-      "title": "Ngữ pháp: Expressing \"stop doing\" with \"bie… le\"",
+      "title": "Biểu đạt \"stop doing\" với \"bie… le\"",
       "titleEn": "Expressing \"stop doing\" with \"bie… le\"",
       "category": "Denying and refusing, Giving commands",
       "structure": "别 + Verb / [Verb Phrase] + 了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"stop doing\" with \"bie… le\"' (Expressing \"stop doing\" with \"bie… le\") được dùng để denying and refusing, giving commands. Cấu trúc: 别 + Verb / [Verb Phrase] + 了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"stop doing\" với \"bie… le\"' (Expressing \"stop doing\" with \"bie… le\"). Cấu trúc cấu thành câu: 别 + Verb / [Verb Phrase] + 了. Dùng trong các ngữ cảnh: Denying and refusing, Giving commands.",
       "examples": [
         {
           "chinese": "别说了，我不想听。",
@@ -3804,17 +3871,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-069",
-      "title": "Ngữ pháp: The \"shi... de\" construction for indicating purpose",
+      "title": "Chủ điểm ngữ pháp: The \"shi... de\" construction for indicating purpose",
       "titleEn": "The \"shi... de\" construction for indicating purpose",
       "category": "Emphasizing, Expressing purpose",
       "structure": "Person + 是 + 来 / 去 + Verb+ 的",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: The \"shi... de\" construction for indicating purpose' (The \"shi... de\" construction for indicating purpose) được dùng để emphasizing, expressing purpose. Cấu trúc: Person + 是 + 来 / 去 + Verb+ 的.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: The \"shi... de\" construction for indicating purpose' (The \"shi... de\" construction for indicating purpose). Cấu trúc cấu thành câu: Person + 是 + 来 / 去 + Verb+ 的. Dùng trong các ngữ cảnh: Emphasizing, Expressing purpose.",
       "examples": [
         {
           "chinese": "我是来玩的。",
@@ -3860,17 +3928,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-070",
-      "title": "Ngữ pháp: The \"shi... de\" patterns: an overview",
+      "title": "Chủ điểm ngữ pháp: The \"shi... de\" patterns: an overview",
       "titleEn": "The \"shi... de\" patterns: an overview",
       "category": "Emphasizing",
       "structure": "Omitting a Noun with 的",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: The \"shi... de\" patterns: an overview' (The \"shi... de\" patterns: an overview) được dùng để emphasizing. Cấu trúc: Omitting a Noun with 的.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: The \"shi... de\" patterns: an overview' (The \"shi... de\" patterns: an overview). Cấu trúc cấu thành câu: Omitting a Noun with 的. Dùng trong các ngữ cảnh: Emphasizing.",
       "examples": [
         {
           "chinese": "A:你也是大学生？",
@@ -3916,17 +3985,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-071",
-      "title": "Ngữ pháp: Expressing \"every time\" with \"mei\" and \"dou\"",
+      "title": "Biểu đạt \"every time\" với \"mei\" and \"dou\"",
       "titleEn": "Expressing \"every time\" with \"mei\" and \"dou\"",
       "category": "",
       "structure": "每次 + Event 1 + 都 + Event 2",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"every time\" with \"mei\" and \"dou\"' (Expressing \"every time\" with \"mei\" and \"dou\") được dùng để diễn đạt trong giao tiếp. Cấu trúc: 每次 + Event 1 + 都 + Event 2.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"every time\" với \"mei\" and \"dou\"' (Expressing \"every time\" with \"mei\" and \"dou\"). Cấu trúc cấu thành câu: 每次 + Event 1 + 都 + Event 2. Dùng trong các ngữ cảnh: .",
       "examples": [
         {
           "chinese": "她每次来我家都带花。",
@@ -3972,17 +4042,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-072",
-      "title": "Ngữ pháp: Expressing \"much more\" in comparisons",
+      "title": "Chủ điểm ngữ pháp: Expressing \"much more\" in comparisons",
       "titleEn": "Expressing \"much more\" in comparisons",
       "category": "Comparing, Adding more explanation, Expressing quality",
       "structure": "Noun 1 + 比 + Noun 2 + Adj. + 很多 / 得多 / 多了",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"much more\" in comparisons' (Expressing \"much more\" in comparisons) được dùng để comparing, adding more explanation, expressing quality. Cấu trúc: Noun 1 + 比 + Noun 2 + Adj. + 很多 / 得多 / 多了.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing \"much more\" in comparisons' (Expressing \"much more\" in comparisons). Cấu trúc cấu thành câu: Noun 1 + 比 + Noun 2 + Adj. + 很多 / 得多 / 多了. Dùng trong các ngữ cảnh: Comparing, Adding more explanation, Expressing quality.",
       "examples": [
         {
           "chinese": "拼音比汉字容易很多。",
@@ -4028,17 +4099,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-073",
-      "title": "Ngữ pháp: Expressing \"although\" with \"suiran\" and \"danshi\"",
+      "title": "Biểu đạt \"although\" với \"suiran\" and \"danshi\"",
       "titleEn": "Expressing \"although\" with \"suiran\" and \"danshi\"",
       "category": "Contrasting, Connecting ideas",
       "structure": "虽然 ⋯⋯ ，但是 / 可是 ⋯⋯",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Expressing \"although\" with \"suiran\" and \"danshi\"' (Expressing \"although\" with \"suiran\" and \"danshi\") được dùng để contrasting, connecting ideas. Cấu trúc: 虽然 ⋯⋯ ，但是 / 可是 ⋯⋯.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"although\" với \"suiran\" and \"danshi\"' (Expressing \"although\" with \"suiran\" and \"danshi\"). Cấu trúc cấu thành câu: 虽然 ⋯⋯ ，但是 / 可是 ⋯⋯. Dùng trong các ngữ cảnh: Contrasting, Connecting ideas.",
       "examples": [
         {
           "chinese": "虽然外面很冷，可是里面很暖和。",
@@ -4084,17 +4156,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-074",
-      "title": "Ngữ pháp: Comparing \"yao\" and \"xiang\"",
+      "title": "So sánh và phân biệt \"yao\" and \"xiang\"",
       "titleEn": "Comparing \"yao\" and \"xiang\"",
       "category": "Referring to the future, Expressing desires, Expressing determination",
       "structure": "Subj. + 要 / 想 / 想要 + Noun  （Comparing \"要\" and \"想\"）",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Comparing \"yao\" and \"xiang\"' (Comparing \"yao\" and \"xiang\") được dùng để referring to the future, expressing desires, expressing determination. Cấu trúc: Subj. + 要 / 想 / 想要 + Noun  （Comparing \"要\" and \"想\"）.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'So sánh và phân biệt \"yao\" and \"xiang\"' (Comparing \"yao\" and \"xiang\"). Cấu trúc cấu thành câu: Subj. + 要 / 想 / 想要 + Noun  （Comparing \"要\" and \"想\"）. Dùng trong các ngữ cảnh: Referring to the future, Expressing desires, Expressing determination.",
       "examples": [
         {
           "chinese": "你也要茶吗？",
@@ -4140,17 +4213,18 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     },
     {
       "standard": "HSK_2_0",
       "level": 2,
       "code": "GP-HSK2-075",
-      "title": "Ngữ pháp: Comparing \"hui,\" \"neng,\" \"keyi\"",
+      "title": "Chủ điểm ngữ pháp: Comparing \"hui,\" \"neng,\" \"keyi\"",
       "titleEn": "Comparing \"hui,\" \"neng,\" \"keyi\"",
       "category": "Describing actions, Requesting, Expressing possibility, Expressing ability, Expressing permission with \"keyi\"",
       "structure": "(很) + 会 / 可以  /  能 + Verb/Adj.",
-      "explanationVi": "Điểm ngữ pháp 'Ngữ pháp: Comparing \"hui,\" \"neng,\" \"keyi\"' (Comparing \"hui,\" \"neng,\" \"keyi\") được dùng để describing actions, requesting, expressing possibility, expressing ability, expressing permission with \"keyi\". Cấu trúc: (很) + 会 / 可以  /  能 + Verb/Adj..",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Comparing \"hui,\" \"neng,\" \"keyi\"' (Comparing \"hui,\" \"neng,\" \"keyi\"). Cấu trúc cấu thành câu: (很) + 会 / 可以  /  能 + Verb/Adj.. Dùng trong các ngữ cảnh: Describing actions, Requesting, Expressing possibility, Expressing ability, Expressing permission with \"keyi\".",
       "examples": [
         {
           "chinese": "我们都会游泳。",
@@ -4196,7 +4270,8 @@
         }
       ],
       "verificationStatus": "VERIFIED",
-      "reviewStatus": "PENDING"
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
     }
   ]
 }

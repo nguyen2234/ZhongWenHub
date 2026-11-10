@@ -1,47 +1,64 @@
 {
-  "timestamp": "2026-11-11T01:38:00Z",
-  "suite": "HSK 2.0 Data Quality & Integrity",
-  "passedCount": 8,
+  "timestamp": "2026-11-11T02:04:00Z",
+  "suite": "HSK 2.0 Rigorous QA & Negative Tamper Verification",
+  "passedCount": 11,
   "failedCount": 0,
-  "tests": [
+  "positiveSuitesCount": 7,
+  "negativeSuitesCount": 4,
+  "testResults": [
     {
-      "id": "DATA-VOCAB-COUNT",
-      "name": "HSK 2.0 Cumulative Vocabulary Milestones",
+      "id": "POS-1.1",
+      "name": "Vocabulary Cumulative Milestones",
       "status": "PASS"
     },
     {
-      "id": "DATA-VOCAB-FIELDS",
-      "name": "Vocabulary Mandatory Fields Integrity",
+      "id": "POS-1.2",
+      "name": "Mandatory Fields Completeness",
       "status": "PASS"
     },
     {
-      "id": "DATA-VOCAB-PINYIN",
-      "name": "Pinyin and Tone Marks Format Check",
+      "id": "POS-1.3",
+      "name": "Strict Pinyin & Dictionary Reading Match",
       "status": "PASS"
     },
     {
-      "id": "DATA-VOCAB-PROVENANCE",
-      "name": "Multi-Source Provenance & Verification Tracking",
+      "id": "POS-1.4",
+      "name": "Vietnamese Meaning Quality & No English Fallbacks",
       "status": "PASS"
     },
     {
-      "id": "DATA-GRAMMAR-COUNT",
-      "name": "Standard Grammar Points Distribution",
+      "id": "POS-1.5",
+      "name": "Grammar Structure & Vietnamese Title Translation",
       "status": "PASS"
     },
     {
-      "id": "DATA-GRAMMAR-FIELDS",
-      "name": "Grammar Formula & Examples Completeness",
+      "id": "POS-1.6",
+      "name": "70 Lessons Curriculum Architecture",
       "status": "PASS"
     },
     {
-      "id": "DATA-CURRICULUM-70",
-      "name": "70 Lessons Curriculum Architecture Integrity",
+      "id": "POS-1.7",
+      "name": "Database Safety Gate Lockout",
       "status": "PASS"
     },
     {
-      "id": "SECURITY-DB-SAFETY",
-      "name": "Database Safety & Non-Destructive Gate",
+      "id": "NEG-2.1",
+      "name": "Catch Corrupted Pinyin & Tone Mismatch",
+      "status": "PASS"
+    },
+    {
+      "id": "NEG-2.2",
+      "name": "Catch Missing Mandatory Fields",
+      "status": "PASS"
+    },
+    {
+      "id": "NEG-2.3",
+      "name": "Catch English Fallback in MeaningVi",
+      "status": "PASS"
+    },
+    {
+      "id": "NEG-2.4",
+      "name": "Catch Illegal HSK 4A/4B Sublevels",
       "status": "PASS"
     }
   ]

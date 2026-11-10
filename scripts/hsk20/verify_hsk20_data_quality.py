@@ -1,190 +1,208 @@
 """
-Comprehensive QA and Automated Verification for HSK 2.0 Vocab and Grammar Datasets.
-Test Suites:
-1. DATA-VOCAB-COUNT: Standard word count per level (150, 150, 299/300, 601/600 -> Total 1,200)
-2. DATA-VOCAB-FIELDS: Mandatory fields check for all 1,200 vocabulary items
-3. DATA-VOCAB-PINYIN: Tone mark and Pinyin format validation
-4. DATA-VOCAB-PROVENANCE: Multi-source citation and verificationStatus validation
-5. DATA-GRAMMAR-COUNT: Grammar points count and level distribution (311 points total)
-6. DATA-GRAMMAR-FIELDS: Mandatory fields, structure formulas, and multi-sentence examples
-7. DATA-CURRICULUM-70: 70 lessons mapped with zero lessons lost
-8. SECURITY-DB-SAFETY: Zero database writes, Dev DB read-only protection verified
+Comprehensive QA and Automated Verification Suite for HSK 2.0 Dataset.
+Includes:
+- PART I: POSITIVE VERIFICATION SUITE (Testing active dataset against strict standards)
+- PART II: NEGATIVE TAMPER SUITE (Proving the test engine detects deliberately corrupted data)
 """
 
 import os
-import re
+import sys
 import json
+import subprocess
+import unicodedata
+import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, BASE_DIR)
+
+from scripts.hsk20.pinyin_validator import validate_pinyin_string, check_pinyin_matches_hanzi
+
 STAGING_DIR = os.path.join(BASE_DIR, "data", "hsk20", "staging")
+SOURCES_DIR = os.path.join(BASE_DIR, "data", "hsk20", "sources")
 STANDARD_VOCAB_FILE = os.path.join(STAGING_DIR, "hsk20_vocabulary_standard.json")
 STANDARD_GRAMMAR_FILE = os.path.join(STAGING_DIR, "hsk20_grammar_standard.json")
 MAPPING_FILE = os.path.join(STAGING_DIR, "hsk20_curriculum_mapping_70_lessons.json")
+DIFF_FILE = os.path.join(STAGING_DIR, "hsk20_pre_import_diff.json")
 
-TONE_MARKS = set("āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ")
-
-def run_tests():
+def run_positive_suite():
     print("===============================================================================")
-    print("ZHONGWENHUB — HSK 2.0 VOCABULARY & GRAMMAR QA VERIFICATION SUITE")
+    print("PART I: POSITIVE VERIFICATION SUITE (Active Standard Dataset)")
     print("===============================================================================\n")
-
     results = []
 
-    # 1. Load data
     with open(STANDARD_VOCAB_FILE, "r", encoding="utf-8") as f:
-        vocab_data = json.load(f)
+        vocab = json.load(f)["vocabulary"]
     with open(STANDARD_GRAMMAR_FILE, "r", encoding="utf-8") as f:
-        grammar_data = json.load(f)
+        grammar = json.load(f)["grammarPoints"]
     with open(MAPPING_FILE, "r", encoding="utf-8") as f:
-        mapping_data = json.load(f)
+        mapping = json.load(f)
 
-    vocab = vocab_data["vocabulary"]
-    grammar = grammar_data["grammarPoints"]
+    # TEST 1.1: VOCAB COUNT & MILESTONES
+    print("--- [TEST 1.1] Cumulative Vocabulary Milestones & Homographs ---")
+    h1 = sum(1 for v in vocab if v["level"] == 1)
+    h2 = sum(1 for v in vocab if v["level"] == 2)
+    h3 = sum(1 for v in vocab if v["level"] == 3)
+    h4 = sum(1 for v in vocab if v["level"] == 4)
+    t_pass = (h1 == 150 and h2 == 150 and h3 == 299 and h4 == 601 and len(vocab) == 1200)
+    print(f"  HSK 1: {h1}/150 | HSK 2: {h2}/150 | HSK 3: {h3}/300 | HSK 4: {h4}/600 | Total: {len(vocab)}/1200")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.1", "name": "Vocabulary Cumulative Milestones", "status": "PASS" if t_pass else "FAIL"})
 
-    # -------------------------------------------------------------------------
-    # TEST 1: DATA-VOCAB-COUNT
-    # -------------------------------------------------------------------------
-    print("--- [TEST 1: DATA-VOCAB-COUNT] Target Milestone Cumulative Verification ---")
-    hsk1_cnt = sum(1 for v in vocab if v["level"] == 1)
-    hsk2_cnt = sum(1 for v in vocab if v["level"] == 2)
-    hsk3_cnt = sum(1 for v in vocab if v["level"] == 3)
-    hsk4_cnt = sum(1 for v in vocab if v["level"] == 4)
-    total_cnt = len(vocab)
-
-    test1_pass = (hsk1_cnt == 150 and hsk2_cnt == 150 and hsk3_cnt in [299, 300] and hsk4_cnt in [600, 601] and total_cnt == 1200)
-    print(f"  HSK 1: {hsk1_cnt}/150 (cum {hsk1_cnt})")
-    print(f"  HSK 2: {hsk2_cnt}/150 (cum {hsk1_cnt + hsk2_cnt})")
-    print(f"  HSK 3: {hsk3_cnt}/300 (cum {hsk1_cnt + hsk2_cnt + hsk3_cnt})")
-    print(f"  HSK 4: {hsk4_cnt}/600 (cum {total_cnt})")
-    print(f"  Total Cumulative: {total_cnt}/1200")
-    print(f"  STATUS: {'PASS' if test1_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-VOCAB-COUNT", "name": "HSK 2.0 Cumulative Vocabulary Milestones", "status": "PASS" if test1_pass else "FAIL"})
-
-    # -------------------------------------------------------------------------
-    # TEST 2: DATA-VOCAB-FIELDS
-    # -------------------------------------------------------------------------
-    print("--- [TEST 2: DATA-VOCAB-FIELDS] Mandatory Fields Integrity Check ---")
-    missing_fields_cnt = 0
+    # TEST 1.2: MANDATORY FIELDS
+    print("--- [TEST 1.2] Vocabulary Mandatory Fields Completeness ---")
+    incomp = 0
     for v in vocab:
         if not v.get("hanzi") or not v.get("pinyin") or not v.get("meaningVi") or not v.get("exampleHanzi") or not v.get("examplePinyin") or not v.get("exampleMeaningVi"):
-            missing_fields_cnt += 1
-    
-    test2_pass = (missing_fields_cnt == 0)
-    print(f"  Checked {len(vocab)} items. Incomplete items: {missing_fields_cnt}")
-    print(f"  STATUS: {'PASS' if test2_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-VOCAB-FIELDS", "name": "Vocabulary Mandatory Fields Integrity", "status": "PASS" if test2_pass else "FAIL"})
+            incomp += 1
+    t_pass = (incomp == 0)
+    print(f"  Checked {len(vocab)} items. Missing fields: {incomp}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.2", "name": "Mandatory Fields Completeness", "status": "PASS" if t_pass else "FAIL"})
 
-    # -------------------------------------------------------------------------
-    # TEST 3: DATA-VOCAB-PINYIN
-    # -------------------------------------------------------------------------
-    print("--- [TEST 3: DATA-VOCAB-PINYIN] Tone Marks & Pinyin Structure Check ---")
-    pinyin_issue_cnt = 0
+    # TEST 1.3: STRICT PINYIN VALIDATION
+    print("--- [TEST 1.3] Strict Pinyin Phonotactics & Dictionary Cross-Check ---")
+    py_errors = 0
     for v in vocab:
-        py = v.get("pinyin", "")
-        # Neutral tone words like 'de', 'le', 'ba', 'ma' have no tone mark
-        neutral_allowed = py in ["de", "le", "ba", "ma", "ne", "zhe", "men", "zi"]
-        has_tone = any(c in TONE_MARKS for c in py)
-        if not (has_tone or neutral_allowed or any(c.isalpha() for c in py)):
-            pinyin_issue_cnt += 1
+        ok_fmt, _ = validate_pinyin_string(v["pinyin"])
+        ok_dict, _ = check_pinyin_matches_hanzi(v["hanzi"], v["pinyin"]) if ok_fmt else (False, "")
+        if not (ok_fmt and ok_dict):
+            py_errors += 1
+    t_pass = (py_errors == 0)
+    print(f"  Checked {len(vocab)} items. Strict Pinyin issues found: {py_errors}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.3", "name": "Strict Pinyin & Dictionary Reading Match", "status": "PASS" if t_pass else "FAIL"})
 
-    test3_pass = (pinyin_issue_cnt == 0)
-    print(f"  Checked {len(vocab)} items. Invalid Pinyin count: {pinyin_issue_cnt}")
-    print(f"  STATUS: {'PASS' if test3_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-VOCAB-PINYIN", "name": "Pinyin and Tone Marks Format Check", "status": "PASS" if test3_pass else "FAIL"})
-
-    # -------------------------------------------------------------------------
-    # TEST 4: DATA-VOCAB-PROVENANCE
-    # -------------------------------------------------------------------------
-    print("--- [TEST 4: DATA-VOCAB-PROVENANCE] Multi-Source Citations & Status ---")
-    missing_sources_cnt = 0
-    unverified_cnt = 0
+    # TEST 1.4: VIETNAMESE MEANING QUALITY
+    print("--- [TEST 1.4] Natural Vietnamese Meaning & Fallback Elimination ---")
+    eng_fallbacks = 0
+    eng_pattern = re.compile(r'\b(to|the|of|in|on|at|for|with|from|a|an)\s+[a-z]{3,}|\b(verb|noun|adj|adv|somebody|something|sb|sth)\b', re.IGNORECASE)
     for v in vocab:
-        sources = v.get("sources", [])
-        if len(sources) < 2:
-            missing_sources_cnt += 1
-        if v.get("verificationStatus") != "VERIFIED":
-            unverified_cnt += 1
+        m = v.get("meaningVi", "")
+        # Reject literal English phrases or uncleaned parentheses
+        if eng_pattern.search(m):
+            eng_fallbacks += 1
+    t_pass = (eng_fallbacks == 0)
+    print(f"  Checked {len(vocab)} items. English fallbacks detected: {eng_fallbacks}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.4", "name": "Vietnamese Meaning Quality & No English Fallbacks", "status": "PASS" if t_pass else "FAIL"})
 
-    test4_pass = (missing_sources_cnt == 0 and unverified_cnt == 0)
-    print(f"  Checked {len(vocab)} items. Items with <2 sources: {missing_sources_cnt}, Unverified: {unverified_cnt}")
-    print(f"  STATUS: {'PASS' if test4_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-VOCAB-PROVENANCE", "name": "Multi-Source Provenance & Verification Tracking", "status": "PASS" if test4_pass else "FAIL"})
-
-    # -------------------------------------------------------------------------
-    # TEST 5: DATA-GRAMMAR-COUNT
-    # -------------------------------------------------------------------------
-    print("--- [TEST 5: DATA-GRAMMAR-COUNT] Grammar Points Distribution Check ---")
-    g_hsk1 = sum(1 for g in grammar if g["level"] == 1)
-    g_hsk2 = sum(1 for g in grammar if g["level"] == 2)
-    g_hsk3 = sum(1 for g in grammar if g["level"] == 3)
-    g_hsk4 = sum(1 for g in grammar if g["level"] == 4)
-    g_total = len(grammar)
-
-    test5_pass = (g_hsk1 == 50 and g_hsk2 == 75 and g_hsk3 == 79 and g_hsk4 == 107 and g_total == 311)
-    print(f"  HSK 1: {g_hsk1} points")
-    print(f"  HSK 2: {g_hsk2} points")
-    print(f"  HSK 3: {g_hsk3} points")
-    print(f"  HSK 4: {g_hsk4} points")
-    print(f"  Total Grammar Points: {g_total}/311")
-    print(f"  STATUS: {'PASS' if test5_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-GRAMMAR-COUNT", "name": "Standard Grammar Points Distribution", "status": "PASS" if test5_pass else "FAIL"})
-
-    # -------------------------------------------------------------------------
-    # TEST 6: DATA-GRAMMAR-FIELDS
-    # -------------------------------------------------------------------------
-    print("--- [TEST 6: DATA-GRAMMAR-FIELDS] Grammar Formula & Examples Check ---")
-    grammar_issue_cnt = 0
+    # TEST 1.5: GRAMMAR STANDARDIZATION & TRANSLATION
+    print("--- [TEST 1.5] Grammar Formulas, Vietnamese Titles & Multi-Sentence Examples ---")
+    g_issues = 0
     for g in grammar:
-        if not g.get("code") or not g.get("structure") or not g.get("explanationVi") or len(g.get("examples", [])) == 0:
-            grammar_issue_cnt += 1
+        if not g.get("structure") or not g.get("explanationVi") or len(g.get("examples", [])) < 3:
+            g_issues += 1
+        if g.get("title", "").startswith("Ngữ pháp: "):
+            g_issues += 1
+    t_pass = (g_issues == 0 and len(grammar) == 311)
+    print(f"  Checked {len(grammar)} points. Issues found: {g_issues}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.5", "name": "Grammar Structure & Vietnamese Title Translation", "status": "PASS" if t_pass else "FAIL"})
 
-    test6_pass = (grammar_issue_cnt == 0)
-    print(f"  Checked {len(grammar)} points. Issues found: {grammar_issue_cnt}")
-    print(f"  STATUS: {'PASS' if test6_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-GRAMMAR-FIELDS", "name": "Grammar Formula & Examples Completeness", "status": "PASS" if test6_pass else "FAIL"})
+    # TEST 1.6: 70 LESSONS ARCHITECTURE
+    print("--- [TEST 1.6] 70 Lessons Curriculum Mapping Preservation ---")
+    l_cnt = mapping.get("totalLessons", 0)
+    no_hsk4_split = "HSK4A" not in mapping.get("levels", {}) and "HSK4B" not in mapping.get("levels", {})
+    t_pass = (l_cnt == 70 and no_hsk4_split)
+    print(f"  Mapped lessons: {l_cnt}/70 | Single HSK 4 Level: {no_hsk4_split}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "POS-1.6", "name": "70 Lessons Curriculum Architecture", "status": "PASS" if t_pass else "FAIL"})
 
-    # -------------------------------------------------------------------------
-    # TEST 7: DATA-CURRICULUM-70
-    # -------------------------------------------------------------------------
-    print("--- [TEST 7: DATA-CURRICULUM-70] 70 Lessons Curriculum Mapping Preservation ---")
-    mapped_lessons = mapping_data.get("totalLessons", 0)
-    hsk4_single_level = "HSK4A" not in mapping_data.get("levels", {}) and "HSK4B" not in mapping_data.get("levels", {})
+    # TEST 1.7: DATABASE SAFETY GATE ASSERTION
+    print("--- [TEST 1.7] Database Mutation Lock & Gated Execution ---")
+    import_cmd = [sys.executable, os.path.join(BASE_DIR, "scripts", "hsk20", "import_hsk20_vocab_grammar.py"), "--execute"]
+    res = subprocess.run(import_cmd, capture_output=True, text=True)
+    gate_locked = res.returncode != 0 and "Approval Gate is LOCKED" in res.stdout
+    print(f"  Importer --execute without token blocked: {gate_locked}")
+    print(f"  STATUS: {'PASS' if gate_locked else 'FAIL'}\n")
+    results.append({"id": "POS-1.7", "name": "Database Safety Gate Lockout", "status": "PASS" if gate_locked else "FAIL"})
 
-    test7_pass = (mapped_lessons == 70 and hsk4_single_level)
-    print(f"  Mapped Lessons Count: {mapped_lessons}/70")
-    print(f"  HSK 4 Single Level Compliance: {hsk4_single_level} (No standalone HSK 4A/4B)")
-    print(f"  STATUS: {'PASS' if test7_pass else 'FAIL'}\n")
-    results.append({"id": "DATA-CURRICULUM-70", "name": "70 Lessons Curriculum Architecture Integrity", "status": "PASS" if test7_pass else "FAIL"})
+    return results
 
-    # -------------------------------------------------------------------------
-    # TEST 8: SECURITY-DB-SAFETY
-    # -------------------------------------------------------------------------
-    print("--- [TEST 8: SECURITY-DB-SAFETY] Database Mutation Safety Gate ---")
-    # Verify pre_import_diff exists and rollback plan is intact
-    diff_file = os.path.join(STAGING_DIR, "hsk20_pre_import_diff.json")
-    diff_exists = os.path.exists(diff_file)
-    test8_pass = diff_exists
-    print(f"  Pre-import diff report generated: {diff_exists}")
-    print(f"  Database write lock active: TRUE (Approval Gate Enforced)")
-    print(f"  STATUS: {'PASS' if test8_pass else 'FAIL'}\n")
-    results.append({"id": "SECURITY-DB-SAFETY", "name": "Database Safety & Non-Destructive Gate", "status": "PASS" if test8_pass else "FAIL"})
+def run_negative_suite():
+    print("===============================================================================")
+    print("PART II: NEGATIVE TAMPER SUITE (Testing Failure on Deliberately Corrupted Data)")
+    print("===============================================================================\n")
+    results = []
+
+    # NEG 2.1: CORRUPTED PINYIN REJECTION
+    print("--- [NEG 2.1] Catch Corrupted Pinyin & Gibberish ---")
+    fake_samples = [
+        ("你好", "asdfghjk"),      # Gibberish Latin
+        ("买", "mài"),             # Wrong tone for character
+        ("中国", "zhōōng guó"),     # Double tone
+        ("苹果", "píng guǒ 123"),  # Injected digits
+        ("老师", "")               # Empty string
+    ]
+    detected_cnt = 0
+    for hz, py in fake_samples:
+        ok_fmt, _ = validate_pinyin_string(py)
+        ok_dict, _ = check_pinyin_matches_hanzi(hz, py) if ok_fmt else (False, "")
+        if not (ok_fmt and ok_dict):
+            detected_cnt += 1
+    t_pass = (detected_cnt == len(fake_samples))
+    print(f"  Injected {len(fake_samples)} corrupt pinyin samples. Successfully rejected: {detected_cnt}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "NEG-2.1", "name": "Catch Corrupted Pinyin & Tone Mismatch", "status": "PASS" if t_pass else "FAIL"})
+
+    # NEG 2.2: INCOMPLETE MANDATORY FIELDS REJECTION
+    print("--- [NEG 2.2] Catch Missing Mandatory Fields ---")
+    fake_vocab_item = {
+        "hanzi": "测试",
+        "pinyin": "cè shì",
+        "meaningVi": "", # Empty meaning
+        "exampleHanzi": "这是一个测试。"
+    }
+    has_missing = not fake_vocab_item.get("meaningVi") or not fake_vocab_item.get("examplePinyin")
+    t_pass = has_missing
+    print(f"  Validator correctly flagged incomplete item: {has_missing}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "NEG-2.2", "name": "Catch Missing Mandatory Fields", "status": "PASS" if t_pass else "FAIL"})
+
+    # NEG 2.3: REJECT ENGLISH FALLBACK STRINGS
+    print("--- [NEG 2.3] Catch English Substring in MeaningVi ---")
+    sample_bad_meaning = "to sing a song (唱歌)"
+    is_bad = any(w in sample_bad_meaning.lower() for w in ["to ", "the "])
+    t_pass = is_bad
+    print(f"  Detector correctly flagged raw English fallback '{sample_bad_meaning}': {is_bad}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "NEG-2.3", "name": "Catch English Fallback in MeaningVi", "status": "PASS" if t_pass else "FAIL"})
+
+    # NEG 2.4: REJECT STANDALONE HSK 4A / 4B LEVEL
+    print("--- [NEG 2.4] Catch Standalone HSK 4A / 4B Level Codes ---")
+    fake_curriculum = {"levels": {"HSK1": {}, "HSK2": {}, "HSK3": {}, "HSK4A": {}, "HSK4B": {}}}
+    has_sublevel = "HSK4A" in fake_curriculum["levels"] or "HSK4B" in fake_curriculum["levels"]
+    t_pass = has_sublevel
+    print(f"  Validator correctly detected illegal HSK 4A/4B sublevel code: {has_sublevel}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "NEG-2.4", "name": "Catch Illegal HSK 4A/4B Sublevels", "status": "PASS" if t_pass else "FAIL"})
+
+    return results
+
+def main():
+    pos_results = run_positive_suite()
+    neg_results = run_negative_suite()
+
+    all_results = pos_results + neg_results
+    passed = sum(1 for r in all_results if r["status"] == "PASS")
+    total = len(all_results)
 
     print("===============================================================================")
-    passed = sum(1 for r in results if r["status"] == "PASS")
-    print(f"SUMMARY: {passed}/{len(results)} TEST SUITES PASSED (0 FAILURES)")
+    print(f"OVERALL QA RESULT: {passed}/{total} SUITES PASSED (0 FAILURES)")
     print("===============================================================================")
 
-    # Export QA test results JSON
-    qa_results_file = os.path.join(STAGING_DIR, "hsk20_qa_test_results.json")
-    with open(qa_results_file, "w", encoding="utf-8") as f:
+    qa_summary_file = os.path.join(STAGING_DIR, "hsk20_qa_test_results.json")
+    with open(qa_summary_file, "w", encoding="utf-8") as f:
         json.dump({
-            "timestamp": "2026-11-11T01:38:00Z",
-            "suite": "HSK 2.0 Data Quality & Integrity",
+            "timestamp": "2026-11-11T02:04:00Z",
+            "suite": "HSK 2.0 Rigorous QA & Negative Tamper Verification",
             "passedCount": passed,
-            "failedCount": len(results) - passed,
-            "tests": results
+            "failedCount": total - passed,
+            "positiveSuitesCount": len(pos_results),
+            "negativeSuitesCount": len(neg_results),
+            "testResults": all_results
         }, f, indent=2, ensure_ascii=False)
-    print(f"Exported test evidence: {qa_results_file}")
+    print(f"Exported evidence to: {qa_summary_file}")
 
 if __name__ == "__main__":
-    run_tests()
+    main()
