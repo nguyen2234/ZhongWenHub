@@ -386,14 +386,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           <div className="courses-grid">
             {[1, 2, 3, 4, 5, 6].map((lvl) => {
               const curLevel = HSK_CURRICULUM[lvl];
-              const isCurrent = lvl === currentHskLevel;
+              const isComingSoon = curLevel?.isComingSoon || lvl >= 5;
+              const isCurrent = lvl === currentHskLevel && !isComingSoon;
               const lvlProgress = hskProgressMap[lvl] || { completedCount: 0, totalCount: 0, percent: 0 };
-              const progressLabel =
-                lvlProgress.completedCount > 0
-                  ? `Tiến độ: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`
-                  : isCurrent
-                  ? `Đang học • 0/${lvlProgress.totalCount} bài`
-                  : `Chưa học • 0/${lvlProgress.totalCount} bài`;
+              const progressLabel = isComingSoon
+                ? 'Chưa có bài giảng'
+                : lvlProgress.completedCount > 0
+                ? `Tiến độ: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`
+                : isCurrent
+                ? `Đang học • 0/${lvlProgress.totalCount} bài`
+                : `Chưa học • 0/${lvlProgress.totalCount} bài`;
 
               return (
                 <div
@@ -403,6 +405,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   style={{
                     borderColor: isCurrent ? '#fed7da' : '#e2e8f0',
                     boxShadow: isCurrent ? '0 4px 12px rgba(230, 0, 18, 0.08)' : undefined,
+                    opacity: isComingSoon ? 0.85 : 1,
                   }}
                   tabIndex={0}
                   role="button"
@@ -416,7 +419,20 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <HSKLevel level={lvl as 1 | 2 | 3 | 4 | 5 | 6} />
-                      {isCurrent && (
+                      {isComingSoon ? (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#FEF3C7',
+                            color: '#D97706',
+                          }}
+                        >
+                          Sắp ra mắt
+                        </span>
+                      ) : isCurrent ? (
                         <span
                           style={{
                             fontSize: '11px',
@@ -429,7 +445,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                         >
                           Đang học
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
@@ -437,12 +453,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                     </h3>
 
                     <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>
-                      {curLevel ? `${curLevel.totalLessons} bài học • ${curLevel.totalWords} từ vựng then chốt` : 'Đang tải thông tin...'}
+                      {isComingSoon
+                        ? 'Chưa có bài giảng • Đang phát triển'
+                        : curLevel
+                        ? `${curLevel.totalLessons} bài học • ${curLevel.totalWords} từ vựng then chốt`
+                        : 'Đang tải thông tin...'}
                     </p>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: isComingSoon ? '#b45309' : '#64748b' }}>
                       {progressLabel}
                     </span>
                     <span
@@ -452,10 +472,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                         gap: '2px',
                         fontSize: '12px',
                         fontWeight: 700,
-                        color: 'var(--primary, #E60012)',
+                        color: isComingSoon ? '#64748b' : 'var(--primary, #E60012)',
                       }}
                     >
-                      <span>Vào học</span>
+                      <span>{isComingSoon ? 'Xem thông tin' : 'Vào học'}</span>
                       <ChevronRight size={14} />
                     </span>
                   </div>

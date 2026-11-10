@@ -9,3 +9,4 @@ for i, l in enumerate(lines):
         for sub in lines[max(0, i-4):min(len(lines), i+8)]:
             print("  ", sub.strip())
         print("-" * 50)
+

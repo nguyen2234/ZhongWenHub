@@ -258,3 +258,4 @@ export const HSK4_READING_PASSAGES: LessonReadingPassageDTO[] = {json.dumps(HSK4
 
 if __name__ == "__main__":
     main()
+

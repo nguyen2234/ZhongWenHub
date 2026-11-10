@@ -58,8 +58,14 @@ describe('Phase FE-5.4: Redesign Beginner Roadmap & HSK Curriculum', () => {
         const curriculumLevel = HSK_CURRICULUM[level];
         expect(curriculumLevel).toBeDefined();
         expect(curriculumLevel.level).toBe(level);
-        expect(curriculumLevel.units.length).toBeGreaterThan(0);
-        expect(curriculumLevel.totalLessons).toBeGreaterThan(0);
+        if (level <= 4) {
+          expect(curriculumLevel.units.length).toBeGreaterThan(0);
+          expect(curriculumLevel.totalLessons).toBeGreaterThan(0);
+        } else {
+          expect(curriculumLevel.isComingSoon).toBe(true);
+          expect(curriculumLevel.units.length).toBe(0);
+          expect(curriculumLevel.totalLessons).toBe(0);
+        }
       }
     });
   });

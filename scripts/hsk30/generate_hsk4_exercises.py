@@ -666,3 +666,4 @@ def generate_exercises():
 
 if __name__ == "__main__":
     generate_exercises()
+

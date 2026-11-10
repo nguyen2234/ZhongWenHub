@@ -1,1832 +1,2068 @@
 {
-  "courses": [
-    {
-      "id": "11111111-1111-1111-1111-111111111111",
-      "hskLevel": 1,
+  "timestamp": "2026-11-10T23:35:00Z",
+  "database": "ZhongWenHub_Test",
+  "levels": {
+    "HSK1": {
+      "hsk_level": 1,
+      "course_id": "11111111-1111-1111-1111-111111111111",
       "code": "HSK1",
       "title": "Giáo trình Chuẩn HSK 1",
-      "description": "Khóa học HSK 1 nền tảng dành cho người mới bắt đầu học tiếng Trung.",
-      "status": "PUBLISHED",
-      "orderIndex": 1
+      "course_status": "PUBLISHED",
+      "unit_count": 6,
+      "lesson_count": 15,
+      "total_vocab": 308,
+      "total_grammar": 72,
+      "total_exercises": 60,
+      "total_dialogues": 15,
+      "total_reading_passages": 6,
+      "audio_files_on_disk": 30,
+      "lessons": [
+        {
+          "lesson_id": "aaaaaaaa-1111-1111-1111-111111111111",
+          "lesson_number": 1,
+          "title_zh": "你好",
+          "title_vi": "Chào bạn",
+          "status": "PUBLISHED",
+          "vocab_count": 26,
+          "grammar_count": 6,
+          "exercise_count": 3,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 20
+        },
+        {
+          "lesson_id": "aaaaaaaa-2222-2222-2222-222222222222",
+          "lesson_number": 2,
+          "title_zh": "谢谢你",
+          "title_vi": "Cảm ơn bạn",
+          "status": "PUBLISHED",
+          "vocab_count": 23,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 25
+        },
+        {
+          "lesson_id": "aaaaaaaa-3333-3333-3333-333333333333",
+          "lesson_number": 3,
+          "title_zh": "你叫什么名字",
+          "title_vi": "Bạn tên là gì",
+          "status": "PUBLISHED",
+          "vocab_count": 22,
+          "grammar_count": 6,
+          "exercise_count": 3,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 60,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "aaaaaaaa-4444-4444-4444-444444444444",
+          "lesson_number": 4,
+          "title_zh": "他是我的汉语老师",
+          "title_vi": "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 60,
+          "duration_minutes": 35
+        },
+        {
+          "lesson_id": "9c981888-67bd-41bb-b5b0-57d0a1268dd6",
+          "lesson_number": 5,
+          "title_zh": "我想喝茶",
+          "title_vi": "Tôi muốn uống trà",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "bc8e2f7f-91cd-4014-8bc4-bf4aee182e41",
+          "lesson_number": 6,
+          "title_zh": "你在做什么呢",
+          "title_vi": "Bạn đang làm gì thế",
+          "status": "DRAFT",
+          "vocab_count": 20,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "f6ac147d-5091-4495-b018-a935385f4b87",
+          "lesson_number": 7,
+          "title_zh": "今天星期几",
+          "title_vi": "Hôm nay là thứ mấy",
+          "status": "DRAFT",
+          "vocab_count": 20,
+          "grammar_count": 5,
+          "exercise_count": 5,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "778cf4e8-1bdd-4c63-8352-c9db74cfaa70",
+          "lesson_number": 8,
+          "title_zh": "明天天气怎么样",
+          "title_vi": "Thời tiết ngày mai thế nào",
+          "status": "DRAFT",
+          "vocab_count": 23,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "775bee30-1000-4623-ac03-50dec5a6bd58",
+          "lesson_number": 9,
+          "title_zh": "现在几点",
+          "title_vi": "Bây giờ là mấy giờ",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ea11a07d-2642-4d98-b3fd-588cc8cb7bfe",
+          "lesson_number": 10,
+          "title_zh": "我星期一去北京",
+          "title_vi": "Thứ hai tôi đi Bắc Kinh",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "64363c63-96db-4695-8e4e-79a9547f8e71",
+          "lesson_number": 11,
+          "title_zh": "这个苹果多少钱",
+          "title_vi": "Quả táo này bao nhiêu tiền",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "5879091f-51c4-4985-b63b-6bdfc004d6e6",
+          "lesson_number": 12,
+          "title_zh": "你去哪儿买东西",
+          "title_vi": "Bạn đi đâu mua đồ",
+          "status": "DRAFT",
+          "vocab_count": 20,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c1a616f0-ffe9-485d-8e5a-301ee014730a",
+          "lesson_number": 13,
+          "title_zh": "他在学校前面",
+          "title_vi": "Anh ấy ở phía trước trường học",
+          "status": "DRAFT",
+          "vocab_count": 20,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ace8837e-e67d-4cf7-9ec3-625a16ec3b8f",
+          "lesson_number": 14,
+          "title_zh": "你会开车吗",
+          "title_vi": "Bạn biết lái xe không",
+          "status": "DRAFT",
+          "vocab_count": 20,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9f74eee4-2746-4efc-a1f2-3402079ab3ef",
+          "lesson_number": 15,
+          "title_zh": "我是坐飞机来的",
+          "title_vi": "Tôi đến bằng máy bay",
+          "status": "DRAFT",
+          "vocab_count": 19,
+          "grammar_count": 4,
+          "exercise_count": 5,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     },
-    {
-      "id": "22222222-2222-2222-2222-222222222222",
-      "hskLevel": 2,
+    "HSK2": {
+      "hsk_level": 2,
+      "course_id": "22222222-2222-2222-2222-222222222222",
       "code": "HSK2",
       "title": "Giáo trình Chuẩn HSK 2",
-      "description": "Khóa học HSK 2 sơ cấp củng cố ngữ pháp và mở rộng 300 từ vựng.",
-      "status": "PUBLISHED",
-      "orderIndex": 2
+      "course_status": "PUBLISHED",
+      "unit_count": 5,
+      "lesson_count": 15,
+      "total_vocab": 200,
+      "total_grammar": 78,
+      "total_exercises": 90,
+      "total_dialogues": 15,
+      "total_reading_passages": 5,
+      "audio_files_on_disk": 30,
+      "lessons": [
+        {
+          "lesson_id": "afe42fe5-7d93-47a6-b77b-447dad1e36f6",
+          "lesson_number": 1,
+          "title_zh": "九月去北京旅游最好",
+          "title_vi": "Đi du lịch Bắc Kinh vào tháng 9 là tốt nhất",
+          "status": "DRAFT",
+          "vocab_count": 14,
+          "grammar_count": 6,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "993a640f-2a33-4e82-a7be-0787339ef4dd",
+          "lesson_number": 2,
+          "title_zh": "我每天六点起床",
+          "title_vi": "Mỗi ngày tôi thức dậy lúc 6 giờ",
+          "status": "DRAFT",
+          "vocab_count": 14,
+          "grammar_count": 6,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9ce302e9-87fe-4705-9836-74e75e2bfe70",
+          "lesson_number": 3,
+          "title_zh": "左边那个红色的是我的",
+          "title_vi": "Cái màu đỏ bên trái là của tôi",
+          "status": "DRAFT",
+          "vocab_count": 14,
+          "grammar_count": 6,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "32fd54df-03f5-490e-a36a-a4d89f79773d",
+          "lesson_number": 4,
+          "title_zh": "这个工作是他帮我介绍的",
+          "title_vi": "Công việc này là anh ấy giới thiệu cho tôi",
+          "status": "DRAFT",
+          "vocab_count": 14,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "795a5c2a-a5c2-4579-a762-053840dd8373",
+          "lesson_number": 5,
+          "title_zh": "就买这件吧",
+          "title_vi": "Mua chiếc áo này đi",
+          "status": "DRAFT",
+          "vocab_count": 14,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "abc19f98-6671-4e9f-a175-7a475b71c8b9",
+          "lesson_number": 6,
+          "title_zh": "你怎么不吃了",
+          "title_vi": "Sao bạn không ăn nữa",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "a39b8e6a-ee6e-478d-aa01-51dad45d4e0e",
+          "lesson_number": 7,
+          "title_zh": "你家离公司远吗",
+          "title_vi": "Nhà bạn cách công ty xa không",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "5808777a-4dc4-4185-81c1-983dd47738ed",
+          "lesson_number": 8,
+          "title_zh": "让我想想再告诉你",
+          "title_vi": "Để tôi suy nghĩ rồi nói cho bạn biết nhé",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "162494eb-c345-47a0-bf11-2bc4fa7a2726",
+          "lesson_number": 9,
+          "title_zh": "题太多，我没做完",
+          "title_vi": "Đề thi nhiều quá, tôi chưa làm xong",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "6756939c-d69f-4326-aa32-d99eb3606bcc",
+          "lesson_number": 10,
+          "title_zh": "别找了，手机在桌子上呢",
+          "title_vi": "Đừng tìm nữa, điện thoại ở trên bàn kìa",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "baeb54f4-86ec-4edb-a501-f632fd7921d7",
+          "lesson_number": 11,
+          "title_zh": "他比我大三岁",
+          "title_vi": "Anh ấy lớn hơn tôi ba tuổi",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "2af32b19-e92e-4019-b5c5-2453918cc44e",
+          "lesson_number": 12,
+          "title_zh": "你穿得太少了",
+          "title_vi": "Bạn mặc ít áo quá",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "7fb11b06-a247-43a7-8a74-1a73a796d060",
+          "lesson_number": 13,
+          "title_zh": "门开着呢",
+          "title_vi": "Cửa đang mở đấy",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "5cf59177-a691-40c6-aed0-20fef7cf0067",
+          "lesson_number": 14,
+          "title_zh": "你看过那个电影没有",
+          "title_vi": "Bạn từng xem bộ phim đó chưa",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "aaac8210-0d40-4d88-81a2-f1c0d3c02b93",
+          "lesson_number": 15,
+          "title_zh": "新年就要到了",
+          "title_vi": "Năm mới sắp đến rồi",
+          "status": "DRAFT",
+          "vocab_count": 13,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     },
-    {
-      "id": "33333333-3333-3333-3333-333333333333",
-      "hskLevel": 3,
+    "HSK3": {
+      "hsk_level": 3,
+      "course_id": "33333333-3333-3333-3333-333333333333",
       "code": "HSK3",
       "title": "Giáo trình Chuẩn HSK 3",
-      "description": "Khóa học HSK 3 trung cấp giao tiếp thực tế và 600 từ vựng cốt lõi.",
-      "status": "PUBLISHED",
-      "orderIndex": 3
+      "course_status": "PUBLISHED",
+      "unit_count": 5,
+      "lesson_count": 20,
+      "total_vocab": 500,
+      "total_grammar": 96,
+      "total_exercises": 120,
+      "total_dialogues": 20,
+      "total_reading_passages": 5,
+      "audio_files_on_disk": 40,
+      "lessons": [
+        {
+          "lesson_id": "46ac4a4f-4f6a-4b90-bbbf-37ff149fd73d",
+          "lesson_number": 1,
+          "title_zh": "周末你有什么打算",
+          "title_vi": "Cuối tuần bạn có dự định gì",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "b8b44e04-3823-441c-b43c-88e473dedce4",
+          "lesson_number": 2,
+          "title_zh": "他什么时候回来",
+          "title_vi": "Khi nào anh ấy quay lại",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "54c011cd-652b-41ab-ac23-06c892a3b608",
+          "lesson_number": 3,
+          "title_zh": "桌子上放着一杯咖啡",
+          "title_vi": "Trên bàn có đặt một tách cà phê",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "46ba2193-6813-47ad-b210-6379bc7b76e6",
+          "lesson_number": 4,
+          "title_zh": "她总是笑着跟客人说话",
+          "title_vi": "Cô ấy luôn mỉm cười khi nói chuyện với khách",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "af110a35-04e1-4a4f-a064-b0964f562d76",
+          "lesson_number": 5,
+          "title_zh": "我最近越来越胖了",
+          "title_vi": "Dạo này tôi ngày càng béo lên rồi",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1078e609-b723-452d-a0de-54a99a508dd4",
+          "lesson_number": 6,
+          "title_zh": "怎么突然找不到了",
+          "title_vi": "Sao đột nhiên lại không tìm thấy",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "522fc009-a8bb-411f-a048-62c62d56e649",
+          "lesson_number": 7,
+          "title_zh": "我跟你一起去",
+          "title_vi": "Tôi đi cùng với bạn",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9be95ddd-c208-444a-8445-db5b67016dc4",
+          "lesson_number": 8,
+          "title_zh": "你去哪儿我就去哪儿",
+          "title_vi": "Bạn đi đâu tôi đi đó",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "5748d7f4-7527-40f0-a701-6384adb5661d",
+          "lesson_number": 9,
+          "title_zh": "她的汉语说得跟中国人一样好",
+          "title_vi": "Tiếng Trung của cô ấy nói hay như người Trung Quốc",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c13b7402-a763-42fe-8b13-2bc56dea4e05",
+          "lesson_number": 10,
+          "title_zh": "数学比历史难多了",
+          "title_vi": "Môn toán khó hơn môn lịch sử nhiều",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "b9b9a099-644d-4591-821e-11620077739e",
+          "lesson_number": 11,
+          "title_zh": "别忘了把空调关了",
+          "title_vi": "Đừng quên tắt máy điều hòa",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "945c8303-f9b3-4d6e-87a4-9550ed57c553",
+          "lesson_number": 12,
+          "title_zh": "把重要的事写在本子上",
+          "title_vi": "Hãy ghi những việc quan trọng vào sổ tay",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "8740279e-4223-43be-b424-9071f24126ae",
+          "lesson_number": 13,
+          "title_zh": "走得越快越好",
+          "title_vi": "Đi càng nhanh càng tốt",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9283a715-761a-4561-89ab-cf23ca4dd9e6",
+          "lesson_number": 14,
+          "title_zh": "请把护照拿出来",
+          "title_vi": "Xin hãy lấy hộ chiếu ra",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1c0d8390-a4eb-4470-8410-c92bb6b57624",
+          "lesson_number": 15,
+          "title_zh": "除了看书，他还喜欢运动",
+          "title_vi": "Ngoài đọc sách ra, anh ấy còn thích thể thao",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "8da33634-03f8-4f90-9bf6-86ac2a793d7d",
+          "lesson_number": 16,
+          "title_zh": "我现在累得不想动",
+          "title_vi": "Bây giờ tôi mệt đến mức không muốn cử động",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 5,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "b417e51a-3aeb-4800-8e35-6b9327f24d8c",
+          "lesson_number": 17,
+          "title_zh": "谁都有生病的时候",
+          "title_vi": "Ai cũng có lúc bị ốm",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 4,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "aefdeade-2e81-43d6-a78c-f397b3e74f06",
+          "lesson_number": 18,
+          "title_zh": "我相信你一定能做好",
+          "title_vi": "Tôi tin bạn nhất định có thể làm tốt",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 4,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "084119fc-96cc-4dd6-90aa-de3c1cf66cca",
+          "lesson_number": 19,
+          "title_zh": "你没看懂这篇文章吗",
+          "title_vi": "Bạn chưa đọc hiểu bài viết này sao",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 4,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "6c60f3f0-e088-4219-84f1-639df2878be8",
+          "lesson_number": 20,
+          "title_zh": "只要努力就会有收获",
+          "title_vi": "Chỉ cần nỗ lực thì sẽ gặt hái thành quả",
+          "status": "DRAFT",
+          "vocab_count": 25,
+          "grammar_count": 4,
+          "exercise_count": 6,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     },
-    {
-      "id": "44444444-4444-4444-4444-444444444444",
-      "hskLevel": 4,
+    "HSK4": {
+      "hsk_level": 4,
+      "course_id": "44444444-4444-4444-4444-444444444444",
       "code": "HSK4",
       "title": "Giáo trình Chuẩn HSK 4",
-      "description": "Khóa học HSK 4 bán cao cấp thảo luận các chủ đề xã hội và công việc.",
-      "status": "PUBLISHED",
-      "orderIndex": 4
+      "course_status": "PUBLISHED",
+      "unit_count": 5,
+      "lesson_count": 20,
+      "total_vocab": 1000,
+      "total_grammar": 95,
+      "total_exercises": 80,
+      "total_dialogues": 20,
+      "total_reading_passages": 5,
+      "audio_files_on_disk": 40,
+      "lessons": [
+        {
+          "lesson_id": "1e19300e-0ba0-4ea1-9d52-2247c8892171",
+          "lesson_number": 1,
+          "title_zh": "简单的爱情",
+          "title_vi": "Tình yêu giản dị",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c6b083f2-715d-4e95-a8fc-4a0414e25c30",
+          "lesson_number": 2,
+          "title_zh": "真正的朋友",
+          "title_vi": "Người bạn chân chính",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "e7f82f5d-5ed2-440b-8369-fe116ee51abc",
+          "lesson_number": 3,
+          "title_zh": "一买即合",
+          "title_vi": "Vừa nhìn là muốn mua ngay",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ed099b26-70b5-4c9f-a171-97fbb6a69e4c",
+          "lesson_number": 4,
+          "title_zh": "不要太在乎得失",
+          "title_vi": "Đừng quá để tâm đến được mất",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "4d554ad3-4530-48d4-846e-25f026eeff5d",
+          "lesson_number": 5,
+          "title_zh": "只买对的，不买贵的",
+          "title_vi": "Chỉ mua đồ đúng, không mua đồ đắt",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "95268dac-d50c-442a-8436-85c845d1c72f",
+          "lesson_number": 6,
+          "title_zh": "一分钱一分货",
+          "title_vi": "Tiền nào của nấy",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "dc410bc5-6799-4156-bef8-3a2ccbe4a1a6",
+          "lesson_number": 7,
+          "title_zh": "最佳面试者",
+          "title_vi": "Ứng viên phỏng vấn xuất sắc nhất",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "cb223d54-b351-4ebc-9a47-018ca23ae6ce",
+          "lesson_number": 8,
+          "title_zh": "成功的秘密",
+          "title_vi": "Bí quyết của sự thành công",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "d0a7bb74-a49c-4d2a-b5fb-c34af6410cf9",
+          "lesson_number": 9,
+          "title_zh": "阳光总在风雨后",
+          "title_vi": "Ánh dương luôn rạng rỡ sau cơn mưa",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c27413f4-adc8-436f-9436-1530c708008e",
+          "lesson_number": 10,
+          "title_zh": "幸福的标准",
+          "title_vi": "Tiêu chuẩn của hạnh phúc",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "362cb9d4-5f0c-4c98-a09b-bc3ebfcdbaa3",
+          "lesson_number": 11,
+          "title_zh": "读书好，读好书",
+          "title_vi": "Đọc sách tốt, đọc sách hay",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "17f5c0e2-6a2d-45bc-99ea-637aa85d6508",
+          "lesson_number": 12,
+          "title_zh": "用心发现美",
+          "title_vi": "Dùng trái tim khám phá vẻ đẹp",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1c92848c-099f-4b61-a466-f6381b0e9519",
+          "lesson_number": 13,
+          "title_zh": "喝着茶看京剧",
+          "title_vi": "Vừa uống trà vừa thưởng thức Kinh kịch",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "226c0c08-ee32-4846-b8f3-fed582e3f873",
+          "lesson_number": 14,
+          "title_zh": "保护地球母亲",
+          "title_vi": "Bảo vệ mẹ Trái Đất",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "d551ad89-18f8-417a-bc0f-0fcbd23c1448",
+          "lesson_number": 15,
+          "title_zh": "教育孩子的艺术",
+          "title_vi": "Nghệ thuật giáo dục con trẻ",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 5,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "90a35972-4cd6-46cb-8fc0-ff111d8dfb71",
+          "lesson_number": 16,
+          "title_zh": "文化交流的桥梁",
+          "title_vi": "Nhịp cầu giao lưu văn hóa",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c8dc9fd6-e848-464d-a0f0-80259d92c427",
+          "lesson_number": 17,
+          "title_zh": "科技改变生活",
+          "title_vi": "Khoa học công nghệ thay đổi đời sống",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1c6edd2a-ed7c-40cb-9435-0bbaea6c573a",
+          "lesson_number": 18,
+          "title_zh": "人与自然和谐相处",
+          "title_vi": "Con người sống hài hòa với thiên nhiên",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "575f094f-5298-41be-b343-46849ddb0e1e",
+          "lesson_number": 19,
+          "title_zh": "旅行的真正意义",
+          "title_vi": "Ý nghĩa thực sự của những chuyến đi",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "3815613c-581a-4ea8-92a8-f907e35f8bd4",
+          "lesson_number": 20,
+          "title_zh": "展望未来的世界",
+          "title_vi": "Hướng tới thế giới tương lai",
+          "status": "DRAFT",
+          "vocab_count": 50,
+          "grammar_count": 4,
+          "exercise_count": 4,
+          "has_dialogue": true,
+          "has_reading": true,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     },
-    {
-      "id": "55555555-5555-5555-5555-555555555555",
-      "hskLevel": 5,
+    "HSK5": {
+      "hsk_level": 5,
+      "course_id": "55555555-5555-5555-5555-555555555555",
       "code": "HSK5",
       "title": "Giáo trình Chuẩn HSK 5",
-      "description": "Khóa học HSK 5 cao cấp đọc hiểu báo chí và xem phim Trung Quốc.",
-      "status": "PUBLISHED",
-      "orderIndex": 5
+      "course_status": "PUBLISHED",
+      "unit_count": 6,
+      "lesson_count": 30,
+      "total_vocab": 0,
+      "total_grammar": 70,
+      "total_exercises": 60,
+      "total_dialogues": 30,
+      "total_reading_passages": 0,
+      "audio_files_on_disk": 60,
+      "lessons": [
+        {
+          "lesson_id": "a4fcbcab-06a2-400d-a4b2-2312775d17b0",
+          "lesson_number": 1,
+          "title_zh": "爱的细节",
+          "title_vi": "Những chi tiết của tình yêu thương",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "f9a1bf1f-94a1-491c-a046-c6f150f7082f",
+          "lesson_number": 2,
+          "title_zh": "济南的泉水",
+          "title_vi": "Suối nước Tế Nam",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "f321783f-a318-40bd-9bb2-919e792b694d",
+          "lesson_number": 3,
+          "title_zh": "不能没有你",
+          "title_vi": "Không thể không có bạn",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "34986ad2-212a-4990-8e42-10ef40c01864",
+          "lesson_number": 4,
+          "title_zh": "子路染席",
+          "title_vi": "Tử Lộ nhuộm chiếu",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "da4b0073-ee9a-4b60-9770-1f50a2c99dc9",
+          "lesson_number": 5,
+          "title_zh": "给自己的信",
+          "title_vi": "Bức thư gửi chính mình",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "cb8b00df-95d6-4121-a46d-79d6196f813d",
+          "lesson_number": 6,
+          "title_zh": "成语故事两则",
+          "title_vi": "Hai câu chuyện thành ngữ",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "8477e363-cb73-4d09-b13f-5a6e33a69907",
+          "lesson_number": 7,
+          "title_zh": "中国茶文化",
+          "title_vi": "Văn hóa trà Trung Hoa",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "bbf21503-017b-4135-9355-78380fad5a74",
+          "lesson_number": 8,
+          "title_zh": "民间艺术的魅力",
+          "title_vi": "Sức hấp dẫn của nghệ thuật dân gian",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "344d787f-4942-402b-b95a-50da1c07d955",
+          "lesson_number": 9,
+          "title_zh": "古建筑的智慧",
+          "title_vi": "Trí tuệ của kiến trúc cổ",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "0bbe2c9c-55a5-4d37-9b22-4273d7fad925",
+          "lesson_number": 10,
+          "title_zh": "传统节日里的家国情怀",
+          "title_vi": "Tình nhà nợ nước trong ngày lễ truyền thống",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 3,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "0d6bf22c-c967-4a84-b30d-09d3a8e052c5",
+          "lesson_number": 11,
+          "title_zh": "人工智能新时代",
+          "title_vi": "Kỷ nguyên mới của trí tuệ nhân tạo",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "7fd34d65-4149-434b-8265-9e1e00018b44",
+          "lesson_number": 12,
+          "title_zh": "电子商务的崛起",
+          "title_vi": "Sự trỗi dậy của thương mại điện tử",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "e96e0e37-0f90-4a73-bf3d-1f2831c0605a",
+          "lesson_number": 13,
+          "title_zh": "绿色发展之路",
+          "title_vi": "Con đường phát triển xanh",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "a0bf3da0-2391-4887-a954-29b6535f729b",
+          "lesson_number": 14,
+          "title_zh": "创新驱动发展",
+          "title_vi": "Đổi mới sáng tạo thúc đẩy phát triển",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "d6e51a95-4cc7-408f-990c-dedfe41b3a7c",
+          "lesson_number": 15,
+          "title_zh": "现代职场沟通",
+          "title_vi": "Giao tiếp công sở hiện đại",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "4cece2e6-45f8-4aec-8e0f-a9d3c252a7af",
+          "lesson_number": 16,
+          "title_zh": "城市化与乡愁",
+          "title_vi": "Đô thị hóa và nỗi nhớ quê hương",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "80c4361b-2847-4004-8f4c-26d8cf846a72",
+          "lesson_number": 17,
+          "title_zh": "终身学习的力量",
+          "title_vi": "Sức mạnh của việc học tập suốt đời",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "7193374a-095b-429e-b1eb-325129c9010f",
+          "lesson_number": 18,
+          "title_zh": "志愿者在行动",
+          "title_vi": "Tình nguyện viên hành động",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "3c67712b-791b-49d0-8a1a-f8791dadf9dd",
+          "lesson_number": 19,
+          "title_zh": "倾听的声音",
+          "title_vi": "Thanh âm của sự lắng nghe",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ea57d454-7359-44d8-bb67-734f8eee10e4",
+          "lesson_number": 20,
+          "title_zh": "心态决定命运",
+          "title_vi": "Thái độ quyết định vận mệnh",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "bbab5d49-fa74-4dc3-8949-d6933b12409a",
+          "lesson_number": 21,
+          "title_zh": "大自然的警示",
+          "title_vi": "Lời cảnh báo từ thiên nhiên",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ac13a074-2282-4e41-85cf-d0e495626c52",
+          "lesson_number": 22,
+          "title_zh": "心理健康的守护",
+          "title_vi": "Bảo vệ sức khỏe tâm thần",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "a800f424-96b2-42f0-b827-599c1adab0f3",
+          "lesson_number": 23,
+          "title_zh": "生物多样性保护",
+          "title_vi": "Bảo tồn tính đa dạng sinh học",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "5b33bb45-ee80-4367-bc8d-5960509d5b07",
+          "lesson_number": 24,
+          "title_zh": "运动与生命力",
+          "title_vi": "Vận động và sức sống",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1ba90982-64a9-4372-8390-dcdb25461039",
+          "lesson_number": 25,
+          "title_zh": "医学探索之路",
+          "title_vi": "Con đường khám phá y học",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9bee7d70-80ec-42ec-a3a9-5fa60d9cea18",
+          "lesson_number": 26,
+          "title_zh": "跨文化交际的包容",
+          "title_vi": "Sự bao dung trong giao lưu đa văn hóa",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "02b7e810-a775-4abe-9da7-5dd86aefcc1d",
+          "lesson_number": 27,
+          "title_zh": "国际合作新典范",
+          "title_vi": "Hình mẫu hợp tác quốc tế mới",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "4abfdb8b-7076-4685-b258-ee848d4b59c2",
+          "lesson_number": 28,
+          "title_zh": "宇宙探索新纪元",
+          "title_vi": "Kỷ nguyên thám hiểm vũ trụ mới",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "9d03aa11-00be-4651-ab2d-4e5daccf7574",
+          "lesson_number": 29,
+          "title_zh": "青年人的责任与担当",
+          "title_vi": "Trách nhiệm và sứ mệnh của tuổi trẻ",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ba3f2cb8-d170-476b-9b14-e8fb14ab1cc5",
+          "lesson_number": 30,
+          "title_zh": "迈向共同繁荣",
+          "title_vi": "Tiến bước tới thịnh vượng chung",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     },
-    {
-      "id": "66666666-6666-6666-6666-666666666666",
-      "hskLevel": 6,
+    "HSK6": {
+      "hsk_level": 6,
+      "course_id": "66666666-6666-6666-6666-666666666666",
       "code": "HSK6",
       "title": "Giáo trình Chuẩn HSK 6",
-      "description": "Khóa học HSK 6 tinh thông tiếng Trung học thuật và dịch thuật chuyên sâu.",
-      "status": "PUBLISHED",
-      "orderIndex": 6
+      "course_status": "PUBLISHED",
+      "unit_count": 8,
+      "lesson_count": 40,
+      "total_vocab": 0,
+      "total_grammar": 50,
+      "total_exercises": 80,
+      "total_dialogues": 40,
+      "total_reading_passages": 0,
+      "audio_files_on_disk": 80,
+      "lessons": [
+        {
+          "lesson_id": "fa3fadcd-6c16-4300-91b5-878d7a4a8830",
+          "lesson_number": 1,
+          "title_zh": "道法自然",
+          "title_vi": "Đạo pháp tự nhiên",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "2215c6d9-2c1a-4541-aa09-66fa526981a6",
+          "lesson_number": 2,
+          "title_zh": "中庸之道",
+          "title_vi": "Đạo Trung dung",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "826552ab-8fbf-4c7f-b072-1d688c5754fa",
+          "lesson_number": 3,
+          "title_zh": "塞翁失马的辩证思考",
+          "title_vi": "Tư duy biện chứng từ Tái ông thất mã",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "03a7791e-bfbf-41bc-ae65-662ee2c806ef",
+          "lesson_number": 4,
+          "title_zh": "知行合一",
+          "title_vi": "Tri hành hợp nhất",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "fb0c1f68-fd73-4930-860f-c68e61fd0e17",
+          "lesson_number": 5,
+          "title_zh": "格物致知",
+          "title_vi": "Cách vật trí tri",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "aa8a8ce7-ad19-4469-934e-720fe6bc14a3",
+          "lesson_number": 6,
+          "title_zh": "唐诗宋词的意境",
+          "title_vi": "Ý cảnh Đường thi Tống từ",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "e7fc9d95-4946-4237-bcc8-0daa18d7a6bf",
+          "lesson_number": 7,
+          "title_zh": "四大名著的文化底蕴",
+          "title_vi": "Hàm lượng văn hóa trong Tứ đại danh tác",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "b811a406-05b6-4c39-83a5-83ea2578108c",
+          "lesson_number": 8,
+          "title_zh": "鲁迅文学的力量",
+          "title_vi": "Sức mạnh văn học Lỗ Tấn",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "4666925b-50c9-4c95-839a-63e84dccbc96",
+          "lesson_number": 9,
+          "title_zh": "现代戏剧的冲突与张力",
+          "title_vi": "Xung đột và sức hút của kịch hiện đại",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "3e5aa688-ff0a-422e-9c45-0b8550846e86",
+          "lesson_number": 10,
+          "title_zh": "散文里的风土人情",
+          "title_vi": "Phong thổ nhân tình trong tùy bút",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 2,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c2c5723d-3c88-451f-8120-a4bb80120cf8",
+          "lesson_number": 11,
+          "title_zh": "丝绸之路的千年交融",
+          "title_vi": "Nghìn năm giao thoa trên Con đường tơ lụa",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "4892beb5-0916-4114-bf21-e3e0d0f6db27",
+          "lesson_number": 12,
+          "title_zh": "考古重大发现的启示",
+          "title_vi": "Bài học từ những phát kiến khảo cổ lớn",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "7c8423c5-fabe-456d-a3c2-1aaeea8f8aa3",
+          "lesson_number": 13,
+          "title_zh": "工业文明的反思",
+          "title_vi": "Suy ngẫm về nền văn minh công nghiệp",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "6d1607fa-2607-4915-b38d-8e7c3b80d099",
+          "lesson_number": 14,
+          "title_zh": "大国兴衰的规律",
+          "title_vi": "Quy luật hưng thịnh và suy vong của các cường quốc",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "d9dda8b3-6162-4a5b-b679-c93a99077668",
+          "lesson_number": 15,
+          "title_zh": "口述历史与集体记忆",
+          "title_vi": "Lịch sử truyền khẩu và ký ức tập thể",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "0f65dc4d-77fb-4f81-8024-b222dc23eec2",
+          "lesson_number": 16,
+          "title_zh": "量子计算与信息革命",
+          "title_vi": "Điện toán lượng tử và cách mạng thông tin",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "8c8f7925-1ba7-4734-98eb-73488155ca45",
+          "lesson_number": 17,
+          "title_zh": "基因编辑与生命伦理",
+          "title_vi": "Biên tập gen và đạo đức sinh học",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "18fc299c-29f2-4141-9fc5-cddbc403dd08",
+          "lesson_number": 18,
+          "title_zh": "深海探测的未解之谜",
+          "title_vi": "Những bí ẩn chưa lời giải khi thám hiểm biển sâu",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "bda7b174-3734-4d2a-9eb6-726ef7ef038e",
+          "lesson_number": 19,
+          "title_zh": "可再生能源与能源转型",
+          "title_vi": "Năng lượng tái tạo và bước chuyển dịch năng lượng",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "25ecbfcd-2fc4-4031-aa8d-70349515ec48",
+          "lesson_number": 20,
+          "title_zh": "数字文明时代的隐私权",
+          "title_vi": "Quyền riêng tư trong kỷ nguyên văn minh số",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "184103b9-5c19-47d0-acec-6b4ef5172bd9",
+          "lesson_number": 21,
+          "title_zh": "宏观经济周期的调控",
+          "title_vi": "Điều tiết chu kỳ kinh tế vĩ mô",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "8aadfaac-ed8d-4ff5-9190-77507487c2d6",
+          "lesson_number": 22,
+          "title_zh": "国际货币体系演进",
+          "title_vi": "Sự tiến triển của hệ thống tiền tệ quốc tế",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "1226cd2d-ee16-4f83-b2a1-d0e43e9500cc",
+          "lesson_number": 23,
+          "title_zh": "全球供应链的重塑",
+          "title_vi": "Tái định hình chuỗi cung ứng toàn cầu",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "dbd90ce4-f540-40dc-9061-f8bf0d2c94ac",
+          "lesson_number": 24,
+          "title_zh": "数字经济与新型反垄断",
+          "title_vi": "Kinh tế số và chính sách chống độc quyền kiểu mới",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "22c19f82-d86f-4244-8326-181da8536bf8",
+          "lesson_number": 25,
+          "title_zh": "可持续金融与碳中和",
+          "title_vi": "Tài chính bền vững và mục tiêu trung hòa carbon",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "2e85d77c-eb22-45ff-aa5a-460c46a3e3c8",
+          "lesson_number": 26,
+          "title_zh": "老龄化社会的机遇与挑战",
+          "title_vi": "Cơ hội và thách thức của xã hội già hóa",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "f070c58c-ae31-4b76-a821-9994ee5afbbf",
+          "lesson_number": 27,
+          "title_zh": "城市微更新的温情脉络",
+          "title_vi": "Mạch nguồn ấm áp trong chỉnh trang vi mô đô thị",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "256ae190-aba3-49c3-bc30-d1cf90810136",
+          "lesson_number": 28,
+          "title_zh": "公共卫生应急协同体系",
+          "title_vi": "Hệ thống hiệp đồng ứng phó khẩn cấp y tế công cộng",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "25f50963-6742-4839-be9b-a5a35f9474d4",
+          "lesson_number": 29,
+          "title_zh": "教育公平与资源均衡配置",
+          "title_vi": "Công bằng giáo dục và phân bổ cân đối nguồn lực",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "70d1852c-917d-47b5-a0c1-ea252870843c",
+          "lesson_number": 30,
+          "title_zh": "乡村振兴与多元共治",
+          "title_vi": "Chấn hưng nông thôn và quản trị đa chủ thể",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "6e5f65dc-875e-4d96-9cb0-ee5e47a63083",
+          "lesson_number": 31,
+          "title_zh": "中国水墨画的留白艺术",
+          "title_vi": "Nghệ thuật lưu bạch trong tranh thủy mặc Trung Hoa",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "ed205b0d-9cc3-44a3-ab6b-830b9ee6912c",
+          "lesson_number": 32,
+          "title_zh": "古典园林的移步换景",
+          "title_vi": "Nghệ thuật di bộ hoán cảnh trong vườn cảnh cổ",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "f129ccd2-b947-4806-a003-9d6cef497a1c",
+          "lesson_number": 33,
+          "title_zh": "传统青铜器的纹饰密码",
+          "title_vi": "Mật mã hoa văn trên đồ đồng cổ truyền",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "c639871c-1156-45f7-80d2-a1f090911a80",
+          "lesson_number": 34,
+          "title_zh": "书法笔力与人格修为",
+          "title_vi": "Nét bút thư pháp và tu dưỡng nhân cách",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "753f9d6c-0d05-4315-a384-e91799f8616e",
+          "lesson_number": 35,
+          "title_zh": "现代装置艺术的多维反思",
+          "title_vi": "Chiêm nghiệm đa chiều từ nghệ thuật sắp đặt hiện đại",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "fe5bad76-4fab-4561-98d6-af70dbb7256f",
+          "lesson_number": 36,
+          "title_zh": "文明交流互鉴与人类共同价值",
+          "title_vi": "Giao lưu học hỏi lẫn nhau và giá trị chung của nhân loại",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "cbd0ad06-0918-4d48-81c7-385599e49be0",
+          "lesson_number": 37,
+          "title_zh": "全球气候治理的责任契约",
+          "title_vi": "Khế ước trách nhiệm trong quản trị biến đổi khí hậu toàn cầu",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "e6c3095f-f137-44a3-ac21-c80dc313db36",
+          "lesson_number": 38,
+          "title_zh": "太空法与地外资源开发的规范",
+          "title_vi": "Luật vũ trụ và quy chuẩn khai thác tài nguyên ngoài Trái Đất",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "664b4564-cc52-44c2-a842-3a6fcad8e630",
+          "lesson_number": 39,
+          "title_zh": "后人类主义视阈下的生命定义",
+          "title_vi": "Định nghĩa sự sống dưới góc nhìn hậu nhân văn",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        },
+        {
+          "lesson_id": "d70aa510-8771-48b8-ab97-ac80defc2080",
+          "lesson_number": 40,
+          "title_zh": "走向和谐共生的星辰大海",
+          "title_vi": "Tiến tới biển sao hòa hợp cùng sinh",
+          "status": "DRAFT",
+          "vocab_count": 0,
+          "grammar_count": 1,
+          "exercise_count": 2,
+          "has_dialogue": true,
+          "has_reading": false,
+          "xp_reward": 50,
+          "duration_minutes": 30
+        }
+      ]
     }
-  ],
-  "unitsByHsk": [
-    {
-      "hskLevel": 1,
-      "unitCount": 6,
-      "publishedCount": 2
-    },
-    {
-      "hskLevel": 2,
-      "unitCount": 5,
-      "publishedCount": 0
-    },
-    {
-      "hskLevel": 3,
-      "unitCount": 5,
-      "publishedCount": 0
-    },
-    {
-      "hskLevel": 4,
-      "unitCount": 5,
-      "publishedCount": 0
-    },
-    {
-      "hskLevel": 5,
-      "unitCount": 6,
-      "publishedCount": 0
-    },
-    {
-      "hskLevel": 6,
-      "unitCount": 8,
-      "publishedCount": 0
-    }
-  ],
-  "unitsTotal": {
-    "total": 35,
-    "published": 2,
-    "draft": 33
-  },
-  "lessonsByHsk": [
-    {
-      "hskLevel": 1,
-      "total": 15,
-      "published": 3,
-      "draft": 12,
-      "pending": 0
-    },
-    {
-      "hskLevel": 2,
-      "total": 15,
-      "published": 0,
-      "draft": 15,
-      "pending": 0
-    },
-    {
-      "hskLevel": 3,
-      "total": 20,
-      "published": 0,
-      "draft": 20,
-      "pending": 0
-    },
-    {
-      "hskLevel": 4,
-      "total": 20,
-      "published": 0,
-      "draft": 20,
-      "pending": 0
-    },
-    {
-      "hskLevel": 5,
-      "total": 30,
-      "published": 0,
-      "draft": 30,
-      "pending": 0
-    },
-    {
-      "hskLevel": 6,
-      "total": 40,
-      "published": 0,
-      "draft": 40,
-      "pending": 0
-    }
-  ],
-  "lessonsAggregate": {
-    "total": 140,
-    "published": 3,
-    "draft": 137,
-    "pendingReview": 0,
-    "missingDialogue": 0,
-    "missingListening": 0,
-    "humanReviewedCount": 0
-  },
-  "lessonsWithoutExercises": 0,
-  "vocabTotal": {
-    "total": 5400,
-    "published": 10,
-    "draft": 290
-  },
-  "vocabByHsk": [
-    {
-      "hskLevel": 1,
-      "total": 300,
-      "published": 10
-    },
-    {
-      "hskLevel": 2,
-      "total": 200,
-      "published": 0
-    },
-    {
-      "hskLevel": 3,
-      "total": 500,
-      "published": 0
-    },
-    {
-      "hskLevel": 4,
-      "total": 1000,
-      "published": 0
-    },
-    {
-      "hskLevel": 5,
-      "total": 1600,
-      "published": 0
-    },
-    {
-      "hskLevel": 6,
-      "total": 1800,
-      "published": 0
-    }
-  ],
-  "vocabSources": [
-    {
-      "sourceId": "NULL",
-      "sourceDataset": "HSK 3.0 (2025-11)",
-      "count": 5100
-    },
-    {
-      "sourceId": "NULL",
-      "sourceDataset": "NULL",
-      "count": 9
-    },
-    {
-      "sourceId": "1",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "10",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "100",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "101",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "102",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "103",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "104",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "105",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "106",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "107",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "108",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "109",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "11",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "110",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "111",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "112",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "113",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "114",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "115",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "116",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "117",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "118",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "119",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "12",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "120",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "121",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "122",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "123",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "124",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "125",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "126",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "127",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "128",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "129",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "13",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "131",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "132",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "133",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "134",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "135",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "136",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "137",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "138",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "139",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "140",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "141",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "142",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "143",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "144",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "145",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "147",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "148",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "149",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "15",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "151",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "152",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "153",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "154",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "155",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "156",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "157",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "158",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "159",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "16",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "160",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "161",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "162",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "163",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "164",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "165",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "166",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "167",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "168",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "169",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "17",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "170",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "171",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "172",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "173",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "174",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "175",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "176",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "177",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "178",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "179",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "18",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "180",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "181",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "183",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "184",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "185",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "186",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "187",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "188",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "189",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "19",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "190",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "191",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "192",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "193",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "194",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "195",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "196",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "197",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "198",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "199",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "2",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "20",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "200",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "201",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "202",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "203",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "204",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "205",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "206",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "207",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "208",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "209",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "21",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "210",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "211",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "212",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "213",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "214",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "215",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "216",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "217",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "218",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "219",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "22",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "220",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "221",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "222",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "223",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "224",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "225",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "226",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "227",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "228",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "229",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "23",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "230",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "231",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "232",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "233",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "234",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "235",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "236",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "237",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "238",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "239",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "24",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "240",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "242",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "243",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "244",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "245",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "246",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "247",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "248",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "249",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "25",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "250",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "251",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "252",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "253",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "254",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "255",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "256",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "257",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "258",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "259",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "26",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "260",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "261",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "262",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "263",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "264",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "265",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "266",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "267",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "268",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "269",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "27",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "270",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "271",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "272",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "273",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "274",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "275",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "276",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "277",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "278",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "279",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "28",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "280",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "281",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "282",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "283",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "284",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "285",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "286",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "287",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "288",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "289",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "29",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "290",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "291",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "292",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "293",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "294",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "295",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "296",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "297",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "298",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "299",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "3",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "30",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "300",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "31",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "32",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "33",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "34",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "35",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "36",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "37",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "38",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "39",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "4",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "40",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "41",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "42",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "43",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "44",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "46",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "47",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "48",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "49",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "5",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "50",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "51",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "52",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "53",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "54",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "55",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "56",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "57",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "58",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "59",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "6",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "60",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "61",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "62",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "63",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "64",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "65",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "66",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "67",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "68",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "69",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "7",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "70",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "72",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "73",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "74",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "75",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "76",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "77",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "78",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "79",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "8",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "80",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "81",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "82",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "83",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "84",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "85",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "86",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "87",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "88",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "89",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "9",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "90",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "92",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "93",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "94",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "95",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "96",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "97",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "98",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    },
-    {
-      "sourceId": "99",
-      "sourceDataset": "HSK 3.0",
-      "count": 1
-    }
-  ],
-  "vocabMissingMeaningVi": 0,
-  "vocabMissingPinyin": 0,
-  "grammarTotal": {
-    "total": 461,
-    "published": 2,
-    "draft": 0
-  },
-  "grammarByHsk": [
-    {
-      "hskLevel": 1,
-      "total": 72,
-      "published": 2
-    },
-    {
-      "hskLevel": 2,
-      "total": 78,
-      "published": 0
-    },
-    {
-      "hskLevel": 3,
-      "total": 96,
-      "published": 0
-    },
-    {
-      "hskLevel": 4,
-      "total": 95,
-      "published": 0
-    },
-    {
-      "hskLevel": 5,
-      "total": 70,
-      "published": 0
-    },
-    {
-      "hskLevel": 6,
-      "total": 50,
-      "published": 0
-    }
-  ],
-  "grammarColumns": [
-    "Id",
-    "Code",
-    "Title",
-    "PinyinTitle",
-    "HskLevel",
-    "Category",
-    "StructureFormula",
-    "Explanation",
-    "Difficulty",
-    "ExamplesJson",
-    "PracticeJson",
-    "Status",
-    "LessonId",
-    "CreatedAt",
-    "UpdatedAt",
-    "GrammarType",
-    "CategoryType",
-    "RawExplanationCn",
-    "SourceDataset",
-    "SourceEntryId",
-    "UpdatedByUserId",
-    "ReviewedByUserId",
-    "ReviewedAt",
-    "ReviewNotes"
-  ],
-  "grammarMissingExplanation": 0,
-  "grammarMissingStructureFormula": 0,
-  "hanziCharactersTotal": 1940,
-  "hanziByHsk": [
-    {
-      "firstHskLevel": 1,
-      "count": 246
-    },
-    {
-      "firstHskLevel": 2,
-      "count": 125
-    },
-    {
-      "firstHskLevel": 3,
-      "count": 284
-    },
-    {
-      "firstHskLevel": 4,
-      "count": 441
-    },
-    {
-      "firstHskLevel": 5,
-      "count": 431
-    },
-    {
-      "firstHskLevel": 6,
-      "count": 413
-    }
-  ],
-  "hanziLevelRequirementsTotal": 2640,
-  "hanziLevelRequirements": [
-    {
-      "hskLevel": 1,
-      "count": 246,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    },
-    {
-      "hskLevel": 2,
-      "count": 225,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    },
-    {
-      "hskLevel": 3,
-      "count": 434,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    },
-    {
-      "hskLevel": 4,
-      "count": 591,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    },
-    {
-      "hskLevel": 5,
-      "count": 581,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    },
-    {
-      "hskLevel": 6,
-      "count": 563,
-      "sourceDataset": "HSK 3.0 (2025-11)"
-    }
-  ],
-  "exercisesTotal": {
-    "total": 278,
-    "published": 2,
-    "draft": 276
-  },
-  "exercisesByHsk": [
-    {
-      "hskLevel": 1,
-      "total": 28,
-      "published": 2
-    },
-    {
-      "hskLevel": 2,
-      "total": 30,
-      "published": 0
-    },
-    {
-      "hskLevel": 3,
-      "total": 40,
-      "published": 0
-    },
-    {
-      "hskLevel": 4,
-      "total": 40,
-      "published": 0
-    },
-    {
-      "hskLevel": 5,
-      "total": 60,
-      "published": 0
-    },
-    {
-      "hskLevel": 6,
-      "total": 80,
-      "published": 0
-    }
-  ],
-  "exercisesBySkill": [
-    {
-      "skill": "reading",
-      "count": 139
-    },
-    {
-      "skill": "grammar",
-      "count": 138
-    },
-    {
-      "skill": "writing",
-      "count": 1
-    }
-  ],
-  "usersCount": 39
+  }
 }

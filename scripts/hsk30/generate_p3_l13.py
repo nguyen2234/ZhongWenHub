@@ -417,16 +417,7 @@ def generate():
         f.write(f'LESSON_TITLE = "{LESSON_TITLE}"\n\n')
         f.write("HSK4_DATA_P3_L13_RECORDS = ")
         f.write(json.dumps(records, ensure_ascii=False, indent=4))
-        f.write("\n\n")
-        f.write("# Dictionary format compatible with P1 / P2: (lesson_num, hanzi) -> (meaningVi, exampleZh, examplePy, exampleVi)\n")
-        f.write("HSK4_DATA_P3_L13 = {\n")
-        for item in records:
-            m = item["meaningVi"].replace('"', '\\"')
-            ezh = item["exampleZh"].replace('"', '\\"')
-            epy = item["examplePy"].replace('"', '\\"')
-            evi = item["exampleVi"].replace('"', '\\"')
-            f.write(f'    ({item["lessonNumber"]}, "{item["hanzi"]}"): ("{m}", "{ezh}", "{epy}", "{evi}"),\n')
-        f.write("}\n")
+        f.write("\n")
 
     sha256 = hashlib.sha256(open(out_py_path, "rb").read()).hexdigest()
     print(f"Successfully generated {out_py_path} (50 words, SHA256: {sha256})")
@@ -437,3 +428,4 @@ if __name__ == "__main__":
         print("Lesson 13 generation completed cleanly.")
     else:
         sys.exit(1)
+

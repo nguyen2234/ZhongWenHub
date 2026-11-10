@@ -14,3 +14,4 @@ for l in sorted(by_lesson.keys()):
 
 print("\nSample first exercise:")
 print(json.dumps(exs[0], ensure_ascii=False, indent=2))
+

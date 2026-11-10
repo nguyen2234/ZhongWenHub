@@ -182,6 +182,38 @@ if __name__ == "__main__":
                         print(f"FAIL: [task] {fname}: {errs}")
                         all_passed = False
 
+        # Check results
+        results_dir = os.path.join(collab_dir, "results")
+        if os.path.isdir(results_dir):
+            for fname in os.listdir(results_dir):
+                if fname.endswith(".json"):
+                    checked += 1
+                    fpath = os.path.join(results_dir, fname)
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    valid, errs = validator.validate("result", data)
+                    if valid:
+                        print(f"PASS: [result] {fname}")
+                    else:
+                        print(f"FAIL: [result] {fname}: {errs}")
+                        all_passed = False
+
+        # Check reviews
+        reviews_dir = os.path.join(collab_dir, "reviews")
+        if os.path.isdir(reviews_dir):
+            for fname in os.listdir(reviews_dir):
+                if fname.endswith(".json"):
+                    checked += 1
+                    fpath = os.path.join(reviews_dir, fname)
+                    with open(fpath, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    valid, errs = validator.validate("review", data)
+                    if valid:
+                        print(f"PASS: [review] {fname}")
+                    else:
+                        print(f"FAIL: [review] {fname}: {errs}")
+                        all_passed = False
+
         # Check examples
         ex_dir = os.path.join(collab_dir, "examples")
         if os.path.isdir(ex_dir):

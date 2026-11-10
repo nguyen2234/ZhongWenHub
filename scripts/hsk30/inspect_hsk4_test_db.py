@@ -43,3 +43,4 @@ print(f"Total HSK 4 vocabularies on Test: {row[0]} across {row[1]} lessons")
 cursor.execute("SELECT COUNT(*) FROM exercises WHERE HskLevel = 4")
 ex_count = cursor.fetchone()[0]
 print(f"Total HSK 4 exercises on Test: {ex_count}")
+

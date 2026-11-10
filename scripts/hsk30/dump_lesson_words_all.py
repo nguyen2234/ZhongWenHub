@@ -12,3 +12,4 @@ for l in range(16, 21):
     print(f"=== Lesson {l}: {len(words)} words ===")
     for i, w in enumerate(words):
         print(f"    \"{w['hanzi']}\": (\"{w['devId']}\", \"{w['pinyin']}\", \"{w['partOfSpeech']}\", \"{w['meaningVi']}\"),")
+

@@ -6,14 +6,29 @@
   "commit_sha": "09633c1",
   "backend": {
     "framework": "ASP.NET Core .NET 10 / xUnit",
-    "unit_tests": { "total": 38, "passed": 38, "failed": 0, "skipped": 0 },
-    "integration_tests": { "total": 24, "passed": 24, "failed": 0, "skipped": 0 },
+    "unit_tests": {
+      "total": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0
+    },
+    "integration_tests": {
+      "total": 24,
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
     "line_coverage_pct": 84.6,
     "branch_coverage_pct": 79.2
   },
   "frontend": {
     "framework": "React 19 / Bun Test / Vite",
-    "unit_tests": { "total": 288, "passed": 288, "failed": 0, "skipped": 0 },
+    "unit_tests": {
+      "total": 288,
+      "passed": 288,
+      "failed": 0,
+      "skipped": 0
+    },
     "typecheck_status": "PASS",
     "line_coverage_pct": 82.1,
     "branch_coverage_pct": 77.5
@@ -21,10 +36,26 @@
   "e2e": {
     "framework": "Playwright",
     "specs": [
-      { "spec": "hsk1-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
-      { "spec": "hsk2-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
-      { "spec": "hsk3-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
-      { "spec": "hsk4-full-curriculum-e2e.spec.ts", "passed": 20, "failed": 0 }
+      {
+        "spec": "hsk1-full-curriculum-e2e.spec.ts",
+        "passed": 10,
+        "failed": 0
+      },
+      {
+        "spec": "hsk2-full-curriculum-e2e.spec.ts",
+        "passed": 10,
+        "failed": 0
+      },
+      {
+        "spec": "hsk3-full-curriculum-e2e.spec.ts",
+        "passed": 10,
+        "failed": 0
+      },
+      {
+        "spec": "hsk4-full-curriculum-e2e.spec.ts",
+        "passed": 20,
+        "failed": 0
+      }
     ],
     "total_e2e_tests": 50,
     "passed": 50,

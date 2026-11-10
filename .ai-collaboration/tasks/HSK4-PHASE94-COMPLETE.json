@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "HSK4-PHASE94-COMPLETE",
+  "title": "HSK 4 Complete Curriculum Development & Multi-Batch Enrichment",
+  "description": "Audit and verify HSK 4 curriculum: 20 lessons, 1000 vocabulary with rich contextual examples, 95 grammar points, 80 exercises, 20 dialogues, 5 reading passages, 40 audio files in ZhongWenHub_Test. Linked to GitHub Issue #17.",
+  "project": "ZhongWenHub",
+  "phase": "Phase 9.4",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "COMPLETED",
+  "revision": 1,
+  "issue_number": 17,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "3918063",
+  "input_files": [
+    "data/hsk30/staging/hsk4_phase94_checkpoint.json",
+    "data/hsk30/reference/current_db_inventory.json"
+  ],
+  "expected_outputs": [
+    "data/hsk30/reference/current_db_inventory.json",
+    "docs/hsk30/phase94/HSK4_PHASE94_MASTER_REPORT.md"
+  ],
+  "acceptance_criteria": [
+    "All 20 HSK 4 lessons enriched in ZhongWenHub_Test",
+    "Exactly 1,000 vocabulary words with examples and Vietnamese translations",
+    "95 grammar points, 80 exercises, 20 dialogues, 5 passages, 40 audios verified",
+    "Playwright E2E and multi-batch rollback verified"
+  ],
+  "safety_constraints": [
+    "Dev DB is strictly read-only",
+    "All 20 lessons maintained in DRAFT state awaiting expert sign-off"
+  ],
+  "created_at": "2026-11-10T23:50:00Z",
+  "updated_at": "2026-11-10T23:50:00Z"
+}

@@ -13,3 +13,4 @@ cur.execute('''
 ''')
 for r in cur.fetchall():
     print(f"L{r[0]:02d}: {r[1]} | {r[2]} | Status={r[3]}")
+

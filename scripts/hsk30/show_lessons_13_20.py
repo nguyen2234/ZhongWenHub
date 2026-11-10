@@ -12,3 +12,4 @@ for d in data:
 for ln in sorted(seen.keys()):
     lid, title = seen[ln]
     print(f"Lesson {ln:02d}: ID={lid} | Title='{title}'")
+

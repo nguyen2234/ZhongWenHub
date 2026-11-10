@@ -97,9 +97,9 @@ export const HSK_LEVEL_TABS = [
   { level: 2, label: 'HSK 2', name: 'Sơ cấp' },
   { level: 3, label: 'HSK 3', name: 'Trung cấp 1' },
   { level: 4, label: 'HSK 4', name: 'Trung cấp 2' },
-  { level: 5, label: 'HSK 5', name: 'Cao cấp 1' },
-  { level: 6, label: 'HSK 6', name: 'Cao cấp 2' },
-  { level: 7, label: 'HSK 7–9', name: 'Chuyên gia' },
+  { level: 5, label: 'HSK 5', name: 'Sắp ra mắt' },
+  { level: 6, label: 'HSK 6', name: 'Sắp ra mắt' },
+  { level: 7, label: 'HSK 7–9', name: 'Sắp ra mắt' },
 ];
 
 export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
@@ -248,8 +248,8 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
               gap: '6px',
               padding: '3px 10px',
               borderRadius: '999px',
-              backgroundColor: '#FFF0F1',
-              color: 'var(--primary, #E60012)',
+              backgroundColor: currentLevelData.isComingSoon ? '#FEF3C7' : '#FFF0F1',
+              color: currentLevelData.isComingSoon ? '#B45309' : 'var(--primary, #E60012)',
               fontSize: '11.5px',
               fontWeight: 800,
               letterSpacing: '0.05em',
@@ -258,7 +258,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             }}
           >
             <Sparkles size={13} />
-            <span>Bài học {currentLevelData.name}</span>
+            <span>{currentLevelData.isComingSoon ? 'Sắp ra mắt' : `Bài học ${currentLevelData.name}`}</span>
           </div>
 
           <h1
@@ -270,7 +270,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
               lineHeight: 1.25,
             }}
           >
-            Giáo trình {currentLevelData.name} — {currentLevelData.vietnameseName}
+            {currentLevelData.name} — {currentLevelData.isComingSoon ? 'Sắp ra mắt' : currentLevelData.vietnameseName}
           </h1>
 
           <p
@@ -282,8 +282,8 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
               maxWidth: '600px',
             }}
           >
-            Chương trình đào tạo chuẩn khung HSK 3.0 với {currentLevelData.totalWords} từ vựng cốt lõi,
-            các điểm ngữ pháp trọng tâm và hội thoại giao tiếp tình huống thực tế theo từng chủ đề đời sống.
+            {currentLevelData.description ||
+              `Chương trình đào tạo chuẩn khung HSK 3.0 với ${currentLevelData.totalWords} từ vựng cốt lõi, các điểm ngữ pháp trọng tâm và hội thoại giao tiếp tình huống thực tế theo từng chủ đề đời sống.`}
           </p>
         </div>
 
@@ -292,93 +292,135 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
           <StickerIllustration name="learning" size="md" decorative />
         </div>
 
-        {/* Right Side: Course Progress Card */}
-        <div
-          style={{
-            padding: '16px 18px',
-            borderRadius: '14px',
-            backgroundColor: '#FFFBFB',
-            border: '1.5px solid #fed7da',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
-              Tiến độ khóa học
-            </span>
-            <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--primary, #E60012)' }}>
-              {courseProgressPercent}%
-            </span>
-          </div>
-
-          {/* Progress bar */}
+        {/* Right Side: Course Progress Card or Coming Soon Badge */}
+        {currentLevelData.isComingSoon ? (
           <div
             style={{
-              width: '100%',
-              height: '7px',
-              borderRadius: '999px',
-              backgroundColor: '#fee2e2',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${courseProgressPercent}%`,
-                height: '100%',
-                borderRadius: '999px',
-                backgroundColor: 'var(--primary, #E60012)',
-                transition: 'width 0.3s ease',
-              }}
-            />
-          </div>
-
-          {/* Metrics summary */}
-          <div
-            style={{
+              padding: '16px 18px',
+              borderRadius: '14px',
+              backgroundColor: '#FFFBEB',
+              border: '1.5px solid #FDE68A',
               display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: '12px',
-              color: '#64748b',
-              fontWeight: 600,
+              flexDirection: 'column',
+              gap: '10px',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center',
+              minWidth: '220px',
             }}
           >
-            <span>Tổng bài: <strong>{totalLessonsInLevel}</strong></span>
-            <span>Chủ đề: <strong>{topics.length}</strong></span>
-            <span>Đã học: <strong>{completedInLevel}</strong></span>
-          </div>
-
-          {/* Button Tiếp tục học */}
-          {heroLesson && (
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#B45309', textTransform: 'uppercase' }}>
+              Trạng thái học liệu
+            </span>
+            <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#78350F' }}>
+              Chưa có bài giảng chính thức
+            </span>
             <button
               type="button"
-              onClick={() => handleLessonAction(heroLesson.id)}
+              onClick={() => handleLevelChange(4)}
               style={{
                 width: '100%',
-                padding: '9px 14px',
-                borderRadius: '9px',
-                border: 'none',
-                backgroundColor: 'var(--primary, #E60012)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #D97706',
+                backgroundColor: '#F59E0B',
                 color: '#ffffff',
-                fontSize: '13px',
-                fontWeight: 800,
+                fontSize: '12.5px',
+                fontWeight: 700,
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '7px',
-                boxShadow: '0 2px 8px rgba(230, 0, 18, 0.22)',
-                transition: 'all 0.15s ease',
               }}
             >
-              <Play size={13} fill="#ffffff" />
-              <span>
-                {completedInLevel === 0 ? 'Bắt đầu học' : `Tiếp tục học: Bài ${heroLesson.lessonNumber}`}
-              </span>
+              Học cấp độ HSK 4
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: '16px 18px',
+              borderRadius: '14px',
+              backgroundColor: '#FFFBFB',
+              border: '1.5px solid #fed7da',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
+                Tiến độ khóa học
+              </span>
+              <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--primary, #E60012)' }}>
+                {courseProgressPercent}%
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div
+              style={{
+                width: '100%',
+                height: '7px',
+                borderRadius: '999px',
+                backgroundColor: '#fee2e2',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${courseProgressPercent}%`,
+                  height: '100%',
+                  borderRadius: '999px',
+                  backgroundColor: 'var(--primary, #E60012)',
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+
+            {/* Metrics summary */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '12px',
+                color: '#64748b',
+                fontWeight: 600,
+              }}
+            >
+              <span>Tổng bài: <strong>{totalLessonsInLevel}</strong></span>
+              <span>Chủ đề: <strong>{topics.length}</strong></span>
+              <span>Đã học: <strong>{completedInLevel}</strong></span>
+            </div>
+
+            {/* Button Tiếp tục học */}
+            {heroLesson && (
+              <button
+                type="button"
+                onClick={() => handleLessonAction(heroLesson.id)}
+                style={{
+                  width: '100%',
+                  padding: '9px 14px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  backgroundColor: 'var(--primary, #E60012)',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '7px',
+                  boxShadow: '0 2px 8px rgba(230, 0, 18, 0.22)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Play size={13} fill="#ffffff" />
+                <span>
+                  {completedInLevel === 0 ? 'Bắt đầu học' : `Tiếp tục học: Bài ${heroLesson.lessonNumber}`}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
       {/* =====================================================================
@@ -411,9 +453,76 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
       </nav>
 
       {/* =====================================================================
-          5.3. BỐ CỤC 2 CỘT: CỘT TRÁI (CHỦ ĐỀ 25-28%) + CỘT PHẢI (BÀI HỌC 72-75%)
+          5.3. BỐ CỤC 2 CỘT HOẶC COMING SOON CHO HSK 5/6
           ===================================================================== */}
-      <div className="hsk-two-columns">
+      {currentLevelData.isComingSoon ? (
+        <div
+          className="hsk-coming-soon-container"
+          style={{
+            margin: '24px 0',
+            padding: '48px 24px',
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            textAlign: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              padding: '14px',
+              borderRadius: '50%',
+              backgroundColor: '#FEF3C7',
+              color: '#D97706',
+              marginBottom: '16px',
+            }}
+          >
+            <Clock size={36} />
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 10px' }}>
+            {currentLevelData.name} — Sắp ra mắt
+          </h2>
+          <p style={{ fontSize: '15px', color: '#475569', maxWidth: '560px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+            {currentLevelData.description || 'Nội dung đang được phát triển. Các bài học sẽ được cập nhật trong thời gian tới.'}
+          </p>
+          <div style={{ display: 'inline-flex', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => handleLevelChange(4)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--primary, #E60012)',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '14px',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Học HSK 4 (20 bài)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLevelChange(1)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '8px',
+                backgroundColor: '#f1f5f9',
+                color: '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                border: '1px solid #cbd5e1',
+                cursor: 'pointer',
+              }}
+            >
+              Học HSK 1 (15 bài)
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="hsk-two-columns">
         {/* ===================================================================
             CỘT TRÁI (25–28%): DANH SÁCH CHỦ ĐỀ
             =================================================================== */}
@@ -718,10 +827,12 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
           )}
         </main>
       </div>
+      )}
 
       {/* =====================================================================
           MOBILE HSK CURRICULUM (FE-8): Vertical Topic Cards with Nested Lessons
           ===================================================================== */}
+      {!currentLevelData.isComingSoon && (
       <div className="hsk-mobile-accordion" aria-label="Chủ đề và bài học HSK">
         {topics.map((topic) => {
           const isExpanded = expandedTopicIds[topic.id] ?? (topic.id === selectedTopicId);
@@ -830,6 +941,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
           );
         })}
       </div>
+      )}
 
       {/* =====================================================================
           PHẦN DƯỚI: BÀI TẬP THEO CẤP HSK + CÂU HỎI THƯỜNG GẶP (COMPACT)
