@@ -341,3 +341,4 @@ for t in tasks:
     print(f"Created task: {filename}")
 
 print(f"Successfully generated {len(tasks)} tasks.")
+

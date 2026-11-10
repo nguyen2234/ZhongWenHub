@@ -119,3 +119,4 @@ def link_hsk1_vocabularies():
 
 if __name__ == "__main__":
     link_hsk1_vocabularies()
+

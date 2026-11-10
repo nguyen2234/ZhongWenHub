@@ -425,3 +425,4 @@ with open(REPORT_FILE, "w", encoding="utf-8") as f:
     f.write(report)
 
 print(f"Generated report: {REPORT_FILE}")
+
