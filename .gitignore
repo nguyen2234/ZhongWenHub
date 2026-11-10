@@ -37,3 +37,10 @@ playwright-report/
 # Python
 __pycache__/
 *.pyc
+
+# Copyrighted source materials & textbooks (Do NOT commit to git)
+resources/
+*.pdf
+*.zip
+*.rar
+*.7z
