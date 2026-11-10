@@ -322,6 +322,6 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
         Assert.Equal(6, totalCourses);
 
         var totalExercises = await db.Exercises.CountAsync();
-        Assert.True(totalExercises == 278 || totalExercises == 310 || totalExercises == 370, $"Total exercises should be either baseline 278, Phase 9.1 integrated 310, or Phase 9.2 integrated 370 (Actual: {totalExercises})");
+        Assert.True(totalExercises == 278 || totalExercises == 310 || totalExercises == 370 || totalExercises == 450, $"Total exercises should be either baseline 278, Phase 9.1 integrated 310, Phase 9.2 integrated 370, or Phase 9.3 integrated 450 (Actual: {totalExercises})");
     }
 }

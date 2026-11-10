@@ -1,0 +1,14 @@
+{
+  "phase": "9.3",
+  "mode": "commit",
+  "targetDatabase": "ZhongWenHub_Test",
+  "preImportSnapshotHash": "3a9c1c173d30af69dbd8df2afc4ab9093617cfa2d824d87463ddbd71898cb377",
+  "metrics": {
+    "vocabulariesInserted": 500,
+    "vocabulariesUpdated": 0,
+    "exercisesInserted": 80,
+    "exercisesUpdated": 0,
+    "passagesInjected": 5
+  },
+  "status": "COMMITTED"
+}
