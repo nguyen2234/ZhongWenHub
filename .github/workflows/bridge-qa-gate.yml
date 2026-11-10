@@ -5,6 +5,8 @@ on:
     paths:
       - '.ai-collaboration/**'
       - '.github/workflows/bridge-qa-gate.yml'
+      - 'scripts/ai_bridge/**'
+      - 'requirements.txt'
   workflow_dispatch:
 
 concurrency:
@@ -25,23 +27,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
       - name: Install dependencies
-        run: pip install jsonschema
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Validate Release Gate File
+      - name: Validate Release Gate File Schema
         run: |
           python scripts/ai_bridge/validate_protocol.py release-gate .ai-collaboration/qa/release-gate.json
 
-      - name: Verify Gate Status
+      - name: Verify Release Gate Evidence & Safety
         run: |
-          python -c "
-          import json, sys
-          with open('.ai-collaboration/qa/release-gate.json') as f:
-              gate = json.load(f)
-          decision = gate.get('gate_decision')
-          print(f'Evaluated Gate Decision: {decision}')
-          if decision not in ['TECHNICAL_QA_PASSED', 'TECHNICAL_QA_CONDITIONAL']:
-              print(f'QA Gate Blocked: {decision}')
-              sys.exit(1)
-          "
+          python scripts/ai_bridge/verify_release_gate.py

@@ -39,3 +39,4 @@ When staging data into `ZhongWenHub_Test`:
 3. Every inserted ID and updated record is logged.
 4. Rollback deletes strictly the records inserted by that `batchId` and restores pre-import states, avoiding blanket `DELETE WHERE HskLevel = X`.
 5. Rollback verification tests prove that pre-import row count == post-rollback row count.
+

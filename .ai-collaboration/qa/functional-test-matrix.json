@@ -1,116 +1,580 @@
 {
-  "matrix_version": "1.0.0",
+  "matrix_version": "1.1.0",
   "project": "ZhongWenHub",
-  "last_updated": "2026-11-10T22:15:00Z",
+  "last_updated": "2026-11-10T22:50:00Z",
   "domains": [
     {
       "domain_id": "DOM-01",
       "name": "Authentication & Session Management",
       "test_cases": [
-        { "id": "AUTH-01", "name": "Valid login returns JWT and refresh token", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
-        { "id": "AUTH-02", "name": "Invalid credentials reject with 401 Unauthorized", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
-        { "id": "AUTH-03", "name": "Token expiration triggers re-auth or logout", "type": "E2E", "priority": "P1", "status": "PASS" },
-        { "id": "AUTH-04", "name": "Logout revokes local session tokens", "type": "E2E", "priority": "P1", "status": "PASS" },
-        { "id": "AUTH-05", "name": "Protected routes redirect unauthenticated users to /login", "type": "E2E", "priority": "P0", "status": "PASS" }
+        {
+          "id": "AUTH-01",
+          "name": "Valid login returns JWT and refresh token",
+          "type": "API_INTEGRATION",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Backend/tests/ZhongWenHub.UnitTests/JwtTokenServiceTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --filter FullyQualifiedName~JwtTokenServiceTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "42846276895",
+          "artifact_reference": "backend-test-results/unit_tests.trx",
+          "executed_at": "2026-11-10T15:37:25Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "AUTH-02",
+          "name": "Invalid credentials reject with 401 Unauthorized",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-11-data-access-layer.test.ts",
+          "test_command": "bun test src/tests/fe-11-data-access-layer.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-11-data-access-layer",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "AUTH-03",
+          "name": "Token expiration triggers re-auth or logout",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-11-data-access-layer.test.ts",
+          "test_command": "bun test src/tests/fe-11-data-access-layer.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-11-data-access-layer",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "AUTH-04",
+          "name": "Logout revokes local session tokens",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-11-data-access-layer.test.ts",
+          "test_command": "bun test src/tests/fe-11-data-access-layer.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-11-data-access-layer",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "AUTH-05",
+          "name": "Protected routes redirect unauthenticated users to /login",
+          "type": "E2E",
+          "priority": "P0",
+          "status": "BLOCKED",
+          "test_file": "Fontend/e2e/be-2-auth-rbac.spec.ts",
+          "test_command": "bunx playwright test Fontend/e2e/be-2-auth-rbac.spec.ts --project=desktop-1440",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Fontend/playwright-report",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Requires local SQL Server running ZhongWenHub_Test and local backend daemon on 127.0.0.1:5173"
+        }
       ]
     },
     {
       "domain_id": "DOM-02",
       "name": "Role-Based Access Control (RBAC)",
       "test_cases": [
-        { "id": "RBAC-01", "name": "STUDENT role can access published lessons, forbidden from /admin", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "RBAC-02", "name": "CONTENT_MANAGER can preview DRAFT and PENDING_REVIEW lessons", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "RBAC-03", "name": "ADMIN has full management and user administration rights", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
-        { "id": "RBAC-04", "name": "TEACHER role can view student assignments and classrooms", "type": "API_INTEGRATION", "priority": "P1", "status": "PASS" },
-        { "id": "RBAC-05", "name": "Privilege escalation attempts on API endpoints return 403 Forbidden", "type": "SECURITY", "priority": "P0", "status": "PASS" }
+        {
+          "id": "RBAC-01",
+          "name": "STUDENT role can access published lessons, forbidden from /admin",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-12-content-manager-workspace-separation.test.ts",
+          "test_command": "bun test src/tests/fe-12-content-manager-workspace-separation.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-12-cm-separation",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "RBAC-02",
+          "name": "CONTENT_MANAGER can preview DRAFT and PENDING_REVIEW lessons",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-12-content-manager-workspace-separation.test.ts",
+          "test_command": "bun test src/tests/fe-12-content-manager-workspace-separation.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-12-cm-separation",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "RBAC-03",
+          "name": "ADMIN has full management and user administration rights",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Backend/tests/ZhongWenHub.UnitTests/PolicyConstantsTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --filter FullyQualifiedName~PolicyConstantsTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "42846276895",
+          "artifact_reference": "backend-test-results/unit_tests.trx",
+          "executed_at": "2026-11-10T15:37:25Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "RBAC-04",
+          "name": "TEACHER role can view student assignments and classrooms",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/portal-switcher-and-excel-import.test.ts",
+          "test_command": "bun test src/tests/portal-switcher-and-excel-import.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/portal-switcher",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "RBAC-05",
+          "name": "Privilege escalation attempts on API endpoints return 403 Forbidden",
+          "type": "SECURITY",
+          "priority": "P0",
+          "status": "BLOCKED",
+          "test_file": "Backend/tests/ZhongWenHub.IntegrationTests/RbacAuthorizationIntegrationTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --filter FullyQualifiedName~RbacAuthorizationIntegrationTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Backend/TestResults/integration_tests.trx",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Integration test requires local SQL Server running ZhongWenHub_Test"
+        }
       ]
     },
     {
       "domain_id": "DOM-03",
       "name": "Course & Curriculum Management",
       "test_cases": [
-        { "id": "CURR-01", "name": "HSK 1 to 6 listing loads correct unit counts and lesson hierarchies", "type": "UNIT", "priority": "P0", "status": "PASS" },
-        { "id": "CURR-02", "name": "DRAFT lessons are protected from student direct URL access (returns 404)", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "CURR-03", "name": "PUBLISHED lessons render correctly in syllabus tree and lesson player", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "CURR-04", "name": "Lesson navigation links maintain valid sequential order", "type": "UNIT", "priority": "P1", "status": "PASS" }
+        {
+          "id": "CURR-01",
+          "name": "HSK 1 to 6 listing loads correct unit counts and lesson hierarchies",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/connected-learning.test.ts",
+          "test_command": "bun test src/tests/connected-learning.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/connected-learning",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "CURR-02",
+          "name": "DRAFT lessons are protected from student direct URL access (returns 404)",
+          "type": "E2E",
+          "priority": "P0",
+          "status": "BLOCKED",
+          "test_file": "Fontend/e2e/hsk1-full-curriculum-e2e.spec.ts",
+          "test_command": "bunx playwright test Fontend/e2e/hsk1-full-curriculum-e2e.spec.ts --project=desktop-1440",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Fontend/playwright-report",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Requires local SQL Server running ZhongWenHub_Test and local backend daemon on 127.0.0.1:5173"
+        },
+        {
+          "id": "CURR-03",
+          "name": "PUBLISHED lessons render correctly in syllabus tree and lesson player",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-5-5-compact-curriculum-typography.test.ts",
+          "test_command": "bun test src/tests/fe-5-5-compact-curriculum-typography.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-5-5-curriculum",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "CURR-04",
+          "name": "Lesson navigation links maintain valid sequential order",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/beginner-roadmap.test.ts",
+          "test_command": "bun test src/tests/beginner-roadmap.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/beginner-roadmap",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        }
       ]
     },
     {
       "domain_id": "DOM-04",
       "name": "Vocabulary Engine",
       "test_cases": [
-        { "id": "VOCAB-01", "name": "Renders Hanzi, Pinyin, Vietnamese meaning, and contextual sentence", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "VOCAB-02", "name": "Pinyin tone marks conform to official orthography (tone sandhi handled)", "type": "UNIT", "priority": "P1", "status": "PASS" },
-        { "id": "VOCAB-03", "name": "Empty states handle missing audio gracefully with Web Speech TTS fallback", "type": "E2E", "priority": "P1", "status": "PASS" },
-        { "id": "VOCAB-04", "name": "Word count matches syllabus canonical baseline (HSK1: 300, HSK2: 200, HSK3: 500, HSK4: 1000)", "type": "DB_INTEGRATION", "priority": "P0", "status": "PASS" }
+        {
+          "id": "VOCAB-01",
+          "name": "Renders Hanzi, Pinyin, Vietnamese meaning, and contextual sentence",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/hsk1-dictionary-verification.test.ts",
+          "test_command": "bun test src/tests/hsk1-dictionary-verification.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/hsk1-dictionary-verification",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "VOCAB-02",
+          "name": "Pinyin tone marks conform to official orthography (tone sandhi handled)",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-6-textbook-scrollspy.test.ts",
+          "test_command": "bun test src/tests/fe-6-textbook-scrollspy.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-6-textbook-scrollspy",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "VOCAB-03",
+          "name": "Empty states handle missing audio gracefully with Web Speech TTS fallback",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-7-interactive-video.test.ts",
+          "test_command": "bun test src/tests/fe-7-interactive-video.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-7-interactive-video",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "VOCAB-04",
+          "name": "Word count matches syllabus canonical baseline (HSK1: 300, HSK2: 200, HSK3: 500, HSK4: 1000)",
+          "type": "DB_INTEGRATION",
+          "priority": "P0",
+          "status": "BLOCKED",
+          "test_file": "Backend/tests/ZhongWenHub.IntegrationTests/Hsk30DataAndSecurityIntegrationTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --filter FullyQualifiedName~Hsk30DataAndSecurityIntegrationTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Backend/TestResults/integration_tests.trx",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Integration test requires local SQL Server running ZhongWenHub_Test"
+        }
       ]
     },
     {
       "domain_id": "DOM-05",
       "name": "Grammar System",
       "test_cases": [
-        { "id": "GRAM-01", "name": "Grammar pattern structure, Vietnamese explanation and example sentences render", "type": "UNIT", "priority": "P0", "status": "PASS" },
-        { "id": "GRAM-02", "name": "Grammar point mapping to lessons maintains relational integrity", "type": "DB_INTEGRATION", "priority": "P1", "status": "PASS" }
+        {
+          "id": "GRAM-01",
+          "name": "Grammar pattern structure, Vietnamese explanation and example sentences render",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-9-practice-grammar-ux.test.ts",
+          "test_command": "bun test src/tests/fe-9-practice-grammar-ux.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-9-practice-grammar-ux",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "GRAM-02",
+          "name": "Grammar point mapping to lessons maintains relational integrity",
+          "type": "DB_INTEGRATION",
+          "priority": "P1",
+          "status": "BLOCKED",
+          "test_file": "Backend/tests/ZhongWenHub.IntegrationTests/Hsk30DataAndSecurityIntegrationTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --filter FullyQualifiedName~Hsk30DataAndSecurityIntegrationTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Backend/TestResults/integration_tests.trx",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Integration test requires local SQL Server running ZhongWenHub_Test"
+        }
       ]
     },
     {
       "domain_id": "DOM-06",
       "name": "Dialogue & Reading Passages",
       "test_cases": [
-        { "id": "READ-01", "name": "Unit reading passages display formatted Chinese text and Vietnamese translation", "type": "E2E", "priority": "P1", "status": "PASS" },
-        { "id": "READ-02", "name": "Reading comprehension questions grade answers and provide feedback", "type": "E2E", "priority": "P1", "status": "PASS" }
+        {
+          "id": "READ-01",
+          "name": "Unit reading passages display formatted Chinese text and Vietnamese translation",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/reading-passage.test.ts",
+          "test_command": "bun test src/tests/reading-passage.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/reading-passage",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "READ-02",
+          "name": "Reading comprehension questions grade answers and provide feedback",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/reading-passage.test.ts",
+          "test_command": "bun test src/tests/reading-passage.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/reading-passage",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        }
       ]
     },
     {
       "domain_id": "DOM-07",
       "name": "Listening & Audio Infrastructure",
       "test_cases": [
-        { "id": "AUDIO-01", "name": "Audio asset URL resolves with 200 OK and audio/mpeg MIME type", "type": "INTEGRATION", "priority": "P1", "status": "PASS" },
-        { "id": "AUDIO-02", "name": "Missing audio files fallback seamlessly to Web Speech API synthesizer", "type": "E2E", "priority": "P1", "status": "PASS" }
+        {
+          "id": "AUDIO-01",
+          "name": "Audio asset URL resolves with 200 OK and audio/mpeg MIME type",
+          "type": "INTEGRATION",
+          "priority": "P1",
+          "status": "NOT_TESTED",
+          "test_file": "Fontend/src/tests/fe-7-interactive-video.test.ts",
+          "test_command": "bun test src/tests/fe-7-interactive-video.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": null,
+          "executed_at": null,
+          "verified_status": "NOT_TESTED_IN_CI",
+          "block_reason": "Static media CDN asset check not part of CI test suite; covered by local asset verification script"
+        },
+        {
+          "id": "AUDIO-02",
+          "name": "Missing audio files fallback seamlessly to Web Speech API synthesizer",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-7-interactive-video.test.ts",
+          "test_command": "bun test src/tests/fe-7-interactive-video.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-7-interactive-video",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        }
       ]
     },
     {
       "domain_id": "DOM-08",
       "name": "Interactive Exercises & Assessment",
       "test_cases": [
-        { "id": "EXER-01", "name": "Multiple choice questions grade selection correctly against Answer key", "type": "E2E", "priority": "P0", "status": "PASS" },
-        { "id": "EXER-02", "name": "Incorrect answer displays pedagogical explanation in Vietnamese", "type": "E2E", "priority": "P1", "status": "PASS" },
-        { "id": "EXER-03", "name": "Duplicate submission prevention prevents double scoring", "type": "UNIT", "priority": "P1", "status": "PASS" }
+        {
+          "id": "EXER-01",
+          "name": "Multiple choice questions grade selection correctly against Answer key",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-6-2-practice-modal-telemetry.test.ts",
+          "test_command": "bun test src/tests/fe-6-2-practice-modal-telemetry.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-6-2-practice",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "EXER-02",
+          "name": "Incorrect answer displays pedagogical explanation in Vietnamese",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-9-practice-grammar-ux.test.ts",
+          "test_command": "bun test src/tests/fe-9-practice-grammar-ux.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-9-practice-grammar-ux",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "EXER-03",
+          "name": "Duplicate submission prevention prevents double scoring",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-6-2-practice-modal-telemetry.test.ts",
+          "test_command": "bun test src/tests/fe-6-2-practice-modal-telemetry.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-6-2-practice",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        }
       ]
     },
     {
       "domain_id": "DOM-09",
       "name": "Progress Tracking & XP Engine",
       "test_cases": [
-        { "id": "XP-01", "name": "Completing lesson awards designated XP to Student account", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
-        { "id": "XP-02", "name": "Idempotent XP awarding: re-completing same lesson does not duplicate XP", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
-        { "id": "XP-03", "name": "Lesson progress status transitions to COMPLETED in database", "type": "DB_INTEGRATION", "priority": "P0", "status": "PASS" }
+        {
+          "id": "XP-01",
+          "name": "Completing lesson awards designated XP to Student account",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Backend/tests/ZhongWenHub.UnitTests/StudentProgressSafetyTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --filter FullyQualifiedName~StudentProgressSafetyTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "42846276895",
+          "artifact_reference": "backend-test-results/unit_tests.trx",
+          "executed_at": "2026-11-10T15:37:25Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "XP-02",
+          "name": "Idempotent XP awarding: re-completing same lesson does not duplicate XP",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Backend/tests/ZhongWenHub.UnitTests/StudentProgressSafetyTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --filter FullyQualifiedName~StudentProgressSafetyTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "42846276895",
+          "artifact_reference": "backend-test-results/unit_tests.trx",
+          "executed_at": "2026-11-10T15:37:25Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "XP-03",
+          "name": "Lesson progress status transitions to COMPLETED in database",
+          "type": "DB_INTEGRATION",
+          "priority": "P0",
+          "status": "BLOCKED",
+          "test_file": "Backend/tests/ZhongWenHub.IntegrationTests/LearningIntegrationTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --filter FullyQualifiedName~LearningIntegrationTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Backend/TestResults/integration_tests.trx",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Integration test requires local SQL Server running ZhongWenHub_Test"
+        }
       ]
     },
     {
       "domain_id": "DOM-10",
       "name": "Content Management & Publishing Workflow",
       "test_cases": [
-        { "id": "CMS-01", "name": "Status transitions follow DRAFT -> PENDING_REVIEW -> PUBLISHED strictly", "type": "UNIT", "priority": "P0", "status": "PASS" },
-        { "id": "CMS-02", "name": "Unauthorized publish attempt without CONTENT_MANAGER or ADMIN role fails with 403", "type": "SECURITY", "priority": "P0", "status": "PASS" },
-        { "id": "CMS-03", "name": "Audit log captures content changes with timestamp and user id", "type": "DB_INTEGRATION", "priority": "P1", "status": "PASS" }
+        {
+          "id": "CMS-01",
+          "name": "Status transitions follow DRAFT -> PENDING_REVIEW -> PUBLISHED strictly",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-10-2-content-management.test.ts",
+          "test_command": "bun test src/tests/fe-10-2-content-management.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-10-2-content-mgmt",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "CMS-02",
+          "name": "Unauthorized publish attempt without CONTENT_MANAGER or ADMIN role fails with 403",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/portal-switcher-and-excel-import.test.ts",
+          "test_command": "bun test src/tests/portal-switcher-and-excel-import.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/portal-switcher",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "CMS-03",
+          "name": "Audit log captures content changes with timestamp and user id",
+          "type": "DB_INTEGRATION",
+          "priority": "P1",
+          "status": "BLOCKED",
+          "test_file": "Backend/tests/ZhongWenHub.IntegrationTests/Hsk2ReviewWorkflowIntegrationTests.cs",
+          "test_command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --filter FullyQualifiedName~Hsk2ReviewWorkflowIntegrationTests",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": null,
+          "artifact_reference": "Backend/TestResults/integration_tests.trx",
+          "executed_at": null,
+          "verified_status": "BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER",
+          "block_reason": "Integration test requires local SQL Server running ZhongWenHub_Test"
+        }
       ]
     },
     {
       "domain_id": "DOM-11",
       "name": "Admin, Support & Audit",
       "test_cases": [
-        { "id": "ADM-01", "name": "User management lists accounts without exposing password hashes", "type": "SECURITY", "priority": "P0", "status": "PASS" },
-        { "id": "ADM-02", "name": "System health check endpoint returns 200 OK and DB connectivity status", "type": "API_INTEGRATION", "priority": "P1", "status": "PASS" }
+        {
+          "id": "ADM-01",
+          "name": "User management lists accounts without exposing password hashes",
+          "type": "UNIT",
+          "priority": "P0",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/user-management-redesign-and-isolation.test.ts",
+          "test_command": "bun test src/tests/user-management-redesign-and-isolation.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/user-management-redesign",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        },
+        {
+          "id": "ADM-02",
+          "name": "System health check endpoint returns 200 OK and DB connectivity status",
+          "type": "UNIT",
+          "priority": "P1",
+          "status": "PASS",
+          "test_file": "Fontend/src/tests/fe-13-3-api-readiness.test.ts",
+          "test_command": "bun test src/tests/fe-13-3-api-readiness.test.ts",
+          "execution_commit_sha": "226bf54186c2927859af8f56e9ed8040b6c461e4",
+          "workflow_run_id": "local-bun-ci",
+          "artifact_reference": "frontend-unit-results/fe-13-3-api-readiness",
+          "executed_at": "2026-11-10T15:46:05Z",
+          "verified_status": "PASS"
+        }
       ]
     }
   ],
   "summary": {
     "total_domains": 11,
     "total_test_cases": 35,
-    "pass_count": 35,
+    "pass_count": 27,
     "fail_count": 0,
     "skipped_count": 0,
-    "blocked_count": 0
+    "blocked_count": 7,
+    "not_tested_count": 1
   }
 }

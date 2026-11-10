@@ -31,3 +31,21 @@ clean_data = sanitize_data(result_dict)
 ## 3. Evidence Schema (`qa-evidence.schema.json`)
 
 Standalone evidence artifacts follow `.ai-collaboration/protocol/qa-evidence.schema.json`, enabling programmatic ingestion into CI dashboards and ChatGPT prompt contexts.
+
+
+## 4. Evidence-Based QA Hardening (Bridge V1.1)
+
+Static `PASS` entries without cryptographic or file-based verification are strictly rejected by `scripts/ai_bridge/verify_qa_evidence.py`.
+
+### Required Evidence Fields for Every PASS:
+1. `test_file`: Path to the actual test file on disk (asserted to exist).
+2. `test_command`: Exact command executed to run the test suite.
+3. `execution_commit_sha`: Exact commit SHA of the codebase under test.
+4. `workflow_run_id`: GitHub Actions workflow run ID or verified local execution tag.
+5. `artifact_reference`: Name or path of the resulting TRX/JUnit/HTML test artifact.
+6. `executed_at`: ISO 8601 execution timestamp.
+7. `verified_status`: Must strictly match `PASS`.
+
+### Environment Boundary Separation:
+- **GitHub-Hosted CI Runners**: Run backend unit tests (`dotnet test`) and frontend unit tests (`bun test src/tests`), where no external databases are needed.
+- **Local Isolated Verification Runner**: Runs live database-dependent integration tests and Playwright E2E suites against `ZhongWenHub_Test`. When evaluated in CI environments lacking local SQL Server, these tests are recorded as `BLOCKED_ON_GITHUB_RUNNER_NO_LOCAL_SQL_SERVER` to prevent false positives and test run flakiness.

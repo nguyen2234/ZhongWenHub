@@ -61,3 +61,4 @@ flowchart TD
 | **Sanitizer** | Regex redactor for connection strings, JWTs, PATs | `sanitize_evidence.py` |
 | **CI Workflows** | Automated validation of protocol, backend, frontend, E2E | GitHub Actions |
 | **Release Gate** | Multi-criteria technical acceptance evaluator | `release-gate.schema.json` & `bridge-qa-gate.yml` |
+

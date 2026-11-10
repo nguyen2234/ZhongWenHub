@@ -1,9 +1,9 @@
 {
   "audit_version": "1.0.0",
   "project": "ZhongWenHub",
-  "assessed_at": "2026-11-10T22:15:00Z",
+  "assessed_at": "2026-11-10T22:50:00Z",
   "branch": "integration/zhongwenhub-sqlserver",
-  "commit_sha": "9bfee9b",
+  "commit_sha": "226bf54",
   "scanners_executed": [
     "Secret Scanning Engine",
     "SQL Injection Risk Analyzer",

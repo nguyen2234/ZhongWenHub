@@ -27,3 +27,16 @@ It serves as an automated firewall against premature merging or production deplo
 
 > [!IMPORTANT]
 > `TECHNICAL_QA_PASSED` does NOT equal production publishing. Academic curriculum approval and Vietnamese-Chinese linguistic review are human-gated steps that cannot be bypassed by automated agents.
+
+
+## 4. Automated Verification Tooling (`verify_release_gate.py`)
+
+In Bridge V1.1, the release gate is verified deterministically by `scripts/ai_bridge/verify_release_gate.py` in the GitHub Actions workflow `bridge-qa-gate.yml`.
+
+The verifier executes multi-point integrity checks:
+1. Validates `release-gate.json` schema conformity.
+2. Checks commit SHA consistency against HEAD / PR target commit.
+3. Invokes `verify_qa_evidence.py` to ensure zero fake or unevidenced PASS results.
+4. Asserts that `security-findings.json` contains 0 critical and 0 high findings.
+5. Verifies database safety invariants: `unauthorized_db_writes_zero` is True, `pr_open_draft_preserved` is True.
+6. Rejects any attempt to pass if active blockers exist or required checks are False.

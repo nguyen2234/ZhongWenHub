@@ -65,3 +65,4 @@ The complete matrix is defined in `.ai-collaboration/qa/functional-test-matrix.j
 ### Domain 11: Admin & Audit
 - User management without exposing sensitive credentials.
 - Audit log records actions, timestamps, and actor user IDs.
+

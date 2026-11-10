@@ -50,3 +50,4 @@ git push origin integration/zhongwenhub-sqlserver
 python scripts/ai_bridge/bridge.py complete-task <TASK_ID> --commit <COMMIT_SHA> --summary "Implemented feature with full test verification."
 ```
 This updates the task status to `WAITING_FOR_REVIEW` and posts an `EXECUTION_COMPLETED` event to the GitHub Issue.
+

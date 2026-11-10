@@ -28,3 +28,4 @@ Located in `Fontend/e2e/`:
 - **Content Manager Preview**: Authorized user can view draft curriculum elements.
 - **Component Integrity**: Vocabulary list, grammar notes, dialogue audio player, reading passage, and interactive exercises are rendered and functional.
 - **Answer Submission**: Interactive exercise form accepts input, submits, and renders correct/incorrect feedback with explanation.
+

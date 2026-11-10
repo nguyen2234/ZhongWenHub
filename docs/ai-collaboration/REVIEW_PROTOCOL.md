@@ -49,3 +49,4 @@ Reviews must comply with `.ai-collaboration/protocol/review.schema.json` and are
 - `ACCEPTED`: All acceptance criteria are satisfied, automated tests are verified on the target commit, zero critical/high findings exist, and safety constraints are respected.
 - `CHANGES_REQUESTED`: One or more functional defects, missing test coverage, or security regressions were identified. Antigravity must re-claim the task, fix the defects on a new commit, run regression tests, and submit a new result.
 - `BLOCKED`: Work cannot proceed due to external architectural constraints, unavailable credentials, or infrastructure failures.
+

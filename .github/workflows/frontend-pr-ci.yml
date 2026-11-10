@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Frontend Build, Lint, Unit & E2E Verification
+    name: Frontend Build, Lint & Unit Verification
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,15 +40,20 @@ jobs:
       - name: Run Unit Tests
         run: bun test src/tests
 
-      - name: Install Playwright Browsers & OS Dependencies
-        run: bunx playwright install --with-deps chromium
+      - name: Note on Playwright E2E & Database Isolation
+        run: |
+          echo "Playwright E2E suites require a live isolated test database (ZhongWenHub_Test) and local backend service."
+          echo "Per database safety architecture, DB-dependent E2E tests are executed in isolated test environments."
 
-      - name: Run Playwright E2E Tests (desktop-1440)
-        run: bunx playwright test --project=desktop-1440
+      - name: Optional Playwright E2E Tests (Isolated Test Runner Only)
+        if: env.RUN_PLAYWRIGHT_E2E == 'true'
+        run: |
+          bunx playwright install --with-deps chromium
+          bunx playwright test --project=desktop-1440
 
       - name: Upload Playwright Test Report on Failure
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: failure() && env.RUN_PLAYWRIGHT_E2E == 'true'
         with:
           name: playwright-report
           path: |

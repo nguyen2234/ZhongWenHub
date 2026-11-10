@@ -58,3 +58,4 @@ The bridge:
 3. Verifies file hashes of completed deliverables.
 4. Transitions task status back to `RUNNING`.
 5. Outputs the completed steps and next actionable step to the agent.
+

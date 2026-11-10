@@ -47,3 +47,4 @@ Execute the complete 33-test acceptance test suite locally:
 ```bash
 python -m unittest discover -s scripts/ai_bridge/tests -p "test_*.py"
 ```
+

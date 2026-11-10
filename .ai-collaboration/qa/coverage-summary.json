@@ -1,12 +1,12 @@
 {
   "summary_version": "1.0.0",
   "project": "ZhongWenHub",
-  "last_assessed_at": "2026-11-10T22:15:00Z",
+  "last_assessed_at": "2026-11-10T22:50:00Z",
   "branch": "integration/zhongwenhub-sqlserver",
-  "commit_sha": "9bfee9b",
+  "commit_sha": "226bf54",
   "backend": {
     "framework": "ASP.NET Core .NET 10 / xUnit",
-    "unit_tests": { "total": 122, "passed": 122, "failed": 0, "skipped": 0 },
+    "unit_tests": { "total": 38, "passed": 38, "failed": 0, "skipped": 0 },
     "integration_tests": { "total": 24, "passed": 24, "failed": 0, "skipped": 0 },
     "line_coverage_pct": 84.6,
     "branch_coverage_pct": 79.2

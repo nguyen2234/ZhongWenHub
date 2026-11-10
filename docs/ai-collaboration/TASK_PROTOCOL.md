@@ -54,3 +54,4 @@ stateDiagram-v2
 2. `RUNNING -> ACCEPTED` is strictly prohibited. The executor cannot self-certify.
 3. **Optimistic Locking**: Every mutation increments `revision`. If an agent attempts to mutate a task with a stale revision number, the operation is rejected.
 4. **Claim Timeout**: A claim includes `claim_expires_at` (default 4 hours). If an agent crashes or abandons a task, another agent can claim it only after expiration.
+

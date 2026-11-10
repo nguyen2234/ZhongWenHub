@@ -39,3 +39,4 @@ Each entry in `test_results` must include:
 1. **Commit SHA Verification**: The `commit_sha` recorded in `test_results` must match the result's root `commit_sha`.
 2. **No Mocking as Real E2E**: Tests claiming to be `E2E` cannot mock backend APIs. If mocked, they must be classified as `UNIT` or `INTEGRATION`.
 3. **No Skipped Masking**: A test that was skipped or could not run cannot be counted as `PASS`. It must be marked `SKIP` or `BLOCKED`.
+

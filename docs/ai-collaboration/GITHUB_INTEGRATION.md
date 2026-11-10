@@ -41,3 +41,4 @@ If `gh` is not installed or network access is restricted, the bridge falls back 
 - Local files are written and validated normally.
 - A warning is recorded in `.ai-collaboration/state/project_state.json`.
 - Synchronization will resume upon executing `python scripts/ai_bridge/bridge.py sync-github` when online.
+

@@ -31,3 +31,4 @@ When Antigravity posts an `EXECUTION_COMPLETED` event or the task enters `WAITIN
    ```bash
    python scripts/ai_bridge/bridge.py submit-review <TASK_ID> --decision <ACCEPTED|CHANGES_REQUESTED> --commit <COMMIT_SHA> --summary "..."
    ```
+

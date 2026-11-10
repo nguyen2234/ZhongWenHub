@@ -15,3 +15,4 @@
 - **Least Privilege**: Actions workflows operate with read-only tokens by default.
 - **No `pull_request_target` with untrusted code**: PR workflows run in isolated environments without access to local SQL Server Express instances.
 - **No public database exposure**: GitHub runners cannot access local SQL Server instances directly.
+
