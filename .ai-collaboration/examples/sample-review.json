@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "review_id": "REV-EX-001",
+  "task_id": "EX-TASK-001",
+  "task_revision": 2,
+  "execution_id": "EXEC-20261110-001",
+  "reviewer": "ChatGPT",
+  "reviewed_commit_sha": "a1b2c3d",
+  "review_timestamp": "2026-11-10T20:30:00Z",
+  "decision": "ACCEPTED",
+  "summary": "Independent review of commit a1b2c3d verified full compliance with acceptance criteria. No security risks found.",
+  "findings": [],
+  "required_actions": []
+}

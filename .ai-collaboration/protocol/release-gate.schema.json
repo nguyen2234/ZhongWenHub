@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ZhongWenHubReleaseGate",
+  "description": "Schema for QA release gate evaluations and decisions",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "release_id",
+    "target_branch",
+    "target_commit_sha",
+    "pull_request_number",
+    "evaluation_timestamp",
+    "overall_status",
+    "checks",
+    "blockers",
+    "conditions"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0.0"]
+    },
+    "release_id": {
+      "type": "string"
+    },
+    "target_branch": {
+      "type": "string"
+    },
+    "target_commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{7,40}$"
+    },
+    "pull_request_number": {
+      "type": "integer"
+    },
+    "evaluation_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": [
+        "TECHNICAL_QA_PASSED",
+        "TECHNICAL_QA_CONDITIONAL",
+        "QA_FAILED",
+        "QA_BLOCKED"
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "build_passed",
+        "unit_tests_passed",
+        "critical_e2e_passed",
+        "no_critical_security_findings",
+        "unauthorized_db_writes_zero",
+        "rbac_bypass_zero",
+        "pr_open_draft_preserved"
+      ],
+      "properties": {
+        "build_passed": { "type": "boolean" },
+        "unit_tests_passed": { "type": "boolean" },
+        "integration_tests_passed": { "type": "boolean" },
+        "functional_coverage_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "critical_e2e_passed": { "type": "boolean" },
+        "no_critical_security_findings": { "type": "boolean" },
+        "unauthorized_db_writes_zero": { "type": "boolean" },
+        "rbac_bypass_zero": { "type": "boolean" },
+        "pr_open_draft_preserved": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "conditions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sign_offs": {
+      "type": "object",
+      "properties": {
+        "chatgpt_qa_lead": { "type": ["string", "null"] },
+        "antigravity_engineer": { "type": ["string", "null"] }
+      }
+    }
+  },
+  "additionalProperties": false
+}

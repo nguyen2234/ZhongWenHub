@@ -1,0 +1,116 @@
+{
+  "matrix_version": "1.0.0",
+  "project": "ZhongWenHub",
+  "last_updated": "2026-11-10T22:15:00Z",
+  "domains": [
+    {
+      "domain_id": "DOM-01",
+      "name": "Authentication & Session Management",
+      "test_cases": [
+        { "id": "AUTH-01", "name": "Valid login returns JWT and refresh token", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
+        { "id": "AUTH-02", "name": "Invalid credentials reject with 401 Unauthorized", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
+        { "id": "AUTH-03", "name": "Token expiration triggers re-auth or logout", "type": "E2E", "priority": "P1", "status": "PASS" },
+        { "id": "AUTH-04", "name": "Logout revokes local session tokens", "type": "E2E", "priority": "P1", "status": "PASS" },
+        { "id": "AUTH-05", "name": "Protected routes redirect unauthenticated users to /login", "type": "E2E", "priority": "P0", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-02",
+      "name": "Role-Based Access Control (RBAC)",
+      "test_cases": [
+        { "id": "RBAC-01", "name": "STUDENT role can access published lessons, forbidden from /admin", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "RBAC-02", "name": "CONTENT_MANAGER can preview DRAFT and PENDING_REVIEW lessons", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "RBAC-03", "name": "ADMIN has full management and user administration rights", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
+        { "id": "RBAC-04", "name": "TEACHER role can view student assignments and classrooms", "type": "API_INTEGRATION", "priority": "P1", "status": "PASS" },
+        { "id": "RBAC-05", "name": "Privilege escalation attempts on API endpoints return 403 Forbidden", "type": "SECURITY", "priority": "P0", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-03",
+      "name": "Course & Curriculum Management",
+      "test_cases": [
+        { "id": "CURR-01", "name": "HSK 1 to 6 listing loads correct unit counts and lesson hierarchies", "type": "UNIT", "priority": "P0", "status": "PASS" },
+        { "id": "CURR-02", "name": "DRAFT lessons are protected from student direct URL access (returns 404)", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "CURR-03", "name": "PUBLISHED lessons render correctly in syllabus tree and lesson player", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "CURR-04", "name": "Lesson navigation links maintain valid sequential order", "type": "UNIT", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-04",
+      "name": "Vocabulary Engine",
+      "test_cases": [
+        { "id": "VOCAB-01", "name": "Renders Hanzi, Pinyin, Vietnamese meaning, and contextual sentence", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "VOCAB-02", "name": "Pinyin tone marks conform to official orthography (tone sandhi handled)", "type": "UNIT", "priority": "P1", "status": "PASS" },
+        { "id": "VOCAB-03", "name": "Empty states handle missing audio gracefully with Web Speech TTS fallback", "type": "E2E", "priority": "P1", "status": "PASS" },
+        { "id": "VOCAB-04", "name": "Word count matches syllabus canonical baseline (HSK1: 300, HSK2: 200, HSK3: 500, HSK4: 1000)", "type": "DB_INTEGRATION", "priority": "P0", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-05",
+      "name": "Grammar System",
+      "test_cases": [
+        { "id": "GRAM-01", "name": "Grammar pattern structure, Vietnamese explanation and example sentences render", "type": "UNIT", "priority": "P0", "status": "PASS" },
+        { "id": "GRAM-02", "name": "Grammar point mapping to lessons maintains relational integrity", "type": "DB_INTEGRATION", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-06",
+      "name": "Dialogue & Reading Passages",
+      "test_cases": [
+        { "id": "READ-01", "name": "Unit reading passages display formatted Chinese text and Vietnamese translation", "type": "E2E", "priority": "P1", "status": "PASS" },
+        { "id": "READ-02", "name": "Reading comprehension questions grade answers and provide feedback", "type": "E2E", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-07",
+      "name": "Listening & Audio Infrastructure",
+      "test_cases": [
+        { "id": "AUDIO-01", "name": "Audio asset URL resolves with 200 OK and audio/mpeg MIME type", "type": "INTEGRATION", "priority": "P1", "status": "PASS" },
+        { "id": "AUDIO-02", "name": "Missing audio files fallback seamlessly to Web Speech API synthesizer", "type": "E2E", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-08",
+      "name": "Interactive Exercises & Assessment",
+      "test_cases": [
+        { "id": "EXER-01", "name": "Multiple choice questions grade selection correctly against Answer key", "type": "E2E", "priority": "P0", "status": "PASS" },
+        { "id": "EXER-02", "name": "Incorrect answer displays pedagogical explanation in Vietnamese", "type": "E2E", "priority": "P1", "status": "PASS" },
+        { "id": "EXER-03", "name": "Duplicate submission prevention prevents double scoring", "type": "UNIT", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-09",
+      "name": "Progress Tracking & XP Engine",
+      "test_cases": [
+        { "id": "XP-01", "name": "Completing lesson awards designated XP to Student account", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
+        { "id": "XP-02", "name": "Idempotent XP awarding: re-completing same lesson does not duplicate XP", "type": "API_INTEGRATION", "priority": "P0", "status": "PASS" },
+        { "id": "XP-03", "name": "Lesson progress status transitions to COMPLETED in database", "type": "DB_INTEGRATION", "priority": "P0", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-10",
+      "name": "Content Management & Publishing Workflow",
+      "test_cases": [
+        { "id": "CMS-01", "name": "Status transitions follow DRAFT -> PENDING_REVIEW -> PUBLISHED strictly", "type": "UNIT", "priority": "P0", "status": "PASS" },
+        { "id": "CMS-02", "name": "Unauthorized publish attempt without CONTENT_MANAGER or ADMIN role fails with 403", "type": "SECURITY", "priority": "P0", "status": "PASS" },
+        { "id": "CMS-03", "name": "Audit log captures content changes with timestamp and user id", "type": "DB_INTEGRATION", "priority": "P1", "status": "PASS" }
+      ]
+    },
+    {
+      "domain_id": "DOM-11",
+      "name": "Admin, Support & Audit",
+      "test_cases": [
+        { "id": "ADM-01", "name": "User management lists accounts without exposing password hashes", "type": "SECURITY", "priority": "P0", "status": "PASS" },
+        { "id": "ADM-02", "name": "System health check endpoint returns 200 OK and DB connectivity status", "type": "API_INTEGRATION", "priority": "P1", "status": "PASS" }
+      ]
+    }
+  ],
+  "summary": {
+    "total_domains": 11,
+    "total_test_cases": 35,
+    "pass_count": 35,
+    "fail_count": 0,
+    "skipped_count": 0,
+    "blocked_count": 0
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "EX-TASK-001",
+  "title": "Example Feature Implementation Task",
+  "description": "Standard reference format for a task defined by ChatGPT for Antigravity execution.",
+  "project": "ZhongWenHub",
+  "phase": "Protocol Specification",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "status": "COMPLETED",
+  "revision": 3,
+  "issue_number": 9991,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "9bfee9b",
+  "input_files": ["Fontend/src/services/example.service.ts"],
+  "expected_outputs": [".ai-collaboration/results/EX-TASK-001_result.json"],
+  "acceptance_criteria": [
+    "Service handles network retry with exponential backoff",
+    "Unit test coverage exceeds 80%",
+    "TypeScript types export cleanly without any"
+  ],
+  "safety_constraints": [
+    "Zero writes to ZhongWenHub_Dev",
+    "Keep PR #16 Open and Draft"
+  ],
+  "created_at": "2026-11-10T20:00:00Z",
+  "updated_at": "2026-11-10T20:30:00Z"
+}

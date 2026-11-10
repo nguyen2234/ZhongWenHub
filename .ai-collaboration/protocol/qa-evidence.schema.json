@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ZhongWenHubQaEvidence",
+  "description": "Schema for verifiable QA test evidence manifests",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "task_id",
+    "commit_sha",
+    "generated_at",
+    "environment",
+    "sanitized",
+    "test_suites"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0.0"]
+    },
+    "evidence_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{7,40}$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "environment": {
+      "type": "object",
+      "required": ["os", "node_version", "dotnet_version", "database"],
+      "properties": {
+        "os": { "type": "string" },
+        "node_version": { "type": "string" },
+        "dotnet_version": { "type": "string" },
+        "database": { "type": "string" }
+      }
+    },
+    "sanitized": {
+      "type": "boolean"
+    },
+    "test_suites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "suite_name",
+          "category",
+          "total",
+          "passed",
+          "failed",
+          "skipped",
+          "duration_seconds",
+          "status"
+        ],
+        "properties": {
+          "suite_name": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": ["BACKEND_UNIT", "BACKEND_INTEGRATION", "FRONTEND_UNIT", "FRONTEND_E2E", "SECURITY_AUDIT", "PROTOCOL"]
+          },
+          "total": { "type": "integer", "minimum": 0 },
+          "passed": { "type": "integer", "minimum": 0 },
+          "failed": { "type": "integer", "minimum": 0 },
+          "skipped": { "type": "integer", "minimum": 0 },
+          "duration_seconds": { "type": "number", "minimum": 0 },
+          "status": { "type": "string", "enum": ["PASS", "FAIL", "SKIP", "BLOCKED"] },
+          "report_artifact": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

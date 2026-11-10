@@ -1,0 +1,47 @@
+name: AI Bridge QA Release Gate
+
+on:
+  pull_request:
+    paths:
+      - '.ai-collaboration/**'
+      - '.github/workflows/bridge-qa-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate-gate:
+    name: Evaluate QA Release Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Validate Release Gate File
+        run: |
+          python scripts/ai_bridge/validate_protocol.py release-gate .ai-collaboration/qa/release-gate.json
+
+      - name: Verify Gate Status
+        run: |
+          python -c "
+          import json, sys
+          with open('.ai-collaboration/qa/release-gate.json') as f:
+              gate = json.load(f)
+          decision = gate.get('gate_decision')
+          print(f'Evaluated Gate Decision: {decision}')
+          if decision not in ['TECHNICAL_QA_PASSED', 'TECHNICAL_QA_CONDITIONAL']:
+              print(f'QA Gate Blocked: {decision}')
+              sys.exit(1)
+          "

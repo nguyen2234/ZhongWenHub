@@ -1,0 +1,39 @@
+{
+  "summary_version": "1.0.0",
+  "project": "ZhongWenHub",
+  "last_assessed_at": "2026-11-10T22:15:00Z",
+  "branch": "integration/zhongwenhub-sqlserver",
+  "commit_sha": "9bfee9b",
+  "backend": {
+    "framework": "ASP.NET Core .NET 10 / xUnit",
+    "unit_tests": { "total": 122, "passed": 122, "failed": 0, "skipped": 0 },
+    "integration_tests": { "total": 24, "passed": 24, "failed": 0, "skipped": 0 },
+    "line_coverage_pct": 84.6,
+    "branch_coverage_pct": 79.2
+  },
+  "frontend": {
+    "framework": "React 19 / Bun Test / Vite",
+    "unit_tests": { "total": 288, "passed": 288, "failed": 0, "skipped": 0 },
+    "typecheck_status": "PASS",
+    "line_coverage_pct": 82.1,
+    "branch_coverage_pct": 77.5
+  },
+  "e2e": {
+    "framework": "Playwright",
+    "specs": [
+      { "spec": "hsk1-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
+      { "spec": "hsk2-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
+      { "spec": "hsk3-full-curriculum-e2e.spec.ts", "passed": 10, "failed": 0 },
+      { "spec": "hsk4-full-curriculum-e2e.spec.ts", "passed": 20, "failed": 0 }
+    ],
+    "total_e2e_tests": 50,
+    "passed": 50,
+    "failed": 0
+  },
+  "database_safety": {
+    "dev_db_name": "ZhongWenHub_Dev",
+    "dev_db_writes": 0,
+    "test_db_name": "ZhongWenHub_Test",
+    "guard_enforcement": "STRICT_SELECT_DB_NAME_ACTIVE"
+  }
+}
