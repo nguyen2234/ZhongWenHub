@@ -454,7 +454,7 @@ describe('Phase FE-3: Connected Learning Experience', () => {
     it('identifies sequential next lesson id', () => {
       expect(findNextLessonId('les-1')).toBe('les-2');
       expect(findNextLessonId('les-7')).toBe('les-8');
-      expect(findNextLessonId('les-14')).toBe('les-hsk3-1');
+      expect(findNextLessonId('les-15')).toBe('les-hsk3-1');
     });
   });
 });

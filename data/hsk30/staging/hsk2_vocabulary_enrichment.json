@@ -1,0 +1,4202 @@
+[
+  {
+    "devId": "6BDD2F06-FFB8-4CAE-8BA8-0D24B0E3DBDB",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "一会儿",
+    "pinyin": "yíhuìr",
+    "meaningVi": "một lát, một lúc",
+    "partOfSpeech": "数量、（副）",
+    "examples": [
+      {
+        "zh": "请等我一会儿，我马上来。",
+        "pinyin": "Qǐng děng wǒ yíhuìr, wǒ mǎshàng lái.",
+        "meaningVi": "Xin đợi tôi một lát, tôi đến ngay."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请等我一会儿，我马上来。\", \"pinyin\": \"Qǐng děng wǒ yíhuìr, wǒ mǎshàng lái.\", \"meaningVi\": \"Xin đợi tôi một lát, tôi đến ngay.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '一会儿' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6D750915-C3DD-474C-BB9C-9316E15CB17E",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "书包",
+    "pinyin": "shūbāo",
+    "meaningVi": "cặp sách, ba lô",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我的新书包是蓝色的。",
+        "pinyin": "Wǒ de xīn shūbāo shì lánsè de.",
+        "meaningVi": "Chiếc cặp sách mới của tôi màu xanh lam."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我的新书包是蓝色的。\", \"pinyin\": \"Wǒ de xīn shūbāo shì lánsè de.\", \"meaningVi\": \"Chiếc cặp sách mới của tôi màu xanh lam.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '书包' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9440F35D-0ACD-46A9-9C36-DD0C8C891F8C",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "别",
+    "pinyin": "bié",
+    "meaningVi": "đừng, chớ",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "外面冷，别感冒了。",
+        "pinyin": "Wàimiàn lěng, bié gǎnmào le.",
+        "meaningVi": "Bên ngoài lạnh, đừng để bị cảm nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"外面冷，别感冒了。\", \"pinyin\": \"Wàimiàn lěng, bié gǎnmào le.\", \"meaningVi\": \"Bên ngoài lạnh, đừng để bị cảm nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '别' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "53C49ACD-189B-4583-BE25-5764265DC788",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "回来",
+    "pinyin": "huílái",
+    "meaningVi": "trở về, về đây",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "你什么时候回来？",
+        "pinyin": "Nǐ shénme shíhou huílái?",
+        "meaningVi": "Khi nào bạn quay về?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你什么时候回来？\", \"pinyin\": \"Nǐ shénme shíhou huílái?\", \"meaningVi\": \"Khi nào bạn quay về?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '回来' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "FF3BA0D2-F115-4920-8221-35C7B90CE1A6",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "小孩儿",
+    "pinyin": "xiǎoháir",
+    "meaningVi": "trẻ con, đứa bé",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "那个小孩儿真可爱。",
+        "pinyin": "Nàge xiǎoháir zhēn kě'ài.",
+        "meaningVi": "Đứa bé kia thật đáng yêu."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"那个小孩儿真可爱。\", \"pinyin\": \"Nàge xiǎoháir zhēn kě'ài.\", \"meaningVi\": \"Đứa bé kia thật đáng yêu.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '小孩儿' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "55FFC1D4-8F48-4309-9428-A5B458168B36",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "快",
+    "pinyin": "kuài",
+    "meaningVi": "nhanh, sắp",
+    "partOfSpeech": "形、副",
+    "examples": [
+      {
+        "zh": "快点儿，公共汽车来了！",
+        "pinyin": "Kuài diǎnr, gōnggòng qìchē lái le!",
+        "meaningVi": "Nhanh lên, xe buýt đến rồi!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"快点儿，公共汽车来了！\", \"pinyin\": \"Kuài diǎnr, gōnggòng qìchē lái le!\", \"meaningVi\": \"Nhanh lên, xe buýt đến rồi!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '快' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F17EBF0F-62E0-471D-A53F-C9247AED85EF",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "旁边",
+    "pinyin": "pángbiān",
+    "meaningVi": "bên cạnh, cạnh",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "学校旁边有一家书店。",
+        "pinyin": "Xuéxiào pángbiān yǒu yì jiā shūdiàn.",
+        "meaningVi": "Bên cạnh trường học có một hiệu sách."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校旁边有一家书店。\", \"pinyin\": \"Xuéxiào pángbiān yǒu yì jiā shūdiàn.\", \"meaningVi\": \"Bên cạnh trường học có một hiệu sách.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '旁边' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "974343AA-56CD-41F7-A2D7-5A48491619EA",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "比",
+    "pinyin": "bǐ",
+    "meaningVi": "so với, hơn",
+    "partOfSpeech": "动、介",
+    "examples": [
+      {
+        "zh": "今天比昨天冷一点儿。",
+        "pinyin": "Jīntiān bǐ zuótiān lěng yìdiǎnr.",
+        "meaningVi": "Hôm nay lạnh hơn hôm qua một chút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天比昨天冷一点儿。\", \"pinyin\": \"Jīntiān bǐ zuótiān lěng yìdiǎnr.\", \"meaningVi\": \"Hôm nay lạnh hơn hôm qua một chút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '比' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "86D04D5D-070B-44A3-80E2-94B930FFA5B3",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "白色",
+    "pinyin": "báisè",
+    "meaningVi": "màu trắng",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我喜欢那件白色的衬衫。",
+        "pinyin": "Wǒ xǐhuan nà jiàn báisè de chènshān.",
+        "meaningVi": "Tôi thích chiếc áo sơ mi màu trắng kia."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我喜欢那件白色的衬衫。\", \"pinyin\": \"Wǒ xǐhuan nà jiàn báisè de chènshān.\", \"meaningVi\": \"Tôi thích chiếc áo sơ mi màu trắng kia.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '白色' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "010150FF-071D-4698-B658-7305279608ED",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "绿茶",
+    "pinyin": "lǜchá",
+    "meaningVi": "trà xanh",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "喝一杯热绿茶很舒服。",
+        "pinyin": "Hē yì bēi rè lǜchá hěn shūfu.",
+        "meaningVi": "Uống một cốc trà xanh nóng rất dễ chịu."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"喝一杯热绿茶很舒服。\", \"pinyin\": \"Hē yì bēi rè lǜchá hěn shūfu.\", \"meaningVi\": \"Uống một cốc trà xanh nóng rất dễ chịu.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '绿茶' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "574CBFFF-AC11-48D3-B036-9B94530E86A4",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "词",
+    "pinyin": "cí",
+    "meaningVi": "từ, từ ngữ",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这个生词是什么意思？",
+        "pinyin": "Zhè gè shēngcí shì shénme yìsi?",
+        "meaningVi": "Từ mới này có nghĩa là gì?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这个生词是什么意思？\", \"pinyin\": \"Zhè gè shēngcí shì shénme yìsi?\", \"meaningVi\": \"Từ mới này có nghĩa là gì?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '词' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "345101F7-46E9-4A98-8247-4F46B8BAC2E1",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "过",
+    "pinyin": "guò",
+    "meaningVi": "qua, đón (sinh nhật, tết)",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我们一起去北京过生日吧。",
+        "pinyin": "Wǒmen yìqǐ qù Běijīng guò shēngrì ba.",
+        "meaningVi": "Chúng ta cùng đi Bắc Kinh đón sinh nhật nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们一起去北京过生日吧。\", \"pinyin\": \"Wǒmen yìqǐ qù Běijīng guò shēngrì ba.\", \"meaningVi\": \"Chúng ta cùng đi Bắc Kinh đón sinh nhật nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '过' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "49F91092-CCFD-4D40-A8A3-77057A780EDE",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "那样",
+    "pinyin": "nàyàng",
+    "meaningVi": "như vậy, kiểu đó",
+    "partOfSpeech": "代",
+    "examples": [
+      {
+        "zh": "你不要那样说话。",
+        "pinyin": "Nǐ bú yào nàyàng shuōhuà.",
+        "meaningVi": "Bạn đừng nói chuyện như thế."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你不要那样说话。\", \"pinyin\": \"Nǐ bú yào nàyàng shuōhuà.\", \"meaningVi\": \"Bạn đừng nói chuyện như thế.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '那样' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3A6DF514-38CE-4496-A556-BB3582353795",
+    "lessonId": "2B2E8F9F-5A36-4D48-93F7-D3B4B7721A20",
+    "lessonNumber": 1,
+    "lessonTitle": "九月去北京旅游最好",
+    "hskLevel": 2,
+    "hanzi": "高",
+    "pinyin": "gāo",
+    "meaningVi": "cao",
+    "partOfSpeech": "形、名",
+    "examples": [
+      {
+        "zh": "他比他哥哥还高。",
+        "pinyin": "Tā bǐ tā gēge hái gāo.",
+        "meaningVi": "Cậu ấy còn cao hơn cả anh trai mình."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他比他哥哥还高。\", \"pinyin\": \"Tā bǐ tā gēge hái gāo.\", \"meaningVi\": \"Cậu ấy còn cao hơn cả anh trai mình.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '高' in Lesson 1. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B71F529D-F8AA-443E-8CED-6824F69762E3",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "一起",
+    "pinyin": "yìqǐ",
+    "meaningVi": "cùng nhau",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "我们一起去图书馆看书吧。",
+        "pinyin": "Wǒmen yìqǐ qù túshūguǎn kàn shū ba.",
+        "meaningVi": "Chúng ta cùng nhau đến thư viện đọc sách đi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们一起去图书馆看书吧。\", \"pinyin\": \"Wǒmen yìqǐ qù túshūguǎn kàn shū ba.\", \"meaningVi\": \"Chúng ta cùng nhau đến thư viện đọc sách đi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '一起' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "749A43D4-B02E-4E39-B0AE-B5538E1486A4",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "事情",
+    "pinyin": "shìqing",
+    "meaningVi": "sự việc, công việc",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "今天有很多事情要做。",
+        "pinyin": "Jīntiān yǒu hěn duō shìqing yào zuò.",
+        "meaningVi": "Hôm nay có rất nhiều việc phải làm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天有很多事情要做。\", \"pinyin\": \"Jīntiān yǒu hěn duō shìqing yào zuò.\", \"meaningVi\": \"Hôm nay có rất nhiều việc phải làm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '事情' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3374B6D3-A523-4505-9062-7084BCD0C523",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "前面",
+    "pinyin": "qiánmiàn",
+    "meaningVi": "phía trước, đằng trước",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "学校前面有一家大超市。",
+        "pinyin": "Xuéxiào qiánmiàn yǒu yì jiā dà chāoshì.",
+        "meaningVi": "Phía trước trường học có một siêu thị lớn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校前面有一家大超市。\", \"pinyin\": \"Xuéxiào qiánmiàn yǒu yì jiā dà chāoshì.\", \"meaningVi\": \"Phía trước trường học có một siêu thị lớn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '前面' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E651E3FC-CCB5-47A6-851C-E3ED7120622E",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "因为",
+    "pinyin": "yīnwèi",
+    "meaningVi": "bởi vì, do",
+    "partOfSpeech": "介、连",
+    "examples": [
+      {
+        "zh": "因为今天下雨，所以我没去跑步。",
+        "pinyin": "Yīnwèi jīntiān xià yǔ, suǒyǐ wǒ méi qù pǎobù.",
+        "meaningVi": "Bởi vì hôm nay trời mưa, nên tôi không đi chạy bộ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"因为今天下雨，所以我没去跑步。\", \"pinyin\": \"Yīnwèi jīntiān xià yǔ, suǒyǐ wǒ méi qù pǎobù.\", \"meaningVi\": \"Bởi vì hôm nay trời mưa, nên tôi không đi chạy bộ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '因为' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "1644D135-AC4F-4FB5-96E7-7DC0F0E3B3A5",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "小时候",
+    "pinyin": "xiǎoshíhou",
+    "meaningVi": "khi còn nhỏ, hồi bé",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我小时候喜欢看动画片。",
+        "pinyin": "Wǒ xiǎoshíhou xǐhuan kàn dònghuàpiàn.",
+        "meaningVi": "Lúc nhỏ tôi thích xem phim hoạt hình."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我小时候喜欢看动画片。\", \"pinyin\": \"Wǒ xiǎoshíhou xǐhuan kàn dònghuàpiàn.\", \"meaningVi\": \"Lúc nhỏ tôi thích xem phim hoạt hình.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '小时候' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "D7B1DE91-3DC4-4ED3-96EF-418CEBB38ECF",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "快乐",
+    "pinyin": "kuàilè",
+    "meaningVi": "vui vẻ, hạnh phúc",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "祝你生日快乐！",
+        "pinyin": "Zhù nǐ shēngrì kuàilè!",
+        "meaningVi": "Chúc bạn sinh nhật vui vẻ!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"祝你生日快乐！\", \"pinyin\": \"Zhù nǐ shēngrì kuàilè!\", \"meaningVi\": \"Chúc bạn sinh nhật vui vẻ!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '快乐' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "310AE293-F0AF-44B2-8EB8-3486F6524BD2",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "旅游",
+    "pinyin": "lǚyóu",
+    "meaningVi": "du lịch",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "九月去北京旅游最好。",
+        "pinyin": "Jiǔ yuè qù Běijīng lǚyóu zuì hǎo.",
+        "meaningVi": "Tháng chín đi Bắc Kinh du lịch là tốt nhất."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"九月去北京旅游最好。\", \"pinyin\": \"Jiǔ yuè qù Běijīng lǚyóu zuì hǎo.\", \"meaningVi\": \"Tháng chín đi Bắc Kinh du lịch là tốt nhất.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '旅游' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5655767B-BF04-4788-A89E-E40A9D3F4F11",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "没意思",
+    "pinyin": "méi yìsi",
+    "meaningVi": "không thú vị, chán",
+    "partOfSpeech": "",
+    "examples": [
+      {
+        "zh": "这部电影一点儿都没意思。",
+        "pinyin": "Zhè bù diànyǐng yìdiǎnr dōu méi yìsi.",
+        "meaningVi": "Bộ phim này chẳng thú vị chút nào."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这部电影一点儿都没意思。\", \"pinyin\": \"Zhè bù diànyǐng yìdiǎnr dōu méi yìsi.\", \"meaningVi\": \"Bộ phim này chẳng thú vị chút nào.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '没意思' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2C4AB471-E048-4FB8-80A7-C20431150A2D",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "眼睛",
+    "pinyin": "yǎnjing",
+    "meaningVi": "mắt, đôi mắt",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "她的眼睛又大又亮。",
+        "pinyin": "Tā de yǎnjing yòu dà yòu liàng.",
+        "meaningVi": "Đôi mắt của cô ấy vừa to vừa sáng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"她的眼睛又大又亮。\", \"pinyin\": \"Tā de yǎnjing yòu dà yòu liàng.\", \"meaningVi\": \"Đôi mắt của cô ấy vừa to vừa sáng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '眼睛' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2290E3AB-A057-4147-8310-A53BE620BA35",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "网上",
+    "pinyin": "wǎngshang",
+    "meaningVi": "trên mạng, trực tuyến",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我经常在网上买书。",
+        "pinyin": "Wǒ jīngcháng zài wǎngshang mǎi shū.",
+        "meaningVi": "Tôi thường xuyên mua sách trên mạng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我经常在网上买书。\", \"pinyin\": \"Wǒ jīngcháng zài wǎngshang mǎi shū.\", \"meaningVi\": \"Tôi thường xuyên mua sách trên mạng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '网上' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3E03B45A-8F77-41CB-8CC9-3FDC2443D066",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "走",
+    "pinyin": "zǒu",
+    "meaningVi": "đi, đi bộ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我们走着去学校吧。",
+        "pinyin": "Wǒmen zǒuzhe qù xuéxiào ba.",
+        "meaningVi": "Chúng ta đi bộ đến trường nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们走着去学校吧。\", \"pinyin\": \"Wǒmen zǒuzhe qù xuéxiào ba.\", \"meaningVi\": \"Chúng ta đi bộ đến trường nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '走' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3592CBB6-35A2-452D-A17A-180B99E62BD1",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "过去",
+    "pinyin": "guòqù",
+    "meaningVi": "quá khứ, trước đây",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "过去我不太喜欢运动。",
+        "pinyin": "Guòqù wǒ bú tài xǐhuan yùndòng.",
+        "meaningVi": "Trước đây tôi không thích vận động cho lắm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"过去我不太喜欢运动。\", \"pinyin\": \"Guòqù wǒ bú tài xǐhuan yùndòng.\", \"meaningVi\": \"Trước đây tôi không thích vận động cho lắm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '过去' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "776E4063-A190-4C2E-A9F0-C19CA8A83288",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "酒店",
+    "pinyin": "jiǔdiàn",
+    "meaningVi": "khách sạn",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这家酒店的环境很不错。",
+        "pinyin": "Zhè jiā jiǔdiàn de huánjìng hěn búcuò.",
+        "meaningVi": "Môi trường của khách sạn này rất tốt."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这家酒店的环境很不错。\", \"pinyin\": \"Zhè jiā jiǔdiàn de huánjìng hěn búcuò.\", \"meaningVi\": \"Môi trường của khách sạn này rất tốt.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '酒店' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F505E2ED-ED70-4FF4-B507-D5B67545449F",
+    "lessonId": "EE4D51D3-970D-49CE-A5CE-71838476A0AA",
+    "lessonNumber": 2,
+    "lessonTitle": "我每天六点起床",
+    "hskLevel": 2,
+    "hanzi": "高中",
+    "pinyin": "gāozhōng",
+    "meaningVi": "trường cấp 3, trung học phổ thông",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我们是高中同学。",
+        "pinyin": "Wǒmen shì gāozhōng tóngxué.",
+        "meaningVi": "Chúng tôi là bạn học cấp ba."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们是高中同学。\", \"pinyin\": \"Wǒmen shì gāozhōng tóngxué.\", \"meaningVi\": \"Chúng tôi là bạn học cấp ba.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '高中' in Lesson 2. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6F536068-F303-4877-BD18-0418193A8FC3",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "万",
+    "pinyin": "wàn",
+    "meaningVi": "vạn, mười nghìn",
+    "partOfSpeech": "数",
+    "examples": [
+      {
+        "zh": "这个电脑要一万块钱。",
+        "pinyin": "Zhè gè diànnǎo yào yíwàn kuài qián.",
+        "meaningVi": "Chiếc máy tính này giá một vạn tệ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这个电脑要一万块钱。\", \"pinyin\": \"Zhè gè diànnǎo yào yíwàn kuài qián.\", \"meaningVi\": \"Chiếc máy tính này giá một vạn tệ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '万' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "57B872C7-024D-4434-955D-E2446E8780D8",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "介绍",
+    "pinyin": "jièshào",
+    "meaningVi": "giới thiệu",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "请让我介绍一下这位新老师。",
+        "pinyin": "Qǐng ràng wǒ jièshào yíxià zhè wèi xīn lǎoshī.",
+        "meaningVi": "Xin để tôi giới thiệu một chút về vị giáo viên mới này."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请让我介绍一下这位新老师。\", \"pinyin\": \"Qǐng ràng wǒ jièshào yíxià zhè wèi xīn lǎoshī.\", \"meaningVi\": \"Xin để tôi giới thiệu một chút về vị giáo viên mới này.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '介绍' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "82376231-C2BF-4E16-96EB-42C606CCC6E5",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "动",
+    "pinyin": "dòng",
+    "meaningVi": "cử động, chuyển động",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "太累了，我一步也走不动了。",
+        "pinyin": "Tài lèi le, wǒ yí bù yě zǒu bú dòng le.",
+        "meaningVi": "Mệt quá, tôi không thể bước nổi một bước nữa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"太累了，我一步也走不动了。\", \"pinyin\": \"Tài lèi le, wǒ yí bù yě zǒu bú dòng le.\", \"meaningVi\": \"Mệt quá, tôi không thể bước nổi một bước nữa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '动' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "19DEA484-5327-42C2-9D6D-998519A279C2",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "地",
+    "pinyin": "de",
+    "meaningVi": "trợ từ kết cấu (trước động từ)",
+    "partOfSpeech": "助",
+    "examples": [
+      {
+        "zh": "大家都高兴地笑了。",
+        "pinyin": "Dàjiā dōu gāoxìng de xiào le.",
+        "meaningVi": "Mọi người đều vui vẻ cười lớn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"大家都高兴地笑了。\", \"pinyin\": \"Dàjiā dōu gāoxìng de xiào le.\", \"meaningVi\": \"Mọi người đều vui vẻ cười lớn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '地' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "BEFCD421-BC40-452E-ABB6-E5D2E1571354",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "就",
+    "pinyin": "jiù",
+    "meaningVi": "thì, ngay, liền",
+    "partOfSpeech": "副、（介）",
+    "examples": [
+      {
+        "zh": "前面右转就是银行。",
+        "pinyin": "Qiánmiàn yòuzhuǎn jiù shì yínháng.",
+        "meaningVi": "Phía trước rẽ phải là ngân hàng ngay."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"前面右转就是银行。\", \"pinyin\": \"Qiánmiàn yòuzhuǎn jiù shì yínháng.\", \"meaningVi\": \"Phía trước rẽ phải là ngân hàng ngay.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '就' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C66D61AC-A496-4AB1-BCA3-86284DA881CB",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "快要",
+    "pinyin": "kuàiyào",
+    "meaningVi": "sắp, gần như sắp",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "火车快要开了，快走吧！",
+        "pinyin": "Huǒchē kuàiyào kāi le, kuài zǒu ba!",
+        "meaningVi": "Tàu hỏa sắp chạy rồi, nhanh lên nào!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"火车快要开了，快走吧！\", \"pinyin\": \"Huǒchē kuàiyào kāi le, kuài zǒu ba!\", \"meaningVi\": \"Tàu hỏa sắp chạy rồi, nhanh lên nào!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '快要' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0AFA414E-3299-44B6-ADED-671ACCDAFC7C",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "时",
+    "pinyin": "shí",
+    "meaningVi": "khi, lúc",
+    "partOfSpeech": "名、（量）",
+    "examples": [
+      {
+        "zh": "看书时请保持安静。",
+        "pinyin": "Kàn shū shí qǐng bǎochí ānjìng.",
+        "meaningVi": "Khi đọc sách xin hãy giữ trật tự."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"看书时请保持安静。\", \"pinyin\": \"Kàn shū shí qǐng bǎochí ānjìng.\", \"meaningVi\": \"Khi đọc sách xin hãy giữ trật tự.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '时' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "56FD0076-3678-4DD3-A7E0-CCB7695ADD54",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "洗",
+    "pinyin": "xǐ",
+    "meaningVi": "rửa, giặt",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "吃饭前请先把手洗干净。",
+        "pinyin": "Chīfàn qián qǐng xiān bǎ shǒu xǐ gānjìng.",
+        "meaningVi": "Trước khi ăn cơm xin hãy rửa sạch tay trước."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"吃饭前请先把手洗干净。\", \"pinyin\": \"Chīfàn qián qǐng xiān bǎ shǒu xǐ gānjìng.\", \"meaningVi\": \"Trước khi ăn cơm xin hãy rửa sạch tay trước.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '洗' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8EE1440F-1B63-48BA-8935-82ED897D0225",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "着",
+    "pinyin": "zhe",
+    "meaningVi": "trợ từ biểu thị trạng thái tiếp diễn",
+    "partOfSpeech": "助",
+    "examples": [
+      {
+        "zh": "门开着呢，请进吧。",
+        "pinyin": "Mén kāi zhe ne, qǐng jìn ba.",
+        "meaningVi": "Cửa đang mở đấy, xin mời vào."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"门开着呢，请进吧。\", \"pinyin\": \"Mén kāi zhe ne, qǐng jìn ba.\", \"meaningVi\": \"Cửa đang mở đấy, xin mời vào.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '着' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B4452561-1431-4793-8927-2B9BA0DF487B",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "考",
+    "pinyin": "kǎo",
+    "meaningVi": "thi, kiểm tra",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "明天我们要考汉语听力。",
+        "pinyin": "Míngtiān wǒmen yào kǎo hànyǔ tīnglì.",
+        "meaningVi": "Ngày mai chúng tôi sẽ thi nghe tiếng Hán."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"明天我们要考汉语听力。\", \"pinyin\": \"Míngtiān wǒmen yào kǎo hànyǔ tīnglì.\", \"meaningVi\": \"Ngày mai chúng tôi sẽ thi nghe tiếng Hán.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '考' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "276E326E-A468-4B4D-8051-25D23955FC17",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "走路",
+    "pinyin": "zǒulù",
+    "meaningVi": "đi bộ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我每天走路去上班。",
+        "pinyin": "Wǒ měitiān zǒulù qù shàngbān.",
+        "meaningVi": "Mỗi ngày tôi đều đi bộ đi làm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我每天走路去上班。\", \"pinyin\": \"Wǒ měitiān zǒulù qù shàngbān.\", \"meaningVi\": \"Mỗi ngày tôi đều đi bộ đi làm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '走路' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "FD802CBD-BE7D-44F7-A189-8B824B5FEB02",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "过年",
+    "pinyin": "guònián",
+    "meaningVi": "đón Tết, ăn Tết",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "中国人过年喜欢吃饺子。",
+        "pinyin": "Zhōngguó rén guònián xǐhuan chī jiǎozi.",
+        "meaningVi": "Người Trung Quốc đón Tết thích ăn sủi cảo."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"中国人过年喜欢吃饺子。\", \"pinyin\": \"Zhōngguó rén guònián xǐhuan chī jiǎozi.\", \"meaningVi\": \"Người Trung Quốc đón Tết thích ăn sủi cảo.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '过年' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "7C977086-4736-47D7-B50D-310F9949ECD8",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "里面",
+    "pinyin": "lǐmiàn",
+    "meaningVi": "bên trong",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "书包里面有三本书。",
+        "pinyin": "Shūbāo lǐmiàn yǒu sān běn shū.",
+        "meaningVi": "Bên trong cặp sách có ba cuốn sách."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"书包里面有三本书。\", \"pinyin\": \"Shūbāo lǐmiàn yǒu sān běn shū.\", \"meaningVi\": \"Bên trong cặp sách có ba cuốn sách.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '里面' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CED9DE52-31DE-4D7E-B7F6-82ED8F9A4D80",
+    "lessonId": "DA05939E-2EB8-4FB5-8BF0-C56F94BA1D49",
+    "lessonNumber": 3,
+    "lessonTitle": "左边那个红色的是我的",
+    "hskLevel": 2,
+    "hanzi": "鱼",
+    "pinyin": "yú",
+    "meaningVi": "cá",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "今天晚饭我们吃新鲜的鱼。",
+        "pinyin": "Jīntiān wǎnfàn wǒmen chī xīnxiān de yú.",
+        "meaningVi": "Bữa tối hôm nay chúng ta ăn cá tươi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天晚饭我们吃新鲜的鱼。\", \"pinyin\": \"Jīntiān wǎnfàn wǒmen chī xīnxiān de yú.\", \"meaningVi\": \"Bữa tối hôm nay chúng ta ăn cá tươi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '鱼' in Lesson 3. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "D15A4AE7-52EC-4E5C-A422-2D487DEF6571",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "丈夫",
+    "pinyin": "zhàngfu",
+    "meaningVi": "chồng",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "她丈夫是一位很有名的医生。",
+        "pinyin": "Tā zhàngfu shì yí wèi hěn yǒumíng de yīshēng.",
+        "meaningVi": "Chồng cô ấy là một bác sĩ rất nổi tiếng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"她丈夫是一位很有名的医生。\", \"pinyin\": \"Tā zhàngfu shì yí wèi hěn yǒumíng de yīshēng.\", \"meaningVi\": \"Chồng cô ấy là một bác sĩ rất nổi tiếng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '丈夫' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "BFD24CD4-4880-4188-A050-CFF30F9C3102",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "从",
+    "pinyin": "cóng",
+    "meaningVi": "từ (thời gian, địa điểm)",
+    "partOfSpeech": "介、（副）",
+    "examples": [
+      {
+        "zh": "我从早上八点工作到下午五点。",
+        "pinyin": "Wǒ cóng zǎoshang bā diǎn gōngzuò dào xiàwǔ wǔ diǎn.",
+        "meaningVi": "Tôi làm việc từ tám giờ sáng đến năm giờ chiều."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我从早上八点工作到下午五点。\", \"pinyin\": \"Wǒ cóng zǎoshang bā diǎn gōngzuò dào xiàwǔ wǔ diǎn.\", \"meaningVi\": \"Tôi làm việc từ tám giờ sáng đến năm giờ chiều.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '从' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F478D98B-4AAF-41DE-81AF-2C56DE1D0F59",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "包",
+    "pinyin": "bāo",
+    "meaningVi": "túi, cặp",
+    "partOfSpeech": "动、名、量",
+    "examples": [
+      {
+        "zh": "桌子上放着一个黑色的包。",
+        "pinyin": "Zhuōzi shang fàng zhe yí gè hēisè de bāo.",
+        "meaningVi": "Trên bàn có đặt một chiếc túi màu đen."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"桌子上放着一个黑色的包。\", \"pinyin\": \"Zhuōzi shang fàng zhe yí gè hēisè de bāo.\", \"meaningVi\": \"Trên bàn có đặt một chiếc túi màu đen.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '包' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F98C92D0-E1F8-449C-8745-D43305A959E3",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "地铁",
+    "pinyin": "dìtiě",
+    "meaningVi": "tàu điện ngầm",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我们坐地铁去上班吧。",
+        "pinyin": "Wǒmen zuò dìtiě qù shàngbān ba.",
+        "meaningVi": "Chúng ta đi tàu điện ngầm đi làm nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们坐地铁去上班吧。\", \"pinyin\": \"Wǒmen zuò dìtiě qù shàngbān ba.\", \"meaningVi\": \"Chúng ta đi tàu điện ngầm đi làm nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '地铁' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5ADDB442-21E6-4E7C-A2FE-AFB379DD73F5",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "左",
+    "pinyin": "zuǒ",
+    "meaningVi": "bên trái, phía trái",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "往左走就是一家大书店。",
+        "pinyin": "Wǎng zuǒ zǒu jiù shì yì jiā dà shūdiàn.",
+        "meaningVi": "Đi về phía bên trái là một hiệu sách lớn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"往左走就是一家大书店。\", \"pinyin\": \"Wǎng zuǒ zǒu jiù shì yì jiā dà shūdiàn.\", \"meaningVi\": \"Đi về phía bên trái là một hiệu sách lớn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '左' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "FB989CDF-E86B-41F2-8658-601B40BB02E6",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "意思",
+    "pinyin": "yìsi",
+    "meaningVi": "ý nghĩa, ý",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这个词是什么意思？",
+        "pinyin": "Zhè gè cí shì shénme yìsi?",
+        "meaningVi": "Từ này có nghĩa là gì?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这个词是什么意思？\", \"pinyin\": \"Zhè gè cí shì shénme yìsi?\", \"meaningVi\": \"Từ này có nghĩa là gì?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '意思' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3BF8D7A0-B2CB-4987-ADCB-42347F89D1EB",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "晴",
+    "pinyin": "qíng",
+    "meaningVi": "nắng, trời quang",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "今天天气晴朗，适合出门。",
+        "pinyin": "Jīntiān tiānqì qínglǎng, shìhé chūmén.",
+        "meaningVi": "Hôm nay trời nắng ráo, rất thích hợp ra ngoài."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天天气晴朗，适合出门。\", \"pinyin\": \"Jīntiān tiānqì qínglǎng, shìhé chūmén.\", \"meaningVi\": \"Hôm nay trời nắng ráo, rất thích hợp ra ngoài.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '晴' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "772E42E3-F5E2-41DE-AA19-A101A3048CCA",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "洗手间",
+    "pinyin": "xǐshǒujiān",
+    "meaningVi": "nhà vệ sinh",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "请问洗手间在哪里？",
+        "pinyin": "Qǐngwèn xǐshǒujiān zài nǎlǐ?",
+        "meaningVi": "Xin hỏi nhà vệ sinh ở đâu ạ?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请问洗手间在哪里？\", \"pinyin\": \"Qǐngwèn xǐshǒujiān zài nǎlǐ?\", \"meaningVi\": \"Xin hỏi nhà vệ sinh ở đâu ạ?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '洗手间' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "322F05B2-E97C-45A2-B279-55E2EE9D3FDA",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "票",
+    "pinyin": "piào",
+    "meaningVi": "vé",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我已经买好明天的电影票了。",
+        "pinyin": "Wǒ yǐjīng mǎi hǎo míngtiān de diànyǐng piào le.",
+        "meaningVi": "Tôi đã mua xong vé xem phim ngày mai rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我已经买好明天的电影票了。\", \"pinyin\": \"Wǒ yǐjīng mǎi hǎo míngtiān de diànyǐng piào le.\", \"meaningVi\": \"Tôi đã mua xong vé xem phim ngày mai rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '票' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3A2BDE21-C30E-447E-9ABE-A34475528BFE",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "考试",
+    "pinyin": "kǎoshì",
+    "meaningVi": "kỳ thi, dự thi",
+    "partOfSpeech": "动、名",
+    "examples": [
+      {
+        "zh": "下周一有一场重要的汉语考试。",
+        "pinyin": "Xià zhōuyī yǒu yì chǎng zhòngyào de hànyǔ kǎoshì.",
+        "meaningVi": "Thứ hai tuần sau có một kỳ thi tiếng Hán quan trọng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"下周一有一场重要的汉语考试。\", \"pinyin\": \"Xià zhōuyī yǒu yì chǎng zhòngyào de hànyǔ kǎoshì.\", \"meaningVi\": \"Thứ hai tuần sau có một kỳ thi tiếng Hán quan trọng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '考试' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "16CA01C0-F5C2-4132-B0F3-751009B65E30",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "起来",
+    "pinyin": "qǐlái",
+    "meaningVi": "đứng dậy, dậy, bắt đầu",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "快起来，太阳都出来了！",
+        "pinyin": "Kuài qǐlái, tàiyáng dōu chūlái le!",
+        "meaningVi": "Mau dậy đi, mặt trời mọc rồi kìa!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"快起来，太阳都出来了！\", \"pinyin\": \"Kuài qǐlái, tàiyáng dōu chūlái le!\", \"meaningVi\": \"Mau dậy đi, mặt trời mọc rồi kìa!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '起来' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "06D5F553-1399-4E90-954A-CA3C6A12A621",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "过来",
+    "pinyin": "guòlái",
+    "meaningVi": "qua đây, đến đây",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "请你过来帮我看一下电脑。",
+        "pinyin": "Qǐng nǐ guòlái bāng wǒ kàn yíxià diànnǎo.",
+        "meaningVi": "Xin bạn qua đây giúp tôi xem chiếc máy tính một chút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请你过来帮我看一下电脑。\", \"pinyin\": \"Qǐng nǐ guòlái bāng wǒ kàn yíxià diànnǎo.\", \"meaningVi\": \"Xin bạn qua đây giúp tôi xem chiếc máy tính một chút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '过来' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9597BEF4-D0BE-4C5E-A6D3-4D9C54767404",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "错",
+    "pinyin": "cuò",
+    "meaningVi": "sai, lỗi",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "这道题我做错了。",
+        "pinyin": "Zhè dào tí wǒ zuò cuò le.",
+        "meaningVi": "Câu này tôi làm sai rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这道题我做错了。\", \"pinyin\": \"Zhè dào tí wǒ zuò cuò le.\", \"meaningVi\": \"Câu này tôi làm sai rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '错' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "21E586E2-0675-4FD9-84E1-49F6CC9BDB4C",
+    "lessonId": "4C1994F7-8C8E-44DA-B44F-220B99220E2C",
+    "lessonNumber": 4,
+    "lessonTitle": "这个工作是他帮我介绍的",
+    "hskLevel": 2,
+    "hanzi": "鸟",
+    "pinyin": "niǎo",
+    "meaningVi": "con chim",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "树上有两只小鸟在唱歌。",
+        "pinyin": "Shù shang yǒu liǎng zhī xiǎoniǎo zài chànggē.",
+        "meaningVi": "Trên cây có hai chú chim nhỏ đang hót."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"树上有两只小鸟在唱歌。\", \"pinyin\": \"Shù shang yǒu liǎng zhī xiǎoniǎo zài chànggē.\", \"meaningVi\": \"Trên cây có hai chú chim nhỏ đang hót.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '鸟' in Lesson 4. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CA23B57D-D343-4640-96C9-AA26ADB03C01",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "上去",
+    "pinyin": "shàngqù",
+    "meaningVi": "đi lên",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他已经走上去了，我们在楼下等吧。",
+        "pinyin": "Tā yǐjīng zǒu shàngqu le, wǒmen zài lóu xià děng ba.",
+        "meaningVi": "Anh ấy đã đi lên trên rồi, chúng ta đợi ở dưới lầu nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他已经走上去了，我们在楼下等吧。\", \"pinyin\": \"Tā yǐjīng zǒu shàngqu le, wǒmen zài lóu xià děng ba.\", \"meaningVi\": \"Anh ấy đã đi lên trên rồi, chúng ta đợi ở dưới lầu nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '上去' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C5FDB72E-1CAA-4B2C-A186-1F3F8368CE2B",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "从小",
+    "pinyin": "cóngxiǎo",
+    "meaningVi": "từ nhỏ, từ bé",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "我从小就喜欢听中文歌。",
+        "pinyin": "Wǒ cóngxiǎo jiù xǐhuan tīng zhōngwén gē.",
+        "meaningVi": "Từ nhỏ tôi đã thích nghe nhạc tiếng Trung."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我从小就喜欢听中文歌。\", \"pinyin\": \"Wǒ cóngxiǎo jiù xǐhuan tīng zhōngwén gē.\", \"meaningVi\": \"Từ nhỏ tôi đã thích nghe nhạc tiếng Trung.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '从小' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "91C2D11C-35AA-4E56-A5E6-F303F36EF779",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "可能",
+    "pinyin": "kěnéng",
+    "meaningVi": "có thể, có khả năng",
+    "partOfSpeech": "形、名、动",
+    "examples": [
+      {
+        "zh": "明天可能要下雨，记得带伞。",
+        "pinyin": "Míngtiān kěnéng yào xià yǔ, jìde dài sǎn.",
+        "meaningVi": "Ngày mai có thể sẽ mưa, nhớ mang ô theo nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"明天可能要下雨，记得带伞。\", \"pinyin\": \"Míngtiān kěnéng yào xià yǔ, jìde dài sǎn.\", \"meaningVi\": \"Ngày mai có thể sẽ mưa, nhớ mang ô theo nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '可能' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "729497BB-09D8-4181-B9C6-FB305FB45CDC",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "坏",
+    "pinyin": "huài",
+    "meaningVi": "hỏng, xấu",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "我的手机坏了，不能上网了。",
+        "pinyin": "Wǒ de shǒujī huài le, bù néng shàngwǎng le.",
+        "meaningVi": "Điện thoại của tôi hỏng rồi, không lên mạng được nữa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我的手机坏了，不能上网了。\", \"pinyin\": \"Wǒ de shǒujī huài le, bù néng shàngwǎng le.\", \"meaningVi\": \"Điện thoại của tôi hỏng rồi, không lên mạng được nữa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '坏' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "68DE84DB-DEAC-45CF-8ED5-4F2F06618D55",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "左边",
+    "pinyin": "zuǒbian",
+    "meaningVi": "bên trái",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "坐在我左边的是张老师。",
+        "pinyin": "Zuò zài wǒ zuǒbian de shì Zhāng lǎoshī.",
+        "meaningVi": "Người ngồi bên trái tôi là thầy Trương."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"坐在我左边的是张老师。\", \"pinyin\": \"Zuò zài wǒ zuǒbian de shì Zhāng lǎoshī.\", \"meaningVi\": \"Người ngồi bên trái tôi là thầy Trương.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '左边' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "EF5BB7CD-6C75-450A-99EC-AD6DFB86D427",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "慢",
+    "pinyin": "màn",
+    "meaningVi": "chậm",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "请你说慢一点儿，我刚学汉语。",
+        "pinyin": "Qǐng nǐ shuō màn yìdiǎnr, wǒ gāng xué hànyǔ.",
+        "meaningVi": "Xin bạn nói chậm lại một chút, tôi mới học tiếng Hán."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请你说慢一点儿，我刚学汉语。\", \"pinyin\": \"Qǐng nǐ shuō màn yìdiǎnr, wǒ gāng xué hànyǔ.\", \"meaningVi\": \"Xin bạn nói chậm lại một chút, tôi mới học tiếng Hán.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '慢' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "914908A4-D598-4D38-850D-F315D9C18998",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "最",
+    "pinyin": "zuì",
+    "meaningVi": "nhất (so sánh nhất)",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "在这个班里，小王汉语说得最好。",
+        "pinyin": "Zài zhè gè bān lǐ, Xiǎo Wáng hànyǔ shuō de zuì hǎo.",
+        "meaningVi": "Trong lớp học này, Tiểu Vương nói tiếng Hán tốt nhất."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"在这个班里，小王汉语说得最好。\", \"pinyin\": \"Zài zhè gè bān lǐ, Xiǎo Wáng hànyǔ shuō de zuì hǎo.\", \"meaningVi\": \"Trong lớp học này, Tiểu Vương nói tiếng Hán tốt nhất.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '最' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8D1C6741-7CB7-466B-99DB-D7A9A1BE3D36",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "游",
+    "pinyin": "yóu",
+    "meaningVi": "bơi, du ngoạn",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "夏天我们在河里游得很开心。",
+        "pinyin": "Xiàtiān wǒmen zài hé lǐ yóu de hěn kāixīn.",
+        "meaningVi": "Mùa hè chúng tôi bơi ở dưới sông rất vui vẻ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"夏天我们在河里游得很开心。\", \"pinyin\": \"Xiàtiān wǒmen zài hé lǐ yóu de hěn kāixīn.\", \"meaningVi\": \"Mùa hè chúng tôi bơi ở dưới sông rất vui vẻ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '游' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "33D2CE38-54B2-4F33-94EC-FC998DFBE738",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "离",
+    "pinyin": "lí",
+    "meaningVi": "cách (khoảng cách)",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我家离学校走路只要十分钟。",
+        "pinyin": "Wǒ jiā lí xuéxiào zǒulù zhǐ yào shí fēnzhōng.",
+        "meaningVi": "Nhà tôi cách trường học đi bộ chỉ mất mười phút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我家离学校走路只要十分钟。\", \"pinyin\": \"Wǒ jiā lí xuéxiào zǒulù zhǐ yào shí fēnzhōng.\", \"meaningVi\": \"Nhà tôi cách trường học đi bộ chỉ mất mười phút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '离' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "83452009-2299-48EE-8D0A-BC81C4310341",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "肉",
+    "pinyin": "ròu",
+    "meaningVi": "thịt",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "医生说要多吃新鲜蔬菜，少吃肥肉。",
+        "pinyin": "Yīshēng shuō yào duō chī xīnxiān shūcài, shǎo chī féiròu.",
+        "meaningVi": "Bác sĩ dặn phải ăn nhiều rau tươi, ít ăn thịt mỡ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"医生说要多吃新鲜蔬菜，少吃肥肉。\", \"pinyin\": \"Yīshēng shuō yào duō chī xīnxiān shūcài, shǎo chī féiròu.\", \"meaningVi\": \"Bác sĩ dặn phải ăn nhiều rau tươi, ít ăn thịt mỡ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '肉' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "393DE408-6842-4DCA-8FDC-5EF93ABEF393",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "足球",
+    "pinyin": "zúqiú",
+    "meaningVi": "bóng đá",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "下午我们去操场踢足球吧。",
+        "pinyin": "Xiàwǔ wǒmen qù cāochǎng tī zúqiú ba.",
+        "meaningVi": "Buổi chiều chúng ta ra sân vận động đá bóng nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"下午我们去操场踢足球吧。\", \"pinyin\": \"Xiàwǔ wǒmen qù cāochǎng tī zúqiú ba.\", \"meaningVi\": \"Buổi chiều chúng ta ra sân vận động đá bóng nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '足球' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2D0C7171-2F17-4C44-8497-8B9A2D33263F",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "运动",
+    "pinyin": "yùndòng",
+    "meaningVi": "vận động, thể thao",
+    "partOfSpeech": "动、名",
+    "examples": [
+      {
+        "zh": "多做运动对身体很好。",
+        "pinyin": "Duō zuò yùndòng duì shēntǐ hěn hǎo.",
+        "meaningVi": "Tập thể thao nhiều rất tốt cho sức khỏe."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"多做运动对身体很好。\", \"pinyin\": \"Duō zuò yùndòng duì shēntǐ hěn hǎo.\", \"meaningVi\": \"Tập thể thao nhiều rất tốt cho sức khỏe.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '运动' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3DA99366-1B6B-455D-80F4-D1681214AB27",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "长",
+    "pinyin": "cháng",
+    "meaningVi": "dài",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "这条河很长，流过很多城市。",
+        "pinyin": "Zhè tiáo hé hěn cháng, liú guò hěn duō chéngshì.",
+        "meaningVi": "Con sông này rất dài, chảy qua nhiều thành phố."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这条河很长，流过很多城市。\", \"pinyin\": \"Zhè tiáo hé hěn cháng, liú guò hěn duō chéngshì.\", \"meaningVi\": \"Con sông này rất dài, chảy qua nhiều thành phố.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '长' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3A74B3FC-8D8E-4191-97D2-DAF8AC8801E2",
+    "lessonId": "67A524EB-567B-432F-A20E-51CC45295315",
+    "lessonNumber": 5,
+    "lessonTitle": "就买这件吧",
+    "hskLevel": 2,
+    "hanzi": "黑色",
+    "pinyin": "hēisè",
+    "meaningVi": "màu đen",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "他穿了一双黑色的运动鞋。",
+        "pinyin": "Tā chuān le yì shuāng hēisè de yùndòngxié.",
+        "meaningVi": "Anh ấy đi một đôi giày thể thao màu đen."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他穿了一双黑色的运动鞋。\", \"pinyin\": \"Tā chuān le yì shuāng hēisè de yùndòngxié.\", \"meaningVi\": \"Anh ấy đi một đôi giày thể thao màu đen.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '黑色' in Lesson 5. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "13CDBBFD-C370-4FC8-B108-8BF64FA1608E",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "上来",
+    "pinyin": "shànglái",
+    "meaningVi": "lên đây, bước lên",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "快点儿走上来，我们在二楼呢。",
+        "pinyin": "Kuài diǎnr zǒu shànglái, wǒmen zài èr lóu ne.",
+        "meaningVi": "Mau đi lên đây, chúng tôi ở tầng hai này."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"快点儿走上来，我们在二楼呢。\", \"pinyin\": \"Kuài diǎnr zǒu shànglái, wǒmen zài èr lóu ne.\", \"meaningVi\": \"Mau đi lên đây, chúng tôi ở tầng hai này.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '上来' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "316921B2-F815-45A5-B543-E89D46069900",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "但",
+    "pinyin": "dàn",
+    "meaningVi": "nhưng, nhưng mà",
+    "partOfSpeech": "连、（副）",
+    "examples": [
+      {
+        "zh": "汉语虽然难，但我很喜欢。",
+        "pinyin": "Hànyǔ suīrán nán, dàn wǒ hěn xǐhuan.",
+        "meaningVi": "Tiếng Hán tuy khó, nhưng tôi rất thích."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"汉语虽然难，但我很喜欢。\", \"pinyin\": \"Hànyǔ suīrán nán, dàn wǒ hěn xǐhuan.\", \"meaningVi\": \"Tiếng Hán tuy khó, nhưng tôi rất thích.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '但' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E7785070-0714-40F7-A2AF-320BD1435A7E",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "右",
+    "pinyin": "yòu",
+    "meaningVi": "bên phải",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "前面十字路口往右走就是超市。",
+        "pinyin": "Qiánmiàn shízì lùkǒu wǎng yòu zǒu jiù shì chāoshì.",
+        "meaningVi": "Ở ngã tư phía trước rẽ phải là siêu thị."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"前面十字路口往右走就是超市。\", \"pinyin\": \"Qiánmiàn shízì lùkǒu wǎng yòu zǒu jiù shì chāoshì.\", \"meaningVi\": \"Ở ngã tư phía trước rẽ phải là siêu thị.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '右' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DD8816C5-1CFE-43D2-A680-542360A40836",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "外国",
+    "pinyin": "wàiguó",
+    "meaningVi": "nước ngoài",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "他喜欢去外国旅游和学习。",
+        "pinyin": "Tā xǐhuan qù wàiguó lǚyóu hé xuéxí.",
+        "meaningVi": "Anh ấy thích đi du lịch và học tập ở nước ngoài."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他喜欢去外国旅游和学习。\", \"pinyin\": \"Tā xǐhuan qù wàiguó lǚyóu hé xuéxí.\", \"meaningVi\": \"Anh ấy thích đi du lịch và học tập ở nước ngoài.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '外国' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8BE527CD-4AD4-44C1-87DA-E1C203D90A0D",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "已经",
+    "pinyin": "yǐjīng",
+    "meaningVi": "đã",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "我已经吃过午饭了。",
+        "pinyin": "Wǒ yǐjīng chī guò wǔfàn le.",
+        "meaningVi": "Tôi đã ăn cơm trưa rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我已经吃过午饭了。\", \"pinyin\": \"Wǒ yǐjīng chī guò wǔfàn le.\", \"meaningVi\": \"Tôi đã ăn cơm trưa rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '已经' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "843B0BAB-214A-455F-95EB-8C587F0FCA0A",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "懂",
+    "pinyin": "dǒng",
+    "meaningVi": "hiểu",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "老师讲得很清楚，我都听懂了。",
+        "pinyin": "Lǎoshī jiǎng de hěn qīngchu, wǒ dōu tīng dǒng le.",
+        "meaningVi": "Thầy giáo giảng rất rõ ràng, tôi đều nghe hiểu rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"老师讲得很清楚，我都听懂了。\", \"pinyin\": \"Lǎoshī jiǎng de hěn qīngchu, wǒ dōu tīng dǒng le.\", \"meaningVi\": \"Thầy giáo giảng rất rõ ràng, tôi đều nghe hiểu rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '懂' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "1B886814-301B-4E2D-A5DB-4712E73A11BD",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "有意思",
+    "pinyin": "yǒu yìsi",
+    "meaningVi": "thú vị, có ý nghĩa",
+    "partOfSpeech": "",
+    "examples": [
+      {
+        "zh": "这本书非常有趣，很有意思。",
+        "pinyin": "Zhè běn shū fēicháng yǒuqù, hěn yǒu yìsi.",
+        "meaningVi": "Cuốn sách này cực kỳ thú vị, rất có ý nghĩa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这本书非常有趣，很有意思。\", \"pinyin\": \"Zhè běn shū fēicháng yǒuqù, hěn yǒu yìsi.\", \"meaningVi\": \"Cuốn sách này cực kỳ thú vị, rất có ý nghĩa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '有意思' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4D03686D-2D59-4638-AD91-6339B77AC279",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "游泳",
+    "pinyin": "yóuyǒng",
+    "meaningVi": "bơi lội",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "夏天我每个周末都去室内泳池游泳。",
+        "pinyin": "Xiàtiān wǒ měi gè zhōumò dōu qù shìnèi yǒngchí yóuyǒng.",
+        "meaningVi": "Mùa hè mỗi dịp cuối tuần tôi đều đến bể bơi trong nhà để bơi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"夏天我每个周末都去室内泳池游泳。\", \"pinyin\": \"Xiàtiān wǒ měi gè zhōumò dōu qù shìnèi yǒngchí yóuyǒng.\", \"meaningVi\": \"Mùa hè mỗi dịp cuối tuần tôi đều đến bể bơi trong nhà để bơi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '游泳' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "A6304E76-8FC6-4A20-943C-83EE22B8425B",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "站",
+    "pinyin": "zhàn",
+    "meaningVi": "đứng, trạm xe",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "请在站牌下面等公交车。",
+        "pinyin": "Qǐng zài zhànpái xiàmiàn děng gōngjiāochē.",
+        "meaningVi": "Xin hãy đợi xe buýt ở dưới biển báo trạm dừng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请在站牌下面等公交车。\", \"pinyin\": \"Qǐng zài zhànpái xiàmiàn děng gōngjiāochē.\", \"meaningVi\": \"Xin hãy đợi xe buýt ở dưới biển báo trạm dừng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '站' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6AAB937A-F654-4DD9-B137-15301F0EE494",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "自己",
+    "pinyin": "zìjǐ",
+    "meaningVi": "tự mình, bản thân",
+    "partOfSpeech": "代",
+    "examples": [
+      {
+        "zh": "这顿晚饭是我自己做的。",
+        "pinyin": "Zhè dùn wǎnfàn shì wǒ zìjǐ zuò de.",
+        "meaningVi": "Bữa tối này là do tự tay tôi làm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这顿晚饭是我自己做的。\", \"pinyin\": \"Zhè dùn wǎnfàn shì wǒ zìjǐ zuò de.\", \"meaningVi\": \"Bữa tối này là do tự tay tôi làm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '自己' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2A3C22E4-02D9-4063-A08A-A3DD92AD35DB",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "跑",
+    "pinyin": "pǎo",
+    "meaningVi": "chạy",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他跑得真快，一会儿就不见了。",
+        "pinyin": "Tā pǎo de zhēn kuài, yíhuìr jiù bú jiàn le.",
+        "meaningVi": "Cậu ấy chạy thật nhanh, loáng một cái đã không thấy đâu nữa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他跑得真快，一会儿就不见了。\", \"pinyin\": \"Tā pǎo de zhēn kuài, yíhuìr jiù bú jiàn le.\", \"meaningVi\": \"Cậu ấy chạy thật nhanh, loáng một cái đã không thấy đâu nữa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '跑' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B239CE78-4676-428E-ACCA-FBCB03BA246B",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "近",
+    "pinyin": "jìn",
+    "meaningVi": "gần",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "学校离我家很近，只要走五分钟。",
+        "pinyin": "Xuéxiào lí wǒ jiā hěn jìn, zhǐ yào zǒu wǔ fēnzhōng.",
+        "meaningVi": "Trường học cách nhà tôi rất gần, chỉ cần đi năm phút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校离我家很近，只要走五分钟。\", \"pinyin\": \"Xuéxiào lí wǒ jiā hěn jìn, zhǐ yào zǒu wǔ fēnzhōng.\", \"meaningVi\": \"Trường học cách nhà tôi rất gần, chỉ cần đi năm phút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '近' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "A2BE1B7E-B79D-46E6-8E47-735D2F42F9EE",
+    "lessonId": "2B47764A-970D-4644-8B15-1A2023E8EBD7",
+    "lessonNumber": 6,
+    "lessonTitle": "你怎么不吃了",
+    "hskLevel": 2,
+    "hanzi": "门",
+    "pinyin": "mén",
+    "meaningVi": "cửa",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "请把门关好，外面风大。",
+        "pinyin": "Qǐng bǎ mén guān hǎo, wàimiàn fēng dà.",
+        "meaningVi": "Xin hãy đóng cửa lại, bên ngoài gió to."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请把门关好，外面风大。\", \"pinyin\": \"Qǐng bǎ mén guān hǎo, wàimiàn fēng dà.\", \"meaningVi\": \"Xin hãy đóng cửa lại, bên ngoài gió to.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '门' in Lesson 6. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4961F37B-C829-4EE7-BC08-631DEDEFEA53",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "上网",
+    "pinyin": "shàngwǎng",
+    "meaningVi": "lên mạng, vào internet",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "晚上他喜欢在家里上网查资料。",
+        "pinyin": "Wǎnshang tā xǐhuan zài jiālǐ shàngwǎng chá zīliào.",
+        "meaningVi": "Buổi tối anh ấy thích lên mạng tra cứu tài liệu tại nhà."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"晚上他喜欢在家里上网查资料。\", \"pinyin\": \"Wǎnshang tā xǐhuan zài jiālǐ shàngwǎng chá zīliào.\", \"meaningVi\": \"Buổi tối anh ấy thích lên mạng tra cứu tài liệu tại nhà.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '上网' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5AAAB420-8A04-4BAA-BD5C-8BC71FFC42E6",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "但是",
+    "pinyin": "dànshì",
+    "meaningVi": "nhưng, tuy nhiên",
+    "partOfSpeech": "连",
+    "examples": [
+      {
+        "zh": "我想去打球，但是今天没时间。",
+        "pinyin": "Wǒ xiǎng qù dǎqiú, dànshì jīntiān méi shíjiān.",
+        "meaningVi": "Tôi muốn đi chơi bóng, nhưng hôm nay không có thời gian."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我想去打球，但是今天没时间。\", \"pinyin\": \"Wǒ xiǎng qù dǎqiú, dànshì jīntiān méi shíjiān.\", \"meaningVi\": \"Tôi muốn đi chơi bóng, nhưng hôm nay không có thời gian.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '但是' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "7D8AA672-F547-439D-84E0-AF6027DE80D4",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "右边",
+    "pinyin": "yòubian",
+    "meaningVi": "bên phải, phía bên phải",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "坐在右边穿红衣服的是我姐姐。",
+        "pinyin": "Zuò zài yòubian chuān hóng yīfu de shì wǒ jiějie.",
+        "meaningVi": "Người ngồi bên phải mặc áo đỏ là chị gái tôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"坐在右边穿红衣服的是我姐姐。\", \"pinyin\": \"Zuò zài yòubian chuān hóng yīfu de shì wǒ jiějie.\", \"meaningVi\": \"Người ngồi bên phải mặc áo đỏ là chị gái tôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '右边' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9D8433DB-0939-4E6D-920C-9AC5DEEEC575",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "外面",
+    "pinyin": "wàimiàn",
+    "meaningVi": "bên ngoài",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "外面下大雨了，你带伞了吗？",
+        "pinyin": "Wàimiàn xià dàyǔ le, nǐ dài sǎn le ma?",
+        "meaningVi": "Bên ngoài mưa to rồi, bạn mang ô chưa?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"外面下大雨了，你带伞了吗？\", \"pinyin\": \"Wàimiàn xià dàyǔ le, nǐ dài sǎn le ma?\", \"meaningVi\": \"Bên ngoài mưa to rồi, bạn mang ô chưa?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '外面' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "93FA37B6-4F20-47AB-AD2C-4CCD83FB06EE",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "希望",
+    "pinyin": "xīwàng",
+    "meaningVi": "hy vọng",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我希望今年能通过HSK二级考试。",
+        "pinyin": "Wǒ xīwàng jīnnián néng tōngguò HSK èr jí kǎoshì.",
+        "meaningVi": "Tôi hy vọng năm nay có thể đỗ kỳ thi HSK 2."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我希望今年能通过HSK二级考试。\", \"pinyin\": \"Wǒ xīwàng jīnnián néng tōngguò HSK èr jí kǎoshì.\", \"meaningVi\": \"Tôi hy vọng năm nay có thể đỗ kỳ thi HSK 2.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '希望' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3A50F9FC-D43C-44AE-A801-F585F7332353",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "所以",
+    "pinyin": "suǒyǐ",
+    "meaningVi": "cho nên, vì vậy",
+    "partOfSpeech": "连",
+    "examples": [
+      {
+        "zh": "因为今天很忙，所以我没给你打电话。",
+        "pinyin": "Yīnwèi jīntiān hěn máng, suǒyǐ wǒ méi gěi nǐ dǎ diànhuà.",
+        "meaningVi": "Bởi vì hôm nay rất bận nên tôi không gọi điện thoại cho bạn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"因为今天很忙，所以我没给你打电话。\", \"pinyin\": \"Yīnwèi jīntiān hěn máng, suǒyǐ wǒ méi gěi nǐ dǎ diànhuà.\", \"meaningVi\": \"Bởi vì hôm nay rất bận nên tôi không gọi điện thoại cho bạn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '所以' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "13FA382C-D00B-47ED-9936-594D18A2D2DA",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "有时",
+    "pinyin": "yǒushí",
+    "meaningVi": "thỉnh thoảng, đôi khi",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "周末我有时去爬山，有时在家里看书。",
+        "pinyin": "Zhōumò wǒ yǒushí qù páshān, yǒushí zài jiālǐ kàn shū.",
+        "meaningVi": "Cuối tuần tôi thỉnh thoảng đi leo núi, thỉnh thoảng ở nhà đọc sách."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"周末我有时去爬山，有时在家里看书。\", \"pinyin\": \"Zhōumò wǒ yǒushí qù páshān, yǒushí zài jiālǐ kàn shū.\", \"meaningVi\": \"Cuối tuần tôi thỉnh thoảng đi leo núi, thỉnh thoảng ở nhà đọc sách.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '有时' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6D0AE4A9-7BB2-4A13-85A0-9070051AABC5",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "点",
+    "pinyin": "diǎn",
+    "meaningVi": "gọi món, châm lửa, chút",
+    "partOfSpeech": "动、（名、量）",
+    "examples": [
+      {
+        "zh": "服务员，我们要点菜。",
+        "pinyin": "Fúwùyuán, wǒmen yào diǎncài.",
+        "meaningVi": "Phục vụ ơi, chúng tôi muốn gọi món."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"服务员，我们要点菜。\", \"pinyin\": \"Fúwùyuán, wǒmen yào diǎncài.\", \"meaningVi\": \"Phục vụ ơi, chúng tôi muốn gọi món.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '点' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C4F6E9A4-D4D8-49C8-8A2B-616FA9724747",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "笑",
+    "pinyin": "xiào",
+    "meaningVi": "cười",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "听到这个好消息，大家高兴地笑了。",
+        "pinyin": "Tīng dào zhè gè hǎo xiāoxi, dàjiā gāoxìng de xiào le.",
+        "meaningVi": "Nghe được tin tốt này, mọi người đều vui mừng cười lớn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"听到这个好消息，大家高兴地笑了。\", \"pinyin\": \"Tīng dào zhè gè hǎo xiāoxi, dàjiā gāoxìng de xiào le.\", \"meaningVi\": \"Nghe được tin tốt này, mọi người đều vui mừng cười lớn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '笑' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6AEFD411-13E6-4AD8-96A8-22D70E63EEA7",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "舒服",
+    "pinyin": "shūfu",
+    "meaningVi": "dễ chịu, thoải mái",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "喝了一杯热牛奶，感觉舒服多了。",
+        "pinyin": "Hē le yì bēi rè niúnǎi, gǎnjué shūfu duō le.",
+        "meaningVi": "Uống một cốc sữa nóng, cảm thấy dễ chịu hơn nhiều."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"喝了一杯热牛奶，感觉舒服多了。\", \"pinyin\": \"Hē le yì bēi rè niúnǎi, gǎnjué shūfu duō le.\", \"meaningVi\": \"Uống một cốc sữa nóng, cảm thấy dễ chịu hơn nhiều.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '舒服' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "373C4C11-AEF3-47AF-B622-99062817B861",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "跑步",
+    "pinyin": "pǎobù",
+    "meaningVi": "chạy bộ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他每天早上都去公园跑步半小时。",
+        "pinyin": "Tā měitiān zǎoshang dōu qù gōngyuán pǎobù bàn xiǎoshí.",
+        "meaningVi": "Mỗi sáng anh ấy đều đến công viên chạy bộ nửa tiếng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他每天早上都去公园跑步半小时。\", \"pinyin\": \"Tā měitiān zǎoshang dōu qù gōngyuán pǎobù bàn xiǎoshí.\", \"meaningVi\": \"Mỗi sáng anh ấy đều đến công viên chạy bộ nửa tiếng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '跑步' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "804AC27A-B153-471E-A243-FE7E0FE10B24",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "还是",
+    "pinyin": "háishi",
+    "meaningVi": "hay là, vẫn là",
+    "partOfSpeech": "副、连",
+    "examples": [
+      {
+        "zh": "你想喝咖啡还是喝茶？",
+        "pinyin": "Nǐ xiǎng hē kāfēi háishi hē chá?",
+        "meaningVi": "Bạn muốn uống cà phê hay là uống trà?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你想喝咖啡还是喝茶？\", \"pinyin\": \"Nǐ xiǎng hē kāfēi háishi hē chá?\", \"meaningVi\": \"Bạn muốn uống cà phê hay là uống trà?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '还是' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0F5ED252-7B2A-404E-8B4B-9EAAFF05773D",
+    "lessonId": "90125803-4D98-4AA9-B8A7-6D0E449D5CEA",
+    "lessonNumber": 7,
+    "lessonTitle": "你家离公司远吗",
+    "hskLevel": 2,
+    "hanzi": "门口",
+    "pinyin": "ménkǒu",
+    "meaningVi": "cổng, cửa ra vào",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我们约在学校门口见面吧。",
+        "pinyin": "Wǒmen yuē zài xuéxiào ménkǒu jiànmiàn ba.",
+        "meaningVi": "Chúng ta hẹn gặp nhau ở cổng trường học nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们约在学校门口见面吧。\", \"pinyin\": \"Wǒmen yuē zài xuéxiào ménkǒu jiànmiàn ba.\", \"meaningVi\": \"Chúng ta hẹn gặp nhau ở cổng trường học nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '门口' in Lesson 7. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DFF7E77D-7251-4296-95E7-2ED39F9FDAD7",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "上面",
+    "pinyin": "shàngmiàn",
+    "meaningVi": "phía trên, bên trên",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "桌子上面放着一本汉语词典。",
+        "pinyin": "Zhuōzi shàngmiàn fàng zhe yì běn hànyǔ cídiǎn.",
+        "meaningVi": "Phía trên bàn có đặt một cuốn từ điển tiếng Hán."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"桌子上面放着一本汉语词典。\", \"pinyin\": \"Zhuōzi shàngmiàn fàng zhe yì běn hànyǔ cídiǎn.\", \"meaningVi\": \"Phía trên bàn có đặt một cuốn từ điển tiếng Hán.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '上面' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "45FDD0CE-915B-4B28-AD78-49C4354D886B",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "位",
+    "pinyin": "wèi",
+    "meaningVi": "vị, ngài (lượng từ lịch sự)",
+    "partOfSpeech": "量",
+    "examples": [
+      {
+        "zh": "请问您找哪位老师？",
+        "pinyin": "Qǐngwèn nín zhǎo nǎ wèi lǎoshī?",
+        "meaningVi": "Xin hỏi bạn tìm vị thầy cô giáo nào?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请问您找哪位老师？\", \"pinyin\": \"Qǐngwèn nín zhǎo nǎ wèi lǎoshī?\", \"meaningVi\": \"Xin hỏi bạn tìm vị thầy cô giáo nào?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '位' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3117B6D1-91D3-4895-BB1D-B584D8FCEA76",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "名",
+    "pinyin": "míng",
+    "meaningVi": "danh, người (lượng từ)",
+    "partOfSpeech": "名、量",
+    "examples": [
+      {
+        "zh": "我们班一共有二十名学生。",
+        "pinyin": "Wǒmen bān yígòng yǒu èrshí míng xuésheng.",
+        "meaningVi": "Lớp chúng tôi có tổng cộng hai mươi học sinh."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们班一共有二十名学生。\", \"pinyin\": \"Wǒmen bān yígòng yǒu èrshí míng xuésheng.\", \"meaningVi\": \"Lớp chúng tôi có tổng cộng hai mươi học sinh.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '名' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DEE77EB9-55CE-4000-AA87-25FF4D789281",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "头",
+    "pinyin": "tóu",
+    "meaningVi": "đầu",
+    "partOfSpeech": "名、（量）、（形）",
+    "examples": [
+      {
+        "zh": "我今天头有点儿疼，想休息一下。",
+        "pinyin": "Wǒ jīntiān tóu yǒudiǎnr téng, xiǎng xiūxi yíxià.",
+        "meaningVi": "Hôm nay đầu tôi hơi đau, muốn nghỉ ngơi một lát."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我今天头有点儿疼，想休息一下。\", \"pinyin\": \"Wǒ jīntiān tóu yǒudiǎnr téng, xiǎng xiūxi yíxià.\", \"meaningVi\": \"Hôm nay đầu tôi hơi đau, muốn nghỉ ngơi một lát.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '头' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "63C17DA5-105C-48D1-84E8-8E45C4FF5331",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "帮",
+    "pinyin": "bāng",
+    "meaningVi": "giúp, giúp đỡ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "你能帮我拿一下这个箱子吗？",
+        "pinyin": "Nǐ néng bāng wǒ ná yíxià zhè gè xiāngzi ma?",
+        "meaningVi": "Bạn có thể giúp tôi cầm chiếc va li này một chút không?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你能帮我拿一下这个箱子吗？\", \"pinyin\": \"Nǐ néng bāng wǒ ná yíxià zhè gè xiāngzi ma?\", \"meaningVi\": \"Bạn có thể giúp tôi cầm chiếc va li này một chút không?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '帮' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C6227FC2-4B47-4E14-BABA-169A84BA1574",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "手",
+    "pinyin": "shǒu",
+    "meaningVi": "tay, bàn tay",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "饭前便后都要洗手。",
+        "pinyin": "Fàn qián biàn hòu dōu yào xǐ shǒu.",
+        "meaningVi": "Trước khi ăn và sau khi đi vệ sinh đều phải rửa tay."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"饭前便后都要洗手。\", \"pinyin\": \"Fàn qián biàn hòu dōu yào xǐ shǒu.\", \"meaningVi\": \"Trước khi ăn và sau khi đi vệ sinh đều phải rửa tay.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '手' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "29E64807-B95C-4C8E-8E63-D2B0097B16FB",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "本子",
+    "pinyin": "běnzi",
+    "meaningVi": "quyển vở, sổ tay",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我买了两本写字用的新本子。",
+        "pinyin": "Wǒ mǎi le liǎng běn xiězì yòng de xīn běnzi.",
+        "meaningVi": "Tôi đã mua hai cuốn vở mới dùng để luyện viết chữ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我买了两本写字用的新本子。\", \"pinyin\": \"Wǒ mǎi le liǎng běn xiězì yòng de xīn běnzi.\", \"meaningVi\": \"Tôi đã mua hai cuốn vở mới dùng để luyện viết chữ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '本子' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "841FD19F-33D2-4F0F-BD65-12E3360E62AD",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "爱好",
+    "pinyin": "àihào",
+    "meaningVi": "sở thích, đam mê",
+    "partOfSpeech": "动、名",
+    "examples": [
+      {
+        "zh": "我的业余爱好是听音乐和画画。",
+        "pinyin": "Wǒ de yèyú àihào shì tīng yīnyuè hé huàhuà.",
+        "meaningVi": "Sở thích lúc rảnh rỗi của tôi là nghe nhạc và vẽ tranh."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我的业余爱好是听音乐和画画。\", \"pinyin\": \"Wǒ de yèyú àihào shì tīng yīnyuè hé huàhuà.\", \"meaningVi\": \"Sở thích lúc rảnh rỗi của tôi là nghe nhạc và vẽ tranh.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '爱好' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0FF39502-6211-47C3-BB10-A3B3A2D31498",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "笔",
+    "pinyin": "bǐ",
+    "meaningVi": "bút",
+    "partOfSpeech": "名、（量）",
+    "examples": [
+      {
+        "zh": "请借我一支黑色圆珠笔写字。",
+        "pinyin": "Qǐng jiè wǒ yì zhī hēisè yuánzhūbǐ xiě zì.",
+        "meaningVi": "Xin cho tôi mượn một cây bút bi đen để viết chữ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请借我一支黑色圆珠笔写字。\", \"pinyin\": \"Qǐng jiè wǒ yì zhī hēisè yuánzhūbǐ xiě zì.\", \"meaningVi\": \"Xin cho tôi mượn một cây bút bi đen để viết chữ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '笔' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "34916511-5565-458A-BD84-03E3CBFFD4B8",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "花",
+    "pinyin": "huā",
+    "meaningVi": "tiêu, tốn (tiền, thời gian)",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "买这本书花了我三十块钱。",
+        "pinyin": "Mǎi zhè běn shū huā le wǒ sānshí kuài qián.",
+        "meaningVi": "Mua cuốn sách này tiêu tốn của tôi ba mươi tệ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"买这本书花了我三十块钱。\", \"pinyin\": \"Mǎi zhè běn shū huā le wǒ sānshí kuài qián.\", \"meaningVi\": \"Mua cuốn sách này tiêu tốn của tôi ba mươi tệ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '花' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "A11FC981-550F-4D9D-A753-D8059B888FFC",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "跟",
+    "pinyin": "gēn",
+    "meaningVi": "cùng, với, theo",
+    "partOfSpeech": "介、连、（名、动）",
+    "examples": [
+      {
+        "zh": "星期天我想跟朋友去逛街。",
+        "pinyin": "Xīngqītiān wǒ xiǎng gēn péngyou qù guàngjiē.",
+        "meaningVi": "Chủ nhật tôi muốn cùng bạn bè đi dạo phố."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"星期天我想跟朋友去逛街。\", \"pinyin\": \"Xīngqītiān wǒ xiǎng gēn péngyou qù guàngjiē.\", \"meaningVi\": \"Chủ nhật tôi muốn cùng bạn bè đi dạo phố.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '跟' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "A0CA75B4-2408-4FFE-9480-F8BD5B2E79EA",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "这么",
+    "pinyin": "zhème",
+    "meaningVi": "như thế này, đến mức này",
+    "partOfSpeech": "代",
+    "examples": [
+      {
+        "zh": "这个问题没有你想的这么难。",
+        "pinyin": "Zhè gè wèntí méiyǒu nǐ xiǎng de zhème nán.",
+        "meaningVi": "Vấn đề này không khó như bạn nghĩ đâu."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这个问题没有你想的这么难。\", \"pinyin\": \"Zhè gè wèntí méiyǒu nǐ xiǎng de zhème nán.\", \"meaningVi\": \"Vấn đề này không khó như bạn nghĩ đâu.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '这么' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "65FD514E-DE65-4E1B-BBEF-3849CCF1E348",
+    "lessonId": "7EE75472-A9EA-4FC9-82D2-4943DE5F092C",
+    "lessonNumber": 8,
+    "lessonTitle": "让我想想再告诉你",
+    "hskLevel": 2,
+    "hanzi": "门票",
+    "pinyin": "ménpiào",
+    "meaningVi": "vé vào cửa, vé tham quan",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "故宫的门票我已经网上订好了。",
+        "pinyin": "Gùgōng de ménpiào wǒ yǐjīng wǎngshang dìng hǎo le.",
+        "meaningVi": "Vé vào cửa Cố Cung tôi đã đặt xong trên mạng rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"故宫的门票我已经网上订好了。\", \"pinyin\": \"Gùgōng de ménpiào wǒ yǐjīng wǎngshang dìng hǎo le.\", \"meaningVi\": \"Vé vào cửa Cố Cung tôi đã đặt xong trên mạng rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '门票' in Lesson 8. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5B5AEC3F-65A1-4F0E-8460-ED0A8EFF01F4",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "下去",
+    "pinyin": "xiàqù",
+    "meaningVi": "đi xuống",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "雨停了，我们走下去散步吧。",
+        "pinyin": "Yǔ tíng le, wǒmen zǒu xiàqu sàn bù ba.",
+        "meaningVi": "Mưa tạnh rồi, chúng ta đi xuống dạo bộ đi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"雨停了，我们走下去散步吧。\", \"pinyin\": \"Yǔ tíng le, wǒmen zǒu xiàqu sàn bù ba.\", \"meaningVi\": \"Mưa tạnh rồi, chúng ta đi xuống dạo bộ đi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '下去' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CAA5F981-6259-4B7F-BB67-ED80DFF61D38",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "公交车",
+    "pinyin": "gōngjiāochē",
+    "meaningVi": "xe buýt công cộng",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我每天早上坐公交车去学校。",
+        "pinyin": "Wǒ měitiān zǎoshang zuò gōngjiāochē qù xuéxiào.",
+        "meaningVi": "Mỗi sáng tôi đều đi xe buýt đến trường."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我每天早上坐公交车去学校。\", \"pinyin\": \"Wǒ měitiān zǎoshang zuò gōngjiāochē qù xuéxiào.\", \"meaningVi\": \"Mỗi sáng tôi đều đi xe buýt đến trường.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '公交车' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "87E8FF3E-2E99-455E-B8F8-7065438877FC",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "后面",
+    "pinyin": "hòumiàn",
+    "meaningVi": "phía sau, đằng sau",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "坐在我后面的是大卫。",
+        "pinyin": "Zuò zài wǒ hòumiàn de shì Dàwèi.",
+        "meaningVi": "Người ngồi phía sau tôi là David."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"坐在我后面的是大卫。\", \"pinyin\": \"Zuò zài wǒ hòumiàn de shì Dàwèi.\", \"meaningVi\": \"Người ngồi phía sau tôi là David.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '后面' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3C263F93-5E8A-47F9-976E-BE984E3ED9B2",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "女孩儿",
+    "pinyin": "nǚháir",
+    "meaningVi": "cô bé, bé gái",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "那个笑得很甜的女孩儿是谁？",
+        "pinyin": "Nàge xiào de hěn tián de nǚháir shì shéi?",
+        "meaningVi": "Cô bé cười rất ngọt ngào kia là ai vậy?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"那个笑得很甜的女孩儿是谁？\", \"pinyin\": \"Nàge xiào de hěn tián de nǚháir shì shéi?\", \"meaningVi\": \"Cô bé cười rất ngọt ngào kia là ai vậy?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '女孩儿' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4D501009-4325-4C75-858C-4854B88B8F12",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "帮忙",
+    "pinyin": "bāngmáng",
+    "meaningVi": "giúp đỡ, giúp một tay",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "非常感谢你昨天的热心帮忙。",
+        "pinyin": "Fēicháng gǎnxiè nǐ zuótiān de rèxīn bāngmáng.",
+        "meaningVi": "Vô cùng cảm ơn sự nhiệt tình giúp đỡ của bạn ngày hôm qua."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"非常感谢你昨天的热心帮忙。\", \"pinyin\": \"Fēicháng gǎnxiè nǐ zuótiān de rèxīn bāngmáng.\", \"meaningVi\": \"Vô cùng cảm ơn sự nhiệt tình giúp đỡ của bạn ngày hôm qua.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '帮忙' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DE1C60DD-EEF7-4855-8078-211A0C8C529E",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "手表",
+    "pinyin": "shǒubiǎo",
+    "meaningVi": "đồng hồ đeo tay",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这块手表是爸爸送给我的生日礼物。",
+        "pinyin": "Zhè kuài shǒubiǎo shì bàba sòng gěi wǒ de shēngrì lǐwù.",
+        "meaningVi": "Chiếc đồng hồ đeo tay này là món quà sinh nhật bố tặng tôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这块手表是爸爸送给我的生日礼物。\", \"pinyin\": \"Zhè kuài shǒubiǎo shì bàba sòng gěi wǒ de shēngrì lǐwù.\", \"meaningVi\": \"Chiếc đồng hồ đeo tay này là món quà sinh nhật bố tặng tôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '手表' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9E37F6D8-AD19-4816-8199-E9D6D20D2E98",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "机场",
+    "pinyin": "jīchǎng",
+    "meaningVi": "sân bay",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我下午两点去机场接一位外国朋友。",
+        "pinyin": "Wǒ xiàwǔ liǎng diǎn qù jīchǎng jiē yí wèi wàiguó péngyou.",
+        "meaningVi": "Hai giờ chiều tôi đi ra sân bay đón một người bạn nước ngoài."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我下午两点去机场接一位外国朋友。\", \"pinyin\": \"Wǒ xiàwǔ liǎng diǎn qù jīchǎng jiē yí wèi wàiguó péngyou.\", \"meaningVi\": \"Hai giờ chiều tôi đi ra sân bay đón một người bạn nước ngoài.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '机场' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E5CFB7CB-9628-433D-A60A-DED6D65BE538",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "爷爷",
+    "pinyin": "yéye",
+    "meaningVi": "ông nội",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "爷爷今年七十五岁了，身体很硬朗。",
+        "pinyin": "Yéye jīnnián qīshíwǔ suì le, shēntǐ hěn yìnglang.",
+        "meaningVi": "Năm nay ông nội đã bảy mươi lăm tuổi rồi, sức khỏe vẫn rất dẻo dai."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"爷爷今年七十五岁了，身体很硬朗。\", \"pinyin\": \"Yéye jīnnián qīshíwǔ suì le, shēntǐ hěn yìnglang.\", \"meaningVi\": \"Năm nay ông nội đã bảy mươi lăm tuổi rồi, sức khỏe vẫn rất dẻo dai.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '爷爷' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "029D7390-3003-4CF9-9DCB-43BF6CABD988",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "等",
+    "pinyin": "děng",
+    "meaningVi": "chờ, đợi",
+    "partOfSpeech": "动、（介）",
+    "examples": [
+      {
+        "zh": "请在这里等我五分钟。",
+        "pinyin": "Qǐng zài zhèlǐ děng wǒ wǔ fēnzhōng.",
+        "meaningVi": "Xin hãy đợi tôi ở đây năm phút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请在这里等我五分钟。\", \"pinyin\": \"Qǐng zài zhèlǐ děng wǒ wǔ fēnzhōng.\", \"meaningVi\": \"Xin hãy đợi tôi ở đây năm phút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '等' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "A0B17840-9621-41FE-BE21-628D3FC5B1FC",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "花",
+    "pinyin": "huā",
+    "meaningVi": "hoa, bông hoa",
+    "partOfSpeech": "名、（形）",
+    "examples": [
+      {
+        "zh": "院子里开满了美丽的花朵。",
+        "pinyin": "Yuànzi lǐ kāi mǎn le měilì de huāduǒ.",
+        "meaningVi": "Trong sân nở đầy những đóa hoa tươi đẹp."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"院子里开满了美丽的花朵。\", \"pinyin\": \"Yuànzi lǐ kāi mǎn le měilì de huāduǒ.\", \"meaningVi\": \"Trong sân nở đầy những đóa hoa tươi đẹp.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '花' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "56A3B421-032E-46B9-8B3D-0D5A6F50A378",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "路",
+    "pinyin": "lù",
+    "meaningVi": "đường, con đường",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "去火车站走这条路最近。",
+        "pinyin": "Qù huǒchēzhàn zǒu zhè tiáo lù zuì jìn.",
+        "meaningVi": "Đi ga tàu hỏa đi con đường này là gần nhất."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"去火车站走这条路最近。\", \"pinyin\": \"Qù huǒchēzhàn zǒu zhè tiáo lù zuì jìn.\", \"meaningVi\": \"Đi ga tàu hỏa đi con đường này là gần nhất.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '路' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CFC398FA-B713-43FB-88A4-486644E82E82",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "这样",
+    "pinyin": "zhèyàng",
+    "meaningVi": "như vậy, như thế này",
+    "partOfSpeech": "代",
+    "examples": [
+      {
+        "zh": "这样做可以省很多时间。",
+        "pinyin": "Zhèyàng zuò kěyǐ shěng hěn duō shíjiān.",
+        "meaningVi": "Làm như vậy có thể tiết kiệm rất nhiều thời gian."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这样做可以省很多时间。\", \"pinyin\": \"Zhèyàng zuò kěyǐ shěng hěn duō shíjiān.\", \"meaningVi\": \"Làm như vậy có thể tiết kiệm rất nhiều thời gian.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '这样' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3C3926AC-6EE8-4A9F-9F97-42F166DA3FCC",
+    "lessonId": "896C5922-ACD0-46A0-A8C6-FF0084FDA3E0",
+    "lessonNumber": 9,
+    "lessonTitle": "题太多，我没做完",
+    "hskLevel": 2,
+    "hanzi": "间",
+    "pinyin": "jiān",
+    "meaningVi": "gian, phòng (lượng từ căn phòng)",
+    "partOfSpeech": "量、（名）",
+    "examples": [
+      {
+        "zh": "我们在三楼那间大教室上课。",
+        "pinyin": "Wǒmen zài sān lóu nà jiān dà jiàoshì shàngkè.",
+        "meaningVi": "Chúng tôi học bài ở căn phòng học lớn trên tầng ba kia."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们在三楼那间大教室上课。\", \"pinyin\": \"Wǒmen zài sān lóu nà jiān dà jiàoshì shàngkè.\", \"meaningVi\": \"Chúng tôi học bài ở căn phòng học lớn trên tầng ba kia.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '间' in Lesson 9. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4DD39ACD-7B9E-4353-9D3F-813C323FC474",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "下来",
+    "pinyin": "xiàlái",
+    "meaningVi": "xuống đây, ngồi xuống",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "请大家坐下来，现在开始上课。",
+        "pinyin": "Qǐng dàjiā zuò xiàlái, xiànzài kāishǐ shàngkè.",
+        "meaningVi": "Xin mọi người ngồi xuống, bây giờ bắt đầu vào học."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请大家坐下来，现在开始上课。\", \"pinyin\": \"Qǐng dàjiā zuò xiàlái, xiànzài kāishǐ shàngkè.\", \"meaningVi\": \"Xin mọi người ngồi xuống, bây giờ bắt đầu vào học.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '下来' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4C9C52DB-6AAF-45E0-84AE-F67A9166EE55",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "准备",
+    "pinyin": "zhǔnbèi",
+    "meaningVi": "chuẩn bị",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "你准备好明天的汉语考试了吗？",
+        "pinyin": "Nǐ zhǔnbèi hǎo míngtiān de hànyǔ kǎoshì le ma?",
+        "meaningVi": "Bạn đã chuẩn bị sẵn sàng cho kỳ thi tiếng Hán ngày mai chưa?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你准备好明天的汉语考试了吗？\", \"pinyin\": \"Nǐ zhǔnbèi hǎo míngtiān de hànyǔ kǎoshì le ma?\", \"meaningVi\": \"Bạn đã chuẩn bị sẵn sàng cho kỳ thi tiếng Hán ngày mai chưa?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '准备' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "73454A0F-52FE-43A7-B0FC-499D92861927",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "告诉",
+    "pinyin": "gàosu",
+    "meaningVi": "bảo, nói cho biết",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "这件事请千万别告诉别人。",
+        "pinyin": "Zhè jiàn shì qǐng qiānwàn bié gàosu biérén.",
+        "meaningVi": "Chuyện này xin bạn tuyệt đối đừng nói cho người khác biết nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这件事请千万别告诉别人。\", \"pinyin\": \"Zhè jiàn shì qǐng qiānwàn bié gàosu biérén.\", \"meaningVi\": \"Chuyện này xin bạn tuyệt đối đừng nói cho người khác biết nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '告诉' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "90BAC930-E69F-4A3F-88E8-AF08725BEBD2",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "奶奶",
+    "pinyin": "nǎinai",
+    "meaningVi": "bà nội",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "奶奶每天早上都去公园散步。",
+        "pinyin": "Nǎinai měitiān zǎoshang dōu qù gōngyuán sàn bù.",
+        "meaningVi": "Bà nội mỗi sáng đều ra công viên dạo bộ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"奶奶每天早上都去公园散步。\", \"pinyin\": \"Nǎinai měitiān zǎoshang dōu qù gōngyuán sàn bù.\", \"meaningVi\": \"Bà nội mỗi sáng đều ra công viên dạo bộ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '奶奶' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DECE32C0-301A-4320-A7C8-4B42A5ADDADF",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "床",
+    "pinyin": "chuáng",
+    "meaningVi": "giường",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这张木床又大又舒适。",
+        "pinyin": "Zhè zhāng mù chuáng yòu dà yòu shūshì.",
+        "meaningVi": "Chiếc giường gỗ này vừa to vừa êm ái."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这张木床又大又舒适。\", \"pinyin\": \"Zhè zhāng mù chuáng yòu dà yòu shūshì.\", \"meaningVi\": \"Chiếc giường gỗ này vừa to vừa êm ái.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '床' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8515CAB3-D582-4557-94C2-E303E259FBEE",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "打",
+    "pinyin": "dǎ",
+    "meaningVi": "đánh, chơi (bóng), gọi (điện thoại)",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "下午我们一起去操场打羽毛球吧。",
+        "pinyin": "Xiàwǔ wǒmen yìqǐ qù cāochǎng dǎ yǔmáoqiú ba.",
+        "meaningVi": "Buổi chiều chúng ta cùng ra sân vận động đánh cầu lông nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"下午我们一起去操场打羽毛球吧。\", \"pinyin\": \"Xiàwǔ wǒmen yìqǐ qù cāochǎng dǎ yǔmáoqiú ba.\", \"meaningVi\": \"Buổi chiều chúng ta cùng ra sân vận động đánh cầu lông nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '打' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "172C0BA0-D3E8-4418-8ED1-E1FFAD2337B3",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "机票",
+    "pinyin": "jīpiào",
+    "meaningVi": "vé máy bay",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我已经订好了下周去北京的机票。",
+        "pinyin": "Wǒ yǐjīng dìng hǎo le xià zhōu qù Běijīng de jīpiào.",
+        "meaningVi": "Tôi đã đặt xong vé máy bay đi Bắc Kinh vào tuần tới rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我已经订好了下周去北京的机票。\", \"pinyin\": \"Wǒ yǐjīng dìng hǎo le xià zhōu qù Běijīng de jīpiào.\", \"meaningVi\": \"Tôi đã đặt xong vé máy bay đi Bắc Kinh vào tuần tới rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '机票' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "206AB3BF-5506-4040-A418-5B3C1B9A3794",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "班",
+    "pinyin": "bān",
+    "meaningVi": "lớp học, ca làm",
+    "partOfSpeech": "名、（量）",
+    "examples": [
+      {
+        "zh": "我们班一共有二十个留学生。",
+        "pinyin": "Wǒmen bān yígòng yǒu èrshí gè liúxuéshēng.",
+        "meaningVi": "Lớp chúng tôi có tổng cộng hai mươi du học sinh."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们班一共有二十个留学生。\", \"pinyin\": \"Wǒmen bān yígòng yǒu èrshí gè liúxuéshēng.\", \"meaningVi\": \"Lớp chúng tôi có tổng cộng hai mươi du học sinh.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '班' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "18D6E50B-3378-4791-A513-87685DB79E26",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "篮球",
+    "pinyin": "lánqiú",
+    "meaningVi": "bóng rổ",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "周末哥哥常和朋友去打篮球。",
+        "pinyin": "Zhōumò gēge cháng hé péngyou qù dǎ lánqiú.",
+        "meaningVi": "Cuối tuần anh trai thường cùng bạn đi chơi bóng rổ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"周末哥哥常和朋友去打篮球。\", \"pinyin\": \"Zhōumò gēge cháng hé péngyou qù dǎ lánqiú.\", \"meaningVi\": \"Cuối tuần anh trai thường cùng bạn đi chơi bóng rổ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '篮球' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2B9E536A-3383-4D73-91D5-FCDED379B7DC",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "药",
+    "pinyin": "yào",
+    "meaningVi": "thuốc",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "记得按时吃药，多喝热水。",
+        "pinyin": "Jìde ànshí chī yào, duō hē rèshuǐ.",
+        "meaningVi": "Nhớ uống thuốc đúng giờ và uống nhiều nước nóng nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"记得按时吃药，多喝热水。\", \"pinyin\": \"Jìde ànshí chī yào, duō hē rèshuǐ.\", \"meaningVi\": \"Nhớ uống thuốc đúng giờ và uống nhiều nước nóng nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '药' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "05D01B67-7C3A-4AC1-A134-B68141FA66A6",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "路上",
+    "pinyin": "lùshang",
+    "meaningVi": "trên đường",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "路上车很多，开车要慢一点儿。",
+        "pinyin": "Lù shang chē hěn duō, kāi chē yào màn yìdiǎnr.",
+        "meaningVi": "Trên đường xe cộ rất đông, lái xe phải chậm một chút."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"路上车很多，开车要慢一点儿。\", \"pinyin\": \"Lù shang chē hěn duō, kāi chē yào màn yìdiǎnr.\", \"meaningVi\": \"Trên đường xe cộ rất đông, lái xe phải chậm một chút.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '路上' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CB914679-FEB2-4884-AD2B-77FDED2D6814",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "进",
+    "pinyin": "jìn",
+    "meaningVi": "vào, tiến vào",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "外面冷，快请进屋里坐。",
+        "pinyin": "Wàimiàn lěng, kuài qǐng jìn wū lǐ zuò.",
+        "meaningVi": "Bên ngoài lạnh, mau mời vào trong nhà ngồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"外面冷，快请进屋里坐。\", \"pinyin\": \"Wàimiàn lěng, kuài qǐng jìn wū lǐ zuò.\", \"meaningVi\": \"Bên ngoài lạnh, mau mời vào trong nhà ngồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '进' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "AD5D6B6F-FDB0-40D3-9F40-E6E6EF942566",
+    "lessonId": "F80EF720-0B1D-4929-BB38-C4DE81790E97",
+    "lessonNumber": 10,
+    "lessonTitle": "别找了，手机在桌子上呢",
+    "hskLevel": 2,
+    "hanzi": "阴",
+    "pinyin": "yīn",
+    "meaningVi": "âm u, râm",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "今天天气阴沉沉的，可能会下雨。",
+        "pinyin": "Jīntiān tiānqì yīn chénchén de, kěnéng huì xià yǔ.",
+        "meaningVi": "Hôm nay trời râm u ám, có thể sẽ đổ mưa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天天气阴沉沉的，可能会下雨。\", \"pinyin\": \"Jīntiān tiānqì yīn chénchén de, kěnéng huì xià yǔ.\", \"meaningVi\": \"Hôm nay trời râm u ám, có thể sẽ đổ mưa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '阴' in Lesson 10. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5D4B8C6D-7E79-4835-AA4A-80C56CA31C9A",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "下面",
+    "pinyin": "xiàmiàn",
+    "meaningVi": "phía dưới, bên dưới",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "桌子下面趴着一只可爱的小白猫。",
+        "pinyin": "Zhuōzi xiàmiàn pā zhe yì zhī kě'ài de xiǎo bái māo.",
+        "meaningVi": "Dưới gầm bàn có một chú mèo trắng nhỏ đáng yêu đang nằm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"桌子下面趴着一只可爱的小白猫。\", \"pinyin\": \"Zhuōzi xiàmiàn pā zhe yì zhī kě'ài de xiǎo bái māo.\", \"meaningVi\": \"Dưới gầm bàn có một chú mèo trắng nhỏ đáng yêu đang nằm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '下面' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0DDA7EDA-E903-4598-9804-61F4A317BF03",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "出",
+    "pinyin": "chū",
+    "meaningVi": "ra, xuất hiện",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "太阳从东边出来了。",
+        "pinyin": "Tàiyáng cóng dōngbian chūlái le.",
+        "meaningVi": "Mặt trời mọc ra từ phía đông rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"太阳从东边出来了。\", \"pinyin\": \"Tàiyáng cóng dōngbian chūlái le.\", \"meaningVi\": \"Mặt trời mọc ra từ phía đông rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '出' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F1A4829B-3D40-4CC2-877B-6EC6E666AEE1",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "周",
+    "pinyin": "zhōu",
+    "meaningVi": "tuần, một tuần",
+    "partOfSpeech": "名、（量）",
+    "examples": [
+      {
+        "zh": "下周一我们要举行运动会。",
+        "pinyin": "Xià zhōuyī wǒmen yào jǔxíng yùndònghuì.",
+        "meaningVi": "Thứ hai tuần sau chúng tôi sẽ tổ chức đại hội thể thao."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"下周一我们要举行运动会。\", \"pinyin\": \"Xià zhōuyī wǒmen yào jǔxíng yùndònghuì.\", \"meaningVi\": \"Thứ hai tuần sau chúng tôi sẽ tổ chức đại hội thể thao.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '周' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C0FA040D-B0AB-495A-B6E4-EF86479B3073",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "奶茶",
+    "pinyin": "nǎichá",
+    "meaningVi": "trà sữa",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "下午我们去买两杯好喝的珍珠奶茶吧。",
+        "pinyin": "Xiàwǔ wǒmen qù mǎi liǎng bēi hǎohē de zhēnzhū nǎichá ba.",
+        "meaningVi": "Buổi chiều chúng ta đi mua hai cốc trà sữa trân châu thơm ngon nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"下午我们去买两杯好喝的珍珠奶茶吧。\", \"pinyin\": \"Xiàwǔ wǒmen qù mǎi liǎng bēi hǎohē de zhēnzhū nǎichá ba.\", \"meaningVi\": \"Buổi chiều chúng ta đi mua hai cốc trà sữa trân châu thơm ngon nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '奶茶' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B6137CD1-1C19-41D2-A081-9E6996E6AF50",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "开始",
+    "pinyin": "kāishǐ",
+    "meaningVi": "bắt đầu",
+    "partOfSpeech": "动、名",
+    "examples": [
+      {
+        "zh": "电影晚上八点钟准时开始。",
+        "pinyin": "Diànyǐng wǎnshang bā diǎn zhōng zhǔnshí kāishǐ.",
+        "meaningVi": "Bộ phim bắt đầu đúng tám giờ tối."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"电影晚上八点钟准时开始。\", \"pinyin\": \"Diànyǐng wǎnshang bā diǎn zhōng zhǔnshí kāishǐ.\", \"meaningVi\": \"Bộ phim bắt đầu đúng tám giờ tối.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '开始' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "1DBE212C-2870-4108-9A69-8AF82ABA0FD9",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "打开",
+    "pinyin": "dǎkāi",
+    "meaningVi": "mở ra, bật lên",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "请大家打开书，翻到第二十页。",
+        "pinyin": "Qǐng dàjiā dǎkāi shū, fān dào dì-èrshí yè.",
+        "meaningVi": "Xin mọi người mở sách ra, giở đến trang 20."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请大家打开书，翻到第二十页。\", \"pinyin\": \"Qǐng dàjiā dǎkāi shū, fān dào dì-èrshí yè.\", \"meaningVi\": \"Xin mọi người mở sách ra, giở đến trang 20.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '打开' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DC1756BC-CEFF-4811-B681-4CB0B78D3E69",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "条",
+    "pinyin": "tiáo",
+    "meaningVi": "con, chiếc (lượng từ cho vật dài)",
+    "partOfSpeech": "量、（名）",
+    "examples": [
+      {
+        "zh": "湖里游着几条金色的鱼。",
+        "pinyin": "Hú lǐ yóu zhe jǐ tiáo jīnsè de yú.",
+        "meaningVi": "Dưới hồ đang bơi mấy con cá màu vàng kim."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"湖里游着几条金色的鱼。\", \"pinyin\": \"Hú lǐ yóu zhe jǐ tiáo jīnsè de yú.\", \"meaningVi\": \"Dưới hồ đang bơi mấy con cá màu vàng kim.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '条' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "640395BE-39D7-498C-BBAC-1A159FAB40B3",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "球",
+    "pinyin": "qiú",
+    "meaningVi": "bóng, quả bóng",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "孩子们在草地上快乐地踢球。",
+        "pinyin": "Háizimen zài cǎodì shang kuàilè de tī qiú.",
+        "meaningVi": "Lũ trẻ đang vui vẻ đá bóng trên thảm cỏ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"孩子们在草地上快乐地踢球。\", \"pinyin\": \"Háizimen zài cǎodì shang kuàilè de tī qiú.\", \"meaningVi\": \"Lũ trẻ đang vui vẻ đá bóng trên thảm cỏ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '球' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E4C7C109-B761-4E55-9A19-4BEFFC24639A",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "累",
+    "pinyin": "lèi",
+    "meaningVi": "mệt, mệt mỏi",
+    "partOfSpeech": "形、动",
+    "examples": [
+      {
+        "zh": "今天工作了一整天，我好累啊。",
+        "pinyin": "Jīntiān gōngzuò le yì zhěng tiān, wǒ hǎo lèi a.",
+        "meaningVi": "Hôm nay làm việc cả ngày trời, tôi mệt quá."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天工作了一整天，我好累啊。\", \"pinyin\": \"Jīntiān gōngzuò le yì zhěng tiān, wǒ hǎo lèi a.\", \"meaningVi\": \"Hôm nay làm việc cả ngày trời, tôi mệt quá.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '累' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "D1D9CC6A-C98B-4521-B3FC-EADE0355593E",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "药店",
+    "pinyin": "yàodiàn",
+    "meaningVi": "hiệu thuốc, nhà thuốc",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "学校附近有一家二十四小时药店。",
+        "pinyin": "Xuéxiào fùjìn yǒu yì jiā èrshísì xiǎoshí yàodiàn.",
+        "meaningVi": "Gần trường học có một hiệu thuốc mở cửa 24 giờ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校附近有一家二十四小时药店。\", \"pinyin\": \"Xuéxiào fùjìn yǒu yì jiā èrshísì xiǎoshí yàodiàn.\", \"meaningVi\": \"Gần trường học có một hiệu thuốc mở cửa 24 giờ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '药店' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F455F923-9425-4F12-BD67-2EF48E05538D",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "跳舞",
+    "pinyin": "tiàowǔ",
+    "meaningVi": "nhảy múa, khiêu vũ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "妹妹从小就喜欢唱歌和跳舞。",
+        "pinyin": "Mèimei cóngxiǎo jiù xǐhuan chànggē hé tiàowǔ.",
+        "meaningVi": "Em gái từ nhỏ đã thích ca hát và nhảy múa."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"妹妹从小就喜欢唱歌和跳舞。\", \"pinyin\": \"Mèimei cóngxiǎo jiù xǐhuan chànggē hé tiàowǔ.\", \"meaningVi\": \"Em gái từ nhỏ đã thích ca hát và nhảy múa.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '跳舞' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8303C466-6D76-4123-B462-542205220404",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "进去",
+    "pinyin": "jìnqù",
+    "meaningVi": "đi vào, bước vào",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他们已经走进去参观了。",
+        "pinyin": "Tāmen yǐjīng zǒu jìnqu cānguān le.",
+        "meaningVi": "Họ đã bước vào trong tham quan rồi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他们已经走进去参观了。\", \"pinyin\": \"Tāmen yǐjīng zǒu jìnqu cānguān le.\", \"meaningVi\": \"Họ đã bước vào trong tham quan rồi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '进去' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "45948B4A-C4DB-4FB2-90E7-A40B49A29213",
+    "lessonId": "9125E361-621A-46AD-B478-EDAD86D09781",
+    "lessonNumber": 11,
+    "lessonTitle": "他比我大三岁",
+    "hskLevel": 2,
+    "hanzi": "面",
+    "pinyin": "miàn",
+    "meaningVi": "mặt, phía, bề mặt",
+    "partOfSpeech": "后缀、（动、名、量）",
+    "examples": [
+      {
+        "zh": "桌子上面放着三本新书。",
+        "pinyin": "Zhuōzi shàngmian fàng zhe sān běn xīn shū.",
+        "meaningVi": "Phía trên mặt bàn có để ba cuốn sách mới."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"桌子上面放着三本新书。\", \"pinyin\": \"Zhuōzi shàngmian fàng zhe sān běn xīn shū.\", \"meaningVi\": \"Phía trên mặt bàn có để ba cuốn sách mới.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '面' in Lesson 11. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5AA763D0-6EBB-4CA1-91F7-30C4E70A607A",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "不好意思",
+    "pinyin": "bù hǎoyìsi",
+    "meaningVi": "ngại quá, xin lỗi",
+    "partOfSpeech": "",
+    "examples": [
+      {
+        "zh": "不好意思，我今天路上堵车来晚了。",
+        "pinyin": "Bù hǎoyìsi, wǒ jīntiān lù shang dǔchē lái wǎn le.",
+        "meaningVi": "Ngại quá, hôm nay trên đường kẹt xe nên tôi đến muộn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"不好意思，我今天路上堵车来晚了。\", \"pinyin\": \"Bù hǎoyìsi, wǒ jīntiān lù shang dǔchē lái wǎn le.\", \"meaningVi\": \"Ngại quá, hôm nay trên đường kẹt xe nên tôi đến muộn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '不好意思' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "41804BFA-23AD-495C-AE79-54E360B894D7",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "出去",
+    "pinyin": "chūqù",
+    "meaningVi": "ra ngoài",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "天气这么好，我们出去散步吧。",
+        "pinyin": "Tiānqì zhème hǎo, wǒmen chūqu sàn bù ba.",
+        "meaningVi": "Thời tiết đẹp thế này, chúng ta ra ngoài dạo bộ đi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"天气这么好，我们出去散步吧。\", \"pinyin\": \"Tiānqì zhème hǎo, wǒmen chūqu sàn bù ba.\", \"meaningVi\": \"Thời tiết đẹp thế này, chúng ta ra ngoài dạo bộ đi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '出去' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4DCFF7E4-7E3B-4538-87B3-CAB7E6F419E8",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "咖啡",
+    "pinyin": "kāfēi",
+    "meaningVi": "cà phê",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我不习惯在晚上喝浓咖啡。",
+        "pinyin": "Wǒ bù xíguàn zài wǎnshang hē nóng kāfēi.",
+        "meaningVi": "Tôi không quen uống cà phê đặc vào buổi tối."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我不习惯在晚上喝浓咖啡。\", \"pinyin\": \"Wǒ bù xíguàn zài wǎnshang hē nóng kāfēi.\", \"meaningVi\": \"Tôi không quen uống cà phê đặc vào buổi tối.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '咖啡' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "BEB00744-F37D-43EE-8671-3421B1BDF5DB",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "妻子",
+    "pinyin": "qīzi",
+    "meaningVi": "vợ",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "他妻子是一名优秀的大学教师。",
+        "pinyin": "Tā qīzi shì yì míng yōuxiù de dàxué jiàoshī.",
+        "meaningVi": "Vợ anh ấy là một giảng viên đại học xuất sắc."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他妻子是一名优秀的大学教师。\", \"pinyin\": \"Tā qīzi shì yì míng yōuxiù de dàxué jiàoshī.\", \"meaningVi\": \"Vợ anh ấy là một giảng viên đại học xuất sắc.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '妻子' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E61732E7-0F27-4018-AE00-9954D4256155",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "开学",
+    "pinyin": "kāixué",
+    "meaningVi": "khai giảng, tựu trường",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "九月一号是中小学开学的日子。",
+        "pinyin": "Jiǔ yuè yī hào shì zhōng xiǎoxué kāixué de rìzi.",
+        "meaningVi": "Ngày 1 tháng 9 là ngày tựu trường của học sinh."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"九月一号是中小学开学的日子。\", \"pinyin\": \"Jiǔ yuè yī hào shì zhōng xiǎoxué kāixué de rìzi.\", \"meaningVi\": \"Ngày 1 tháng 9 là ngày tựu trường của học sinh.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '开学' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "80EE6578-F1E6-4A0C-ABFD-D5ED640356D9",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "打车",
+    "pinyin": "dǎchē",
+    "meaningVi": "bắt taxi, đi taxi",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "时间快来不及了，我们打车去吧。",
+        "pinyin": "Shíjiān kuài láibùjí le, wǒmen dǎchē qù ba.",
+        "meaningVi": "Sắp không kịp thời gian rồi, chúng ta đi taxi thôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"时间快来不及了，我们打车去吧。\", \"pinyin\": \"Shíjiān kuài láibùjí le, wǒmen dǎchē qù ba.\", \"meaningVi\": \"Sắp không kịp thời gian rồi, chúng ta đi taxi thôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '打车' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3171FCF2-D43B-4CE8-A9FF-5E0E82450E10",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "楼",
+    "pinyin": "lóu",
+    "meaningVi": "tòa nhà, tầng, lầu",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我家住在六楼，没有电梯。",
+        "pinyin": "Wǒ jiā zhù zài liù lóu, méiyǒu diàntī.",
+        "meaningVi": "Nhà tôi ở tầng sáu, không có thang máy."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我家住在六楼，没有电梯。\", \"pinyin\": \"Wǒ jiā zhù zài liù lóu, méiyǒu diàntī.\", \"meaningVi\": \"Nhà tôi ở tầng sáu, không có thang máy.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '楼' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0C2A91C5-8349-4387-8562-9CA1C94EB1BE",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "生日",
+    "pinyin": "shēngrì",
+    "meaningVi": "sinh nhật",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "今天是我的二十岁生日。",
+        "pinyin": "Jīntiān shì wǒ de èrshí suì shēngrì.",
+        "meaningVi": "Hôm nay là sinh nhật tròn 20 tuổi của tôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天是我的二十岁生日。\", \"pinyin\": \"Jīntiān shì wǒ de èrshí suì shēngrì.\", \"meaningVi\": \"Hôm nay là sinh nhật tròn 20 tuổi của tôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '生日' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "7AAD318D-CFC7-4F63-909F-D13108A046D8",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "红色",
+    "pinyin": "hóngsè",
+    "meaningVi": "màu đỏ",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "她今天穿了一件漂亮红色的裙子。",
+        "pinyin": "Tā jīntiān chuān le yí jiàn piàoliang hóngsè de qúnzi.",
+        "meaningVi": "Hôm nay cô ấy mặc một chiếc váy màu đỏ xinh đẹp."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"她今天穿了一件漂亮红色的裙子。\", \"pinyin\": \"Tā jīntiān chuān le yí jiàn piàoliang hóngsè de qúnzi.\", \"meaningVi\": \"Hôm nay cô ấy mặc một chiếc váy màu đỏ xinh đẹp.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '红色' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6F1F5F9D-1E5F-41A0-BF36-7144F24738AE",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "虽然",
+    "pinyin": "suīrán",
+    "meaningVi": "mặc dù, tuy",
+    "partOfSpeech": "连",
+    "examples": [
+      {
+        "zh": "虽然今天很冷，但他还是去跑步了。",
+        "pinyin": "Suīrán jīntiān hěn lěng, dàn tā háishi qù pǎobù le.",
+        "meaningVi": "Tuy hôm nay rất lạnh, nhưng cậu ấy vẫn đi chạy bộ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"虽然今天很冷，但他还是去跑步了。\", \"pinyin\": \"Suīrán jīntiān hěn lěng, dàn tā háishi qù pǎobù le.\", \"meaningVi\": \"Tuy hôm nay rất lạnh, nhưng cậu ấy vẫn đi chạy bộ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '虽然' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "663580F8-E446-494F-8321-CB465CDEA0E5",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "踢",
+    "pinyin": "tī",
+    "meaningVi": "đá",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "放学后我们去草地上踢足球吧。",
+        "pinyin": "Fàngxué hòu wǒmen qù cǎodì shang tī zúqiú ba.",
+        "meaningVi": "Sau khi tan học chúng ta ra thảm cỏ đá bóng nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"放学后我们去草地上踢足球吧。\", \"pinyin\": \"Fàngxué hòu wǒmen qù cǎodì shang tī zúqiú ba.\", \"meaningVi\": \"Sau khi tan học chúng ta ra thảm cỏ đá bóng nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '踢' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C2A3DEFD-B8A5-4F0D-827F-39558A1DDC95",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "进来",
+    "pinyin": "jìnlái",
+    "meaningVi": "vào đây, bước vào",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "门开着呢，快请进来坐吧。",
+        "pinyin": "Mén kāi zhe ne, kuài qǐng jìnlái zuò ba.",
+        "meaningVi": "Cửa đang mở đấy, mau mời vào ngồi đi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"门开着呢，快请进来坐吧。\", \"pinyin\": \"Mén kāi zhe ne, kuài qǐng jìnlái zuò ba.\", \"meaningVi\": \"Cửa đang mở đấy, mau mời vào ngồi đi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '进来' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "6D10994C-92B4-4B65-B4CA-A2E6693E7D69",
+    "lessonId": "C2FA623D-7D28-4133-A720-5F8311ACAC79",
+    "lessonNumber": 12,
+    "lessonTitle": "你穿得太少了",
+    "hskLevel": 2,
+    "hanzi": "题",
+    "pinyin": "tí",
+    "meaningVi": "câu hỏi, đề thi",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这次汉语考试的试题不算太难。",
+        "pinyin": "Zhè cì hànyǔ kǎoshì de shìtí bú suàn tài nán.",
+        "meaningVi": "Đề thi tiếng Hán lần này không tính là quá khó."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这次汉语考试的试题不算太难。\", \"pinyin\": \"Zhè cì hànyǔ kǎoshì de shìtí bú suàn tài nán.\", \"meaningVi\": \"Đề thi tiếng Hán lần này không tính là quá khó.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '题' in Lesson 12. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4C8D5554-0D5E-4747-AF9D-3A521FFFA04F",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "不错",
+    "pinyin": "búcuò",
+    "meaningVi": "rất tốt, không tệ",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "这道中国菜的味道真不错！",
+        "pinyin": "Zhè dào zhōngguócài de wèidào zhēn búcuò!",
+        "meaningVi": "Hương vị món ăn Trung Quốc này thật không tệ!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这道中国菜的味道真不错！\", \"pinyin\": \"Zhè dào zhōngguócài de wèidào zhēn búcuò!\", \"meaningVi\": \"Hương vị món ăn Trung Quốc này thật không tệ!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '不错' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B63EBBAE-14CB-4978-B039-843789E754DF",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "出国",
+    "pinyin": "chūguó",
+    "meaningVi": "ra nước ngoài, xuất ngoại",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他计划明年出国留学深造。",
+        "pinyin": "Tā jìhuà míngnián chūguó liúxué shēnzào.",
+        "meaningVi": "Anh ấy dự định năm sau ra nước ngoài du học nâng cao."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他计划明年出国留学深造。\", \"pinyin\": \"Tā jìhuà míngnián chūguó liúxué shēnzào.\", \"meaningVi\": \"Anh ấy dự định năm sau ra nước ngoài du học nâng cao.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '出国' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9BB4AB64-9E12-429D-8E70-4D9F5D0E1879",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "商场",
+    "pinyin": "shāngchǎng",
+    "meaningVi": "trung tâm thương mại, cửa hàng",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "周六我们去市中心的商场买衣服吧。",
+        "pinyin": "Zhōu liù wǒmen qù shì zhōngxīn de shāngchǎng mǎi yīfu ba.",
+        "meaningVi": "Thứ bảy chúng ta đến trung tâm thương mại ở trung tâm thành phố mua sắm nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"周六我们去市中心的商场买衣服吧。\", \"pinyin\": \"Zhōu liù wǒmen qù shì zhōngxīn de shāngchǎng mǎi yīfu ba.\", \"meaningVi\": \"Thứ bảy chúng ta đến trung tâm thương mại ở trung tâm thành phố mua sắm nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '商场' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "390C302C-64EB-45AE-A233-DB18C2C21241",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "姓",
+    "pinyin": "xìng",
+    "meaningVi": "họ, mang họ",
+    "partOfSpeech": "名、动",
+    "examples": [
+      {
+        "zh": "请问您贵姓？我姓王。",
+        "pinyin": "Qǐngwèn nín guì xìng? Wǒ xìng Wáng.",
+        "meaningVi": "Xin hỏi quý danh của ngài là gì? Tôi họ Vương."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请问您贵姓？我姓王。\", \"pinyin\": \"Qǐngwèn nín guì xìng? Wǒ xìng Wáng.\", \"meaningVi\": \"Xin hỏi quý danh của ngài là gì? Tôi họ Vương.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '姓' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "873F2668-4C37-474E-ADC2-A4FA43504C7F",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "往",
+    "pinyin": "wǎng",
+    "meaningVi": "hướng về, đi về phía",
+    "partOfSpeech": "动、介",
+    "examples": [
+      {
+        "zh": "一直往前走一百米就是地铁站。",
+        "pinyin": "Yìzhí wǎng qián zǒu yìbǎi mǐ jiù shì dìtiě zhàn.",
+        "meaningVi": "Cứ đi thẳng về phía trước một trăm mét là ga tàu điện ngầm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"一直往前走一百米就是地铁站。\", \"pinyin\": \"Yìzhí wǎng qián zǒu yìbǎi mǐ jiù shì dìtiě zhàn.\", \"meaningVi\": \"Cứ đi thẳng về phía trước một trăm mét là ga tàu điện ngầm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '往' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "E3E4817E-10D3-49E9-A820-F5CCCB5A4AAB",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "拿",
+    "pinyin": "ná",
+    "meaningVi": "cầm, lấy",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "请帮我拿着这杯热咖啡。",
+        "pinyin": "Qǐng bāng wǒ ná zhe zhè bēi rè kāfēi.",
+        "meaningVi": "Xin hãy giúp tôi cầm cốc cà phê nóng này."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请帮我拿着这杯热咖啡。\", \"pinyin\": \"Qǐng bāng wǒ ná zhe zhè bēi rè kāfēi.\", \"meaningVi\": \"Xin hãy giúp tôi cầm cốc cà phê nóng này.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '拿' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "07217978-3521-4286-B36D-339E2372A1C7",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "次",
+    "pinyin": "cì",
+    "meaningVi": "lần, lượt (lượng từ)",
+    "partOfSpeech": "量、（形）",
+    "examples": [
+      {
+        "zh": "这是我第一次来中国北京旅游。",
+        "pinyin": "Zhè shì wǒ dì-yī cì lái Zhōngguó Běijīng lǚyóu.",
+        "meaningVi": "Đây là lần đầu tiên tôi đến Bắc Kinh, Trung Quốc du lịch."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这是我第一次来中国北京旅游。\", \"pinyin\": \"Zhè shì wǒ dì-yī cì lái Zhōngguó Běijīng lǚyóu.\", \"meaningVi\": \"Đây là lần đầu tiên tôi đến Bắc Kinh, Trung Quốc du lịch.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '次' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "AE805024-D8F9-40FE-8594-ACAA8FE48C43",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "男孩儿",
+    "pinyin": "nánháir",
+    "meaningVi": "cậu bé, bé trai",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "那个打篮球的男孩儿是我弟弟。",
+        "pinyin": "Nàge dǎ lánqiú de nánháir shì wǒ dìdi.",
+        "meaningVi": "Cậu bé đang chơi bóng rổ kia là em trai tôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"那个打篮球的男孩儿是我弟弟。\", \"pinyin\": \"Nàge dǎ lánqiú de nánháir shì wǒ dìdi.\", \"meaningVi\": \"Cậu bé đang chơi bóng rổ kia là em trai tôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '男孩儿' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8D589962-8811-45AC-A193-B18977A7115B",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "红茶",
+    "pinyin": "hóngchá",
+    "meaningVi": "trà đen, hồng trà",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "英国人喜欢在下午喝红茶。",
+        "pinyin": "Yīngguó rén xǐhuan zài xiàwǔ hē hóngchá.",
+        "meaningVi": "Người Anh thích uống hồng trà vào buổi chiều."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"英国人喜欢在下午喝红茶。\", \"pinyin\": \"Yīngguó rén xǐhuan zài xiàwǔ hē hóngchá.\", \"meaningVi\": \"Người Anh thích uống hồng trà vào buổi chiều.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '红茶' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "5271BC77-5BE7-4039-A816-858DD5AB663D",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "裤子",
+    "pinyin": "kùzi",
+    "meaningVi": "quần, cái quần",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "这条黑色的裤子穿起来很舒服。",
+        "pinyin": "Zhè tiáo hēisè de kùzi chuān qǐlái hěn shūfu.",
+        "meaningVi": "Chiếc quần màu đen này mặc vào rất thoải mái."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"这条黑色的裤子穿起来很舒服。\", \"pinyin\": \"Zhè tiáo hēisè de kùzi chuān qǐlái hěn shūfu.\", \"meaningVi\": \"Chiếc quần màu đen này mặc vào rất thoải mái.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '裤子' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "FA0F4F84-8E7D-45C4-AB0D-3924428273AB",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "身体",
+    "pinyin": "shēntǐ",
+    "meaningVi": "sức khỏe, thân thể",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "每天运动对身体非常有好处。",
+        "pinyin": "Měitiān yùndòng duì shēntǐ fēicháng yǒu hǎochu.",
+        "meaningVi": "Mỗi ngày vận động đều vô cùng tốt cho sức khỏe."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"每天运动对身体非常有好处。\", \"pinyin\": \"Měitiān yùndòng duì shēntǐ fēicháng yǒu hǎochu.\", \"meaningVi\": \"Mỗi ngày vận động đều vô cùng tốt cho sức khỏe.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '身体' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "11FFFD12-6F9F-4055-88E5-96BC3AB22D9A",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "远",
+    "pinyin": "yuǎn",
+    "meaningVi": "xa",
+    "partOfSpeech": "形",
+    "examples": [
+      {
+        "zh": "学校离医院远不远？",
+        "pinyin": "Xuéxiào lí yīyuàn yuǎn bù yuǎn?",
+        "meaningVi": "Trường học cách bệnh viện xa không?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校离医院远不远？\", \"pinyin\": \"Xuéxiào lí yīyuàn yuǎn bù yuǎn?\", \"meaningVi\": \"Trường học cách bệnh viện xa không?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '远' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "0BB6D3C4-368B-42AC-9162-DE369B42906C",
+    "lessonId": "D3847A02-6793-40FA-9242-EF5CFC0289A5",
+    "lessonNumber": 13,
+    "lessonTitle": "门开着呢",
+    "hskLevel": 2,
+    "hanzi": "颜色",
+    "pinyin": "yánsè",
+    "meaningVi": "màu sắc",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "你最喜欢什么颜色？",
+        "pinyin": "Nǐ zuì xǐhuan shénme yánsè?",
+        "meaningVi": "Bạn thích màu sắc nào nhất?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你最喜欢什么颜色？\", \"pinyin\": \"Nǐ zuì xǐhuan shénme yánsè?\", \"meaningVi\": \"Bạn thích màu sắc nào nhất?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '颜色' in Lesson 13. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "C28AB873-9078-4401-8AF4-23CF407FBBE1",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "个子",
+    "pinyin": "gèzi",
+    "meaningVi": "dáng người, chiều cao",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "那个穿运动服的男同学个子很高。",
+        "pinyin": "Nàge chuān yùndòngfú de nán tóngxué gèzi hěn gāo.",
+        "meaningVi": "Bạn nam mặc bộ đồ thể thao kia dáng người rất cao."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"那个穿运动服的男同学个子很高。\", \"pinyin\": \"Nàge chuān yùndòngfú de nán tóngxué gèzi hěn gāo.\", \"meaningVi\": \"Bạn nam mặc bộ đồ thể thao kia dáng người rất cao.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '个子' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F02329A6-DF59-4A6A-A0B3-50FF170E563D",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "出来",
+    "pinyin": "chūlái",
+    "meaningVi": "đi ra, xuất hiện",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "天晴了，天边的彩虹出来了。",
+        "pinyin": "Tiān qíng le, tiānbiān de cǎihóng chūlái le.",
+        "meaningVi": "Trời tạnh ráo rồi, cầu vồng nơi chân trời đã xuất hiện."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"天晴了，天边的彩虹出来了。\", \"pinyin\": \"Tiān qíng le, tiānbiān de cǎihóng chūlái le.\", \"meaningVi\": \"Trời tạnh ráo rồi, cầu vồng nơi chân trời đã xuất hiện.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '出来' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B2921282-96CF-4D15-836D-8F06B9D8741A",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "啊",
+    "pinyin": "a",
+    "meaningVi": "a, chà (trợ từ cảm thán)",
+    "partOfSpeech": "助",
+    "examples": [
+      {
+        "zh": "今天的桂林山水真美啊！",
+        "pinyin": "Jīntiān de Guìlín shānshuǐ zhēn měi a!",
+        "meaningVi": "Non nước Quế Lâm hôm nay đẹp thật đấy!"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"今天的桂林山水真美啊！\", \"pinyin\": \"Jīntiān de Guìlín shānshuǐ zhēn měi a!\", \"meaningVi\": \"Non nước Quế Lâm hôm nay đẹp thật đấy!\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '啊' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "7FB525C5-7AB1-485C-9FFF-433B86E1A665",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "姓名",
+    "pinyin": "xìngmíng",
+    "meaningVi": "họ và tên",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "请在表格的第一行写上您的姓名。",
+        "pinyin": "Qǐng zài biǎogé de dì-yī háng xiě shang nín de xìngmíng.",
+        "meaningVi": "Xin hãy viết họ và tên của ngài vào dòng đầu tiên của biểu mẫu."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请在表格的第一行写上您的姓名。\", \"pinyin\": \"Qǐng zài biǎogé de dì-yī háng xiě shang nín de xìngmíng.\", \"meaningVi\": \"Xin hãy viết họ và tên của ngài vào dòng đầu tiên của biểu mẫu.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '姓名' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9851CB2C-C5E8-420A-9114-3DB40F497C51",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "得",
+    "pinyin": "de",
+    "meaningVi": "trợ từ kết cấu (sau động từ)",
+    "partOfSpeech": "助",
+    "examples": [
+      {
+        "zh": "他跑得很快，拿了比赛的第一名。",
+        "pinyin": "Tā pǎo de hěn kuài, ná le bǐsài de dì-yī míng.",
+        "meaningVi": "Anh ấy chạy rất nhanh, đã giành giải nhất cuộc thi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他跑得很快，拿了比赛的第一名。\", \"pinyin\": \"Tā pǎo de hěn kuài, ná le bǐsài de dì-yī míng.\", \"meaningVi\": \"Anh ấy chạy rất nhanh, đã giành giải nhất cuộc thi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '得' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "1D0FC593-3D63-4FBC-9470-4C957385073B",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "教",
+    "pinyin": "jiāo",
+    "meaningVi": "dạy, giảng dạy",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "李老师教我们汉语口语和听力。",
+        "pinyin": "Lǐ lǎoshī jiāo wǒmen hànyǔ kǒuyǔ hé tīnglì.",
+        "meaningVi": "Thầy Lý dạy chúng tôi môn khẩu ngữ và nghe tiếng Hán."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"李老师教我们汉语口语和听力。\", \"pinyin\": \"Lǐ lǎoshī jiāo wǒmen hànyǔ kǒuyǔ hé tīnglì.\", \"meaningVi\": \"Thầy Lý dạy chúng tôi môn khẩu ngữ và nghe tiếng Hán.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '教' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2FA24A4E-CE47-4FBC-8A68-739821ED3160",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "正",
+    "pinyin": "zhèng",
+    "meaningVi": "đang, chính vào lúc (phó từ)",
+    "partOfSpeech": "副、（形）",
+    "examples": [
+      {
+        "zh": "风正吹着树叶沙沙作响。",
+        "pinyin": "Fēng zhèng chuī zhe shùyè shāshā zuòxiǎng.",
+        "meaningVi": "Gió đang thổi làm lá cây kêu xào xạc."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"风正吹着树叶沙沙作响。\", \"pinyin\": \"Fēng zhèng chuī zhe shùyè shāshā zuòxiǎng.\", \"meaningVi\": \"Gió đang thổi làm lá cây kêu xào xạc.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '正' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "8C7C6ADB-E08D-4FC2-965A-F46C10128248",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "画",
+    "pinyin": "huà",
+    "meaningVi": "vẽ, tranh vẽ",
+    "partOfSpeech": "动、名",
+    "examples": [
+      {
+        "zh": "妹妹正在房间里画美丽的花。",
+        "pinyin": "Mèimei zhèngzài fángjiān lǐ huà měilì de huā.",
+        "meaningVi": "Em gái đang ở trong phòng vẽ những bông hoa tươi đẹp."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"妹妹正在房间里画美丽的花。\", \"pinyin\": \"Mèimei zhèngzài fángjiān lǐ huà měilì de huā.\", \"meaningVi\": \"Em gái đang ở trong phòng vẽ những bông hoa tươi đẹp.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '画' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "B98610B3-D386-4C07-A4F5-095DE0D764AE",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "经常",
+    "pinyin": "jīngcháng",
+    "meaningVi": "thường xuyên",
+    "partOfSpeech": "副",
+    "examples": [
+      {
+        "zh": "我经常去图书馆借中文书。",
+        "pinyin": "Wǒ jīngcháng qù túshūguǎn jiè zhōngwén shū.",
+        "meaningVi": "Tôi thường xuyên đến thư viện mượn sách tiếng Trung."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我经常去图书馆借中文书。\", \"pinyin\": \"Wǒ jīngcháng qù túshūguǎn jiè zhōngwén shū.\", \"meaningVi\": \"Tôi thường xuyên đến thư viện mượn sách tiếng Trung.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '经常' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "CF1AD4F3-1643-45F9-9F13-7F534E031320",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "让",
+    "pinyin": "ràng",
+    "meaningVi": "cho phép, để cho, bảo",
+    "partOfSpeech": "动、（介）",
+    "examples": [
+      {
+        "zh": "妈妈让我每天多吃新鲜水果。",
+        "pinyin": "Māma ràng wǒ měitiān duō chī xīnxiān shuǐguǒ.",
+        "meaningVi": "Mẹ bảo tôi mỗi ngày ăn nhiều hoa quả tươi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"妈妈让我每天多吃新鲜水果。\", \"pinyin\": \"Māma ràng wǒ měitiān duō chī xīnxiān shuǐguǒ.\", \"meaningVi\": \"Mẹ bảo tôi mỗi ngày ăn nhiều hoa quả tươi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '让' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "41C48A95-BC10-4FD7-8465-C5A46E530F3A",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "车站",
+    "pinyin": "chēzhàn",
+    "meaningVi": "bến xe, ga tàu",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "我们在火车站门口见面吧。",
+        "pinyin": "Wǒmen zài huǒchēzhàn ménkǒu jiànmiàn ba.",
+        "meaningVi": "Chúng ta gặp nhau ở cổng ga tàu hỏa nhé."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我们在火车站门口见面吧。\", \"pinyin\": \"Wǒmen zài huǒchēzhàn ménkǒu jiànmiàn ba.\", \"meaningVi\": \"Chúng ta gặp nhau ở cổng ga tàu hỏa nhé.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '车站' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "3D588582-B3BA-43A6-90F2-8FD4F2F162F9",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "送",
+    "pinyin": "sòng",
+    "meaningVi": "tặng, đưa tiễn",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "朋友送给我一本很有意思的汉语书。",
+        "pinyin": "Péngyou sòng gěi wǒ yì běn hěn yǒu yìsi de hànyǔ shū.",
+        "meaningVi": "Bạn tặng cho tôi một cuốn sách tiếng Hán rất thú vị."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"朋友送给我一本很有意思的汉语书。\", \"pinyin\": \"Péngyou sòng gěi wǒ yì běn hěn yǒu yìsi de hànyǔ shū.\", \"meaningVi\": \"Bạn tặng cho tôi một cuốn sách tiếng Hán rất thú vị.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '送' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "2E4E41D1-88B1-45CB-8255-3E8FEE39B56D",
+    "lessonId": "FB061E7A-1BC0-4B58-8C8A-EE22CC9492BE",
+    "lessonNumber": 14,
+    "lessonTitle": "你看过那个电影没有",
+    "hskLevel": 2,
+    "hanzi": "飞",
+    "pinyin": "fēi",
+    "meaningVi": "bay",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "天空中有一群小鸟在自由地飞。",
+        "pinyin": "Tiānkōng zhōng yǒu yì qún xiǎoniǎo zài zìyóu de fēi.",
+        "meaningVi": "Trên bầu trời có một đàn chim nhỏ đang tự do bay lượn."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"天空中有一群小鸟在自由地飞。\", \"pinyin\": \"Tiānkōng zhōng yǒu yì qún xiǎoniǎo zài zìyóu de fēi.\", \"meaningVi\": \"Trên bầu trời có một đàn chim nhỏ đang tự do bay lượn.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '飞' in Lesson 14. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "7260DCB8-3755-4091-8CD1-0152E29E5363",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "为什么",
+    "pinyin": "wèi shénme",
+    "meaningVi": "tại sao, vì sao",
+    "partOfSpeech": "",
+    "examples": [
+      {
+        "zh": "你今天为什么没来上汉语辅导课？",
+        "pinyin": "Nǐ jīntiān wèishénme méi lái shàng hànyǔ fǔdǎo kè?",
+        "meaningVi": "Tại sao hôm nay bạn không đến lớp phụ đạo tiếng Hán?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你今天为什么没来上汉语辅导课？\", \"pinyin\": \"Nǐ jīntiān wèishénme méi lái shàng hànyǔ fǔdǎo kè?\", \"meaningVi\": \"Tại sao hôm nay bạn không đến lớp phụ đạo tiếng Hán?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '为什么' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "1AC082C2-9859-4271-9EDC-39A8740E86CC",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "出门",
+    "pinyin": "chūmén",
+    "meaningVi": "ra ngoài, rời khỏi nhà",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "他每天早晨七点准时出门上班。",
+        "pinyin": "Tā měitiān zǎochén qī diǎn zhǔnshí chūmén shàngbān.",
+        "meaningVi": "Mỗi sáng anh ấy đúng bảy giờ đều ra khỏi nhà đi làm."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"他每天早晨七点准时出门上班。\", \"pinyin\": \"Tā měitiān zǎochén qī diǎn zhǔnshí chūmén shàngbān.\", \"meaningVi\": \"Mỗi sáng anh ấy đúng bảy giờ đều ra khỏi nhà đi làm.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '出门' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "DCF78EC1-CBD0-47D0-B041-3912F00DEA7C",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "回去",
+    "pinyin": "huíqù",
+    "meaningVi": "trở về, quay về",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "时间不早了，我该坐车回去了。",
+        "pinyin": "Shíjiān bù zǎo le, wǒ gāi zuò chē huíqu le.",
+        "meaningVi": "Thời gian không còn sớm nữa, tôi phải đi xe về nhà thôi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"时间不早了，我该坐车回去了。\", \"pinyin\": \"Shíjiān bù zǎo le, wǒ gāi zuò chē huíqu le.\", \"meaningVi\": \"Thời gian không còn sớm nữa, tôi phải đi xe về nhà thôi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '回去' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "96C6EA24-DF7C-44BB-8313-14812AE461F4",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "完",
+    "pinyin": "wán",
+    "meaningVi": "xong, hoàn thành",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "我刚刚写完今天的汉语作业。",
+        "pinyin": "Wǒ gānggāng xiě wán jīntiān de hànyǔ zuòyè.",
+        "meaningVi": "Tôi vừa mới làm xong bài tập tiếng Hán hôm nay."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我刚刚写完今天的汉语作业。\", \"pinyin\": \"Wǒ gānggāng xiě wán jīntiān de hànyǔ zuòyè.\", \"meaningVi\": \"Tôi vừa mới làm xong bài tập tiếng Hán hôm nay.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '完' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "68366065-74F8-4A54-A1DE-130301077282",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "忘",
+    "pinyin": "wàng",
+    "meaningVi": "quên",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "糟糕，我出门忘了带家里的钥匙。",
+        "pinyin": "Zāogāo, wǒ chūmén wàng le dài jiā lǐ de yàoshi.",
+        "meaningVi": "Gay go rồi, lúc ra cửa tôi quên mang chìa khóa nhà."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"糟糕，我出门忘了带家里的钥匙。\", \"pinyin\": \"Zāogāo, wǒ chūmén wàng le dài jiā lǐ de yàoshi.\", \"meaningVi\": \"Gay go rồi, lúc ra cửa tôi quên mang chìa khóa nhà.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '忘' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "EEBD8903-78B4-466A-A972-1C3561CFEEA2",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "教室",
+    "pinyin": "jiàoshì",
+    "meaningVi": "phòng học, lớp học",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "请大家下课后把教室整理干净。",
+        "pinyin": "Qǐng dàjiā xiàkè hòu bǎ jiàoshì zhěnglǐ gānjìng.",
+        "meaningVi": "Xin mọi người sau khi tan học hãy dọn dẹp phòng học sạch sẽ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"请大家下课后把教室整理干净。\", \"pinyin\": \"Qǐng dàjiā xiàkè hòu bǎ jiàoshì zhěnglǐ gānjìng.\", \"meaningVi\": \"Xin mọi người sau khi tan học hãy dọn dẹp phòng học sạch sẽ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '教室' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "419BD24F-B786-4196-9FA3-47A98ADBE6A8",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "每",
+    "pinyin": "měi",
+    "meaningVi": "mỗi, mọi",
+    "partOfSpeech": "代、（副）",
+    "examples": [
+      {
+        "zh": "我每天早上都要喝一杯热牛奶。",
+        "pinyin": "Wǒ měitiān zǎoshang dōu yào hē yì bēi rè niúnǎi.",
+        "meaningVi": "Mỗi sáng tôi đều uống một ly sữa nóng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我每天早上都要喝一杯热牛奶。\", \"pinyin\": \"Wǒ měitiān zǎoshang dōu yào hē yì bēi rè niúnǎi.\", \"meaningVi\": \"Mỗi sáng tôi đều uống một ly sữa nóng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '每' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "4102E76E-87DB-4157-9D7F-58271BA1004E",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "疼",
+    "pinyin": "téng",
+    "meaningVi": "đau, nhức",
+    "partOfSpeech": "形、（动）",
+    "examples": [
+      {
+        "zh": "我的胃有点儿疼，想去医院看医生。",
+        "pinyin": "Wǒ de wèi yǒudiǎnr téng, xiǎng qù yīyuàn kàn yīshēng.",
+        "meaningVi": "Dạ dày của tôi hơi đau, muốn đến bệnh viện khám bác sĩ."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我的胃有点儿疼，想去医院看医生。\", \"pinyin\": \"Wǒ de wèi yǒudiǎnr téng, xiǎng qù yīyuàn kàn yīshēng.\", \"meaningVi\": \"Dạ dày của tôi hơi đau, muốn đến bệnh viện khám bác sĩ.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '疼' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "F2FCA4F4-8A34-4CCE-AEC9-0A4522201CD8",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "绿色",
+    "pinyin": "lǜsè",
+    "meaningVi": "màu xanh lá",
+    "partOfSpeech": "名、（形）",
+    "examples": [
+      {
+        "zh": "春天来了，山上的树都是绿色的。",
+        "pinyin": "Chūntiān lái le, shān shang de shù dōu shì lǜsè de.",
+        "meaningVi": "Mùa xuân đến rồi, cây cối trên núi đều là màu xanh lá."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"春天来了，山上的树都是绿色的。\", \"pinyin\": \"Chūntiān lái le, shān shang de shù dōu shì lǜsè de.\", \"meaningVi\": \"Mùa xuân đến rồi, cây cối trên núi đều là màu xanh lá.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '绿色' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "10EF481B-4B20-4F8F-BDF9-47401E855D1D",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "记得",
+    "pinyin": "jìde",
+    "meaningVi": "nhớ, còn nhớ",
+    "partOfSpeech": "动",
+    "examples": [
+      {
+        "zh": "你还记得我们第一次见面的地方吗？",
+        "pinyin": "Nǐ hái jìde wǒmen dì-yī cì jiànmiàn de dìfang ma?",
+        "meaningVi": "Bạn còn nhớ nơi đầu tiên chúng ta gặp nhau không?"
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"你还记得我们第一次见面的地方吗？\", \"pinyin\": \"Nǐ hái jìde wǒmen dì-yī cì jiànmiàn de dìfang ma?\", \"meaningVi\": \"Bạn còn nhớ nơi đầu tiên chúng ta gặp nhau không?\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '记得' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "13E17412-C0C0-4AEE-87DF-27DC9914CF6F",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "过",
+    "pinyin": "guo",
+    "meaningVi": "từng (trợ từ chỉ trải nghiệm)",
+    "partOfSpeech": "助",
+    "examples": [
+      {
+        "zh": "我去过中国北京和上海旅游。",
+        "pinyin": "Wǒ qù guò Zhōngguó Běijīng hé Shànghǎi lǚyóu.",
+        "meaningVi": "Tôi từng đi du lịch Bắc Kinh và Thượng Hải của Trung Quốc."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"我去过中国北京和上海旅游。\", \"pinyin\": \"Wǒ qù guò Zhōngguó Běijīng hé Shànghǎi lǚyóu.\", \"meaningVi\": \"Tôi từng đi du lịch Bắc Kinh và Thượng Hải của Trung Quốc.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '过' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "52E06CF7-D313-4FCD-9CB3-6253BEE8BF8F",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "那么",
+    "pinyin": "nàme",
+    "meaningVi": "như vậy, thế thì",
+    "partOfSpeech": "代、连",
+    "examples": [
+      {
+        "zh": "既然你喜欢，那么就买这件吧。",
+        "pinyin": "Jìrán nǐ xǐhuan, nàme jiù mǎi zhè jiàn ba.",
+        "meaningVi": "Đã là bạn thích, vậy thì mua chiếc này đi."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"既然你喜欢，那么就买这件吧。\", \"pinyin\": \"Jìrán nǐ xǐhuan, nàme jiù mǎi zhè jiàn ba.\", \"meaningVi\": \"Đã là bạn thích, vậy thì mua chiếc này đi.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '那么' in Lesson 15. Cleaned pedagogical meaningVi."
+  },
+  {
+    "devId": "9B166E5D-A646-4A3C-B194-D5EB153A249E",
+    "lessonId": "44A558F0-28F7-4841-9227-F5A0BD877B19",
+    "lessonNumber": 15,
+    "lessonTitle": "新年就要到了",
+    "hskLevel": 2,
+    "hanzi": "饭馆",
+    "pinyin": "fànguǎn",
+    "meaningVi": "nhà hàng, quán ăn",
+    "partOfSpeech": "名",
+    "examples": [
+      {
+        "zh": "学校旁边有一家很有名川菜饭馆。",
+        "pinyin": "Xuéxiào pángbiān yǒu yì jiā hěn yǒumíng Chuāncài fànguǎn.",
+        "meaningVi": "Bên cạnh trường học có một quán ăn món Tứ Xuyên rất nổi tiếng."
+      }
+    ],
+    "examplesJson": "[{\"zh\": \"学校旁边有一家很有名川菜饭馆。\", \"pinyin\": \"Xuéxiào pángbiān yǒu yì jiā hěn yǒumíng Chuāncài fànguǎn.\", \"meaningVi\": \"Bên cạnh trường học có một quán ăn món Tứ Xuyên rất nổi tiếng.\"}]",
+    "status": "AI_ASSISTED_UNVERIFIED",
+    "qaNotes": "HSK 2 standard contextual sentence for '饭馆' in Lesson 15. Cleaned pedagogical meaningVi."
+  }
+]

@@ -219,7 +219,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
 
         var surnameTraps = vocabularies
             .Where(v => !string.IsNullOrEmpty(v.MeaningVi)
-                        && v.Hanzi != "姓名" && v.Hanzi != "亲属"
+                        && v.Hanzi != "姓名" && v.Hanzi != "姓" && v.Hanzi != "亲属"
                         && surnameTrapRegex.IsMatch(v.MeaningVi))
             .ToList();
 
@@ -322,6 +322,6 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
         Assert.Equal(6, totalCourses);
 
         var totalExercises = await db.Exercises.CountAsync();
-        Assert.True(totalExercises == 278 || totalExercises == 310, $"Total exercises should be either baseline 278 or integrated 310 (Actual: {totalExercises})");
+        Assert.True(totalExercises == 278 || totalExercises == 310 || totalExercises == 370, $"Total exercises should be either baseline 278, Phase 9.1 integrated 310, or Phase 9.2 integrated 370 (Actual: {totalExercises})");
     }
 }
