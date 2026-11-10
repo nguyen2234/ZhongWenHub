@@ -1,0 +1,132 @@
+{
+  "standard": "HSK_2_0",
+  "timestamp": "2026-11-11T01:35:00Z",
+  "targetDatabase": "ZhongWenHub_Test",
+  "safetyEnforcement": {
+    "devDatabaseReadOnly": true,
+    "testDatabaseGated": true,
+    "userApprovalRequired": true
+  },
+  "vocabularyDiff": {
+    "proposedStandardTotal": 1200,
+    "currentTotalInSystem": 2008,
+    "byLevel": {
+      "HSK1": {
+        "proposedStandard": 150,
+        "currentInSystem": 308,
+        "difference": -158,
+        "standardTargetMilestone": 150
+      },
+      "HSK2": {
+        "proposedStandard": 150,
+        "currentInSystem": 200,
+        "difference": -50,
+        "standardTargetMilestone": 300
+      },
+      "HSK3": {
+        "proposedStandard": 299,
+        "currentInSystem": 500,
+        "difference": -201,
+        "standardTargetMilestone": 600
+      },
+      "HSK4": {
+        "proposedStandard": 601,
+        "currentInSystem": 1000,
+        "difference": -399,
+        "standardTargetMilestone": 1200
+      }
+    },
+    "recordsToAdd": [],
+    "recordsToUpdate": [],
+    "homographsPreserved": [
+      {
+        "hanzi": "得",
+        "pinyin1": "de",
+        "pinyin2": "děi",
+        "level": 2
+      },
+      {
+        "hanzi": "还",
+        "pinyin1": "hái",
+        "pinyin2": "huán",
+        "level": 2
+      },
+      {
+        "hanzi": "长",
+        "pinyin1": "cháng",
+        "pinyin2": "zhǎng",
+        "level": 2
+      },
+      {
+        "hanzi": "只",
+        "pinyin1": "zhī",
+        "pinyin2": "zhǐ",
+        "level": 3
+      },
+      {
+        "hanzi": "等",
+        "pinyin": "děng",
+        "roles": [
+          "v",
+          "n"
+        ],
+        "level": 4
+      },
+      {
+        "hanzi": "对",
+        "pinyin": "duì",
+        "roles": [
+          "prep/adj",
+          "m"
+        ],
+        "level": 4
+      },
+      {
+        "hanzi": "过",
+        "pinyin": "guò",
+        "roles": [
+          "v",
+          "part"
+        ],
+        "level": 4
+      }
+    ]
+  },
+  "grammarDiff": {
+    "proposedStandardTotal": 311,
+    "currentTotalInSystem": 341,
+    "byLevel": {
+      "HSK1": {
+        "proposedStandard": 50,
+        "currentInSystem": 72,
+        "difference": -22
+      },
+      "HSK2": {
+        "proposedStandard": 75,
+        "currentInSystem": 78,
+        "difference": -3
+      },
+      "HSK3": {
+        "proposedStandard": 79,
+        "currentInSystem": 96,
+        "difference": -17
+      },
+      "HSK4": {
+        "proposedStandard": 107,
+        "currentInSystem": 95,
+        "difference": 12
+      }
+    },
+    "recordsToAdd": []
+  },
+  "proposedSchemaAdjustments": [
+    "VocabularyEntity: utilizes existing SourceDataset ('HSK_2_0'), SourceEntryId, Status ('STAGING' until approved)",
+    "GrammarPointEntity: utilizes existing SourceDataset ('HSK_2_0_ALLSET'), StructureFormula, Status ('STAGING')"
+  ],
+  "rollbackPlan": {
+    "snapshotFile": "data/hsk20/staging/pre_import_test_db_snapshot.json",
+    "rollbackScript": "scripts/hsk20/snapshot_and_rollback.py --rollback",
+    "recoveryRpo": "0 (exact transaction state prior to import)",
+    "studentDataImpact": "ZERO impact on User XP, lesson progress, or user accounts"
+  }
+}
