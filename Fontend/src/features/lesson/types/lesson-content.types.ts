@@ -194,6 +194,8 @@ export interface LessonReadingPassageDTO {
   characterCount: number;
   targetWords?: string[];
   targetGrammar?: string[];
+  status?: string;
+  integrationStrategy?: string | Record<string, any>;
   comprehensionQuestions: ReadingComprehensionQuestionDTO[];
 }
 

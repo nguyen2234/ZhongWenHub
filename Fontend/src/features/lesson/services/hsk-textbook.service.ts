@@ -6,6 +6,7 @@ import { MOCK_GRAMMAR_POINTS } from '../../grammar/mock/mockGrammarData';
 import { HSK1_READING_PASSAGES } from '../data/hsk1ReadingPassages';
 import { HSK2_READING_PASSAGES } from '../data/hsk2ReadingPassages';
 import { HSK3_READING_PASSAGES } from '../data/hsk3ReadingPassages';
+import { HSK4_READING_PASSAGES } from '../data/hsk4ReadingPassages';
 import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
 import type { LessonData, DialogueLine } from '../types';
 
@@ -230,11 +231,13 @@ class HskTextbookService {
     };
 
     const readingPassageList =
-      hskLevel === 3
-        ? HSK3_READING_PASSAGES
-        : hskLevel === 2
-          ? HSK2_READING_PASSAGES
-          : HSK1_READING_PASSAGES;
+      hskLevel === 4
+        ? HSK4_READING_PASSAGES
+        : hskLevel === 3
+          ? HSK3_READING_PASSAGES
+          : hskLevel === 2
+            ? HSK2_READING_PASSAGES
+            : HSK1_READING_PASSAGES;
     const readingPassage =
       detailDto.readingPassage ||
       readingPassageList.find(
