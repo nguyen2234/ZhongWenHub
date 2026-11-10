@@ -107,30 +107,10 @@ class HskTextbookService {
         ];
 
     // 1. Resolve authentic Vocabularies
-    // First, check matching words from INITIAL_VOCABULARY_LIST
-    const bankMatches = INITIAL_VOCABULARY_LIST.filter(
-      (v) => (v.lessonId === lessonNumber && v.hskLevel === hskLevel) ||
-             (meta?.vocabularyIds && meta.vocabularyIds.includes(v.id))
-    );
-
+    // PRIORITY 1: Live Backend API / Adapted Lesson Data (Single Source of Truth)
     let vocabularies: TextbookVocabulary[] = [];
 
-    if (bankMatches.length > 0) {
-      vocabularies = bankMatches.map((item, idx) => ({
-        id: item.id,
-        orderNumber: idx + 1,
-        hanzi: item.hanzi,
-        pinyin: item.pinyin,
-        meaning: item.primaryMeaning || item.meanings[0] || '',
-        partOfSpeech: item.wordType,
-        hskLevel: item.hskLevel,
-        radical: item.radical,
-        strokeCount: item.strokeCount,
-        exampleHanzi: item.examples[0]?.hanzi || '',
-        examplePinyin: item.examples[0]?.pinyin || '',
-        exampleMeaning: item.examples[0]?.meaning || '',
-      }));
-    } else if (playerLessonData.vocabulary && playerLessonData.vocabulary.length > 0) {
+    if (playerLessonData.vocabulary && playerLessonData.vocabulary.length > 0) {
       vocabularies = playerLessonData.vocabulary.map((item, idx) => ({
         id: item.id,
         orderNumber: idx + 1,
@@ -143,32 +123,62 @@ class HskTextbookService {
         examplePinyin: item.examplePinyin,
         exampleMeaning: item.exampleMeaning,
       }));
+    } else if (detailDto.vocabularies && detailDto.vocabularies.length > 0) {
+      vocabularies = detailDto.vocabularies.map((v, idx) => ({
+        id: v.id,
+        orderNumber: idx + 1,
+        hanzi: v.simplified,
+        pinyin: v.pinyin,
+        meaning: v.meaningVi,
+        partOfSpeech: v.partOfSpeech || 'Từ vựng',
+        hskLevel,
+        exampleHanzi: v.customExampleZh || '',
+        examplePinyin: v.customExamplePinyin || '',
+        exampleMeaning: v.customExampleVi || '',
+      }));
+    } else if (detailDto.status === 'MOCK' || !detailDto.id.includes('-')) {
+      // Offline fallback only for isolated local testing when API returns mock
+      const bankMatches = INITIAL_VOCABULARY_LIST.filter(
+        (v) => (v.lessonId === lessonNumber && v.hskLevel === hskLevel) ||
+               (meta?.vocabularyIds && meta.vocabularyIds.includes(v.id))
+      );
+      if (bankMatches.length > 0) {
+        vocabularies = bankMatches.map((item, idx) => ({
+          id: item.id,
+          orderNumber: idx + 1,
+          hanzi: item.hanzi,
+          pinyin: item.pinyin,
+          meaning: item.primaryMeaning || item.meanings[0] || '',
+          partOfSpeech: item.wordType,
+          hskLevel: item.hskLevel,
+          radical: item.radical,
+          strokeCount: item.strokeCount,
+          exampleHanzi: item.examples[0]?.hanzi || '',
+          examplePinyin: item.examples[0]?.pinyin || '',
+          exampleMeaning: item.examples[0]?.meaning || '',
+        }));
+      }
     }
 
     // 2. Resolve authentic Grammar Points
+    // PRIORITY 1: Live Backend API / detailDto.grammars
     const grammars: TextbookGrammar[] = [];
-    if (meta?.grammarPointIds && meta.grammarPointIds.length > 0) {
-      meta.grammarPointIds.forEach((gpId) => {
-        const found = MOCK_GRAMMAR_POINTS.find((gp) => gp.id === gpId || gp.id.includes(gpId));
-        if (found) {
-          grammars.push({
-            id: found.id,
-            title: found.title,
-            structure: found.structure,
-            explanation: found.explanation,
-            usageNote: found.usageNote,
-            examples: found.examples.map((e) => ({
-              hanzi: e.chinese,
-              pinyin: e.pinyin,
-              meaning: e.vietnamese,
-            })),
-          });
-        }
+    if (detailDto.grammars && detailDto.grammars.length > 0) {
+      detailDto.grammars.forEach((g) => {
+        grammars.push({
+          id: g.id || g.grammarPointId,
+          title: g.title,
+          structure: g.structureFormula || '',
+          explanation: g.explanation || '',
+          usageNote: g.lessonNotes,
+          examples: (g.examples || []).map((e: any) => ({
+            hanzi: e.zh || e.hanzi || '',
+            pinyin: e.pinyin || '',
+            meaning: e.meaningVi || e.meaning || '',
+          })),
+        });
       });
-    }
-
-    // Fallback grammar if not matched from mock list
-    if (grammars.length === 0 && playerLessonData.grammar) {
+    } else if (playerLessonData.grammar && playerLessonData.grammar.examples && playerLessonData.grammar.examples.length > 0) {
       grammars.push({
         id: 'gp-primary',
         title: playerLessonData.grammar.title,
@@ -185,35 +195,16 @@ class HskTextbookService {
       });
     }
 
-    // 3. Resolve Dialogue
+    // 3. Resolve Dialogue - No fake dialogue generation!
     const dialogueSource = playerLessonData.dialogue;
     const dialogueLines: DialogueLine[] = (dialogueSource?.lines && dialogueSource.lines.length > 0)
       ? dialogueSource.lines
-      : [
-          {
-            id: 1,
-            speaker: 'A',
-            speakerName: 'A (Người hỏi)',
-            speakerRole: 'Nhân vật A',
-            hanzi: titleZh,
-            pinyin: pinyin || '',
-            meaning: titleVi,
-          },
-          {
-            id: 2,
-            speaker: 'B',
-            speakerName: 'B (Người đáp)',
-            speakerRole: 'Nhân vật B',
-            hanzi: detailDto.intro.contextDialogueSnippet?.hanzi || '我很高兴认识你。',
-            pinyin: detailDto.intro.contextDialogueSnippet?.pinyin || 'Wǒ hěn gāoxìng rènshi nǐ.',
-            meaning: detailDto.intro.contextDialogueSnippet?.meaningVi || 'Tôi rất vui được làm quen với bạn.',
-          },
-        ];
+      : [];
 
     const dialogue: TextbookDialogue = {
       title: dialogueSource?.title || `Hội thoại bài học: ${titleZh}`,
-      contextDescription: dialogueSource?.situation || detailDto.intro.summary || 'Tình huống giao tiếp cơ bản hàng ngày',
-      speakers: [
+      contextDescription: dialogueSource?.situation || detailDto.intro.summary || '',
+      speakers: dialogueLines.length > 0 ? [
         {
           id: 'speaker-a',
           name: dialogueLines[0]?.speakerName || 'Người A',
@@ -222,27 +213,16 @@ class HskTextbookService {
         },
         {
           id: 'speaker-b',
-          name: dialogueLines.find((l) => l.speaker === 'B')?.speakerName || 'Người B',
-          role: dialogueLines.find((l) => l.speaker === 'B')?.speakerRole || 'Nhân vật',
-          avatarChar: dialogueLines.find((l) => l.speaker === 'B')?.speakerName?.charAt(0) || 'B',
+          name: dialogueLines.find((l) => l.speaker === 'B')?.speakerName || dialogueLines[1]?.speakerName || 'Người B',
+          role: dialogueLines.find((l) => l.speaker === 'B')?.speakerRole || dialogueLines[1]?.speakerRole || 'Nhân vật',
+          avatarChar: (dialogueLines.find((l) => l.speaker === 'B')?.speakerName || dialogueLines[1]?.speakerName || 'B').charAt(0) || 'B',
         },
-      ],
+      ] : [],
       lines: dialogueLines,
     };
 
-    const readingPassageList =
-      hskLevel === 4
-        ? HSK4_READING_PASSAGES
-        : hskLevel === 3
-          ? HSK3_READING_PASSAGES
-          : hskLevel === 2
-            ? HSK2_READING_PASSAGES
-            : HSK1_READING_PASSAGES;
-    const readingPassage =
-      detailDto.readingPassage ||
-      readingPassageList.find(
-        (p) => p.lessonNumber === lessonNumber || p.lessonNumber === meta?.lessonNumber
-      );
+    // 4. Resolve Reading Passage - Authentic backend only
+    const readingPassage = detailDto.readingPassage;
 
     return {
       lessonId,

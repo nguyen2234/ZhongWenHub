@@ -67,3 +67,4 @@
 3. [`docs/hsk20/HSK20_PHASE2_GRAMMAR_REVIEW.md`](docs/hsk20/HSK20_PHASE2_GRAMMAR_REVIEW.md): Rà soát 311 điểm ngữ pháp tiếng Việt sư phạm.
 4. [`docs/hsk20/HSK20_PHASE2_RECORD_LEVEL_DIFF.md`](docs/hsk20/HSK20_PHASE2_RECORD_LEVEL_DIFF.md): Phân tích sai khác chi tiết 5 nhóm trạng thái bản ghi.
 5. [`docs/hsk20/HSK20_PHASE2_QA_RESULTS.md`](docs/hsk20/HSK20_PHASE2_QA_RESULTS.md): Toàn văn biên bản thực thi kiểm thử Positive & Negative.
+

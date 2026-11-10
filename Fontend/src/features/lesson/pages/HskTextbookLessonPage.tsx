@@ -110,10 +110,10 @@ export const HskTextbookLessonPage: React.FC = () => {
           initLearningLesson(activeLessonId);
           setIsLoading(false);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!isCancelled) {
           console.error('[HskTextbookLessonPage] Error fetching lesson:', err);
-          setErrorMessage('Không thể tải bài học. Vui lòng thử lại sau.');
+          setErrorMessage(err?.message || 'Không thể tải bài học. Vui lòng thử lại sau.');
           setIsLoading(false);
         }
       }
@@ -509,6 +509,26 @@ export const HskTextbookLessonPage: React.FC = () => {
             </div>
 
             {/* 2-Column Responsive Vocabulary Cards Grid */}
+            {textbookData.vocabularies.length === 0 ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1',
+                  margin: '8px 0',
+                }}
+              >
+                <Languages size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                  Chưa có từ vựng được liên kết cho bài học này
+                </p>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Nội dung từ vựng đang được biên soạn trong hệ thống quản trị.
+                </p>
+              </div>
+            ) : (
             <div className="hsk-vocab-grid">
               {textbookData.vocabularies.map((vocab) => {
                 const vocabKey = String(vocab.id);
@@ -601,6 +621,7 @@ export const HskTextbookLessonPage: React.FC = () => {
                 );
               })}
             </div>
+            )}
           </section>
 
           {/* SECTION 3: NGỮ PHÁP (#grammar) */}
@@ -619,6 +640,26 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
             </div>
 
+            {textbookData.grammars.length === 0 ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1',
+                  margin: '8px 0',
+                }}
+              >
+                <BookText size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                  Chưa có điểm ngữ pháp được liên kết cho bài học này
+                </p>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Nội dung ngữ pháp đang được biên soạn trong hệ thống quản trị.
+                </p>
+              </div>
+            ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {textbookData.grammars.map((grammar) => (
                 <div key={grammar.id} className="hsk-grammar-card">
@@ -689,6 +730,7 @@ export const HskTextbookLessonPage: React.FC = () => {
                 </div>
               ))}
             </div>
+            )}
           </section>
 
           {/* SECTION 4: HỘI THOẠI (#dialogue) */}
@@ -743,44 +785,65 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
 
               {/* Chat Feed Interface (Alternating left/right speech bubbles) */}
-              <div className="hsk-dialogue-chat-feed">
-                {textbookData.dialogue.lines.map((line) => {
-                  const isSpeakerA = line.speaker === 'A';
+              {textbookData.dialogue.lines.length === 0 ? (
+                <div
+                  style={{
+                    padding: '32px 16px',
+                    textAlign: 'center',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    border: '1px dashed #cbd5e1',
+                    margin: '16px',
+                  }}
+                >
+                  <MessageSquare size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                  <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                    Chưa có đoạn hội thoại cho bài học này
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                    Nội dung hội thoại giao tiếp đang được cập nhật.
+                  </p>
+                </div>
+              ) : (
+                <div className="hsk-dialogue-chat-feed">
+                  {textbookData.dialogue.lines.map((line) => {
+                    const isSpeakerA = line.speaker === 'A';
 
-                  return (
-                    <div
-                      key={line.id}
-                      className={`hsk-chat-row ${isSpeakerA ? 'speaker-a' : 'speaker-b'}`}
-                    >
-                      <div className="hsk-chat-avatar" title={line.speakerName}>
-                        {isSpeakerA ? 'A' : 'B'}
+                    return (
+                      <div
+                        key={line.id}
+                        className={`hsk-chat-row ${isSpeakerA ? 'speaker-a' : 'speaker-b'}`}
+                      >
+                        <div className="hsk-chat-avatar" title={line.speakerName}>
+                          {isSpeakerA ? 'A' : 'B'}
+                        </div>
+
+                        <div className="hsk-chat-bubble">
+                          <span className="hsk-chat-speaker-name">{line.speakerName}</span>
+                          <span className="hsk-chat-hanzi">{line.hanzi}</span>
+
+                          {showPinyin && (
+                            <span className="hsk-chat-pinyin">{line.pinyin}</span>
+                          )}
+
+                          {showTranslation && (
+                            <span className="hsk-chat-vi">{line.meaning}</span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => playChineseTTS(line.hanzi)}
+                            className="hsk-chat-audio-btn"
+                          >
+                            <Volume2 size={13} />
+                            Nghe câu này
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="hsk-chat-bubble">
-                        <span className="hsk-chat-speaker-name">{line.speakerName}</span>
-                        <span className="hsk-chat-hanzi">{line.hanzi}</span>
-
-                        {showPinyin && (
-                          <span className="hsk-chat-pinyin">{line.pinyin}</span>
-                        )}
-
-                        {showTranslation && (
-                          <span className="hsk-chat-vi">{line.meaning}</span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => playChineseTTS(line.hanzi)}
-                          className="hsk-chat-audio-btn"
-                        >
-                          <Volume2 size={13} />
-                          Nghe câu này
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </section>
 

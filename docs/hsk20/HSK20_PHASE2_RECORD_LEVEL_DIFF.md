@@ -100,3 +100,4 @@ Toàn bộ thông tin sai khác chi tiết ở cấp độ từng dòng đã đ�
 `data/hsk20/staging/hsk20_pre_import_diff.json`
 
 Bộ nạp dữ liệu `scripts/hsk20/import_hsk20_vocab_grammar.py` đã được kiểm chứng an toàn ở chế độ `--dry-run` và bị khóa bảo vệ bằng Signed Token Gate. Khi người dùng phê duyệt chính thức bằng cách cấp khóa signed token, script sẽ nạp chính xác 98 mục `TO_ADD` và cập nhật 142 mục `TO_UPDATE` với đầy đủ tính toàn vẹn giao dịch (ACID transaction).
+

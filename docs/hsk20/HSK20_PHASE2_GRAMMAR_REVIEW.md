@@ -92,3 +92,4 @@ Tiêu chuẩn đã được kiểm chứng bởi test suite `POS-1.5`:
 ## 4. KẾT LUẬN
 
 Tập dữ liệu ngữ pháp HSK 2.0 gồm 311 mục đã được làm sạch, chuẩn hóa sư phạm và hoàn toàn sẵn sàng cho việc ánh xạ vào 70 bài học tương ứng trong hệ thống giảng dạy của ZhongWenHub.
+

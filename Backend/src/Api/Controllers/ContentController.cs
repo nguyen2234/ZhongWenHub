@@ -339,15 +339,23 @@ public class ContentController : BaseApiController
     [HttpDelete("lessons/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLesson(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await _contentService.DeleteLessonAsync(id, cancellationToken);
-        if (!deleted)
+        try
         {
-            return NotFound(new { message = $"Không tìm thấy bài học với ID {id}." });
+            var deleted = await _contentService.DeleteLessonAsync(id, cancellationToken);
+            if (!deleted)
+            {
+                return NotFound(new { message = $"Không tìm thấy bài học với ID {id}." });
+            }
+            return NoContent();
         }
-        return NoContent();
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "CANNOT_DELETE_ACTIVE_LESSON" });
+        }
     }
 
     // ==========================================

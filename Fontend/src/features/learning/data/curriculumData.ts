@@ -1,5 +1,6 @@
 export interface CurriculumLesson {
-  id: string; // e.g. 'les-1', 'les-8'
+  id: string; // e.g. 'les-hsk1-1', 'les-1'
+  dbId?: string; // Live backend SQL Server Lesson ID (GUID)
   lessonNumber: number;
   hskLevel: number;
   unitNumber: number;
@@ -61,6 +62,7 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
         lessons: [
           {
             id: 'les-hsk1-1',
+            dbId: 'AAAAAAAA-1111-1111-1111-111111111111',
             lessonNumber: 1,
             hskLevel: 1,
             unitNumber: 1,
@@ -75,6 +77,7 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
           },
           {
             id: 'les-hsk1-2',
+            dbId: 'AAAAAAAA-2222-2222-2222-222222222222',
             lessonNumber: 2,
             hskLevel: 1,
             unitNumber: 1,
@@ -89,27 +92,41 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
           },
           {
             id: 'les-hsk1-3',
+            dbId: 'AAAAAAAA-3333-3333-3333-333333333333',
             lessonNumber: 3,
             hskLevel: 1,
             unitNumber: 1,
-            hanzi: '你是哪国人？',
-            pinyin: 'Nǐ shì nǎ guó rén?',
-            meaning: 'Bạn là người nước nào?',
+            hanzi: '你叫什么名字？',
+            pinyin: 'Nǐ jiào shénme míngzi?',
+            meaning: 'Bạn tên là gì?',
             summary: 'Hỏi quốc tịch, tên các nước thông dụng và giới thiệu bản thân.',
             durationMinutes: 12,
             xpReward: 20,
             grammarPointIds: ['gp-hsk1-3'],
             vocabularyIds: ['vocab-hsk1-4'],
           },
+        ],
+      },
+      {
+        id: 102,
+        unitNumber: 2,
+        hskLevel: 1,
+        hanziTitle: '人物与家庭',
+        pinyinTitle: 'Rénwù yǔ jiātíng',
+        vietnameseTitle: 'Con người & Gia đình',
+        milestoneBadge: 'Huy hiệu Gia đình yêu thương',
+        milestoneXp: 80,
+        lessons: [
           {
             id: 'les-hsk1-4',
+            dbId: 'AAAAAAAA-4444-4444-4444-444444444444',
             lessonNumber: 4,
             hskLevel: 1,
-            unitNumber: 1,
-            hanzi: '她是谁？',
-            pinyin: 'Tā shì shéi?',
-            meaning: 'Cô ấy là ai?',
-            summary: 'Đại từ nhân xưng ngôi thứ 3 và từ để hỏi 谁 (ai).',
+            unitNumber: 2,
+            hanzi: '她是我的汉语老师',
+            pinyin: 'Tā shì wǒ de hànyǔ lǎoshī',
+            meaning: 'Cô ấy là giáo viên tiếng Trung của tôi',
+            summary: 'Đại từ nhân xưng, từ để hỏi 谁 (ai) và kết cấu chữ 的.',
             durationMinutes: 12,
             xpReward: 20,
             grammarPointIds: ['gp-hsk1-4'],
@@ -117,13 +134,14 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
           },
           {
             id: 'les-hsk1-5',
+            dbId: '9C981888-67BD-41BB-B5B0-57D0A1268DD6',
             lessonNumber: 5,
             hskLevel: 1,
-            unitNumber: 1,
-            hanzi: '今天几号？',
-            pinyin: 'Jīntiān jǐ hào?',
-            meaning: 'Hôm nay ngày mấy?',
-            summary: 'Cách nói ngày tháng trong tuần và số đếm cơ bản trong tiếng Trung.',
+            unitNumber: 2,
+            hanzi: '她女儿今年二十岁',
+            pinyin: 'Tā nǚ\'ér jīnnián èrshí suì',
+            meaning: 'Con gái cô ấy năm nay hai mươi tuổi',
+            summary: 'Hỏi và nói về tuổi tác, thành viên trong gia đình.',
             durationMinutes: 12,
             xpReward: 25,
             grammarPointIds: ['gp-hsk1-5'],
@@ -131,17 +149,189 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
           },
           {
             id: 'les-hsk1-6',
+            dbId: 'BC8E2F7F-91CD-4014-8BC4-BF4AEE182E41',
             lessonNumber: 6,
             hskLevel: 1,
-            unitNumber: 1,
-            hanzi: '你想喝什么？',
-            pinyin: 'Nǐ xiǎng hē shénme?',
-            meaning: 'Bạn muốn uống gì?',
-            summary: 'Hội thoại gọi món, đồ uống và cách dùng động từ năng nguyện 想.',
+            unitNumber: 2,
+            hanzi: '我会说汉语',
+            pinyin: 'Wǒ huì shuō hànyǔ',
+            meaning: 'Tôi biết nói tiếng Trung',
+            summary: 'Diễn đạt năng lực, kỹ năng đã học được với 会.',
             durationMinutes: 15,
             xpReward: 30,
             grammarPointIds: ['gp-hsk1-6'],
             vocabularyIds: ['vocab-hsk1-7'],
+          },
+        ],
+      },
+      {
+        id: 103,
+        unitNumber: 3,
+        hskLevel: 1,
+        hanziTitle: '时间与日期',
+        pinyinTitle: 'Shíjiān yǔ rìqī',
+        vietnameseTitle: 'Thời gian & Ngày tháng',
+        milestoneBadge: 'Huy hiệu Quản lý thời gian',
+        milestoneXp: 80,
+        lessons: [
+          {
+            id: 'les-hsk1-7',
+            dbId: 'F6AC147D-5091-4495-B018-A935385F4B87',
+            lessonNumber: 7,
+            hskLevel: 1,
+            unitNumber: 3,
+            hanzi: '今天几号？',
+            pinyin: 'Jīntiān jǐ hào?',
+            meaning: 'Hôm nay ngày mấy?',
+            summary: 'Cách nói ngày tháng trong tuần và số đếm cơ bản trong tiếng Trung.',
+            durationMinutes: 12,
+            xpReward: 25,
+            grammarPointIds: ['gp-hsk1-7'],
+            vocabularyIds: ['vocab-hsk1-8'],
+          },
+          {
+            id: 'les-hsk1-8',
+            dbId: '778CF4E8-1BDD-4C63-8352-C9DB74CFAA70',
+            lessonNumber: 8,
+            hskLevel: 1,
+            unitNumber: 3,
+            hanzi: '我想喝茶',
+            pinyin: 'Wǒ xiǎng hē chá',
+            meaning: 'Tôi muốn uống trà',
+            summary: 'Hội thoại gọi món, đồ uống và cách dùng động từ năng nguyện 想.',
+            durationMinutes: 15,
+            xpReward: 30,
+            grammarPointIds: ['gp-hsk1-8'],
+            vocabularyIds: ['vocab-hsk1-9'],
+          },
+          {
+            id: 'les-hsk1-9',
+            dbId: '775BEE30-1000-4623-AC03-50DEC5A6BD58',
+            lessonNumber: 9,
+            hskLevel: 1,
+            unitNumber: 3,
+            hanzi: '你儿子在哪儿工作？',
+            pinyin: 'Nǐ érzi zài nǎr gōngzuò?',
+            meaning: 'Con trai bạn làm việc ở đâu?',
+            summary: 'Hỏi và trả lời về nghề nghiệp, nơi chốn làm việc với 在.',
+            durationMinutes: 15,
+            xpReward: 30,
+            grammarPointIds: ['gp-hsk1-9'],
+            vocabularyIds: ['vocab-hsk1-10'],
+          },
+        ],
+      },
+      {
+        id: 104,
+        unitNumber: 4,
+        hskLevel: 1,
+        hanziTitle: '生活与日常',
+        pinyinTitle: 'Shēnghuó yǔ rìcháng',
+        vietnameseTitle: 'Sinh hoạt & Mua sắm',
+        milestoneBadge: 'Huy hiệu Mua sắm thông minh',
+        milestoneXp: 80,
+        lessons: [
+          {
+            id: 'les-hsk1-10',
+            dbId: 'EA11A07D-2642-4D98-B3FD-588CC8CB7BFE',
+            lessonNumber: 10,
+            hskLevel: 1,
+            unitNumber: 4,
+            hanzi: '我能坐这儿吗？',
+            pinyin: 'Wǒ néng zuò zhèr ma?',
+            meaning: 'Tôi có thể ngồi đây không?',
+            summary: 'Diễn đạt sự xin phép, khả năng cho phép với 能.',
+            durationMinutes: 15,
+            xpReward: 30,
+            grammarPointIds: ['gp-hsk1-10'],
+            vocabularyIds: ['vocab-hsk1-11'],
+          },
+          {
+            id: 'les-hsk1-11',
+            dbId: '64363C63-96DB-4695-8E4E-79A9547F8E71',
+            lessonNumber: 11,
+            hskLevel: 1,
+            unitNumber: 4,
+            hanzi: '现在几点？',
+            pinyin: 'Xiànzài jǐ diǎn?',
+            meaning: 'Bây giờ là mấy giờ?',
+            summary: 'Hỏi và nói giờ giấc chính xác trong ngày.',
+            durationMinutes: 15,
+            xpReward: 30,
+            grammarPointIds: ['gp-hsk1-11'],
+            vocabularyIds: ['vocab-hsk1-12'],
+          },
+          {
+            id: 'les-hsk1-12',
+            dbId: '5879091F-51C4-4985-B63B-6BDFC004D6E6',
+            lessonNumber: 12,
+            hskLevel: 1,
+            unitNumber: 4,
+            hanzi: '明天天气怎么样？',
+            pinyin: 'Míngtiān tiānqì zěnmeyàng?',
+            meaning: 'Thời tiết ngày mai thế nào?',
+            summary: 'Hỏi thăm và miêu tả thời tiết, sức khỏe.',
+            durationMinutes: 15,
+            xpReward: 30,
+            grammarPointIds: ['gp-hsk1-12'],
+            vocabularyIds: ['vocab-hsk1-13'],
+          },
+        ],
+      },
+      {
+        id: 105,
+        unitNumber: 5,
+        hskLevel: 1,
+        hanziTitle: '出行与经历',
+        pinyinTitle: 'Chūxíng yǔ jīnglì',
+        vietnameseTitle: 'Di chuyển & Trải nghiệm',
+        milestoneBadge: 'Huy hiệu Hoàn thành HSK 1',
+        milestoneXp: 100,
+        lessons: [
+          {
+            id: 'les-hsk1-13',
+            dbId: 'C1A616F0-FFE9-485D-8E5A-301EE014730A',
+            lessonNumber: 13,
+            hskLevel: 1,
+            unitNumber: 5,
+            hanzi: '他在学做中国菜呢',
+            pinyin: 'Tā zài xué zuò zhōngguó cài ne',
+            meaning: 'Anh ấy đang học nấu món ăn Trung Quốc',
+            summary: 'Miêu tả hành động đang tiếp diễn với 正在...呢.',
+            durationMinutes: 15,
+            xpReward: 35,
+            grammarPointIds: ['gp-hsk1-13'],
+            vocabularyIds: ['vocab-hsk1-14'],
+          },
+          {
+            id: 'les-hsk1-14',
+            dbId: 'ACE8837E-E67D-4CF7-9EC3-625A16EC3B8F',
+            lessonNumber: 14,
+            hskLevel: 1,
+            unitNumber: 5,
+            hanzi: '她买了不少衣服',
+            pinyin: 'Tā mǎi le bù shǎo yīfu',
+            meaning: 'Cô ấy đã mua không ít quần áo',
+            summary: 'Hỏi về mua sắm và sự biến đổi/hoàn thành hành động với 了.',
+            durationMinutes: 15,
+            xpReward: 35,
+            grammarPointIds: ['gp-hsk1-14'],
+            vocabularyIds: ['vocab-hsk1-15'],
+          },
+          {
+            id: 'les-hsk1-15',
+            dbId: '9F74EEE4-2746-4EFC-A1F2-3402079AB3EF',
+            lessonNumber: 15,
+            hskLevel: 1,
+            unitNumber: 5,
+            hanzi: '我是坐飞机来的',
+            pinyin: 'Wǒ shì zuò fēijī lái de',
+            meaning: 'Tôi đến bằng máy bay',
+            summary: 'Cấu trúc nhấn mạnh thời gian, địa điểm, phương thức 是...的.',
+            durationMinutes: 20,
+            xpReward: 40,
+            grammarPointIds: ['gp-hsk1-15'],
+            vocabularyIds: ['vocab-hsk1-16'],
           },
         ],
       },
@@ -872,14 +1062,30 @@ export function getAllCurriculumLessons(): CurriculumLesson[] {
 
 export function findLessonMetadata(lessonId: string): CurriculumLesson | undefined {
   const all = getAllCurriculumLessons();
-  return all.find((l) => l.id === lessonId || String(l.lessonNumber) === lessonId || l.id === `les-${lessonId}`);
+  const normalized = lessonId.toLowerCase();
+  return all.find(
+    (l) =>
+      l.id.toLowerCase() === normalized ||
+      (l.dbId && l.dbId.toLowerCase() === normalized) ||
+      String(l.lessonNumber) === lessonId ||
+      l.id === `les-${lessonId}` ||
+      l.id === `les-hsk1-${lessonId}`
+  );
 }
 
 export function findNextLessonId(currentLessonId: string): string | null {
   const all = getAllCurriculumLessons();
-  const idx = all.findIndex((l) => l.id === currentLessonId || String(l.lessonNumber) === currentLessonId || l.id === `les-${currentLessonId}`);
+  const normalized = currentLessonId.toLowerCase();
+  const idx = all.findIndex(
+    (l) =>
+      l.id.toLowerCase() === normalized ||
+      (l.dbId && l.dbId.toLowerCase() === normalized) ||
+      String(l.lessonNumber) === currentLessonId ||
+      l.id === `les-${currentLessonId}` ||
+      l.id === `les-hsk1-${currentLessonId}`
+  );
   if (idx >= 0 && idx < all.length - 1) {
-    return all[idx + 1].id;
+    return all[idx + 1].dbId || all[idx + 1].id;
   }
   return null;
 }

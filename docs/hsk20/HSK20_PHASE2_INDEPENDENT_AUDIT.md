@@ -113,3 +113,4 @@ Phương châm chỉ đạo: **Tuyệt đối không mặc định tin tưởng 
 | **05** | Diff chi tiết | Số liệu gộp mơ hồ | Record-level itemized diff | `data/hsk20/staging/hsk20_pre_import_diff.json` |
 | **06** | Import Engine | Chưa hoàn thiện | Transaction + FK check + Gate | `scripts/hsk20/import_hsk20_vocab_grammar.py` |
 | **07** | Nhãn học thuật | Tuyên bố 100% tuyệt đối | Gắn cờ chờ chuyên gia thẩm định | `PENDING_HUMAN_EXPERT_SIGN_OFF` |
+

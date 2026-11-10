@@ -94,3 +94,4 @@ Tập dữ liệu 1.200 từ vựng HSK 2.0 đã hoàn thành 100% các tiêu ch
 - 0 lỗi không khớp âm đọc chữ Hán.
 - 0 chuỗi dịch tiếng Anh rác sót lại.
 - Trạng thái kiểm định: `VERIFIED_BY_AUTOMATED_RULES` / `PENDING_HUMAN_EXPERT_SIGN_OFF`.
+

@@ -974,6 +974,25 @@ public class ContentService : IContentService
         var lesson = await _dbContext.Lessons.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         if (lesson == null) return false;
 
+        var idStr = id.ToString();
+        var hasProgress = await _dbContext.StudentLessonProgresses.AnyAsync(
+            p => p.LessonId == idStr, cancellationToken);
+
+        if (hasProgress)
+        {
+            throw new InvalidOperationException("Không thể xóa cứng bài học đã có tiến độ học tập của học viên. Vui lòng chuyển trạng thái bài học sang ARCHIVED để đảm bảo toàn vẹn dữ liệu.");
+        }
+
+        // Safely unlink any vocabularies, grammar points, and exercises before deletion
+        var linkedVocabs = await _dbContext.Vocabularies.Where(v => v.LessonId == id).ToListAsync(cancellationToken);
+        foreach (var v in linkedVocabs) v.LessonId = null;
+
+        var linkedGrammars = await _dbContext.GrammarPoints.Where(g => g.LessonId == id).ToListAsync(cancellationToken);
+        foreach (var g in linkedGrammars) g.LessonId = null;
+
+        var linkedExercises = await _dbContext.Exercises.Where(e => e.LessonId == id).ToListAsync(cancellationToken);
+        foreach (var e in linkedExercises) e.LessonId = null;
+
         _dbContext.Lessons.Remove(lesson);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;

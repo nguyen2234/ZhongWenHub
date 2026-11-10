@@ -152,12 +152,12 @@ def execute_actual_import():
         for v in std_vocab:
             hz = v["hanzi"]
             lvl = v["level"]
-            cursor.execute("SELECT Id FROM Vocabularies WHERE Hanzi = ? AND HskLevel = ?", (hz, lvl))
+            cursor.execute("SELECT Id FROM vocabularies WHERE Hanzi = ? AND HskLevel = ?", (hz, lvl))
             row = cursor.fetchone()
             if row:
                 # Update
                 cursor.execute("""
-                    UPDATE Vocabularies
+                    UPDATE vocabularies
                     SET Pinyin = ?, MeaningVi = ?, PartOfSpeech = ?, SourceDataset = 'HSK_2_0', Status = 'STAGING'
                     WHERE Id = ?
                 """, (v["pinyin"], v["meaningVi"], v.get("partOfSpeech", ""), row[0]))
@@ -166,14 +166,35 @@ def execute_actual_import():
                 # Insert
                 new_id = str(uuid.uuid4()).upper()
                 cursor.execute("""
-                    INSERT INTO Vocabularies (Id, HskLevel, Hanzi, Pinyin, MeaningVi, PartOfSpeech, SourceDataset, Status)
+                    INSERT INTO vocabularies (Id, HskLevel, Hanzi, Pinyin, MeaningVi, PartOfSpeech, SourceDataset, Status)
                     VALUES (?, ?, ?, ?, ?, ?, 'HSK_2_0', 'STAGING')
                 """, (new_id, lvl, hz, v["pinyin"], v["meaningVi"], v.get("partOfSpeech", "")))
                 v_inserted += 1
 
+        # Import Grammar Points
+        for g in std_grammar:
+            code = g.get("code") or g.get("id")
+            lvl = g.get("level", 1)
+            cursor.execute("SELECT Id FROM grammar_points WHERE Code = ?", (code,))
+            row = cursor.fetchone()
+            examples_json = json.dumps(g.get("examples", []), ensure_ascii=False)
+            if row:
+                cursor.execute("""
+                    UPDATE grammar_points
+                    SET Title = ?, StructureFormula = ?, Explanation = ?, ExamplesJson = ?, Status = 'STAGING'
+                    WHERE Id = ?
+                """, (g["title"], g.get("structure", ""), g.get("explanationVi", ""), examples_json, row[0]))
+            else:
+                new_gid = str(uuid.uuid4()).upper()
+                cursor.execute("""
+                    INSERT INTO grammar_points (Id, Code, Title, HskLevel, StructureFormula, Explanation, ExamplesJson, Status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'STAGING')
+                """, (new_gid, code, g["title"], lvl, g.get("structure", ""), g.get("explanationVi", ""), examples_json))
+                g_inserted += 1
+
         # Commit transaction
         conn.commit()
-        print(f"[IMPORT ENGINE] Successfully imported: {v_inserted} inserted, {v_updated} updated.")
+        print(f"[IMPORT ENGINE] Successfully imported: {v_inserted} vocab inserted, {v_updated} vocab updated, {g_inserted} grammar points processed.")
     except Exception as e:
         conn.rollback()
         print(f"[IMPORT ENGINE ERROR] Transaction rolled back due to error: {e}")

@@ -14,10 +14,20 @@ class LessonContentService {
    * Connects to live Backend SQL Server API with graceful fallback to mock data.
    */
   async getLessonDetail(lessonId: string = 'les-1'): Promise<LessonDetailDTO> {
-    // 1. Always attempt to fetch from live Backend API for any lessonId
+    // 1. Always attempt to fetch from live Backend API
     if (lessonId) {
       try {
-        const live = await httpClient.get<any>(`/content/lessons/${lessonId}`);
+        let apiTargetId = lessonId;
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lessonId);
+        if (!isGuid) {
+          const { findLessonMetadata } = await import('../../learning/data/curriculumData');
+          const meta = findLessonMetadata(lessonId);
+          if (meta?.dbId) {
+            apiTargetId = meta.dbId;
+          }
+        }
+
+        const live = await httpClient.get<any>(`/content/lessons/${apiTargetId}`);
         if (live && live.id) {
           return this.adaptLiveBackendToDetailDTO(live);
         }
@@ -157,14 +167,61 @@ class LessonContentService {
       : [];
 
     let readingPassage: any = live.readingPassage;
-    if (!readingPassage && live.dialogueJson) {
+    let dialogueLines: any[] = [];
+    let dialogueTitle = `Hội thoại bài ${live.lessonNumber || ''}`;
+    let dialogueSituation = live.summary || 'Tình huống giao tiếp cơ bản';
+
+    if (live.dialogueJson) {
       try {
         const parsed = typeof live.dialogueJson === 'string' ? JSON.parse(live.dialogueJson) : live.dialogueJson;
-        if (parsed && parsed.readingPassage) {
-          readingPassage = parsed.readingPassage;
+        if (parsed) {
+          if (!readingPassage && parsed.readingPassage) {
+            readingPassage = parsed.readingPassage;
+          }
+          if (parsed.title) {
+            dialogueTitle = parsed.title;
+          }
+          if (parsed.situationVi || parsed.situation || parsed.topic) {
+            dialogueSituation = parsed.situationVi || parsed.situation || parsed.topic;
+          }
+          if (Array.isArray(parsed.lines)) {
+            dialogueLines = parsed.lines.map((l: any, idx: number) => ({
+              id: String(l.id || idx + 1),
+              speakerName: l.speakerName || l.speaker || (idx % 2 === 0 ? 'Người A' : 'Người B'),
+              speakerRole: l.speakerRole || '',
+              zh: l.zh || l.hanzi || '',
+              pinyin: l.pinyin || '',
+              meaningVi: l.meaningVi || l.meaning || '',
+              displayOrder: l.displayOrder || idx + 1,
+            }));
+          } else if (Array.isArray(parsed)) {
+            dialogueLines = parsed.map((l: any, idx: number) => ({
+              id: String(l.id || idx + 1),
+              speakerName: l.speakerName || l.speaker || (idx % 2 === 0 ? 'Người A' : 'Người B'),
+              speakerRole: l.speakerRole || '',
+              zh: l.zh || l.hanzi || '',
+              pinyin: l.pinyin || '',
+              meaningVi: l.meaningVi || l.meaning || '',
+              displayOrder: l.displayOrder || idx + 1,
+            }));
+          }
         }
       } catch {
-        // ignore
+        // ignore JSON parse error
+      }
+    }
+
+    let listenings: any[] = [];
+    if (live.listeningJson) {
+      try {
+        const parsed = typeof live.listeningJson === 'string' ? JSON.parse(live.listeningJson) : live.listeningJson;
+        if (Array.isArray(parsed)) {
+          listenings = parsed;
+        } else if (parsed && Array.isArray(parsed.items)) {
+          listenings = parsed.items;
+        }
+      } catch {
+        // ignore JSON parse error
       }
     }
 
@@ -198,21 +255,11 @@ class LessonContentService {
       grammars,
       dialogue: {
         id: `diag-${live.id}`,
-        title: `Hội thoại bài ${live.lessonNumber}`,
-        situationVi: live.summary || 'Tình huống giao tiếp hàng ngày',
-        lines: [
-          {
-            id: '1',
-            speakerName: '王明',
-            speakerRole: 'Học sinh',
-            zh: live.titleZh,
-            pinyin: live.pinyin || '',
-            meaningVi: live.titleVi,
-            displayOrder: 1,
-          },
-        ],
+        title: dialogueTitle,
+        situationVi: dialogueSituation,
+        lines: dialogueLines,
       },
-      listenings: [],
+      listenings,
       exercises,
       readingPassage,
     };
