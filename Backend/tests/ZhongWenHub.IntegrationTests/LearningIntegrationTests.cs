@@ -5,9 +5,14 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Business.Learning;
 using ZhongWenHub.Business.Learning.DTOs;
+using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
@@ -394,5 +399,85 @@ public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactor
         var finalState = await stateRes.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
         Assert.NotNull(finalState);
         Assert.True(finalState.LessonProgress.ContainsKey(lesson1Guid));
+    }
+
+    [Fact]
+    public async Task CompleteLesson_WhenLegacyLes1AndCanonicalGuidCoexist_MergesWithoutDuplicateKeyFailure()
+    {
+        var token = await GetStudentTokenAsync();
+        const string lesson1Guid = "aaaaaaaa-1111-1111-1111-111111111111";
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var student = await db.Users.FirstAsync(u => u.Email == "student@zhongwenhub.edu.vn");
+            var existingRows = await db.StudentLessonProgresses
+                .Where(p => p.UserId == student.Id && (p.LessonId == lesson1Guid || p.LessonId == LearningService.LegacyLesson1Id))
+                .ToListAsync();
+            db.StudentLessonProgresses.RemoveRange(existingRows);
+            await db.SaveChangesAsync();
+
+            db.StudentLessonProgresses.AddRange(
+                new StudentLessonProgress
+                {
+                    UserId = student.Id,
+                    LessonId = LearningService.LegacyLesson1Id,
+                    Status = "NOT_STARTED",
+                    CurrentStepIndex = 0,
+                    MaxUnlockedStepIndex = 0,
+                    XpEarned = 0
+                },
+                new StudentLessonProgress
+                {
+                    UserId = student.Id,
+                    LessonId = lesson1Guid,
+                    Status = "IN_PROGRESS",
+                    CurrentStepIndex = 2,
+                    MaxUnlockedStepIndex = 2,
+                    XpEarned = 0
+                });
+            await db.SaveChangesAsync();
+        }
+
+        var completePayload = new CompleteLessonDto
+        {
+            QuizScore = 4,
+            TotalQuizQuestions = 4,
+            XpEarned = 50
+        };
+
+        using var req1 = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/learning/me/lessons/{lesson1Guid}/complete")
+        {
+            Content = JsonContent.Create(completePayload)
+        };
+        req1.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res1 = await _client.SendAsync(req1);
+        Assert.Equal(HttpStatusCode.OK, res1.StatusCode);
+        var state1 = await res1.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
+        Assert.NotNull(state1);
+        Assert.Contains(lesson1Guid, state1.CompletedLessonIds);
+
+        using var req2 = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/learning/me/lessons/{lesson1Guid}/complete")
+        {
+            Content = JsonContent.Create(completePayload)
+        };
+        req2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res2 = await _client.SendAsync(req2);
+        Assert.Equal(HttpStatusCode.OK, res2.StatusCode);
+        var state2 = await res2.Content.ReadFromJsonAsync<StudentLearningStateDto>(_jsonOptions);
+        Assert.NotNull(state2);
+        Assert.Equal(state1.XpTotal, state2.XpTotal);
+
+        using (var verifyScope = _factory.Services.CreateScope())
+        {
+            var db = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var student = await db.Users.FirstAsync(u => u.Email == "student@zhongwenhub.edu.vn");
+            var remaining = await db.StudentLessonProgresses
+                .Where(p => p.UserId == student.Id && (p.LessonId == lesson1Guid || p.LessonId == LearningService.LegacyLesson1Id))
+                .ToListAsync();
+            Assert.Single(remaining);
+            Assert.Equal(lesson1Guid, remaining[0].LessonId);
+            Assert.Equal("COMPLETED", remaining[0].Status);
+        }
     }
 }

@@ -1,5 +1,20 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { testCredentials } from './config/test-credentials.config';
+
+async function openSidebarContainer(page: Page) {
+  const isMobile = (page.viewportSize()?.width ?? 1440) < 768;
+  if (isMobile) {
+    const hamburgerBtn = page.locator('.mobile-hamburger-btn');
+    await expect(hamburgerBtn).toBeVisible({ timeout: 8000 });
+    await hamburgerBtn.click();
+    const drawer = page.locator('.mobile-sidebar-drawer');
+    await expect(drawer).toBeVisible({ timeout: 8000 });
+    return drawer;
+  }
+  const sidebar = page.locator('.student-sidebar-container');
+  await expect(sidebar).toBeVisible({ timeout: 8000 });
+  return sidebar;
+}
 
 test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Grammar Modules', () => {
   test.describe.configure({ mode: 'serial' });
@@ -19,9 +34,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
-    // 1.2 Verify 5 distinct collapsible navigation groups in sidebar
-    const sidebar = page.locator('.student-sidebar-container');
-    await expect(sidebar).toBeVisible({ timeout: 8000 });
+    // 1.2 Verify 5 distinct collapsible navigation groups in sidebar (desktop rail or mobile drawer)
+    const sidebar = await openSidebarContainer(page);
 
     await expect(sidebar.getByText('TỔNG QUAN')).toBeVisible();
     await expect(sidebar.getByText('KHÓA HỌC')).toBeVisible();
@@ -35,7 +49,9 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
 
     // 1.4 Verify independent scroll container exists
     const scrollContainer = sidebar.locator('.student-sidebar-scroll');
-    await expect(scrollContainer).toBeVisible();
+    if ((page.viewportSize()?.width ?? 1440) >= 768) {
+      await expect(scrollContainer).toBeVisible();
+    }
 
     // 1.5 Verify Kippy AI card is at bottom and does not overlap
     await expect(sidebar.getByText('Trợ lý Kippy AI')).toBeVisible();
@@ -52,7 +68,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
     // Click Vocabulary in Sidebar
-    await page.locator('.student-sidebar-container').getByText('Từ vựng HSK 1–6').click();
+    const sidebar = await openSidebarContainer(page);
+    await sidebar.getByText('Từ vựng HSK 1–6').click();
     await expect(page).toHaveURL(/.*\/vocabulary/, { timeout: 8000 });
 
     // 2.2 Verify Vocabulary list loaded from live SQL Server
@@ -98,7 +115,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
     // Click Grammar in Sidebar
-    await page.locator('.student-sidebar-container').getByText('Ngữ pháp HSK 1–6').click();
+    const sidebar = await openSidebarContainer(page);
+    await sidebar.getByText('Ngữ pháp HSK 1–6').click();
     await expect(page).toHaveURL(/.*\/grammar/, { timeout: 8000 });
 
     // 3.2 Verify Header and Real Total Count from SQL Server
@@ -153,7 +171,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
 
     // Verify page stays on /grammar and active indicator is on Grammar menu
     await expect(page).toHaveURL(/.*\/grammar/);
-    const grammarMenu = page.locator('.student-sidebar-container button[aria-current="page"]');
+    const grammarSidebar = await openSidebarContainer(page);
+    const grammarMenu = grammarSidebar.locator('button[aria-current="page"]');
     await expect(grammarMenu).toBeVisible();
     await expect(grammarMenu).toContainText('Ngữ pháp HSK 1–6');
 
@@ -165,7 +184,8 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
 
     // Verify page stays on /vocabulary and active indicator is on Vocabulary menu
     await expect(page).toHaveURL(/.*\/vocabulary/);
-    const vocabMenu = page.locator('.student-sidebar-container button[aria-current="page"]');
+    const vocabSidebar = await openSidebarContainer(page);
+    const vocabMenu = vocabSidebar.locator('button[aria-current="page"]');
     await expect(vocabMenu).toBeVisible();
     await expect(vocabMenu).toContainText('Từ vựng HSK 1–6');
   });

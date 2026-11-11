@@ -276,7 +276,9 @@ public class LearningService : ILearningService
             RewardedEventIds = rewardedEvents
         };
 
-        foreach (var l in lessons)
+        foreach (var l in lessons
+            .OrderBy(x => x.Status == "COMPLETED" ? 2 : x.Status == "IN_PROGRESS" ? 1 : 0)
+            .ThenBy(x => string.Equals(x.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase) ? 0 : 1))
         {
             var normalized = NormalizeLessonId(l.LessonId);
             var dto = new LessonProgressDto
@@ -649,6 +651,57 @@ public class LearningService : ILearningService
         throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
     }
 
+    private async Task<StudentLessonProgress?> FindOrMergeLessonProgressAsync(
+        Guid userId,
+        string normalizedId,
+        bool isLesson1,
+        CancellationToken cancellationToken)
+    {
+        var matches = await _context.StudentLessonProgresses
+            .Where(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)))
+            .ToListAsync(cancellationToken);
+
+        foreach (var local in _context.StudentLessonProgresses.Local)
+        {
+            if (local.UserId == userId
+                && (string.Equals(local.LessonId, normalizedId, StringComparison.OrdinalIgnoreCase)
+                    || (isLesson1 && string.Equals(local.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase)))
+                && !matches.Any(m => ReferenceEquals(m, local)))
+            {
+                matches.Add(local);
+            }
+        }
+
+        if (matches.Count == 0)
+        {
+            return null;
+        }
+
+        var canonical = matches.FirstOrDefault(m => string.Equals(m.LessonId, normalizedId, StringComparison.OrdinalIgnoreCase))
+            ?? matches[0];
+
+        if (isLesson1 && string.Equals(canonical.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
+        {
+            canonical.LessonId = Lesson1Guid;
+        }
+
+        foreach (var dup in matches)
+        {
+            if (ReferenceEquals(dup, canonical)) continue;
+            if (dup.Status == "COMPLETED" && canonical.Status != "COMPLETED")
+            {
+                canonical.Status = "COMPLETED";
+                canonical.CompletedAt ??= dup.CompletedAt;
+            }
+            canonical.CurrentStepIndex = Math.Max(canonical.CurrentStepIndex, dup.CurrentStepIndex);
+            canonical.MaxUnlockedStepIndex = Math.Max(canonical.MaxUnlockedStepIndex, dup.MaxUnlockedStepIndex);
+            canonical.XpEarned = Math.Max(canonical.XpEarned, dup.XpEarned);
+            _context.StudentLessonProgresses.Remove(dup);
+        }
+
+        return canonical;
+    }
+
     public async Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default)
     {
         var (normalizedId, _) = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
@@ -658,10 +711,7 @@ public class LearningService : ILearningService
         var todayStr = GetLocalDateString();
         var yesterdayStr = GetYesterdayDateString();
 
-        var lesson = _context.StudentLessonProgresses.Local
-            .FirstOrDefault(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)))
-            ?? await _context.StudentLessonProgresses
-                .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
+        var lesson = await FindOrMergeLessonProgressAsync(userId, normalizedId, isLesson1, cancellationToken);
 
         var safeStep = Math.Max(0, dto.CurrentStepIndex);
         var safeMax = Math.Max(safeStep, dto.MaxUnlockedStepIndex ?? safeStep);
@@ -680,10 +730,6 @@ public class LearningService : ILearningService
         }
         else
         {
-            if (lesson.LessonId == LegacyLesson1Id)
-            {
-                lesson.LessonId = Lesson1Guid;
-            }
             if (lesson.Status == "NOT_STARTED") lesson.Status = "IN_PROGRESS";
             lesson.CurrentStepIndex = safeStep;
             lesson.MaxUnlockedStepIndex = Math.Max(lesson.MaxUnlockedStepIndex, safeMax);
@@ -721,10 +767,7 @@ public class LearningService : ILearningService
         var todayStr = GetLocalDateString();
         var yesterdayStr = GetYesterdayDateString();
 
-        var lesson = _context.StudentLessonProgresses.Local
-            .FirstOrDefault(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)))
-            ?? await _context.StudentLessonProgresses
-                .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
+        var lesson = await FindOrMergeLessonProgressAsync(userId, normalizedId, isLesson1, cancellationToken);
 
         var now = DateTime.UtcNow;
         // Always derive XP from authoritative DB Lesson.XpReward, ignoring client-supplied dto.XpEarned.
@@ -748,10 +791,6 @@ public class LearningService : ILearningService
         }
         else
         {
-            if (lesson.LessonId == LegacyLesson1Id)
-            {
-                lesson.LessonId = Lesson1Guid;
-            }
             lesson.Status = "COMPLETED";
             lesson.CurrentStepIndex = 5;
             lesson.MaxUnlockedStepIndex = 5;
