@@ -109,5 +109,18 @@ describe('Student Sidebar & Practice Formats Architecture', () => {
     );
     expect(src).not.toContain('const hskLevels = [1, 2, 3, 4]');
   });
+
+  test('StudentSidebar removes Kippy AI widget cleanly and keeps independent scrollable nav + active auto-scroll', () => {
+    const sidebarSrc = readFileSync(
+      resolve(import.meta.dir, '../layouts/components/StudentSidebar.tsx'),
+      'utf-8'
+    );
+    expect(sidebarSrc).not.toContain('Trợ lý Kippy AI');
+    expect(sidebarSrc).not.toContain('Luyện giao tiếp 24/7');
+    expect(sidebarSrc).not.toContain('Luyện phản xạ ngay');
+    expect(sidebarSrc).not.toContain('Luyện nói AI Live Kippy');
+    expect(sidebarSrc).toContain('scrollContainerRef');
+    expect(sidebarSrc).toContain('[aria-current="page"]');
+  });
 });
 

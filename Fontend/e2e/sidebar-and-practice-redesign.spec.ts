@@ -211,5 +211,110 @@ test.describe('Sidebar Reorganization & Practice Exercises Redesign', () => {
 
     await page.screenshot({ path: 'e2e/screenshots/16-practice-redesign-mobile.png' });
   });
+
+  test('4. Sidebar removes Kippy AI widget, supports independent scroll, group toggle & active item auto-scroll', async ({
+    page,
+  }) => {
+    // Use a shorter desktop viewport so the full menu naturally requires vertical scrolling
+    await page.setViewportSize({ width: 1280, height: 500 });
+    await loginStudent(page);
+
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    const sidebar = await openSidebarContainer(page);
+
+    // 4.1 Verify Kippy AI widget & texts are completely removed from sidebar
+    await expect(sidebar.getByText('Trợ lý Kippy AI')).toHaveCount(0);
+    await expect(sidebar.getByText('Luyện giao tiếp 24/7')).toHaveCount(0);
+    await expect(sidebar.getByText('Luyện phản xạ ngay')).toHaveCount(0);
+
+    // Also verify no empty footer block exists after .student-sidebar-scroll
+    const scrollBox = sidebar.locator('.student-sidebar-scroll');
+    const isLastChild = await scrollBox.evaluate((el) => el.nextElementSibling === null);
+    expect(isLastChild).toBe(true);
+
+    // Check collapsed mode also has zero Kippy AI compact widget
+    const collapseBtn = sidebar.getByRole('button', { name: /Thu gọn thanh điều hướng/i });
+    await collapseBtn.click();
+    await expect(sidebar.locator('button[title="Luyện nói AI Live Kippy"]')).toHaveCount(0);
+    const expandBtn = sidebar.getByRole('button', { name: /Mở rộng thanh điều hướng/i });
+    await expandBtn.click();
+
+    // 4.2 Group expand/collapse works properly
+    const skillsGroupBtn = sidebar.locator('button[aria-expanded]', { hasText: 'KỸ NĂNG' });
+    await expect(skillsGroupBtn).toHaveAttribute('aria-expanded', 'true');
+    await skillsGroupBtn.click();
+    await expect(skillsGroupBtn).toHaveAttribute('aria-expanded', 'false');
+    await expect(sidebar.getByRole('button', { name: /^Luyện nghe$/i })).toHaveCount(0);
+    await skillsGroupBtn.click();
+    await expect(skillsGroupBtn).toHaveAttribute('aria-expanded', 'true');
+    await expect(sidebar.getByRole('button', { name: /^Luyện nghe$/i })).toBeVisible();
+
+    // 4.3 Sidebar scrolls independently from main content
+    const overflowMetrics = await scrollBox.evaluate((el) => ({
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+    }));
+    expect(overflowMetrics.scrollHeight).toBeGreaterThan(overflowMetrics.clientHeight);
+
+    // Navigate via sidebar SPA click to /practice (tall page) and verify sidebar scrollTop stays put when main scrolls
+    await sidebar.getByRole('button', { name: /^Bài tập$/i }).click();
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Bài tập luyện tiếng Trung/i })
+    ).toBeVisible({ timeout: 10000 });
+
+    const beforeMainScrollSidebarTop = await scrollBox.evaluate((el) => el.scrollTop);
+    await page.evaluate(() => window.scrollTo(0, 450));
+    await page.waitForTimeout(150);
+    const afterMainScrollSidebarTop = await scrollBox.evaluate((el) => el.scrollTop);
+    expect(afterMainScrollSidebarTop).toBe(beforeMainScrollSidebarTop);
+
+    // Reset sidebar to top, scroll sidebar manually to bottom, confirm window scroll stays untouched
+    const windowScrollBefore = await page.evaluate(() => window.scrollY);
+    await scrollBox.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await page.waitForTimeout(100);
+    const sidebarScrollAfter = await scrollBox.evaluate((el) => el.scrollTop);
+    const windowScrollAfter = await page.evaluate(() => window.scrollY);
+    expect(sidebarScrollAfter).toBeGreaterThan(0);
+    expect(windowScrollAfter).toBe(windowScrollBefore);
+
+    // 4.4 Reset sidebar scroll to top and navigate via Quick Search SPA transition to /ai-tutor
+    // -> StudentSidebar auto-scroll brings active item into view without clicking the sidebar directly
+    await scrollBox.evaluate((el) => {
+      el.scrollTop = 0;
+    });
+    await page.locator('header button', { hasText: /Tìm kiếm/i }).click();
+    await page.getByText('AI Tutor Trò chuyện thông minh').click();
+    await expect(page).toHaveURL(/.*\/ai-tutor/);
+    await page.waitForTimeout(400);
+
+    const activeVisibility = await scrollBox.evaluate((container) => {
+      const activeEl = container.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!activeEl) return null;
+      const cRect = container.getBoundingClientRect();
+      const aRect = activeEl.getBoundingClientRect();
+      return {
+        topOk: aRect.top >= cRect.top - 2,
+        bottomOk: aRect.bottom <= cRect.bottom + 2,
+        scrollTop: container.scrollTop,
+      };
+    });
+    expect(activeVisibility).not.toBeNull();
+    expect(activeVisibility?.topOk).toBe(true);
+    expect(activeVisibility?.bottomOk).toBe(true);
+    expect(activeVisibility?.scrollTop).toBeGreaterThan(0);
+
+    expect(pageErrors).toEqual([]);
+    expect(consoleErrors).toEqual([]);
+  });
 });
 

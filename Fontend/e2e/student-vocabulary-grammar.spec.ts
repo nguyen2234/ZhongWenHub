@@ -57,8 +57,10 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
       await expect(scrollContainer).toBeVisible();
     }
 
-    // 1.5 Verify Kippy AI card is at bottom and does not overlap
-    await expect(sidebar.getByText('Trợ lý Kippy AI')).toBeVisible();
+    // 1.5 Verify Kippy AI widget is completely removed from sidebar
+    await expect(sidebar.getByText('Trợ lý Kippy AI')).toHaveCount(0);
+    await expect(sidebar.getByText('Luyện giao tiếp 24/7')).toHaveCount(0);
+    await expect(sidebar.getByText('Luyện phản xạ ngay')).toHaveCount(0);
 
     await page.screenshot({ path: 'e2e/screenshots/13-student-sidebar-groups.png' });
   });

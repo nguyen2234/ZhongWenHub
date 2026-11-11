@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
   ChevronDown,
@@ -28,6 +27,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Manage collapsible state for the 4 navigation groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -36,6 +36,36 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     skills: true,
     'practice-zone': true,
   });
+
+  // Scroll only the sidebar's own scroll container when route changes if active item is outside view
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const activeEl = container.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!activeEl) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    if (containerRect.height <= 0 || itemRect.height <= 0) return;
+
+    const padding = 8;
+    if (itemRect.top < containerRect.top + padding) {
+      const nextTop = Math.max(0, container.scrollTop - (containerRect.top - itemRect.top + padding));
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({ top: nextTop, behavior: 'smooth' });
+      } else {
+        container.scrollTop = nextTop;
+      }
+    } else if (itemRect.bottom > containerRect.bottom - padding) {
+      const nextTop = container.scrollTop + (itemRect.bottom - containerRect.bottom + padding);
+      if (typeof container.scrollTo === 'function') {
+        container.scrollTo({ top: nextTop, behavior: 'smooth' });
+      } else {
+        container.scrollTop = nextTop;
+      }
+    }
+  }, [pathname, location.search, isCollapsed]);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => ({
@@ -141,6 +171,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
 
       {/* Main Collapsible Groups List with Invisible Scrollbar */}
       <div
+        ref={scrollContainerRef}
         className="student-sidebar-scroll"
         style={{
           flex: 1,
@@ -149,7 +180,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? '12px 6px 32px' : '12px 12px 32px',
+          padding: isCollapsed ? '12px 6px 16px' : '12px 12px 16px',
           display: 'flex',
           flexDirection: 'column',
           gap: isCollapsed ? '10px' : '14px',
@@ -159,12 +190,13 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           const isOpen = expandedGroups[group.id] ?? true;
 
           return (
-            <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0 }}>
               {/* Group Header (Expanded mode only) */}
               {!isCollapsed && (
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
+                  aria-expanded={isOpen}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -321,101 +353,6 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           );
         })}
       </div>
-
-      {/* Bottom Kippy AI Live Quick Card (Viettel Red Theme) */}
-      {!isCollapsed ? (
-        <div
-          style={{
-            margin: '6px 12px 10px',
-            padding: '10px 12px',
-            borderRadius: '12px',
-            backgroundColor: '#FFF0F1',
-            border: '1px solid #fed7da',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div
-              style={{
-                width: '26px',
-                height: '26px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--primary, #E60012)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Sparkles size={14} />
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>Trợ lý Kippy AI</div>
-              <div style={{ fontSize: '10px', color: '#E60012', fontWeight: 600 }}>Luyện giao tiếp 24/7</div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              navigate('/ai-live');
-              if (onNavigate) onNavigate();
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 10px',
-              borderRadius: '7px',
-              border: 'none',
-              backgroundColor: 'var(--primary, #E60012)',
-              color: '#ffffff',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
-            }}
-          >
-            <span>Luyện phản xạ ngay</span>
-            <ChevronRight size={13} />
-          </button>
-        </div>
-      ) : (
-        <div
-          style={{
-            padding: '10px 0',
-            display: 'flex',
-            justifyContent: 'center',
-            borderTop: '1px solid #f1f5f9',
-            flexShrink: 0,
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              navigate('/ai-live');
-              if (onNavigate) onNavigate();
-            }}
-            style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              backgroundColor: '#FFF0F1',
-              border: '1px solid #fed7da',
-              color: 'var(--primary, #E60012)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-            title="Luyện nói AI Live Kippy"
-          >
-            <Sparkles size={16} />
-          </button>
-        </div>
-      )}
     </aside>
   );
 };
