@@ -86,11 +86,14 @@ class HskTextbookService {
       if (u) unitTitleVi = u.vietnameseTitle;
     }
 
-    const isDirectDraftMatch = detailDto.id === lessonId || lessonId === 'les-8' || lessonId === '8';
-    const titleZh = meta?.hanzi ?? (isDirectDraftMatch ? detailDto.intro.titleZh : `第 ${lessonId} 课`);
-    const titleVi = meta?.meaning ?? (isDirectDraftMatch ? detailDto.intro.titleVi : `Bài học: ${lessonId}`);
-    const pinyin = meta?.pinyin ?? (isDirectDraftMatch ? detailDto.intro.pinyinTitle : '');
-    const summary = meta?.summary ?? (isDirectDraftMatch ? detailDto.intro.summary : `Nội dung chi tiết cho bài ${lessonId}`);
+    const isGuidId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(detailDto.id || '');
+    const isDirectDraftMatch = detailDto.id === lessonId || isGuidId || lessonId === 'les-8' || lessonId === '8';
+    // When live backend returns real SQL Server GUID lesson data, treat Backend as Single Source of Truth over static curriculumData fallback.
+    const preferBackend = isGuidId && Boolean(detailDto.intro?.titleZh);
+    const titleZh = (preferBackend ? detailDto.intro.titleZh : meta?.hanzi) ?? (isDirectDraftMatch ? detailDto.intro.titleZh : `第 ${lessonId} 课`);
+    const titleVi = (preferBackend ? detailDto.intro.titleVi : meta?.meaning) ?? (isDirectDraftMatch ? detailDto.intro.titleVi : `Bài học: ${lessonId}`);
+    const pinyin = (preferBackend ? detailDto.intro.pinyinTitle : meta?.pinyin) ?? (isDirectDraftMatch ? detailDto.intro.pinyinTitle : '');
+    const summary = (preferBackend ? detailDto.intro.summary : meta?.summary) ?? (isDirectDraftMatch ? detailDto.intro.summary : `Nội dung chi tiết cho bài ${lessonId}`);
     const objectives = isDirectDraftMatch && detailDto.intro.objectives && detailDto.intro.objectives.length > 0
       ? detailDto.intro.objectives
       : [

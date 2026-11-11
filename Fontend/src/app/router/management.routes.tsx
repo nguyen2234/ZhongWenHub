@@ -1,4 +1,4 @@
-﻿import type { RouteObject } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';

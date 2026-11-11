@@ -56,6 +56,9 @@ class AuthTokenService {
   setSession(session: AuthSession): void {
     this.inMemoryToken = session.accessToken;
     this.tokenExpiresAt = session.expiresAt || null;
+    if (session.accessToken && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zwh_auth_session_ready'));
+    }
   }
 
   /**

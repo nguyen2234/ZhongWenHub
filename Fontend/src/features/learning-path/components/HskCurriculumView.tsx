@@ -24,9 +24,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLearningState } from '../../learning';
 import {
   HSK_CURRICULUM,
+  findLessonMetadata,
   type CurriculumLesson,
   type CurriculumUnit,
 } from '../../learning/data/curriculumData';
+import { httpClient } from '../../../core/api/client/http-client';
 import { StickerIllustration } from '../../../design-system';
 import './HskCurriculumView.css';
 
@@ -120,13 +122,117 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
   const initialLevel = paramLevel >= 1 && paramLevel <= 7 ? paramLevel : (currentHskLevel || 1);
   const [selectedLevel, setSelectedLevel] = useState<number>(initialLevel);
 
-  // Sync state with selectedLevel
+  // Sync state with selectedLevel & live published Backend API when available
   const currentLevelData = HSK_CURRICULUM[selectedLevel] || HSK_CURRICULUM[1];
+  const [liveTopicsByLevel, setLiveTopicsByLevel] = useState<Record<number, CurriculumTopic[]>>({});
+
+  useEffect(() => {
+    if (selectedLevel > 4 || liveTopicsByLevel[selectedLevel]) {
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const coursesRes = await httpClient.get<any>('/content/courses');
+        const courses = Array.isArray(coursesRes) ? coursesRes : coursesRes?.items ?? [];
+        const course = courses.find((c: any) => Number(c.hskLevel) === selectedLevel);
+        if (!course?.id) return;
+
+        const [unitsRes, lessonsRes] = await Promise.all([
+          httpClient.get<any>(`/content/units?courseId=${course.id}&status=PUBLISHED`),
+          httpClient.get<any>(`/content/lessons?courseId=${course.id}&pageSize=100`),
+        ]);
+
+        if (cancelled) return;
+        const units = Array.isArray(unitsRes) ? unitsRes : unitsRes?.items ?? [];
+        const lessons = Array.isArray(lessonsRes) ? lessonsRes : lessonsRes?.items ?? [];
+        const publishedLessons = lessons.filter(
+          (l: any) => String(l.status || '').toUpperCase() === 'PUBLISHED'
+        );
+
+        if (publishedLessons.length === 0) return;
+
+        const mappedLessonsByUnit = new Map<string, CurriculumLesson[]>();
+        const ungroupedLessons: CurriculumLesson[] = [];
+
+        for (const l of publishedLessons.sort((a: any, b: any) => (a.lessonNumber ?? 0) - (b.lessonNumber ?? 0))) {
+          const meta = findLessonMetadata(l.id) ?? findLessonMetadata(`les-hsk${selectedLevel}-${l.lessonNumber}`);
+          const mapped: CurriculumLesson = {
+            id: meta?.id || l.id,
+            dbId: l.id,
+            lessonNumber: l.lessonNumber,
+            hskLevel: selectedLevel,
+            unitNumber: l.unitNumber ?? meta?.unitNumber ?? 1,
+            hanzi: l.titleZh || meta?.hanzi || `Bài ${l.lessonNumber}`,
+            pinyin: l.pinyin || meta?.pinyin || '',
+            meaning: l.titleVi || meta?.meaning || '',
+            summary: l.summary || meta?.summary || '',
+            durationMinutes: l.durationMinutes ?? meta?.durationMinutes ?? 15,
+            xpReward: l.xpReward ?? meta?.xpReward ?? 20,
+            grammarPointIds: meta?.grammarPointIds || [],
+            vocabularyIds: meta?.vocabularyIds || [],
+          };
+          const uKey = String(l.unitId || '');
+          if (uKey) {
+            const list = mappedLessonsByUnit.get(uKey) || [];
+            list.push(mapped);
+            mappedLessonsByUnit.set(uKey, list);
+          } else {
+            ungroupedLessons.push(mapped);
+          }
+        }
+
+        const builtTopics: CurriculumTopic[] = units
+          .sort((a: any, b: any) => (a.unitNumber ?? 0) - (b.unitNumber ?? 0))
+          .map((u: any) => {
+            const uLessons = mappedLessonsByUnit.get(String(u.id)) || [];
+            return {
+              id: Number(`${selectedLevel}0${u.unitNumber ?? 1}`),
+              unitNumber: u.unitNumber ?? 1,
+              hskLevel: selectedLevel,
+              title: u.titleVi || u.titleZh || `Chủ đề ${u.unitNumber}`,
+              hanziTitle: u.titleZh || '',
+              pinyinTitle: u.pinyin || '',
+              icon: resolveTopicIcon(u.titleVi || u.titleZh || '', u.unitNumber ?? 1),
+              lessons: uLessons,
+            };
+          })
+          .filter((t: CurriculumTopic) => t.lessons.length > 0);
+
+        if (ungroupedLessons.length > 0 && builtTopics.length === 0) {
+          builtTopics.push({
+            id: Number(`${selectedLevel}01`),
+            unitNumber: 1,
+            hskLevel: selectedLevel,
+            title: course.title || `HSK ${selectedLevel}`,
+            hanziTitle: `HSK ${selectedLevel}`,
+            pinyinTitle: '',
+            icon: resolveTopicIcon('', 1),
+            lessons: ungroupedLessons,
+          });
+        }
+
+        if (builtTopics.length > 0) {
+          setLiveTopicsByLevel((prev) => ({ ...prev, [selectedLevel]: builtTopics }));
+        }
+      } catch {
+        // Fallback smoothly to static HSK_CURRICULUM in offline / unit-test environments
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedLevel, liveTopicsByLevel]);
 
   // Topics for current level
   const topics: CurriculumTopic[] = useMemo(() => {
+    if (selectedLevel <= 4 && liveTopicsByLevel[selectedLevel]?.length) {
+      return liveTopicsByLevel[selectedLevel];
+    }
     return (currentLevelData.units || []).map(mapUnitToTopic);
-  }, [currentLevelData]);
+  }, [currentLevelData, selectedLevel, liveTopicsByLevel]);
 
   // Selected topic ID
   const [selectedTopicId, setSelectedTopicId] = useState<number>(() => {
@@ -283,7 +389,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             }}
           >
             {currentLevelData.description ||
-              `Chương trình đào tạo chuẩn khung HSK 3.0 với ${currentLevelData.totalWords} từ vựng cốt lõi, các điểm ngữ pháp trọng tâm và hội thoại giao tiếp tình huống thực tế theo từng chủ đề đời sống.`}
+              `Chương trình đào tạo chuẩn khung HSK 2.0 với ${currentLevelData.totalWords} từ vựng cốt lõi, các điểm ngữ pháp trọng tâm và hội thoại giao tiếp tình huống thực tế theo từng chủ đề đời sống.`}
           </p>
         </div>
 

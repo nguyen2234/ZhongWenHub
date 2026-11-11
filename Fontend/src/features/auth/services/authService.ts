@@ -73,6 +73,8 @@ function mapBackendUserToAuthUser(user: BackendUserPayload): AuthUser {
   };
 }
 
+let inFlightRefreshPromise: Promise<AuthResponse | null> | null = null;
+
 export const authService = {
   /**
    * Real ASP.NET Core login
@@ -169,50 +171,60 @@ export const authService = {
    * Real ASP.NET Core session refresh
    */
   async refreshSession(): Promise<AuthResponse | null> {
-    try {
-      const response = await fetch(getApiUrl('auth/refresh'), {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json, application/problem+json',
-        },
-        credentials: 'include',
-      });
+    if (inFlightRefreshPromise) {
+      return inFlightRefreshPromise;
+    }
 
-      if (!response.ok) {
+    inFlightRefreshPromise = (async () => {
+      try {
+        const response = await fetch(getApiUrl('auth/refresh'), {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json, application/problem+json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          authTokenService.clearTokens();
+          return null;
+        }
+
+        const data = await response.json();
+        if (data.accessToken) {
+          authTokenService.setSession({
+            accessToken: data.accessToken,
+            expiresAt: Date.now() + ((data.expiresIn || 900) * 1000),
+          });
+        }
+
+        const authUser = mapBackendUserToAuthUser(data.user);
+
+        managementAuthService.setSession({
+          id: data.user.id,
+          name: data.user.displayName || data.user.username || 'Người dùng',
+          email: data.user.email,
+          role: authUser.role as UserRole,
+          permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
+          avatarUrl: data.user.avatarUrl,
+        });
+
+        setDevStudentIdentity(data.user.id || DEFAULT_DEMO_STUDENT_ID);
+
+        return {
+          success: true,
+          user: authUser,
+          accessToken: data.accessToken,
+        };
+      } catch {
         authTokenService.clearTokens();
         return null;
+      } finally {
+        inFlightRefreshPromise = null;
       }
+    })();
 
-      const data = await response.json();
-      if (data.accessToken) {
-        authTokenService.setSession({
-          accessToken: data.accessToken,
-          expiresAt: Date.now() + ((data.expiresIn || 900) * 1000),
-        });
-      }
-
-      const authUser = mapBackendUserToAuthUser(data.user);
-
-      managementAuthService.setSession({
-        id: data.user.id,
-        name: data.user.displayName || data.user.username || 'Người dùng',
-        email: data.user.email,
-        role: authUser.role as UserRole,
-        permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
-        avatarUrl: data.user.avatarUrl,
-      });
-
-      setDevStudentIdentity(data.user.id || DEFAULT_DEMO_STUDENT_ID);
-
-      return {
-        success: true,
-        user: authUser,
-        accessToken: data.accessToken,
-      };
-    } catch {
-      authTokenService.clearTokens();
-      return null;
-    }
+    return inFlightRefreshPromise;
   },
 
   /**

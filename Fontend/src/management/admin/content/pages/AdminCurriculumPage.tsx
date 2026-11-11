@@ -177,9 +177,11 @@ export const AdminCurriculumPage: React.FC = () => {
 
   const selectedHskNum = Number(selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1') || 1;
 
-  const loadReadiness = useCallback(async () => {
+  const loadReadiness = useCallback(async (preserveMessage = false) => {
     setReadinessLoading(true);
-    setReadinessMessage(null);
+    if (!preserveMessage) {
+      setReadinessMessage(null);
+    }
     try {
       const data = await curriculumService.getCoursePublicationReadiness(selectedHskNum);
       setReadinessData(data);
@@ -207,7 +209,7 @@ export const AdminCurriculumPage: React.FC = () => {
     }
     const res = await curriculumService.batchReviewLessons(readyDraftIds, 'PENDING_REVIEW', 'Gửi kiểm duyệt hàng loạt từ màn hình Giáo trình');
     setReadinessMessage(`Đã gửi duyệt ${res.processedCount} bài (bỏ qua ${res.skippedCount}).`);
-    await loadReadiness();
+    await loadReadiness(true);
     await loadData();
   };
 
@@ -223,7 +225,7 @@ export const AdminCurriculumPage: React.FC = () => {
     const res = await curriculumService.batchReviewLessons(pendingReadyIds, 'PUBLISHED', 'Phê duyệt xuất bản hàng loạt sau kiểm tra release gate');
     const note = res.skippedReasons.length > 0 ? ` — Lý do bỏ qua: ${res.skippedReasons[0]}` : '';
     setReadinessMessage(`Đã xuất bản ${res.processedCount} bài, bỏ qua ${res.skippedCount} bài${note}`);
-    await loadReadiness();
+    await loadReadiness(true);
     await loadData();
   };
 
@@ -374,7 +376,7 @@ export const AdminCurriculumPage: React.FC = () => {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <button type="button" className="ds-btn ds-btn-outline ds-btn-sm" onClick={loadReadiness} disabled={readinessLoading}>
+                  <button type="button" className="ds-btn ds-btn-outline ds-btn-sm" onClick={() => loadReadiness(false)} disabled={readinessLoading}>
                     <RefreshCw size={13} /> Kiểm tra lại
                   </button>
                   <button type="button" className="ds-btn ds-btn-outline ds-btn-sm" onClick={handleBatchSubmitReady} disabled={readinessLoading}>

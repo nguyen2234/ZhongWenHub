@@ -383,87 +383,136 @@ class CurriculumService {
       throw new Error(`Không tìm thấy dữ liệu bài học ${lessonId}`);
     }
 
-    let dialogue = {
-      id: `diag-${res.id}`,
-      lessonId: res.id,
-      title: `Hội thoại bài ${res.lessonNumber}`,
-      situationZh: '',
-      situationVi: '',
-      lines: [],
+    const safeJson = <T,>(raw: any, fallback: T): T => {
+      if (raw === null || raw === undefined || raw === '') return fallback;
+      if (typeof raw !== 'string') return raw as T;
+      try {
+        return JSON.parse(raw) as T;
+      } catch {
+        return fallback;
+      }
     };
-    if (res.dialogueJson) {
-      try {
-        dialogue = typeof res.dialogueJson === 'string' ? JSON.parse(res.dialogueJson) : res.dialogueJson;
-      } catch (e) {
-        console.warn('Failed to parse dialogueJson:', e);
-      }
-    }
 
-    let listenings = [];
-    if (res.listeningJson) {
-      try {
-        listenings = typeof res.listeningJson === 'string' ? JSON.parse(res.listeningJson) : res.listeningJson;
-      } catch (e) {
-        console.warn('Failed to parse listeningJson:', e);
-      }
-    }
+    const parsedDialogue = safeJson<any>(res.dialogueJson, null);
+    const dialogue = {
+      ...(parsedDialogue && typeof parsedDialogue === 'object' ? parsedDialogue : {}),
+      id: parsedDialogue?.id || `diag-${res.id}`,
+      lessonId: res.id,
+      title: parsedDialogue?.title || `Hội thoại bài ${res.lessonNumber}`,
+      situationZh: parsedDialogue?.situationZh || '',
+      situationVi: parsedDialogue?.situationVi || '',
+      audioUrl: parsedDialogue?.audioUrl,
+      lines: Array.isArray(parsedDialogue?.lines) ? parsedDialogue.lines : [],
+    };
 
-    const vocabularies = (res.vocabularies || []).map((v: any) => ({
-      id: v.id,
-      hskLevelId: `level-hsk-${v.hskLevel || 1}`,
-      simplified: v.hanzi,
-      traditional: v.traditional || v.hanzi,
-      pinyin: v.pinyin,
-      meaningVi: v.meaningVi,
-      meaningEn: v.meaningEn || '',
-      partOfSpeech: v.partOfSpeech || 'danh từ',
-      audioUrl: v.audioUrl || '',
-      status: v.status || 'PUBLISHED',
-      examples: typeof v.examplesJson === 'string' && v.examplesJson ? JSON.parse(v.examplesJson) : (v.examples || []),
-      source: 'Live SQL Server',
-      createdAt: v.createdAt || new Date().toISOString(),
-      updatedAt: v.updatedAt || new Date().toISOString(),
-    }));
+    const rawListenings = safeJson<any>(res.listeningJson, []);
+    const listenings = Array.isArray(rawListenings)
+      ? rawListenings
+      : Array.isArray(rawListenings?.items)
+      ? rawListenings.items
+      : [];
 
-    const grammars = (res.grammarPoints || []).map((g: any) => ({
-      id: g.id,
-      code: g.code,
-      title: g.title,
-      pinyinTitle: g.pinyinTitle || '',
-      hskLevel: g.hskLevel || 1,
-      category: g.category || 'STRUCTURE',
-      structureFormula: g.structureFormula || '',
-      explanation: g.explanation || '',
-      difficulty: g.difficulty || 'EASY',
-      status: g.status || 'PUBLISHED',
-      examples: typeof g.examplesJson === 'string' && g.examplesJson ? JSON.parse(g.examplesJson) : (g.examples || []),
-      practiceQuestions: typeof g.practiceJson === 'string' && g.practiceJson ? JSON.parse(g.practiceJson) : (g.practiceQuestions || []),
-      createdAt: g.createdAt || new Date().toISOString(),
-      updatedAt: g.updatedAt || new Date().toISOString(),
-    }));
+    const vocabularies = (res.vocabularies || []).map((v: any, idx: number) => {
+      const examples = safeJson<any[]>(v.examplesJson, Array.isArray(v.examples) ? v.examples : []);
+      const vocabObj = {
+        id: v.id,
+        hskLevelId: `level-hsk-${v.hskLevel || 1}`,
+        simplified: v.hanzi,
+        traditional: v.traditional || v.hanzi,
+        pinyin: v.pinyin || '',
+        meaningVi: v.meaningVi || '',
+        meaningEn: v.meaningEn || '',
+        partOfSpeech: (v.partOfSpeech || 'NOUN') as any,
+        audioUrl: v.audioUrl || '',
+        status: (v.status || 'PUBLISHED') as any,
+        examples: Array.isArray(examples) ? examples : [],
+        source: 'Live SQL Server',
+        createdAt: v.createdAt || new Date().toISOString(),
+        updatedAt: v.updatedAt || new Date().toISOString(),
+      };
+      const firstEx = vocabObj.examples[0];
+      return {
+        id: `lv-${res.id}-${v.id}`,
+        lessonId: res.id,
+        vocabularyId: v.id,
+        displayOrder: idx + 1,
+        isCoreWord: idx < 5,
+        customExampleZh: firstEx?.zh || '',
+        customExamplePinyin: firstEx?.pinyin || '',
+        customExampleVi: firstEx?.meaningVi || '',
+        vocabulary: vocabObj,
+      };
+    });
 
-    const exercises = (res.exercises || []).map((e: any) => ({
-      id: e.id,
-      type: e.type,
-      skill: e.skill,
-      hskLevel: e.hskLevel || 1,
-      title: e.title,
-      instruction: e.instruction,
-      promptHanzi: e.promptHanzi,
-      promptPinyin: e.promptPinyin,
-      promptVietnamese: e.promptVietnamese,
-      audioUrl: e.audioUrl,
-      options: typeof e.optionsJson === 'string' && e.optionsJson ? JSON.parse(e.optionsJson) : (e.options || []),
-      correctOptionIndex: e.correctOptionIndex,
-      correctAnswer: e.correctAnswer,
-      explanation: e.explanation,
-      xpReward: e.xpReward,
-      status: e.status || 'PUBLISHED',
-      lessonId: e.lessonId,
-      grammarPointId: e.grammarPointId,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-    }));
+    const grammars = (res.grammarPoints || []).map((g: any, idx: number) => {
+      const examples = safeJson<any[]>(g.examplesJson, Array.isArray(g.examples) ? g.examples : []);
+      const rawPractice = safeJson<any>(g.practiceJson, g.practiceQuestions ?? null);
+      const practiceQuestions = Array.isArray(rawPractice)
+        ? rawPractice
+        : rawPractice && typeof rawPractice === 'object'
+        ? [rawPractice]
+        : [];
+      const gpObj = {
+        id: g.id,
+        code: g.code || `GP-${idx + 1}`,
+        title: g.title || '',
+        pinyinTitle: g.pinyinTitle || '',
+        hskLevelId: `level-hsk-${g.hskLevel || 1}`,
+        category: (g.category || 'SENTENCE_STRUCTURE') as any,
+        structureFormula: g.structureFormula || '',
+        explanation: g.explanation || '',
+        difficulty: (g.difficulty || 'BASIC') as any,
+        status: (g.status || 'PUBLISHED') as any,
+        examples: Array.isArray(examples) ? examples : [],
+        practiceQuestions,
+        linkedLessonIds: [res.id],
+        createdAt: g.createdAt || new Date().toISOString(),
+        updatedAt: g.updatedAt || new Date().toISOString(),
+      };
+      return {
+        id: `lg-${res.id}-${g.id}`,
+        lessonId: res.id,
+        grammarPointId: g.id,
+        displayOrder: idx + 1,
+        lessonNotes: g.explanation || '',
+        quickPractice: practiceQuestions[0]
+          ? {
+              question: practiceQuestions[0].question || '',
+              options: Array.isArray(practiceQuestions[0].options) ? practiceQuestions[0].options : [],
+              correctIndex: Number(practiceQuestions[0].correctIndex ?? 0),
+              explanation: practiceQuestions[0].explanation || g.explanation || '',
+            }
+          : undefined,
+        grammarPoint: gpObj,
+      };
+    });
+
+    const exercises = (res.exercises || []).map((e: any, idx: number) => {
+      const options = safeJson<string[]>(e.optionsJson, Array.isArray(e.options) ? e.options : []);
+      const sharedExercise = {
+        id: String(e.id),
+        type: (e.type || 'multiple-choice') as any,
+        title: e.title || '',
+        instruction: e.instruction || '',
+        promptHanzi: e.promptHanzi || '',
+        promptPinyin: e.promptPinyin || '',
+        promptVietnamese: e.promptVietnamese || '',
+        audioUrl: e.audioUrl || '',
+        options: Array.isArray(options) ? options : [],
+        correctOptionIndex: e.correctOptionIndex ?? 0,
+        explanation: e.explanation || '',
+        xpReward: e.xpReward ?? 10,
+      };
+      return {
+        id: `le-${res.id}-${e.id}`,
+        lessonId: res.id,
+        exerciseId: String(e.id),
+        section: ((e.section || '').toUpperCase() === 'QUIZ' ? 'QUIZ' : 'PRACTICE') as 'PRACTICE' | 'QUIZ',
+        displayOrder: idx + 1,
+        points: e.xpReward ?? 10,
+        exercise: sharedExercise,
+      };
+    });
 
     const draft: LessonEditorDraft = {
       lessonId: res.id,
@@ -570,9 +619,9 @@ class CurriculumService {
       status: draft.status,
       dialogueJson: JSON.stringify(draft.dialogue),
       listeningJson: JSON.stringify(draft.listenings),
-      linkedVocabularyIds: draft.vocabularies.map((v) => v.id),
-      linkedGrammarPointIds: draft.grammars.map((g) => g.id),
-      linkedExerciseIds: draft.exercises.map((e) => e.id),
+      linkedVocabularyIds: draft.vocabularies.map((v) => v.vocabularyId || v.id),
+      linkedGrammarPointIds: draft.grammars.map((g) => g.grammarPointId || g.id),
+      linkedExerciseIds: draft.exercises.map((e) => e.exerciseId || e.id),
     };
 
     await httpClient.put(`/content/lessons/${lessonId}`, payload);

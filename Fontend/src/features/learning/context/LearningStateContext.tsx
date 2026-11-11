@@ -70,8 +70,19 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       setState(updated);
     });
 
+    const handleAuthSessionReady = () => {
+      void learningStateService.syncWithServer();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zwh_auth_session_ready', handleAuthSessionReady);
+    }
+
     return () => {
       unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('zwh_auth_session_ready', handleAuthSessionReady);
+      }
     };
   }, [studentId]);
 
