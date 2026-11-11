@@ -678,5 +678,22 @@ public class LessonReleaseReadinessDto
     public int ExerciseCount { get; set; }
     public bool AudioFilesExist { get; set; }
     public bool HumanReviewCompleted { get; set; }
+    public string ReadinessState { get; set; } = "BLOCKED"; // PUBLISHED, READY_TO_PUBLISH, PENDING_REVIEW, BLOCKED
+    public string? UnitStatus { get; set; }
+    public Guid? UpdatedByUserId { get; set; }
     public List<string> BlockerReasons { get; set; } = new();
+}
+
+public class CoursePublicationReadinessDto
+{
+    public Guid CourseId { get; set; }
+    public int HskLevel { get; set; }
+    public string CourseTitle { get; set; } = string.Empty;
+    public string CourseStatus { get; set; } = string.Empty;
+    public int TotalLessons { get; set; }
+    public int PublishedCount { get; set; }
+    public int ReadyToPublishCount { get; set; }
+    public int PendingReviewCount { get; set; }
+    public int BlockedCount { get; set; }
+    public List<LessonReleaseReadinessDto> Lessons { get; set; } = new();
 }

@@ -26,7 +26,9 @@ public interface IContentService
     Task<LessonDto?> UpdateLessonAsync(Guid id, UpdateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonDto?> UpdateLessonStatusAsync(Guid id, string status, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonDto?> ReviewLessonAsync(Guid id, ReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
+    Task<BatchReviewResultDto> BatchReviewLessonsAsync(BatchReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default);
     Task<LessonReleaseReadinessDto?> GetLessonReleaseReadinessAsync(Guid lessonId, CancellationToken cancellationToken = default);
+    Task<CoursePublicationReadinessDto?> GetCourseLessonsReadinessAsync(int? hskLevel = null, Guid? courseId = null, CancellationToken cancellationToken = default);
     Task<bool> DeleteLessonAsync(Guid id, CancellationToken cancellationToken = default);
 
     // Vocabulary

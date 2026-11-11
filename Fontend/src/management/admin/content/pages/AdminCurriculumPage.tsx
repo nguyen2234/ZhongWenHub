@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
+import { Plus, BookOpen, AlertCircle, RefreshCw, ShieldCheck, CheckCircle2, AlertTriangle, Send } from 'lucide-react';
 import { PageHeader } from '../../../shared/components';
 import {
   CurriculumUnitCard,
@@ -8,7 +8,10 @@ import {
   LevelFilterBar,
   UnitModal,
 } from '../components';
-import { curriculumService } from '../services/curriculum.service';
+import {
+  curriculumService,
+  type CoursePublicationReadiness,
+} from '../services/curriculum.service';
 import { hskRepositoryService } from '../services/hsk-repository.service';
 import type {
   Lesson,
@@ -94,6 +97,12 @@ export const AdminCurriculumPage: React.FC = () => {
   const [selectedUnitForEdit, setSelectedUnitForEdit] = useState<Unit | null>(null);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
 
+  // Readiness & batch publish panel state
+  const [showReadinessPanel, setShowReadinessPanel] = useState(false);
+  const [readinessData, setReadinessData] = useState<CoursePublicationReadiness | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
+  const [readinessMessage, setReadinessMessage] = useState<string | null>(null);
+
   // Unit handlers
   const handleOpenAddUnit = useCallback(() => {
     setSelectedUnitForEdit(null);
@@ -166,6 +175,58 @@ export const AdminCurriculumPage: React.FC = () => {
     [isContentManager, navigate]
   );
 
+  const selectedHskNum = Number(selectedLevelId ? selectedLevelId.replace('level-hsk-', '') : '1') || 1;
+
+  const loadReadiness = useCallback(async () => {
+    setReadinessLoading(true);
+    setReadinessMessage(null);
+    try {
+      const data = await curriculumService.getCoursePublicationReadiness(selectedHskNum);
+      setReadinessData(data);
+    } catch (err: any) {
+      setReadinessMessage(err?.message || 'Không thể kiểm tra mức độ sẵn sàng xuất bản từ máy chủ.');
+    } finally {
+      setReadinessLoading(false);
+    }
+  }, [selectedHskNum]);
+
+  useEffect(() => {
+    if (showReadinessPanel) {
+      loadReadiness();
+    }
+  }, [showReadinessPanel, loadReadiness]);
+
+  const handleBatchSubmitReady = async () => {
+    if (!readinessData) return;
+    const readyDraftIds = readinessData.lessons
+      .filter((l) => l.isReadyForPublish && l.currentStatus === 'DRAFT')
+      .map((l) => l.lessonId);
+    if (readyDraftIds.length === 0) {
+      setReadinessMessage('Không có bài học DRAFT nào đạt đủ 5 điều kiện xuất bản để gửi kiểm duyệt.');
+      return;
+    }
+    const res = await curriculumService.batchReviewLessons(readyDraftIds, 'PENDING_REVIEW', 'Gửi kiểm duyệt hàng loạt từ màn hình Giáo trình');
+    setReadinessMessage(`Đã gửi duyệt ${res.processedCount} bài (bỏ qua ${res.skippedCount}).`);
+    await loadReadiness();
+    await loadData();
+  };
+
+  const handleBatchPublishPending = async () => {
+    if (!readinessData) return;
+    const pendingReadyIds = readinessData.lessons
+      .filter((l) => l.isReadyForPublish && l.currentStatus === 'PENDING_REVIEW')
+      .map((l) => l.lessonId);
+    if (pendingReadyIds.length === 0) {
+      setReadinessMessage('Chưa có bài học PENDING_REVIEW nào đạt đủ 5 điều kiện sẵn sàng xuất bản.');
+      return;
+    }
+    const res = await curriculumService.batchReviewLessons(pendingReadyIds, 'PUBLISHED', 'Phê duyệt xuất bản hàng loạt sau kiểm tra release gate');
+    const note = res.skippedReasons.length > 0 ? ` — Lý do bỏ qua: ${res.skippedReasons[0]}` : '';
+    setReadinessMessage(`Đã xuất bản ${res.processedCount} bài, bỏ qua ${res.skippedCount} bài${note}`);
+    await loadReadiness();
+    await loadData();
+  };
+
   return (
     <div className="lcm-page">
       <PageHeader
@@ -194,6 +255,14 @@ export const AdminCurriculumPage: React.FC = () => {
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <span>Kho bài tập</span>
+            </button>
+            <button
+              type="button"
+              className="ds-btn ds-btn-outline ds-btn-sm"
+              onClick={() => setShowReadinessPanel((prev) => !prev)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <ShieldCheck size={14} /> Kiểm duyệt xuất bản HSK {selectedHskNum}
             </button>
             <button
               type="button"
@@ -285,6 +354,78 @@ export const AdminCurriculumPage: React.FC = () => {
             onSelectLevel={setSelectedLevelId}
             showAllOption={false}
           />
+
+          {showReadinessPanel && (
+            <div className="ds-card" style={{ padding: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 700 }}>
+                    Kiểm tra sẵn sàng xuất bản — HSK {selectedHskNum} ({readinessData?.totalLessons ?? 0} bài)
+                  </h4>
+                  {readinessData && (
+                    <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+                      Đã xuất bản: <strong>{readinessData.publishedCount}</strong> · Sẵn sàng duyệt:{' '}
+                      <strong>{readinessData.readyToPublishCount}</strong> · Chờ duyệt:{' '}
+                      <strong>{readinessData.pendingReviewCount}</strong> · Bị chặn:{' '}
+                      <strong style={{ color: readinessData.blockedCount > 0 ? 'var(--danger, #ef4444)' : 'inherit' }}>
+                        {readinessData.blockedCount}
+                      </strong>
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <button type="button" className="ds-btn ds-btn-outline ds-btn-sm" onClick={loadReadiness} disabled={readinessLoading}>
+                    <RefreshCw size={13} /> Kiểm tra lại
+                  </button>
+                  <button type="button" className="ds-btn ds-btn-outline ds-btn-sm" onClick={handleBatchSubmitReady} disabled={readinessLoading}>
+                    <Send size={13} /> Gửi duyệt bài đủ điều kiện
+                  </button>
+                  <button type="button" className="ds-btn ds-btn-primary ds-btn-sm" onClick={handleBatchPublishPending} disabled={readinessLoading}>
+                    <CheckCircle2 size={13} /> Xuất bản bài đã duyệt
+                  </button>
+                </div>
+              </div>
+
+              {readinessMessage && (
+                <div style={{ fontSize: 'var(--text-xs)', padding: '8px 12px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--background)', marginBottom: 'var(--space-2)' }}>
+                  {readinessMessage}
+                </div>
+              )}
+
+              {readinessData && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--space-2)' }}>
+                  {readinessData.lessons.map((item) => (
+                    <div
+                      key={item.lessonId}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--border)',
+                        backgroundColor: 'var(--background)',
+                        fontSize: 'var(--text-xs)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginBottom: '4px' }}>
+                        <span>Bài {item.lessonNumber}: {item.titleZh}</span>
+                        <span style={{ color: item.readinessState === 'BLOCKED' ? 'var(--danger, #ef4444)' : 'var(--success, #16a34a)' }}>
+                          {item.readinessState}
+                        </span>
+                      </div>
+                      <div style={{ color: 'var(--muted)' }}>
+                        Từ: {item.vocabCount} · Ngữ pháp: {item.grammarCount} · BT: {item.exerciseCount}
+                      </div>
+                      {item.blockerReasons.length > 0 && (
+                        <div style={{ color: 'var(--danger, #ef4444)', marginTop: '4px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                          <AlertTriangle size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <span>{item.blockerReasons.join(' ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Unit Statistics Summary */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>

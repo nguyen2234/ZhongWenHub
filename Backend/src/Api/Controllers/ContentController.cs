@@ -264,6 +264,37 @@ public class ContentController : BaseApiController
         }
     }
 
+    [HttpGet("lessons/readiness")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(CoursePublicationReadinessDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCourseLessonsReadiness(
+        [FromQuery] int? hskLevel,
+        [FromQuery] Guid? courseId,
+        CancellationToken cancellationToken)
+    {
+        var readiness = await _contentService.GetCourseLessonsReadinessAsync(hskLevel, courseId, cancellationToken);
+        if (readiness == null)
+        {
+            return NotFound(new { message = "Không tìm thấy khóa học phù hợp để kiểm tra sẵn sàng xuất bản.", code = "COURSE_NOT_FOUND" });
+        }
+        return Ok(readiness);
+    }
+
+    [HttpPost("lessons/batch-review")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BatchReviewLessons(
+        [FromBody] BatchReviewContentDto dto,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var currentUserId = GetCurrentUserId();
+        var result = await _contentService.BatchReviewLessonsAsync(dto, currentUserId, cancellationToken);
+        return Ok(result);
+    }
+
     [HttpGet("lessons/{id:guid}/release-readiness")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(LessonReleaseReadinessDto), StatusCodes.Status200OK)]

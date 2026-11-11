@@ -737,13 +737,97 @@ public class ContentService : IContentService
 
     public async Task<LessonReleaseReadinessDto?> GetLessonReleaseReadinessAsync(Guid lessonId, CancellationToken cancellationToken = default)
     {
-        var lesson = await _dbContext.Lessons.Include(l => l.Course).FirstOrDefaultAsync(l => l.Id == lessonId, cancellationToken);
+        var lesson = await _dbContext.Lessons
+            .AsNoTracking()
+            .Include(l => l.Course)
+            .Include(l => l.Unit)
+            .FirstOrDefaultAsync(l => l.Id == lessonId, cancellationToken);
         if (lesson == null) return null;
 
         var vocabCount = await _dbContext.Vocabularies.CountAsync(v => v.LessonId == lessonId, cancellationToken);
         var grammarCount = await _dbContext.GrammarPoints.CountAsync(g => g.LessonId == lessonId, cancellationToken);
         var exerciseCount = await _dbContext.Exercises.CountAsync(e => e.LessonId == lessonId, cancellationToken);
 
+        return EvaluateLessonReleaseReadiness(lesson, vocabCount, grammarCount, exerciseCount);
+    }
+
+    public async Task<CoursePublicationReadinessDto?> GetCourseLessonsReadinessAsync(int? hskLevel = null, Guid? courseId = null, CancellationToken cancellationToken = default)
+    {
+        var targetHsk = hskLevel ?? 1;
+        CourseEntity? course;
+        if (courseId.HasValue && courseId.Value != Guid.Empty)
+        {
+            course = await _dbContext.Courses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == courseId.Value, cancellationToken);
+        }
+        else
+        {
+            course = await _dbContext.Courses.AsNoTracking()
+                .Where(c => c.HskLevel == targetHsk)
+                .OrderByDescending(c => c.Status == "PUBLISHED")
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        if (course == null) return null;
+
+        var lessons = await _dbContext.Lessons
+            .AsNoTracking()
+            .Include(l => l.Unit)
+            .Where(l => l.CourseId == course.Id)
+            .OrderBy(l => l.LessonNumber)
+            .ToListAsync(cancellationToken);
+
+        var lessonIds = lessons.Select(l => l.Id).ToList();
+        var vocabCounts = lessonIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await _dbContext.Vocabularies.AsNoTracking()
+                .Where(v => v.LessonId.HasValue && lessonIds.Contains(v.LessonId.Value))
+                .GroupBy(v => v.LessonId!.Value)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
+
+        var grammarCounts = lessonIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await _dbContext.GrammarPoints.AsNoTracking()
+                .Where(g => g.LessonId.HasValue && lessonIds.Contains(g.LessonId.Value))
+                .GroupBy(g => g.LessonId!.Value)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
+
+        var exerciseCounts = lessonIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await _dbContext.Exercises.AsNoTracking()
+                .Where(e => e.LessonId.HasValue && lessonIds.Contains(e.LessonId.Value))
+                .GroupBy(e => e.LessonId!.Value)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
+
+        var evaluations = lessons.Select(l => EvaluateLessonReleaseReadiness(
+            l,
+            vocabCounts.GetValueOrDefault(l.Id, 0),
+            grammarCounts.GetValueOrDefault(l.Id, 0),
+            exerciseCounts.GetValueOrDefault(l.Id, 0))).ToList();
+
+        return new CoursePublicationReadinessDto
+        {
+            CourseId = course.Id,
+            HskLevel = course.HskLevel,
+            CourseTitle = course.Title,
+            CourseStatus = course.Status,
+            TotalLessons = evaluations.Count,
+            PublishedCount = evaluations.Count(x => x.CurrentStatus == "PUBLISHED"),
+            ReadyToPublishCount = evaluations.Count(x => x.CurrentStatus != "PUBLISHED" && x.IsReadyForPublish),
+            PendingReviewCount = evaluations.Count(x => x.CurrentStatus == "PENDING_REVIEW"),
+            BlockedCount = evaluations.Count(x => !x.IsReadyForPublish),
+            Lessons = evaluations,
+        };
+    }
+
+    public static LessonReleaseReadinessDto EvaluateLessonReleaseReadiness(
+        LessonEntity lesson,
+        int vocabCount,
+        int grammarCount,
+        int exerciseCount)
+    {
         var blockerReasons = new List<string>();
 
         // Gate 1: Dialogue
@@ -803,10 +887,16 @@ public class ContentService : IContentService
             {
                 using var doc = JsonDocument.Parse(lesson.ListeningJson);
                 var root = doc.RootElement;
-                if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() >= 1)
+                JsonElement itemsElem = root;
+                if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("items", out var wrappedItems))
+                {
+                    itemsElem = wrappedItems;
+                }
+
+                if (itemsElem.ValueKind == JsonValueKind.Array && itemsElem.GetArrayLength() >= 1)
                 {
                     bool hasLeakedHanzi = false;
-                    foreach (var q in root.EnumerateArray())
+                    foreach (var q in itemsElem.EnumerateArray())
                     {
                         var py = q.TryGetProperty("transcriptPinyin", out var pProp) ? pProp.GetString() ?? "" : "";
                         var vi = q.TryGetProperty("transcriptVi", out var vProp) ? vProp.GetString() ?? "" : "";
@@ -856,6 +946,13 @@ public class ContentService : IContentService
 
         bool audioExists = dialogueValid && listeningValid;
         bool isReady = blockerReasons.Count == 0;
+        var readinessState = !isReady
+            ? "BLOCKED"
+            : lesson.Status.Equals("PUBLISHED", StringComparison.OrdinalIgnoreCase)
+                ? "PUBLISHED"
+                : lesson.Status.Equals("PENDING_REVIEW", StringComparison.OrdinalIgnoreCase)
+                    ? "PENDING_REVIEW"
+                    : "READY_TO_PUBLISH";
 
         return new LessonReleaseReadinessDto
         {
@@ -872,8 +969,37 @@ public class ContentService : IContentService
             ExerciseCount = exerciseCount,
             AudioFilesExist = audioExists,
             HumanReviewCompleted = lesson.ReviewedByUserId.HasValue && lesson.ReviewedAt.HasValue,
+            ReadinessState = readinessState,
+            UnitStatus = lesson.Unit?.Status,
+            UpdatedByUserId = lesson.UpdatedByUserId,
             BlockerReasons = blockerReasons
         };
+    }
+
+    public static void ValidateLessonPublishTransition(
+        LessonEntity lesson,
+        Guid? reviewerUserId,
+        LessonReleaseReadinessDto readiness)
+    {
+        if (!lesson.Status.Equals("PENDING_REVIEW", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Quy trình xuất bản yêu cầu bài học phải trải qua bước kiểm duyệt (PENDING_REVIEW) và có sự phê duyệt của người có thẩm quyền trước khi xuất bản (PUBLISHED). Không thể chuyển thẳng từ DRAFT sang PUBLISHED.");
+        }
+
+        if (!reviewerUserId.HasValue || reviewerUserId.Value == Guid.Empty)
+        {
+            throw new InvalidOperationException("Yêu cầu thông tin định danh của người thẩm định (ReviewedByUserId) để hoàn tất phê duyệt xuất bản.");
+        }
+
+        if (lesson.UpdatedByUserId.HasValue && lesson.UpdatedByUserId.Value == reviewerUserId.Value)
+        {
+            throw new InvalidOperationException("Vi phạm nguyên tắc phân tách nhiệm vụ (Segregation of Duties): Người tạo hoặc gửi yêu cầu kiểm duyệt bài học không được phép tự phê duyệt xuất bản bài học của chính mình.");
+        }
+
+        if (!readiness.IsReadyForPublish)
+        {
+            throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
+        }
     }
 
     public async Task<LessonDto?> UpdateLessonStatusAsync(Guid id, string status, Guid? currentUserId = null, CancellationToken cancellationToken = default)
@@ -895,28 +1021,13 @@ public class ContentService : IContentService
 
         if (targetStatus == "PUBLISHED")
         {
-            if (!lesson.Status.Equals("PENDING_REVIEW", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("Quy trình xuất bản yêu cầu bài học phải trải qua bước kiểm duyệt (PENDING_REVIEW) và có sự phê duyệt của người có thẩm quyền trước khi xuất bản (PUBLISHED). Không thể chuyển thẳng từ DRAFT sang PUBLISHED.");
-            }
-
-            if (!currentUserId.HasValue || currentUserId.Value == Guid.Empty)
-            {
-                throw new InvalidOperationException("Yêu cầu thông tin định danh của người thẩm định (ReviewedByUserId) để hoàn tất phê duyệt xuất bản.");
-            }
-
-            if (lesson.UpdatedByUserId.HasValue && lesson.UpdatedByUserId.Value == currentUserId.Value)
-            {
-                throw new InvalidOperationException("Vi phạm nguyên tắc phân tách nhiệm vụ (Segregation of Duties): Người tạo hoặc gửi yêu cầu kiểm duyệt bài học không được phép tự phê duyệt xuất bản bài học của chính mình.");
-            }
-
             var readiness = await GetLessonReleaseReadinessAsync(id, cancellationToken);
-            if (readiness != null && !readiness.IsReadyForPublish)
+            if (readiness != null)
             {
-                throw new InvalidOperationException($"Không thể xuất bản bài học: {string.Join("; ", readiness.BlockerReasons)}");
+                ValidateLessonPublishTransition(lesson, currentUserId, readiness);
             }
 
-            lesson.ReviewedByUserId = currentUserId.Value;
+            lesson.ReviewedByUserId = currentUserId!.Value;
             lesson.ReviewedAt = DateTime.UtcNow;
             if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
             {
@@ -967,6 +1078,47 @@ public class ContentService : IContentService
             CreatedAt = lesson.CreatedAt,
             UpdatedAt = lesson.UpdatedAt
         };
+    }
+
+    public async Task<BatchReviewResultDto> BatchReviewLessonsAsync(
+        BatchReviewContentDto dto,
+        Guid? currentUserId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new BatchReviewResultDto();
+        if (dto.Ids == null || dto.Ids.Count == 0)
+        {
+            return result;
+        }
+
+        foreach (var lessonId in dto.Ids.Distinct())
+        {
+            try
+            {
+                var updated = await ReviewLessonAsync(
+                    lessonId,
+                    new ReviewContentDto { Status = dto.Status, ReviewNotes = dto.ReviewNotes },
+                    currentUserId,
+                    cancellationToken);
+
+                if (updated == null)
+                {
+                    result.SkippedCount++;
+                    result.SkippedReasons.Add($"{lessonId}: Không tìm thấy bài học.");
+                }
+                else
+                {
+                    result.ProcessedCount++;
+                }
+            }
+            catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add($"{lessonId}: {ex.Message}");
+            }
+        }
+
+        return result;
     }
 
     public async Task<bool> DeleteLessonAsync(Guid id, CancellationToken cancellationToken = default)

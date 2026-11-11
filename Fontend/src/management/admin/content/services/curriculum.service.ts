@@ -16,6 +16,45 @@ import type {
 } from '../types';
 import { httpClient } from '../../../../core/api/client/http-client';
 
+export interface LessonReleaseReadinessItem {
+  lessonId: string;
+  lessonNumber: number;
+  titleZh: string;
+  titleVi: string;
+  currentStatus: string;
+  isReadyForPublish: boolean;
+  dialogueValid: boolean;
+  listeningValid: boolean;
+  vocabCount: number;
+  grammarCount: number;
+  exerciseCount: number;
+  audioFilesExist: boolean;
+  humanReviewCompleted: boolean;
+  readinessState: 'PUBLISHED' | 'READY_TO_PUBLISH' | 'PENDING_REVIEW' | 'BLOCKED' | string;
+  unitStatus?: string | null;
+  updatedByUserId?: string | null;
+  blockerReasons: string[];
+}
+
+export interface CoursePublicationReadiness {
+  courseId: string;
+  hskLevel: number;
+  courseTitle: string;
+  courseStatus: string;
+  totalLessons: number;
+  publishedCount: number;
+  readyToPublishCount: number;
+  pendingReviewCount: number;
+  blockedCount: number;
+  lessons: LessonReleaseReadinessItem[];
+}
+
+export interface BatchLessonReviewResult {
+  processedCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
+}
+
 // Real runtime: state is loaded exclusively from live Backend SQL Server API.
 // Fixtures are reserved only for testing environments.
 let courses: Course[] = [];
@@ -566,6 +605,24 @@ class CurriculumService {
     const draft = this.getLessonEditorData(lessonId);
     draft.status = 'PENDING_REVIEW';
     return this.saveLessonDraft(lessonId, draft);
+  }
+
+  async getCoursePublicationReadiness(hskLevel: number): Promise<CoursePublicationReadiness> {
+    return httpClient.get<CoursePublicationReadiness>('/content/lessons/readiness', {
+      params: { hskLevel },
+    });
+  }
+
+  async batchReviewLessons(
+    ids: string[],
+    status: 'PENDING_REVIEW' | 'PUBLISHED' | 'DRAFT',
+    reviewNotes?: string
+  ): Promise<BatchLessonReviewResult> {
+    return httpClient.post<BatchLessonReviewResult>('/content/lessons/batch-review', {
+      ids,
+      status,
+      reviewNotes,
+    });
   }
 }
 
