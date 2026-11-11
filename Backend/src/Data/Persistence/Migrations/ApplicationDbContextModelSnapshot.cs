@@ -17,7 +17,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -175,10 +175,6 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("MeaningVi")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("CurrentHskLevel")
                         .ValueGeneratedOnAdd()
@@ -375,6 +371,137 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("courses", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExamEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExamType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("MOCK");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PassingScore")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("DRAFT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("TotalPoints")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("idx_exams_code");
+
+                    b.HasIndex("HskLevel", "Status")
+                        .HasDatabaseName("idx_exams_hsk_status");
+
+                    b.ToTable("exams", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExamQuestionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SectionName")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("Đọc hiểu");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("ExamId", "ExerciseId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_exam_questions_exam_exercise");
+
+                    b.HasIndex("ExamId", "OrderIndex")
+                        .HasDatabaseName("idx_exam_questions_exam_order");
+
+                    b.ToTable("exam_questions", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExerciseEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -531,17 +658,14 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Property<string>("RawExplanationCn")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("ReviewedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("ReviewNotes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<Guid?>("UpdatedByUserId")
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("SourceDataset")
@@ -571,6 +695,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -608,6 +735,10 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<int>("FirstHskLevel")
                         .HasColumnType("int");
+
+                    b.Property<string>("MeaningVi")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Pinyin")
                         .HasMaxLength(100)
@@ -719,6 +850,15 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<string>("ReviewNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -745,6 +885,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("XpReward")
                         .HasColumnType("int");
@@ -871,6 +1014,16 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ReviewNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("SourceDataset")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -893,22 +1046,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("PUBLISHED");
 
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("ReviewedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ReviewNotes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<string>("SuggestedMeaningVi")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<Guid?>("UpdatedByUserId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Traditional")
                         .HasMaxLength(50)
@@ -916,6 +1056,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -985,6 +1128,55 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasDatabaseName("idx_daily_activities_user_date");
 
                     b.ToTable("student_daily_activities", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentExamAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnswersJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TimeSpentSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ExamId", "UserId")
+                        .HasDatabaseName("idx_student_exam_attempts_exam_user");
+
+                    b.ToTable("student_exam_attempts", (string)null);
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentLearningProfile", b =>
@@ -1503,6 +1695,25 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExamQuestionEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.ExamEntity", "Exam")
+                        .WithMany("Questions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.ExerciseEntity", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Exercise");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExerciseEntity", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Content.GrammarPointEntity", "GrammarPoint")
@@ -1587,6 +1798,25 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentExamAttempt", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.ExamEntity", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
 
                     b.Navigation("User");
                 });
@@ -1699,6 +1929,11 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("Lessons");
 
                     b.Navigation("Units");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.ExamEntity", b =>
+                {
+                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.HanziCharacterEntity", b =>

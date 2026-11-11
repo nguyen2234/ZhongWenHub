@@ -3230,6 +3230,12 @@ public class ContentService : IContentService
         var e = await _dbContext.Exercises.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (e == null) return false;
 
+        var usedInExam = await _dbContext.ExamQuestions.AnyAsync(q => q.ExerciseId == id, cancellationToken);
+        if (usedInExam)
+        {
+            throw new InvalidOperationException("Không thể xóa câu hỏi đang được sử dụng trong đề thi của Kho đề thi. Vui lòng lưu trữ (ARCHIVED) thay vì xóa.");
+        }
+
         _dbContext.Exercises.Remove(e);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;

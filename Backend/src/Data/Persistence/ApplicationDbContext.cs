@@ -34,6 +34,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<ExerciseEntity> Exercises => Set<ExerciseEntity>();
     public DbSet<HanziCharacterEntity> HanziCharacters => Set<HanziCharacterEntity>();
     public DbSet<HanziLevelRequirementEntity> HanziLevelRequirements => Set<HanziLevelRequirementEntity>();
+    public DbSet<ExamEntity> Exams => Set<ExamEntity>();
+    public DbSet<ExamQuestionEntity> ExamQuestions => Set<ExamQuestionEntity>();
+    public DbSet<StudentExamAttempt> StudentExamAttempts => Set<StudentExamAttempt>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -541,6 +544,74 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.HasIndex(s => s.UserId).IsUnique().HasDatabaseName("idx_user_subscriptions_user_id");
+        });
+
+        // Exam Repository Configuration
+        builder.Entity<ExamEntity>(b =>
+        {
+            b.ToTable("exams");
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Code).HasMaxLength(64).IsRequired();
+            b.Property(e => e.Title).HasMaxLength(250).IsRequired();
+            b.Property(e => e.ExamType).HasMaxLength(32).HasDefaultValue("MOCK").IsRequired();
+            b.Property(e => e.Description).HasMaxLength(1000);
+            b.Property(e => e.Instructions).HasColumnType("nvarchar(max)");
+            b.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("DRAFT").IsRequired();
+            b.Property(e => e.ReviewNotes).HasMaxLength(1000);
+            b.Property(e => e.ReviewedAt).HasColumnType("datetime2");
+            b.Property(e => e.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(e => e.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasIndex(e => e.Code).IsUnique().HasDatabaseName("idx_exams_code");
+            b.HasIndex(e => new { e.HskLevel, e.Status }).HasDatabaseName("idx_exams_hsk_status");
+        });
+
+        builder.Entity<ExamQuestionEntity>(b =>
+        {
+            b.ToTable("exam_questions");
+            b.HasKey(q => q.Id);
+            b.Property(q => q.SectionName).HasMaxLength(64).HasDefaultValue("Đọc hiểu").IsRequired();
+            b.Property(q => q.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(q => q.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(q => q.Exam)
+                .WithMany(e => e.Questions)
+                .HasForeignKey(q => q.ExamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(q => q.Exercise)
+                .WithMany()
+                .HasForeignKey(q => q.ExerciseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(q => new { q.ExamId, q.ExerciseId })
+                .IsUnique()
+                .HasDatabaseName("idx_exam_questions_exam_exercise");
+            b.HasIndex(q => new { q.ExamId, q.OrderIndex })
+                .HasDatabaseName("idx_exam_questions_exam_order");
+        });
+
+        builder.Entity<StudentExamAttempt>(b =>
+        {
+            b.ToTable("student_exam_attempts");
+            b.HasKey(a => a.Id);
+            b.Property(a => a.AnswersJson).HasColumnType("nvarchar(max)");
+            b.Property(a => a.StartedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(a => a.SubmittedAt).HasColumnType("datetime2");
+            b.Property(a => a.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(a => a.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(a => a.Exam)
+                .WithMany()
+                .HasForeignKey(a => a.ExamId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(a => new { a.ExamId, a.UserId }).HasDatabaseName("idx_student_exam_attempts_exam_user");
         });
     }
 
