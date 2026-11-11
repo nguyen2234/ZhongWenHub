@@ -29,7 +29,12 @@ public class VocabularyEntity : BaseEntity
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewNotes { get; set; }
 
+    // Normalized deduplication keys (kept in sync on SaveChangesAsync)
+    public string NormalizedPinyin { get; set; } = string.Empty;
+    public string NormalizedHomograph { get; set; } = string.Empty;
+
     public Guid? LessonId { get; set; }
     public LessonEntity? Lesson { get; set; }
+    public ICollection<LessonVocabularyEntity> LessonVocabularies { get; set; } = new List<LessonVocabularyEntity>();
 }
 

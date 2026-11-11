@@ -472,6 +472,16 @@ public static class DbInitializer
         };
 
         await context.Vocabularies.AddRangeAsync(vocabularies);
+        await context.LessonVocabularies.AddRangeAsync(
+            vocabularies
+                .Where(v => v.LessonId.HasValue)
+                .Select((v, idx) => new LessonVocabularyEntity
+                {
+                    LessonId = v.LessonId!.Value,
+                    VocabularyId = v.Id,
+                    SortOrder = idx,
+                    CreatedAt = DateTime.UtcNow
+                }));
 
         var grammar1Id = Guid.NewGuid();
         var grammar2Id = Guid.NewGuid();

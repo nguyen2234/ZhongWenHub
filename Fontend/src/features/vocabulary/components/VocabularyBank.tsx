@@ -5,6 +5,7 @@ import {
   type VocabularyFilterOptions,
   type HSKLevelNumber,
   type VocabularyExample,
+  type VocabularyLessonRef,
 } from '../types';
 import {
   INITIAL_VOCABULARY_LIST,
@@ -36,6 +37,19 @@ function parseExamplesJson(raw: string | undefined): VocabularyExample[] {
   } catch {
     return [];
   }
+}
+
+export function formatLessonSource(hskLevel: number, lessons?: VocabularyLessonRef[], levelLabel?: string): string {
+  if (Array.isArray(lessons) && lessons.length > 0) {
+    const uniqueNumbers = Array.from(new Set(lessons.map((l) => l.lessonNumber).filter((n) => n > 0))).sort((a, b) => a - b);
+    if (uniqueNumbers.length > 0) {
+      return `HSK ${hskLevel} · ${uniqueNumbers.map((n) => `Bài ${n}`).join(', ')}`;
+    }
+  }
+  if (levelLabel && levelLabel.trim() !== '' && levelLabel.trim() !== String(hskLevel)) {
+    return `HSK ${hskLevel} · ${levelLabel.trim()}`;
+  }
+  return `HSK ${hskLevel} chuẩn quốc tế`;
 }
 
 export const VocabularyBank: React.FC<VocabularyBankProps> = ({
@@ -116,6 +130,8 @@ export const VocabularyBank: React.FC<VocabularyBankProps> = ({
 
         const mapped: VocabularyItem[] = rawItems.map((dto: any) => {
           const examples = parseExamplesJson(dto.examplesJson);
+          const lessons: VocabularyLessonRef[] = Array.isArray(dto.lessons) ? dto.lessons : [];
+          const hskNum = (dto.hskLevel || 1) as HSKLevelNumber;
           return {
             id: dto.id,
             hanzi: dto.hanzi || '',
@@ -123,11 +139,11 @@ export const VocabularyBank: React.FC<VocabularyBankProps> = ({
             primaryMeaning: dto.meaningVi || '',
             meanings: dto.meaningVi ? [dto.meaningVi] : [],
             wordType: dto.partOfSpeech || 'Từ vựng',
-            hskLevel: (dto.hskLevel || 1) as HSKLevelNumber,
+            hskLevel: hskNum,
             lessonId: dto.lessonId || 0,
-            lessonSource: dto.levelLabel
-              ? `HSK ${dto.hskLevel} · ${dto.levelLabel}`
-              : `HSK ${dto.hskLevel} chuẩn quốc tế`,
+            lessons,
+            homograph: dto.homograph || undefined,
+            lessonSource: formatLessonSource(hskNum, lessons, dto.levelLabel),
             examples,
           };
         });

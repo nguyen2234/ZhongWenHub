@@ -10,6 +10,14 @@ export interface VocabularyExample {
   meaning: string;
 }
 
+export interface VocabularyLessonRef {
+  lessonId: string;
+  hskLevel: number;
+  unitNumber?: number;
+  lessonNumber: number;
+  titleVi: string;
+}
+
 export interface VocabularyItem {
   id: string;
   hanzi: string;
@@ -18,8 +26,10 @@ export interface VocabularyItem {
   primaryMeaning: string;
   wordType: string; // Động từ, Danh từ, Lượng từ, Tính từ, Trợ từ...
   hskLevel: HSKLevelNumber;
-  lessonId: number;
-  lessonSource: string; // e.g. "HSK 2 · Unit 2 · Bài 8"
+  lessonId: number | string;
+  lessons?: VocabularyLessonRef[];
+  homograph?: string;
+  lessonSource: string; // e.g. "HSK 2 · Bài 2, Bài 3"
   examples: VocabularyExample[];
   radical?: string; // Bộ thủ
   strokeCount?: number;

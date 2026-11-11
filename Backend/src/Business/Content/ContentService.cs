@@ -454,7 +454,7 @@ public class ContentService : IContentService
                 XpReward = l.XpReward,
                 OrderIndex = l.OrderIndex,
                 Status = l.Status,
-                VocabularyCount = l.Vocabularies.Count,
+                VocabularyCount = _dbContext.Vocabularies.Count(v => v.LessonId == l.Id || v.LessonVocabularies.Any(lv => lv.LessonId == l.Id)),
                 GrammarCount = l.GrammarPoints.Count,
                 ExerciseCount = l.Exercises.Count,
                 CreatedAt = l.CreatedAt,
@@ -470,7 +470,6 @@ public class ContentService : IContentService
         var lesson = await _dbContext.Lessons.AsNoTracking()
             .Include(l => l.Course)
             .Include(l => l.Unit)
-            .Include(l => l.Vocabularies)
             .Include(l => l.GrammarPoints)
             .Include(l => l.Exercises)
             .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
@@ -480,25 +479,19 @@ public class ContentService : IContentService
             return null;
         }
 
-        var vocabList = lesson.Vocabularies
-            .Where(v => !publishedOnly || v.Status == "PUBLISHED")
-            .Select(v => new VocabularyDto
-            {
-                Id = v.Id,
-                HskLevel = v.HskLevel,
-                Hanzi = v.Hanzi,
-                Traditional = v.Traditional,
-                Pinyin = v.Pinyin,
-                MeaningVi = v.MeaningVi,
-                MeaningEn = v.MeaningEn,
-                PartOfSpeech = v.PartOfSpeech,
-                AudioUrl = v.AudioUrl,
-                ExamplesJson = v.ExamplesJson,
-                Status = v.Status,
-                LessonId = v.LessonId,
-                CreatedAt = v.CreatedAt,
-                UpdatedAt = v.UpdatedAt
-            }).ToList();
+        var lessonVocabs = await _dbContext.Vocabularies.AsNoTracking()
+            .Include(v => v.Lesson).ThenInclude(l => l!.Unit)
+            .Include(v => v.LessonVocabularies).ThenInclude(lv => lv.Lesson).ThenInclude(l => l.Unit)
+            .Where(v => (v.LessonId == id || v.LessonVocabularies.Any(lv => lv.LessonId == id))
+                        && (!publishedOnly || v.Status == "PUBLISHED"))
+            .OrderBy(v => v.LessonVocabularies.Where(lv => lv.LessonId == id).Select(lv => (int?)lv.SortOrder).FirstOrDefault() ?? 0)
+            .ThenBy(v => v.Hanzi)
+            .ThenBy(v => v.Id)
+            .ToListAsync(cancellationToken);
+
+        var vocabList = lessonVocabs
+            .Select(v => MapToVocabularyDto(v, publishedOnly))
+            .ToList();
 
         var grammarList = lesson.GrammarPoints
             .Where(g => !publishedOnly || g.Status == "PUBLISHED")
@@ -788,21 +781,57 @@ public class ContentService : IContentService
 
         if (dto.LinkedVocabularyIds != null)
         {
-            var existingVocabs = await _dbContext.Vocabularies
-                .Where(v => v.LessonId == id)
+            var desiredVocabIds = dto.LinkedVocabularyIds.Distinct().ToList();
+            var desiredSet = desiredVocabIds.ToHashSet();
+
+            var existingLinks = await _dbContext.LessonVocabularies
+                .Where(lv => lv.LessonId == id)
                 .ToListAsync(cancellationToken);
-            foreach (var v in existingVocabs)
+            var linksToRemove = existingLinks.Where(lv => !desiredSet.Contains(lv.VocabularyId)).ToList();
+            if (linksToRemove.Count > 0)
             {
-                if (!dto.LinkedVocabularyIds.Contains(v.Id))
+                _dbContext.LessonVocabularies.RemoveRange(linksToRemove);
+            }
+
+            var existingVocabIds = existingLinks.Select(lv => lv.VocabularyId).ToHashSet();
+            for (int i = 0; i < desiredVocabIds.Count; i++)
+            {
+                var vid = desiredVocabIds[i];
+                var existing = existingLinks.FirstOrDefault(lv => lv.VocabularyId == vid);
+                if (existing != null)
                 {
-                    v.LessonId = null;
+                    existing.SortOrder = i;
+                }
+                else
+                {
+                    _dbContext.LessonVocabularies.Add(new LessonVocabularyEntity
+                    {
+                        LessonId = id,
+                        VocabularyId = vid,
+                        SortOrder = i,
+                        CreatedAt = DateTime.UtcNow
+                    });
                 }
             }
 
-            var toLinkVocabs = await _dbContext.Vocabularies
-                .Where(v => dto.LinkedVocabularyIds.Contains(v.Id))
+            // Maintain legacy primary LessonId without clobbering links to other lessons
+            var existingPrimaryVocabs = await _dbContext.Vocabularies
+                .Where(v => v.LessonId == id && !desiredSet.Contains(v.Id))
                 .ToListAsync(cancellationToken);
-            foreach (var v in toLinkVocabs)
+            foreach (var v in existingPrimaryVocabs)
+            {
+                var fallbackLessonId = await _dbContext.LessonVocabularies
+                    .Where(lv => lv.VocabularyId == v.Id && lv.LessonId != id)
+                    .OrderBy(lv => lv.SortOrder)
+                    .Select(lv => (Guid?)lv.LessonId)
+                    .FirstOrDefaultAsync(cancellationToken);
+                v.LessonId = fallbackLessonId;
+            }
+
+            var toSetPrimary = await _dbContext.Vocabularies
+                .Where(v => desiredSet.Contains(v.Id) && v.LessonId == null)
+                .ToListAsync(cancellationToken);
+            foreach (var v in toSetPrimary)
             {
                 v.LessonId = id;
             }
@@ -886,7 +915,9 @@ public class ContentService : IContentService
         if (lesson == null) return null;
 
         var vocabCount = await _dbContext.Vocabularies.CountAsync(
-            v => v.LessonId == lessonId && v.Status != "ARCHIVED" && !string.IsNullOrWhiteSpace(v.MeaningVi),
+            v => (v.LessonId == lessonId || v.LessonVocabularies.Any(lv => lv.LessonId == lessonId))
+                 && v.Status != "ARCHIVED"
+                 && !string.IsNullOrWhiteSpace(v.MeaningVi),
             cancellationToken);
         var grammarCount = await _dbContext.GrammarPoints.CountAsync(
             g => g.LessonId == lessonId && g.Status != "ARCHIVED" && (g.ExamplesJson == null || !g.ExamplesJson.Contains("在中文交流中，我们经常使用")),
@@ -924,13 +955,23 @@ public class ContentService : IContentService
             .ToListAsync(cancellationToken);
 
         var lessonIds = lessons.Select(l => l.Id).ToList();
-        var vocabCounts = lessonIds.Count == 0
-            ? new Dictionary<Guid, int>()
-            : await _dbContext.Vocabularies.AsNoTracking()
+        var vocabCounts = new Dictionary<Guid, int>();
+        if (lessonIds.Count > 0)
+        {
+            var legacyPairs = await _dbContext.Vocabularies.AsNoTracking()
                 .Where(v => v.LessonId.HasValue && lessonIds.Contains(v.LessonId.Value) && v.Status != "ARCHIVED" && !string.IsNullOrWhiteSpace(v.MeaningVi))
-                .GroupBy(v => v.LessonId!.Value)
-                .Select(g => new { g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
+                .Select(v => new { LessonId = v.LessonId!.Value, VocabularyId = v.Id })
+                .ToListAsync(cancellationToken);
+            var joinPairs = await _dbContext.LessonVocabularies.AsNoTracking()
+                .Where(lv => lessonIds.Contains(lv.LessonId) && lv.Vocabulary.Status != "ARCHIVED" && !string.IsNullOrWhiteSpace(lv.Vocabulary.MeaningVi))
+                .Select(lv => new { lv.LessonId, lv.VocabularyId })
+                .ToListAsync(cancellationToken);
+
+            foreach (var grp in legacyPairs.Concat(joinPairs).Distinct().GroupBy(x => x.LessonId))
+            {
+                vocabCounts[grp.Key] = grp.Count();
+            }
+        }
 
         var grammarCounts = lessonIds.Count == 0
             ? new Dictionary<Guid, int>()
@@ -1308,8 +1349,22 @@ public class ContentService : IContentService
         }
 
         // Safely unlink any vocabularies, grammar points, and exercises before deletion
+        var joinLinksToRemove = await _dbContext.LessonVocabularies.Where(lv => lv.LessonId == id).ToListAsync(cancellationToken);
+        if (joinLinksToRemove.Count > 0)
+        {
+            _dbContext.LessonVocabularies.RemoveRange(joinLinksToRemove);
+        }
+
         var linkedVocabs = await _dbContext.Vocabularies.Where(v => v.LessonId == id).ToListAsync(cancellationToken);
-        foreach (var v in linkedVocabs) v.LessonId = null;
+        foreach (var v in linkedVocabs)
+        {
+            var nextLessonId = await _dbContext.LessonVocabularies
+                .Where(lv => lv.VocabularyId == v.Id && lv.LessonId != id)
+                .OrderBy(lv => lv.SortOrder)
+                .Select(lv => (Guid?)lv.LessonId)
+                .FirstOrDefaultAsync(cancellationToken);
+            v.LessonId = nextLessonId;
+        }
 
         var linkedGrammars = await _dbContext.GrammarPoints.Where(g => g.LessonId == id).ToListAsync(cancellationToken);
         foreach (var g in linkedGrammars) g.LessonId = null;
@@ -1326,13 +1381,175 @@ public class ContentService : IContentService
 
     #region Vocabulary
 
+    private static List<VocabularyLessonRefDto> BuildVocabularyLessons(VocabularyEntity v)
+    {
+        var list = new List<VocabularyLessonRefDto>();
+        var seen = new HashSet<Guid>();
+
+        if (v.LessonVocabularies != null)
+        {
+            foreach (var lv in v.LessonVocabularies
+                         .Where(x => x.Lesson != null)
+                         .OrderBy(x => x.SortOrder)
+                         .ThenBy(x => x.Lesson.LessonNumber))
+            {
+                if (seen.Add(lv.LessonId))
+                {
+                    list.Add(new VocabularyLessonRefDto
+                    {
+                        LessonId = lv.Lesson.Id,
+                        HskLevel = v.HskLevel,
+                        UnitNumber = lv.Lesson.Unit?.UnitNumber,
+                        LessonNumber = lv.Lesson.LessonNumber,
+                        TitleVi = lv.Lesson.TitleVi
+                    });
+                }
+            }
+        }
+
+        if (v.LessonId.HasValue && v.Lesson != null && seen.Add(v.LessonId.Value))
+        {
+            list.Add(new VocabularyLessonRefDto
+            {
+                LessonId = v.Lesson.Id,
+                HskLevel = v.HskLevel,
+                UnitNumber = v.Lesson.Unit?.UnitNumber,
+                LessonNumber = v.Lesson.LessonNumber,
+                TitleVi = v.Lesson.TitleVi
+            });
+        }
+
+        return list.OrderBy(x => x.LessonNumber).ToList();
+    }
+
+    private static VocabularyDto MapToVocabularyDto(VocabularyEntity v, bool publishedOnly)
+    {
+        return new VocabularyDto
+        {
+            Id = v.Id,
+            HskLevel = v.HskLevel,
+            Hanzi = v.Hanzi,
+            Traditional = v.Traditional,
+            Pinyin = v.Pinyin,
+            MeaningVi = v.MeaningVi ?? "",
+            SuggestedMeaningVi = publishedOnly ? null : v.SuggestedMeaningVi,
+            MeaningEn = v.MeaningEn,
+            PartOfSpeech = v.PartOfSpeech,
+            AudioUrl = v.AudioUrl,
+            ExamplesJson = v.ExamplesJson,
+            Status = v.Status,
+            SourceDataset = publishedOnly ? null : v.SourceDataset,
+            SourceEntryId = publishedOnly ? null : v.SourceEntryId,
+            SourceId = publishedOnly ? null : (v.SourceId ?? v.SourceEntryId),
+            Entry = v.Entry,
+            Homograph = v.Homograph,
+            LevelLabel = v.LevelLabel,
+            SourcePdfPage = publishedOnly ? null : v.SourcePdfPage,
+            LessonId = v.LessonId,
+            Lessons = BuildVocabularyLessons(v),
+            UpdatedByUserId = publishedOnly ? null : v.UpdatedByUserId,
+            ReviewedByUserId = publishedOnly ? null : v.ReviewedByUserId,
+            ReviewedAt = publishedOnly ? null : v.ReviewedAt,
+            ReviewNotes = publishedOnly ? null : v.ReviewNotes,
+            CreatedAt = v.CreatedAt,
+            UpdatedAt = v.UpdatedAt
+        };
+    }
+
+    private async Task EnsureNoDuplicateActiveVocabularyAsync(
+        int hskLevel,
+        string hanzi,
+        string pinyin,
+        string? homograph,
+        Guid? excludeId,
+        CancellationToken cancellationToken)
+    {
+        var normHanzi = VocabularyKeyNormalizer.NormalizeHanzi(hanzi);
+        var normPinyin = VocabularyKeyNormalizer.NormalizePinyin(pinyin);
+        var normHg = VocabularyKeyNormalizer.NormalizeHomograph(homograph);
+
+        var duplicateExists = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .AnyAsync(x => x.Status != "ARCHIVED"
+                        && (!excludeId.HasValue || x.Id != excludeId.Value)
+                        && x.HskLevel == hskLevel
+                        && x.Hanzi == normHanzi
+                        && x.NormalizedPinyin == normPinyin
+                        && x.NormalizedHomograph == normHg,
+                cancellationToken);
+
+        if (duplicateExists)
+        {
+            var hgSuffix = string.IsNullOrEmpty(normHg) ? string.Empty : $" (homograph '{normHg}')";
+            throw new ArgumentException(
+                $"Từ vựng '{normHanzi}' ({pinyin.Trim()}) ở cấp độ HSK {hskLevel}{hgSuffix} đã tồn tại trong hệ thống. Vui lòng cập nhật bản ghi hiện có hoặc gán mã homograph khác nếu là nghĩa khác biệt.");
+        }
+    }
+
+    private async Task SyncVocabularyLessonLinksAsync(
+        Guid vocabularyId,
+        Guid? primaryLessonId,
+        IEnumerable<Guid>? requestedLessonIds,
+        CancellationToken cancellationToken)
+    {
+        var mergedIds = new List<Guid>();
+        var seen = new HashSet<Guid>();
+        if (primaryLessonId.HasValue && primaryLessonId.Value != Guid.Empty && seen.Add(primaryLessonId.Value))
+        {
+            mergedIds.Add(primaryLessonId.Value);
+        }
+        if (requestedLessonIds != null)
+        {
+            foreach (var lid in requestedLessonIds)
+            {
+                if (lid != Guid.Empty && seen.Add(lid))
+                {
+                    mergedIds.Add(lid);
+                }
+            }
+        }
+
+        var existing = await _dbContext.LessonVocabularies
+            .Where(lv => lv.VocabularyId == vocabularyId)
+            .ToListAsync(cancellationToken);
+
+        var toRemove = existing.Where(lv => !seen.Contains(lv.LessonId)).ToList();
+        if (toRemove.Count > 0)
+        {
+            _dbContext.LessonVocabularies.RemoveRange(toRemove);
+        }
+
+        for (int i = 0; i < mergedIds.Count; i++)
+        {
+            var lid = mergedIds[i];
+            var found = existing.FirstOrDefault(lv => lv.LessonId == lid);
+            if (found != null)
+            {
+                found.SortOrder = i;
+            }
+            else
+            {
+                _dbContext.LessonVocabularies.Add(new LessonVocabularyEntity
+                {
+                    LessonId = lid,
+                    VocabularyId = vocabularyId,
+                    SortOrder = i,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+    }
+
     public async Task<PagedResponse<VocabularyDto>> GetVocabulariesAsync(int? hskLevel = null, Guid? lessonId = null, string? search = null, string? status = null, int page = 1, int pageSize = 20, bool publishedOnly = false, bool? missingMeaningVi = null, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Vocabularies.AsNoTracking().AsQueryable();
 
         if (publishedOnly)
         {
-            query = query.Where(v => v.Status == "PUBLISHED" && (v.LessonId == null || (v.Lesson != null && v.Lesson.Status == "PUBLISHED")));
+            query = query.Where(v => v.Status == "PUBLISHED"
+                && ((v.LessonId == null && !v.LessonVocabularies.Any())
+                    || (v.Lesson != null && v.Lesson.Status == "PUBLISHED")
+                    || v.LessonVocabularies.Any(lv => lv.Lesson.Status == "PUBLISHED")));
             if (!string.IsNullOrWhiteSpace(status) && status != "ALL" && status != "PUBLISHED")
             {
                 query = query.Where(v => false);
@@ -1362,92 +1579,51 @@ public class ContentService : IContentService
 
         if (lessonId.HasValue && lessonId.Value != Guid.Empty)
         {
-            query = query.Where(v => v.LessonId == lessonId.Value);
+            query = query.Where(v => v.LessonId == lessonId.Value || v.LessonVocabularies.Any(lv => lv.LessonId == lessonId.Value));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var q = search.Trim().ToLower();
-            query = query.Where(v => v.Hanzi.ToLower().Contains(q) || v.Pinyin.ToLower().Contains(q) || (v.MeaningVi != null && v.MeaningVi.ToLower().Contains(q)));
+            var normQ = VocabularyKeyNormalizer.NormalizePinyin(search);
+            query = query.Where(v =>
+                v.Hanzi.ToLower().Contains(q)
+                || v.Pinyin.ToLower().Contains(q)
+                || (!string.IsNullOrEmpty(normQ) && v.NormalizedPinyin.Contains(normQ))
+                || (v.MeaningVi != null && v.MeaningVi.ToLower().Contains(q)));
         }
 
         var totalItems = await query.CountAsync(cancellationToken);
         var pageClamped = Math.Max(1, page);
         var pageSizeClamped = Math.Clamp(pageSize, 1, 500);
 
-        var items = await query
+        var entities = await query
+            .Include(v => v.Lesson).ThenInclude(l => l!.Unit)
+            .Include(v => v.LessonVocabularies).ThenInclude(lv => lv.Lesson).ThenInclude(l => l.Unit)
             .OrderBy(v => v.HskLevel)
             .ThenBy(v => v.Hanzi)
+            .ThenBy(v => v.Pinyin)
+            .ThenBy(v => v.NormalizedHomograph)
+            .ThenBy(v => v.Id)
             .Skip((pageClamped - 1) * pageSizeClamped)
             .Take(pageSizeClamped)
-            .Select(v => new VocabularyDto
-            {
-                Id = v.Id,
-                HskLevel = v.HskLevel,
-                Hanzi = v.Hanzi,
-                Traditional = v.Traditional,
-                Pinyin = v.Pinyin,
-                MeaningVi = v.MeaningVi ?? "",
-                SuggestedMeaningVi = publishedOnly ? null : v.SuggestedMeaningVi,
-                MeaningEn = v.MeaningEn,
-                PartOfSpeech = v.PartOfSpeech,
-                AudioUrl = v.AudioUrl,
-                ExamplesJson = v.ExamplesJson,
-                Status = v.Status,
-                SourceDataset = publishedOnly ? null : v.SourceDataset,
-                SourceEntryId = publishedOnly ? null : v.SourceEntryId,
-                SourceId = publishedOnly ? null : (v.SourceId ?? v.SourceEntryId),
-                Entry = v.Entry,
-                Homograph = v.Homograph,
-                LevelLabel = v.LevelLabel,
-                SourcePdfPage = publishedOnly ? null : v.SourcePdfPage,
-                LessonId = v.LessonId,
-                UpdatedByUserId = publishedOnly ? null : v.UpdatedByUserId,
-                ReviewedByUserId = publishedOnly ? null : v.ReviewedByUserId,
-                ReviewedAt = publishedOnly ? null : v.ReviewedAt,
-                ReviewNotes = publishedOnly ? null : v.ReviewNotes,
-                CreatedAt = v.CreatedAt,
-                UpdatedAt = v.UpdatedAt
-            })
             .ToListAsync(cancellationToken);
+
+        var items = entities.Select(v => MapToVocabularyDto(v, publishedOnly)).ToList();
 
         return new PagedResponse<VocabularyDto>(items, totalItems, pageClamped, pageSizeClamped);
     }
 
     public async Task<VocabularyDto?> GetVocabularyByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default)
     {
-        var v = await _dbContext.Vocabularies.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var v = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Include(x => x.Lesson).ThenInclude(l => l!.Unit)
+            .Include(x => x.LessonVocabularies).ThenInclude(lv => lv.Lesson).ThenInclude(l => l.Unit)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (v == null || (publishedOnly && v.Status != "PUBLISHED")) return null;
 
-        return new VocabularyDto
-        {
-            Id = v.Id,
-            HskLevel = v.HskLevel,
-            Hanzi = v.Hanzi,
-            Traditional = v.Traditional,
-            Pinyin = v.Pinyin,
-            MeaningVi = v.MeaningVi ?? "",
-            SuggestedMeaningVi = publishedOnly ? null : v.SuggestedMeaningVi,
-            MeaningEn = v.MeaningEn,
-            PartOfSpeech = v.PartOfSpeech,
-            AudioUrl = v.AudioUrl,
-            ExamplesJson = v.ExamplesJson,
-            Status = v.Status,
-            SourceDataset = publishedOnly ? null : v.SourceDataset,
-            SourceEntryId = publishedOnly ? null : v.SourceEntryId,
-            SourceId = publishedOnly ? null : (v.SourceId ?? v.SourceEntryId),
-            Entry = v.Entry,
-            Homograph = v.Homograph,
-            LevelLabel = v.LevelLabel,
-            SourcePdfPage = publishedOnly ? null : v.SourcePdfPage,
-            LessonId = v.LessonId,
-            UpdatedByUserId = publishedOnly ? null : v.UpdatedByUserId,
-            ReviewedByUserId = publishedOnly ? null : v.ReviewedByUserId,
-            ReviewedAt = publishedOnly ? null : v.ReviewedAt,
-            ReviewNotes = publishedOnly ? null : v.ReviewNotes,
-            CreatedAt = v.CreatedAt,
-            UpdatedAt = v.UpdatedAt
-        };
+        return MapToVocabularyDto(v, publishedOnly);
     }
 
     public async Task<VocabularyDto> CreateVocabularyAsync(CreateVocabularyDto dto, CancellationToken cancellationToken = default)
@@ -1462,12 +1638,27 @@ public class ContentService : IContentService
             throw new ArgumentException("Từ vựng không thể chuyển sang Chờ duyệt hoặc Xuất bản khi chưa có nghĩa tiếng Việt hợp lệ.");
         }
 
+        var primaryLessonId = dto.LessonId ?? dto.LessonIds?.FirstOrDefault();
+
+        if (!string.Equals(dto.Status?.Trim(), "ARCHIVED", StringComparison.OrdinalIgnoreCase))
+        {
+            await EnsureNoDuplicateActiveVocabularyAsync(
+                dto.HskLevel,
+                dto.Hanzi,
+                dto.Pinyin,
+                dto.Homograph,
+                excludeId: null,
+                cancellationToken);
+        }
+
         var v = new VocabularyEntity
         {
             HskLevel = dto.HskLevel,
-            Hanzi = dto.Hanzi.Trim(),
+            Hanzi = VocabularyKeyNormalizer.NormalizeHanzi(dto.Hanzi),
             Traditional = dto.Traditional?.Trim(),
             Pinyin = dto.Pinyin.Trim(),
+            NormalizedPinyin = VocabularyKeyNormalizer.NormalizePinyin(dto.Pinyin),
+            NormalizedHomograph = VocabularyKeyNormalizer.NormalizeHomograph(dto.Homograph),
             MeaningVi = dto.MeaningVi?.Trim() ?? "",
             MeaningEn = dto.MeaningEn?.Trim(),
             PartOfSpeech = dto.PartOfSpeech?.Trim(),
@@ -1478,39 +1669,18 @@ public class ContentService : IContentService
             SourceEntryId = dto.SourceEntryId?.Trim() ?? dto.SourceId?.Trim(),
             SourceId = dto.SourceId?.Trim() ?? dto.SourceEntryId?.Trim(),
             Entry = dto.Entry?.Trim(),
-            Homograph = dto.Homograph?.Trim(),
+            Homograph = string.IsNullOrWhiteSpace(dto.Homograph) ? null : dto.Homograph.Trim(),
             LevelLabel = dto.LevelLabel?.Trim(),
             SourcePdfPage = dto.SourcePdfPage,
-            LessonId = dto.LessonId
+            LessonId = primaryLessonId
         };
 
         _dbContext.Vocabularies.Add(v);
+        await SyncVocabularyLessonLinksAsync(v.Id, primaryLessonId, dto.LessonIds, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new VocabularyDto
-        {
-            Id = v.Id,
-            HskLevel = v.HskLevel,
-            Hanzi = v.Hanzi,
-            Traditional = v.Traditional,
-            Pinyin = v.Pinyin,
-            MeaningVi = v.MeaningVi,
-            MeaningEn = v.MeaningEn,
-            PartOfSpeech = v.PartOfSpeech,
-            AudioUrl = v.AudioUrl,
-            ExamplesJson = v.ExamplesJson,
-            Status = v.Status,
-            SourceDataset = v.SourceDataset,
-            SourceEntryId = v.SourceEntryId,
-            SourceId = v.SourceId,
-            Entry = v.Entry,
-            Homograph = v.Homograph,
-            LevelLabel = v.LevelLabel,
-            SourcePdfPage = v.SourcePdfPage,
-            LessonId = v.LessonId,
-            CreatedAt = v.CreatedAt,
-            UpdatedAt = v.UpdatedAt
-        };
+        return await GetVocabularyByIdAsync(v.Id, publishedOnly: false, cancellationToken)
+               ?? MapToVocabularyDto(v, publishedOnly: false);
     }
 
     public async Task<VocabularyDto?> UpdateVocabularyAsync(Guid id, UpdateVocabularyDto dto, CancellationToken cancellationToken = default)
@@ -1528,8 +1698,20 @@ public class ContentService : IContentService
             throw new ArgumentException("Từ vựng chỉ có thể chuyển sang kiểm duyệt hoặc xuất bản khi đã có nghĩa tiếng Việt hợp lệ.");
         }
 
+        var nextHomograph = !string.IsNullOrWhiteSpace(dto.Homograph) ? dto.Homograph.Trim() : v.Homograph;
+        if (!string.Equals(dto.Status?.Trim(), "ARCHIVED", StringComparison.OrdinalIgnoreCase))
+        {
+            await EnsureNoDuplicateActiveVocabularyAsync(
+                dto.HskLevel,
+                dto.Hanzi,
+                dto.Pinyin,
+                nextHomograph,
+                excludeId: id,
+                cancellationToken);
+        }
+
         v.HskLevel = dto.HskLevel;
-        v.Hanzi = dto.Hanzi.Trim();
+        v.Hanzi = VocabularyKeyNormalizer.NormalizeHanzi(dto.Hanzi);
         v.Traditional = dto.Traditional?.Trim();
         v.Pinyin = dto.Pinyin.Trim();
         v.MeaningVi = dto.MeaningVi?.Trim() ?? "";
@@ -1546,43 +1728,61 @@ public class ContentService : IContentService
         if (string.IsNullOrWhiteSpace(v.SourceEntryId) && !string.IsNullOrWhiteSpace(v.SourceId)) v.SourceEntryId = v.SourceId;
         if (string.IsNullOrWhiteSpace(v.SourceId) && !string.IsNullOrWhiteSpace(v.SourceEntryId)) v.SourceId = v.SourceEntryId;
         if (!string.IsNullOrWhiteSpace(dto.Entry)) v.Entry = dto.Entry.Trim();
-        if (!string.IsNullOrWhiteSpace(dto.Homograph)) v.Homograph = dto.Homograph.Trim();
+        v.Homograph = nextHomograph;
+        v.NormalizedPinyin = VocabularyKeyNormalizer.NormalizePinyin(v.Pinyin);
+        v.NormalizedHomograph = VocabularyKeyNormalizer.NormalizeHomograph(v.Homograph);
         if (!string.IsNullOrWhiteSpace(dto.LevelLabel)) v.LevelLabel = dto.LevelLabel.Trim();
         if (dto.SourcePdfPage.HasValue) v.SourcePdfPage = dto.SourcePdfPage;
-        v.LessonId = dto.LessonId;
+
+        if (dto.LessonIds != null)
+        {
+            v.LessonId = dto.LessonId ?? dto.LessonIds.FirstOrDefault();
+            await SyncVocabularyLessonLinksAsync(v.Id, v.LessonId, dto.LessonIds, cancellationToken);
+        }
+        else if (dto.LessonId != v.LessonId)
+        {
+            v.LessonId = dto.LessonId;
+            await SyncVocabularyLessonLinksAsync(v.Id, dto.LessonId, null, cancellationToken);
+        }
+
         v.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new VocabularyDto
-        {
-            Id = v.Id,
-            HskLevel = v.HskLevel,
-            Hanzi = v.Hanzi,
-            Traditional = v.Traditional,
-            Pinyin = v.Pinyin,
-            MeaningVi = v.MeaningVi,
-            SuggestedMeaningVi = v.SuggestedMeaningVi,
-            MeaningEn = v.MeaningEn,
-            PartOfSpeech = v.PartOfSpeech,
-            AudioUrl = v.AudioUrl,
-            ExamplesJson = v.ExamplesJson,
-            Status = v.Status,
-            SourceDataset = v.SourceDataset,
-            SourceEntryId = v.SourceEntryId,
-            SourceId = v.SourceId,
-            Entry = v.Entry,
-            Homograph = v.Homograph,
-            LevelLabel = v.LevelLabel,
-            SourcePdfPage = v.SourcePdfPage,
-            LessonId = v.LessonId,
-            UpdatedByUserId = v.UpdatedByUserId,
-            ReviewedByUserId = v.ReviewedByUserId,
-            ReviewedAt = v.ReviewedAt,
-            ReviewNotes = v.ReviewNotes,
-            CreatedAt = v.CreatedAt,
-            UpdatedAt = v.UpdatedAt
-        };
+        return await GetVocabularyByIdAsync(v.Id, publishedOnly: false, cancellationToken)
+               ?? MapToVocabularyDto(v, publishedOnly: false);
+    }
+
+    private async Task<(HashSet<string> SourceEntries, HashSet<string> SourceIds, HashSet<string> CanonicalKeys)>
+        LoadExistingVocabularyImportLookupsAsync(CancellationToken cancellationToken)
+    {
+        var existingSourceEntriesList = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.SourceDataset != null && v.SourceEntryId != null)
+            .Select(v => $"{v.SourceDataset}|{v.SourceEntryId}")
+            .ToListAsync(cancellationToken);
+
+        var existingSourceIdsList = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.SourceId != null && v.SourceId != "")
+            .Select(v => v.SourceId!)
+            .ToListAsync(cancellationToken);
+
+        var existingLookup = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.Status != "ARCHIVED")
+            .Select(v => new { v.HskLevel, v.Hanzi, v.Pinyin, v.Homograph })
+            .ToListAsync(cancellationToken);
+
+        var canonicalKeys = existingLookup
+            .Select(x => VocabularyKeyNormalizer.BuildCanonicalKey(x.HskLevel, x.Hanzi, x.Pinyin, x.Homograph))
+            .ToHashSet(StringComparer.Ordinal);
+
+        return (
+            new HashSet<string>(existingSourceEntriesList, StringComparer.OrdinalIgnoreCase),
+            new HashSet<string>(existingSourceIdsList, StringComparer.OrdinalIgnoreCase),
+            canonicalKeys
+        );
     }
 
     public async Task<VocabularyImportResultDto> ImportVocabulariesFromCsvAsync(Stream csvStream, bool dryRun = false, CancellationToken cancellationToken = default)
@@ -1601,29 +1801,9 @@ public class ContentService : IContentService
 
         const string datasetName = "HSK 3.0";
 
-        // Fetch existing keys to prevent duplicates
-        var existingSourceEntriesList = await _dbContext.Vocabularies
-            .AsNoTracking()
-            .Where(v => v.SourceDataset != null && v.SourceEntryId != null)
-            .Select(v => $"{v.SourceDataset}|{v.SourceEntryId}")
-            .ToListAsync(cancellationToken);
-        var existingSourceEntries = new HashSet<string>(existingSourceEntriesList, StringComparer.OrdinalIgnoreCase);
-
-        var existingSourceIdsList = await _dbContext.Vocabularies
-            .AsNoTracking()
-            .Where(v => v.SourceId != null && v.SourceId != "")
-            .Select(v => v.SourceId!)
-            .ToListAsync(cancellationToken);
-        var existingSourceIds = new HashSet<string>(existingSourceIdsList, StringComparer.OrdinalIgnoreCase);
-
-        var existingLookup = await _dbContext.Vocabularies
-            .AsNoTracking()
-            .Select(v => new { v.HskLevel, v.Hanzi, v.Pinyin, Homograph = v.Homograph ?? "" })
-            .ToListAsync(cancellationToken);
-
-        var existingLookupSet = existingLookup
-            .Select(x => $"{x.HskLevel}|{x.Hanzi}|{x.Pinyin}|{x.Homograph}")
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Fetch existing keys to prevent duplicates (normalized across spacing/case/Unicode)
+        var (existingSourceEntries, existingSourceIds, existingLookupSet) =
+            await LoadExistingVocabularyImportLookupsAsync(cancellationToken);
 
         var seenInCurrentFile = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -1714,7 +1894,7 @@ public class ContentService : IContentService
             string sourceEntryId = row.Id?.Trim() ?? "";
             string sourceKey = !string.IsNullOrEmpty(sourceEntryId) ? $"{datasetName}|{sourceEntryId}" : "";
             string homograph = row.Homograph?.Trim() ?? "";
-            string naturalKey = $"{hskLevel}|{row.Hanzi.Trim()}|{row.Pinyin.Trim()}|{homograph}";
+            string naturalKey = VocabularyKeyNormalizer.BuildCanonicalKey(hskLevel, row.Hanzi, row.Pinyin, homograph);
             string levelLabel = string.IsNullOrWhiteSpace(row.LevelLabel)
                 ? hskLevel.ToString()
                 : row.LevelLabel.Trim();
@@ -2213,29 +2393,9 @@ public class ContentService : IContentService
                 throw new ArgumentException($"Tệp Excel thiếu các cột bắt buộc: {string.Join(", ", missing)}. Vui lòng tải template mẫu để kiểm tra đúng cấu trúc.");
             }
 
-            // Fetch existing keys to prevent duplicates
-            var existingSourceEntriesList = await _dbContext.Vocabularies
-                .AsNoTracking()
-                .Where(v => v.SourceDataset != null && v.SourceEntryId != null)
-                .Select(v => $"{v.SourceDataset}|{v.SourceEntryId}")
-                .ToListAsync(cancellationToken);
-            var existingSourceEntries = new HashSet<string>(existingSourceEntriesList, StringComparer.OrdinalIgnoreCase);
-
-            var existingSourceIdsList = await _dbContext.Vocabularies
-                .AsNoTracking()
-                .Where(v => v.SourceId != null && v.SourceId != "")
-                .Select(v => v.SourceId!)
-                .ToListAsync(cancellationToken);
-            var existingSourceIds = new HashSet<string>(existingSourceIdsList, StringComparer.OrdinalIgnoreCase);
-
-            var existingLookup = await _dbContext.Vocabularies
-                .AsNoTracking()
-                .Select(v => new { v.HskLevel, v.Hanzi, v.Pinyin, Homograph = v.Homograph ?? "" })
-                .ToListAsync(cancellationToken);
-
-            var existingLookupSet = existingLookup
-                .Select(x => $"{x.HskLevel}|{x.Hanzi}|{x.Pinyin}|{x.Homograph}")
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // Fetch existing keys to prevent duplicates (normalized across spacing/case/Unicode)
+            var (existingSourceEntries, existingSourceIds, existingLookupSet) =
+                await LoadExistingVocabularyImportLookupsAsync(cancellationToken);
 
             var seenInCurrentFile = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -2341,7 +2501,7 @@ public class ContentService : IContentService
                 }
 
                 string sourceKey = !string.IsNullOrEmpty(sourceEntryId) ? $"{datasetName}|{sourceEntryId}" : "";
-                string naturalKey = $"{hskLevel}|{hanzi}|{pinyin}|";
+                string naturalKey = VocabularyKeyNormalizer.BuildCanonicalKey(hskLevel, hanzi, pinyin, null);
                 string levelLabel = hskLevel.ToString();
 
                 // Check duplicates (unified with CSV)
@@ -2681,6 +2841,17 @@ public class ContentService : IContentService
             throw new InvalidOperationException($"Từ vựng không thể chuyển sang {(targetStatus == "PUBLISHED" ? "Xuất bản" : "Chờ duyệt")} khi chưa có nghĩa tiếng Việt.");
         }
 
+        if (targetStatus != "ARCHIVED" && string.Equals(v.Status, "ARCHIVED", StringComparison.OrdinalIgnoreCase))
+        {
+            await EnsureNoDuplicateActiveVocabularyAsync(
+                v.HskLevel,
+                v.Hanzi,
+                v.Pinyin,
+                v.Homograph,
+                excludeId: v.Id,
+                cancellationToken);
+        }
+
         v.Status = targetStatus;
         if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
         {
@@ -2692,35 +2863,8 @@ public class ContentService : IContentService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new VocabularyDto
-        {
-            Id = v.Id,
-            HskLevel = v.HskLevel,
-            Hanzi = v.Hanzi,
-            Traditional = v.Traditional,
-            Pinyin = v.Pinyin,
-            MeaningVi = v.MeaningVi,
-            SuggestedMeaningVi = v.SuggestedMeaningVi,
-            MeaningEn = v.MeaningEn,
-            PartOfSpeech = v.PartOfSpeech,
-            AudioUrl = v.AudioUrl,
-            ExamplesJson = v.ExamplesJson,
-            Status = v.Status,
-            SourceDataset = v.SourceDataset,
-            SourceEntryId = v.SourceEntryId,
-            SourceId = v.SourceId,
-            Entry = v.Entry,
-            Homograph = v.Homograph,
-            LevelLabel = v.LevelLabel,
-            SourcePdfPage = v.SourcePdfPage,
-            LessonId = v.LessonId,
-            UpdatedByUserId = v.UpdatedByUserId,
-            ReviewedByUserId = v.ReviewedByUserId,
-            ReviewedAt = v.ReviewedAt,
-            ReviewNotes = v.ReviewNotes,
-            CreatedAt = v.CreatedAt,
-            UpdatedAt = v.UpdatedAt
-        };
+        return await GetVocabularyByIdAsync(v.Id, publishedOnly: false, cancellationToken)
+               ?? MapToVocabularyDto(v, publishedOnly: false);
     }
 
     public async Task<BatchReviewResultDto> BatchReviewVocabulariesAsync(BatchReviewContentDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)

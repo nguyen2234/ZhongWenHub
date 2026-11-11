@@ -3,6 +3,7 @@
 *.bak
 *.dump
 zhongwenhub_dev_postgres_backup.sql
+backups/
 
 # Environment files with secrets
 .env

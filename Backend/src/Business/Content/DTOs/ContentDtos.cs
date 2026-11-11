@@ -236,6 +236,15 @@ public class UpdateLessonDto
     public List<Guid>? LinkedExerciseIds { get; set; }
 }
 
+public class VocabularyLessonRefDto
+{
+    public Guid LessonId { get; set; }
+    public int HskLevel { get; set; }
+    public int? UnitNumber { get; set; }
+    public int LessonNumber { get; set; }
+    public string TitleVi { get; set; } = string.Empty;
+}
+
 public class VocabularyDto
 {
     public Guid Id { get; set; }
@@ -258,6 +267,7 @@ public class VocabularyDto
     public string? LevelLabel { get; set; }
     public int? SourcePdfPage { get; set; }
     public Guid? LessonId { get; set; }
+    public List<VocabularyLessonRefDto> Lessons { get; set; } = new();
     public Guid? UpdatedByUserId { get; set; }
     public Guid? ReviewedByUserId { get; set; }
     public DateTime? ReviewedAt { get; set; }
@@ -299,6 +309,7 @@ public class CreateVocabularyDto
     public string? LevelLabel { get; set; }
     public int? SourcePdfPage { get; set; }
     public Guid? LessonId { get; set; }
+    public List<Guid>? LessonIds { get; set; }
 }
 
 public class UpdateVocabularyDto : CreateVocabularyDto

@@ -158,9 +158,25 @@ export const VocabularyCard: React.FC<VocabularyCardProps> = ({
       )}
 
       {/* Bottom Footer: Lesson Source */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--muted)' }}>
-        <BookOpen size={12} />
-        <span>Nguồn: {vocabulary.lessonSource}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', fontSize: '10px', color: 'var(--muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <BookOpen size={12} />
+          <span>Nguồn: {vocabulary.lessonSource}</span>
+        </div>
+        {vocabulary.lessons && vocabulary.lessons.length > 1 && (
+          <span
+            style={{
+              padding: '1px 6px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'var(--primary-light)',
+              color: 'var(--primary)',
+              fontWeight: 700,
+              fontSize: '9px',
+            }}
+          >
+            {vocabulary.lessons.length} bài
+          </span>
+        )}
       </div>
     </div>
   );

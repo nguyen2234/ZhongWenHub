@@ -1001,6 +1001,30 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("lessons", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonVocabularyEntity", b =>
+                {
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VocabularyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("LessonId", "VocabularyId");
+
+                    b.HasIndex("VocabularyId")
+                        .HasDatabaseName("idx_lesson_vocabularies_vocabulary_id");
+
+                    b.ToTable("lesson_vocabularies", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.QuestionBankPracticeSessionEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1181,6 +1205,20 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("NormalizedHomograph")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("NormalizedPinyin")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("PartOfSpeech")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1254,6 +1292,11 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasIndex("SourceDataset", "SourceEntryId")
                         .HasDatabaseName("idx_vocabularies_source_dataset_entry");
+
+                    b.HasIndex("HskLevel", "Hanzi", "NormalizedPinyin", "NormalizedHomograph")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_vocabularies_active_canonical_key")
+                        .HasFilter("[Status] <> N'ARCHIVED'");
 
                     b.HasIndex("HskLevel", "Hanzi", "Pinyin", "Homograph")
                         .HasDatabaseName("idx_vocabularies_lookup");
@@ -1956,6 +1999,25 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonVocabularyEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany("LessonVocabularies")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.VocabularyEntity", "Vocabulary")
+                        .WithMany("LessonVocabularies")
+                        .HasForeignKey("VocabularyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Vocabulary");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.QuestionBankPracticeSessionEntity", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
@@ -2144,12 +2206,19 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Navigation("GrammarPoints");
 
+                    b.Navigation("LessonVocabularies");
+
                     b.Navigation("Vocabularies");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.UnitEntity", b =>
                 {
                     b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
+                {
+                    b.Navigation("LessonVocabularies");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>

@@ -661,12 +661,13 @@ public class QuestionBankService : IQuestionBankService
         {
             var lessonVocabIds = await _dbContext.Vocabularies
                 .AsNoTracking()
-                .Where(v => v.LessonId == dto.LessonId.Value)
+                .Where(v => v.LessonId == dto.LessonId.Value || v.LessonVocabularies.Any(lv => lv.LessonId == dto.LessonId.Value))
                 .OrderBy(v => v.Hanzi)
                 .ToListAsync(cancellationToken);
             if (lessonVocabIds.Count >= 4)
             {
-                vocabsQuery = _dbContext.Vocabularies.AsNoTracking().Where(v => v.LessonId == dto.LessonId.Value);
+                vocabsQuery = _dbContext.Vocabularies.AsNoTracking()
+                    .Where(v => v.LessonId == dto.LessonId.Value || v.LessonVocabularies.Any(lv => lv.LessonId == dto.LessonId.Value));
             }
         }
 

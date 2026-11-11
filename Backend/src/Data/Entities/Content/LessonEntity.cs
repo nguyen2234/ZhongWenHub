@@ -28,6 +28,7 @@ public class LessonEntity : BaseEntity
     public string? ReviewNotes { get; set; }
 
     public ICollection<VocabularyEntity> Vocabularies { get; set; } = new List<VocabularyEntity>();
+    public ICollection<LessonVocabularyEntity> LessonVocabularies { get; set; } = new List<LessonVocabularyEntity>();
     public ICollection<GrammarPointEntity> GrammarPoints { get; set; } = new List<GrammarPointEntity>();
     public ICollection<ExerciseEntity> Exercises { get; set; } = new List<ExerciseEntity>();
 }

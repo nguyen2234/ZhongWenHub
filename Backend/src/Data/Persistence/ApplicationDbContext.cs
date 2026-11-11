@@ -30,6 +30,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<UnitEntity> Units => Set<UnitEntity>();
     public DbSet<LessonEntity> Lessons => Set<LessonEntity>();
     public DbSet<VocabularyEntity> Vocabularies => Set<VocabularyEntity>();
+    public DbSet<LessonVocabularyEntity> LessonVocabularies => Set<LessonVocabularyEntity>();
     public DbSet<GrammarPointEntity> GrammarPoints => Set<GrammarPointEntity>();
     public DbSet<ExerciseEntity> Exercises => Set<ExerciseEntity>();
     public DbSet<HanziCharacterEntity> HanziCharacters => Set<HanziCharacterEntity>();
@@ -364,6 +365,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.LevelLabel).HasMaxLength(50);
             b.Property(v => v.SourcePdfPage).HasColumnType("int");
             b.Property(v => v.ReviewNotes).HasMaxLength(1000);
+            b.Property(v => v.NormalizedPinyin).HasMaxLength(100).IsRequired().HasDefaultValue("");
+            b.Property(v => v.NormalizedHomograph).HasMaxLength(20).IsRequired().HasDefaultValue("");
 
             b.HasOne(v => v.Lesson)
                 .WithMany(l => l.Vocabularies)
@@ -376,6 +379,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(v => v.SourceId).HasDatabaseName("idx_vocabularies_source_id");
             b.HasIndex(v => new { v.SourceDataset, v.SourceEntryId }).HasDatabaseName("idx_vocabularies_source_dataset_entry");
             b.HasIndex(v => new { v.HskLevel, v.Hanzi, v.Pinyin, v.Homograph }).HasDatabaseName("idx_vocabularies_lookup");
+            b.HasIndex(v => new { v.HskLevel, v.Hanzi, v.NormalizedPinyin, v.NormalizedHomograph })
+                .IsUnique()
+                .HasFilter("[Status] <> N'ARCHIVED'")
+                .HasDatabaseName("UQ_vocabularies_active_canonical_key");
+        });
+
+        // LessonVocabulary Many-to-Many Join Configuration
+        builder.Entity<LessonVocabularyEntity>(b =>
+        {
+            b.ToTable("lesson_vocabularies");
+            b.HasKey(lv => new { lv.LessonId, lv.VocabularyId });
+            b.Property(lv => lv.SortOrder).HasDefaultValue(0);
+            b.Property(lv => lv.CreatedAt).HasColumnType("datetime2").IsRequired();
+
+            b.HasOne(lv => lv.Lesson)
+                .WithMany(l => l.LessonVocabularies)
+                .HasForeignKey(lv => lv.LessonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(lv => lv.Vocabulary)
+                .WithMany(v => v.LessonVocabularies)
+                .HasForeignKey(lv => lv.VocabularyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(lv => lv.VocabularyId).HasDatabaseName("idx_lesson_vocabularies_vocabulary_id");
         });
 
         // GrammarPoint Configuration
@@ -695,6 +723,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             else if (entry.State == EntityState.Modified)
             {
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<VocabularyEntity>())
+        {
+            if (entry.State == EntityState.Added || entry.State == EntityState.Modified)
+            {
+                entry.Entity.Hanzi = VocabularyKeyNormalizer.NormalizeHanzi(entry.Entity.Hanzi);
+                entry.Entity.Pinyin = (entry.Entity.Pinyin ?? string.Empty).Trim();
+                entry.Entity.Homograph = string.IsNullOrWhiteSpace(entry.Entity.Homograph)
+                    ? null
+                    : entry.Entity.Homograph.Trim();
+                entry.Entity.NormalizedPinyin = VocabularyKeyNormalizer.NormalizePinyin(entry.Entity.Pinyin);
+                entry.Entity.NormalizedHomograph = VocabularyKeyNormalizer.NormalizeHomograph(entry.Entity.Homograph);
             }
         }
 

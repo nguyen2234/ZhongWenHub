@@ -103,6 +103,17 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await closeBtn.click();
     await page.waitForTimeout(300);
 
+    // 2.5 Deduplication verification: searching '八' in HSK 1 shows exactly ONE canonical card
+    const hsk1Btn = page.getByRole('button', { name: 'HSK 1', exact: true });
+    if (await hsk1Btn.count()) {
+      await hsk1Btn.first().click();
+    }
+    await searchInput.fill('八');
+    await page.waitForTimeout(600);
+    const matchingBaCards = page.locator('div[style*="border-radius: var(--radius-xl)"]', { hasText: 'bā' }).filter({ hasText: 'tám' });
+    await expect(matchingBaCards).toHaveCount(1, { timeout: 8000 });
+    await expect(matchingBaCards.first()).toContainText('Bài 7');
+
     await page.screenshot({ path: 'e2e/screenshots/14-vocabulary-module.png' });
   });
 

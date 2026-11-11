@@ -63,163 +63,185 @@ public class Hsk1MeaningAndPublishIntegrationTests : IClassFixture<CustomWebAppl
         Guid testWordId1 = Guid.NewGuid();
         Guid testWordId2 = Guid.NewGuid();
         Guid testWordWithoutMeaningId = Guid.NewGuid();
+        var isoTag = $"test-{Guid.NewGuid():N}".Substring(0, 12);
 
-        using (var scope = _factory.Services.CreateScope())
+        try
         {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            db.Vocabularies.Add(new VocabularyEntity
+            using (var scope = _factory.Services.CreateScope())
             {
-                Id = testWordId1,
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                db.Vocabularies.Add(new VocabularyEntity
+                {
+                    Id = testWordId1,
+                    Hanzi = "八",
+                    Pinyin = "bā",
+                    Homograph = isoTag,
+                    MeaningVi = "", // Initially empty
+                    PartOfSpeech = "Số từ",
+                    HskLevel = 1,
+                    Status = "DRAFT",
+                    SourceDataset = "HSK 3.0",
+                    SourceEntryId = $"T-{isoTag}-2"
+                });
+
+                db.Vocabularies.Add(new VocabularyEntity
+                {
+                    Id = testWordId2,
+                    Hanzi = "爸爸",
+                    Pinyin = "bàba",
+                    Homograph = isoTag,
+                    MeaningVi = "bố, ba, cha", // Has meaning
+                    PartOfSpeech = "Danh từ",
+                    HskLevel = 1,
+                    Status = "DRAFT",
+                    SourceDataset = "HSK 3.0",
+                    SourceEntryId = $"T-{isoTag}-3"
+                });
+
+                db.Vocabularies.Add(new VocabularyEntity
+                {
+                    Id = testWordWithoutMeaningId,
+                    Hanzi = "白天",
+                    Pinyin = "báitiān",
+                    Homograph = isoTag,
+                    MeaningVi = "", // Missing meaning
+                    PartOfSpeech = "Danh từ",
+                    HskLevel = 1,
+                    Status = "DRAFT",
+                    SourceDataset = "HSK 3.0",
+                    SourceEntryId = $"T-{isoTag}-5"
+                });
+
+                await db.SaveChangesAsync();
+            }
+
+            // Test Step 1: Content Manager updates Vietnamese meaning and saves as DRAFT
+            var updateDraftReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordId1}");
+            updateDraftReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            updateDraftReq.Content = JsonContent.Create(new UpdateVocabularyDto
+            {
+                HskLevel = 1,
                 Hanzi = "八",
                 Pinyin = "bā",
-                MeaningVi = "", // Initially empty
+                Homograph = isoTag,
+                MeaningVi = "tám (số 8)",
                 PartOfSpeech = "Số từ",
-                HskLevel = 1,
-                Status = "DRAFT",
-                SourceDataset = "HSK 3.0",
-                SourceEntryId = "2"
+                Status = "DRAFT"
             });
+            var updateDraftRes = await _client.SendAsync(updateDraftReq);
+            Assert.Equal(HttpStatusCode.OK, updateDraftRes.StatusCode);
 
-            db.Vocabularies.Add(new VocabularyEntity
+            // Test Step 2: Verify meaning persisted in database as DRAFT
+            using (var scope = _factory.Services.CreateScope())
             {
-                Id = testWordId2,
-                Hanzi = "爸爸",
-                Pinyin = "bàba",
-                MeaningVi = "bố, ba, cha", // Has meaning
-                PartOfSpeech = "Danh từ",
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var saved = await db.Vocabularies.FindAsync(testWordId1);
+                Assert.NotNull(saved);
+                Assert.Equal("tám (số 8)", saved.MeaningVi);
+                Assert.Equal("DRAFT", saved.Status);
+            }
+
+            // Test Step 3: STUDENT cannot see the DRAFT word even with meaning
+            var studentGetReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{testWordId1}");
+            studentGetReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var studentGetRes = await _client.SendAsync(studentGetReq);
+            Assert.Equal(HttpStatusCode.NotFound, studentGetRes.StatusCode);
+
+            // Test Step 4: Disallow publishing word without MeaningVi
+            var invalidPublishReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordWithoutMeaningId}");
+            invalidPublishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            invalidPublishReq.Content = JsonContent.Create(new UpdateVocabularyDto
+            {
                 HskLevel = 1,
-                Status = "DRAFT",
-                SourceDataset = "HSK 3.0",
-                SourceEntryId = "3"
-            });
-
-            db.Vocabularies.Add(new VocabularyEntity
-            {
-                Id = testWordWithoutMeaningId,
                 Hanzi = "白天",
                 Pinyin = "báitiān",
-                MeaningVi = "", // Missing meaning
+                Homograph = isoTag,
+                MeaningVi = "   ", // whitespace only
                 PartOfSpeech = "Danh từ",
-                HskLevel = 1,
-                Status = "DRAFT",
-                SourceDataset = "HSK 3.0",
-                SourceEntryId = "5"
+                Status = "PUBLISHED"
             });
+            var invalidPublishRes = await _client.SendAsync(invalidPublishReq);
+            Assert.Equal(HttpStatusCode.BadRequest, invalidPublishRes.StatusCode);
 
-            await db.SaveChangesAsync();
+            // Test Step 5: Publish the valid word testWordId1
+            var publishReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordId1}");
+            publishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            publishReq.Content = JsonContent.Create(new UpdateVocabularyDto
+            {
+                HskLevel = 1,
+                Hanzi = "八",
+                Pinyin = "bā",
+                Homograph = isoTag,
+                MeaningVi = "tám (số 8)",
+                PartOfSpeech = "Số từ",
+                Status = "PUBLISHED"
+            });
+            var publishRes = await _client.SendAsync(publishReq);
+            Assert.Equal(HttpStatusCode.OK, publishRes.StatusCode);
+
+            // Test Step 6: STUDENT can now see the PUBLISHED word
+            var studentVerifyReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{testWordId1}");
+            studentVerifyReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var studentVerifyRes = await _client.SendAsync(studentVerifyReq);
+            Assert.Equal(HttpStatusCode.OK, studentVerifyRes.StatusCode);
+            var studentWord = await studentVerifyRes.Content.ReadFromJsonAsync<VocabularyDto>(_jsonOptions);
+            Assert.NotNull(studentWord);
+            Assert.Equal("八", studentWord.Hanzi);
+            Assert.Equal("bā", studentWord.Pinyin);
+            Assert.Equal("tám (số 8)", studentWord.MeaningVi);
+            Assert.Equal("PUBLISHED", studentWord.Status);
+
+            // Test Step 7: Batch Publish
+            // Pass both testWordId2 (has meaning) and testWordWithoutMeaningId (lacks meaning)
+            var batchPublishReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/vocabularies/batch-publish");
+            batchPublishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            batchPublishReq.Content = JsonContent.Create(new BatchPublishRequestDto
+            {
+                Ids = new List<Guid> { testWordId2, testWordWithoutMeaningId }
+            });
+            var batchPublishRes = await _client.SendAsync(batchPublishReq);
+            Assert.Equal(HttpStatusCode.OK, batchPublishRes.StatusCode);
+            var batchResult = await batchPublishRes.Content.ReadFromJsonAsync<BatchPublishResultDto>(_jsonOptions);
+            Assert.NotNull(batchResult);
+            Assert.Equal(1, batchResult.PublishedCount); // testWordId2 published
+            Assert.Equal(1, batchResult.SkippedCount);   // testWordWithoutMeaningId skipped
+            Assert.Single(batchResult.SkippedReasons);
+
+            // Verify testWordId2 is now PUBLISHED and testWordWithoutMeaningId remains DRAFT
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var w2 = await db.Vocabularies.FindAsync(testWordId2);
+                var wWithout = await db.Vocabularies.FindAsync(testWordWithoutMeaningId);
+                Assert.NotNull(w2);
+                Assert.Equal("PUBLISHED", w2.Status);
+                Assert.NotNull(wWithout);
+                Assert.Equal("DRAFT", wWithout.Status);
+            }
+
+            // Test Step 8: STUDENT cannot batch-publish (Forbidden)
+            var studentBatchReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/vocabularies/batch-publish");
+            studentBatchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            studentBatchReq.Content = JsonContent.Create(new BatchPublishRequestDto
+            {
+                Ids = new List<Guid> { testWordWithoutMeaningId }
+            });
+            var studentBatchRes = await _client.SendAsync(studentBatchReq);
+            Assert.Equal(HttpStatusCode.Forbidden, studentBatchRes.StatusCode);
         }
-
-        // Test Step 1: Content Manager updates Vietnamese meaning and saves as DRAFT
-        var updateDraftReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordId1}");
-        updateDraftReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        updateDraftReq.Content = JsonContent.Create(new UpdateVocabularyDto
+        finally
         {
-            HskLevel = 1,
-            Hanzi = "八",
-            Pinyin = "bā",
-            MeaningVi = "tám (số 8)",
-            PartOfSpeech = "Số từ",
-            Status = "DRAFT"
-        });
-        var updateDraftRes = await _client.SendAsync(updateDraftReq);
-        Assert.Equal(HttpStatusCode.OK, updateDraftRes.StatusCode);
-
-        // Test Step 2: Verify meaning persisted in database as DRAFT
-        using (var scope = _factory.Services.CreateScope())
-        {
+            using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var saved = await db.Vocabularies.FindAsync(testWordId1);
-            Assert.NotNull(saved);
-            Assert.Equal("tám (số 8)", saved.MeaningVi);
-            Assert.Equal("DRAFT", saved.Status);
+            var idsToDelete = new[] { testWordId1, testWordId2, testWordWithoutMeaningId };
+            var cleanup = await db.Vocabularies.Where(v => idsToDelete.Contains(v.Id)).ToListAsync();
+            if (cleanup.Count > 0)
+            {
+                db.Vocabularies.RemoveRange(cleanup);
+                await db.SaveChangesAsync();
+            }
         }
-
-        // Test Step 3: STUDENT cannot see the DRAFT word even with meaning
-        var studentGetReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{testWordId1}");
-        studentGetReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
-        var studentGetRes = await _client.SendAsync(studentGetReq);
-        Assert.Equal(HttpStatusCode.NotFound, studentGetRes.StatusCode);
-
-        // Test Step 4: Disallow publishing word without MeaningVi
-        var invalidPublishReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordWithoutMeaningId}");
-        invalidPublishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        invalidPublishReq.Content = JsonContent.Create(new UpdateVocabularyDto
-        {
-            HskLevel = 1,
-            Hanzi = "白天",
-            Pinyin = "báitiān",
-            MeaningVi = "   ", // whitespace only
-            PartOfSpeech = "Danh từ",
-            Status = "PUBLISHED"
-        });
-        var invalidPublishRes = await _client.SendAsync(invalidPublishReq);
-        Assert.Equal(HttpStatusCode.BadRequest, invalidPublishRes.StatusCode);
-
-        // Test Step 5: Publish the valid word testWordId1
-        var publishReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/vocabularies/{testWordId1}");
-        publishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        publishReq.Content = JsonContent.Create(new UpdateVocabularyDto
-        {
-            HskLevel = 1,
-            Hanzi = "八",
-            Pinyin = "bā",
-            MeaningVi = "tám (số 8)",
-            PartOfSpeech = "Số từ",
-            Status = "PUBLISHED"
-        });
-        var publishRes = await _client.SendAsync(publishReq);
-        Assert.Equal(HttpStatusCode.OK, publishRes.StatusCode);
-
-        // Test Step 6: STUDENT can now see the PUBLISHED word
-        var studentVerifyReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{testWordId1}");
-        studentVerifyReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
-        var studentVerifyRes = await _client.SendAsync(studentVerifyReq);
-        Assert.Equal(HttpStatusCode.OK, studentVerifyRes.StatusCode);
-        var studentWord = await studentVerifyRes.Content.ReadFromJsonAsync<VocabularyDto>(_jsonOptions);
-        Assert.NotNull(studentWord);
-        Assert.Equal("八", studentWord.Hanzi);
-        Assert.Equal("bā", studentWord.Pinyin);
-        Assert.Equal("tám (số 8)", studentWord.MeaningVi);
-        Assert.Equal("PUBLISHED", studentWord.Status);
-
-        // Test Step 7: Batch Publish
-        // Pass both testWordId2 (has meaning) and testWordWithoutMeaningId (lacks meaning)
-        var batchPublishReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/vocabularies/batch-publish");
-        batchPublishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        batchPublishReq.Content = JsonContent.Create(new BatchPublishRequestDto
-        {
-            Ids = new List<Guid> { testWordId2, testWordWithoutMeaningId }
-        });
-        var batchPublishRes = await _client.SendAsync(batchPublishReq);
-        Assert.Equal(HttpStatusCode.OK, batchPublishRes.StatusCode);
-        var batchResult = await batchPublishRes.Content.ReadFromJsonAsync<BatchPublishResultDto>(_jsonOptions);
-        Assert.NotNull(batchResult);
-        Assert.Equal(1, batchResult.PublishedCount); // testWordId2 published
-        Assert.Equal(1, batchResult.SkippedCount);   // testWordWithoutMeaningId skipped
-        Assert.Single(batchResult.SkippedReasons);
-
-        // Verify testWordId2 is now PUBLISHED and testWordWithoutMeaningId remains DRAFT
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var w2 = await db.Vocabularies.FindAsync(testWordId2);
-            var wWithout = await db.Vocabularies.FindAsync(testWordWithoutMeaningId);
-            Assert.NotNull(w2);
-            Assert.Equal("PUBLISHED", w2.Status);
-            Assert.NotNull(wWithout);
-            Assert.Equal("DRAFT", wWithout.Status);
-        }
-
-        // Test Step 8: STUDENT cannot batch-publish (Forbidden)
-        var studentBatchReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/vocabularies/batch-publish");
-        studentBatchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
-        studentBatchReq.Content = JsonContent.Create(new BatchPublishRequestDto
-        {
-            Ids = new List<Guid> { testWordWithoutMeaningId }
-        });
-        var studentBatchRes = await _client.SendAsync(studentBatchReq);
-        Assert.Equal(HttpStatusCode.Forbidden, studentBatchRes.StatusCode);
     }
 
     [Fact]
@@ -230,132 +252,150 @@ public class Hsk1MeaningAndPublishIntegrationTests : IClassFixture<CustomWebAppl
 
         Guid word1Id = Guid.NewGuid();
         Guid wordHomographId = Guid.NewGuid();
+        var isoTag = $"batch-{Guid.NewGuid():N}".Substring(0, 12);
 
-        using (var scope = _factory.Services.CreateScope())
+        try
         {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            db.Vocabularies.Add(new VocabularyEntity
+            using (var scope = _factory.Services.CreateScope())
             {
-                Id = word1Id,
-                Hanzi = "茶",
-                Pinyin = "chá",
-                MeaningVi = "",
-                PartOfSpeech = "Danh từ",
-                HskLevel = 1,
-                Status = "DRAFT",
-                SourceDataset = "HSK 3.0",
-                SourceEntryId = "17"
-            });
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            // Homograph word: 只 pronounced zhī (measure word) in HSK 1
-            db.Vocabularies.Add(new VocabularyEntity
-            {
-                Id = wordHomographId,
-                Hanzi = "只",
-                Pinyin = "zhī",
-                MeaningVi = "",
-                PartOfSpeech = "Lượng từ",
-                HskLevel = 1,
-                Status = "DRAFT",
-                SourceDataset = "HSK 3.0",
-                SourceEntryId = "287"
-            });
-
-            await db.SaveChangesAsync();
-        }
-
-        // 1. STUDENT cannot call batch-update-meanings (Forbidden)
-        var studentReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
-        studentReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
-        studentReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
-        {
-            Items = new List<BatchUpdateMeaningItemDto>
-            {
-                new() { Id = word1Id, MeaningVi = "trà" }
-            }
-        });
-        var studentRes = await _client.SendAsync(studentReq);
-        Assert.Equal(HttpStatusCode.Forbidden, studentRes.StatusCode);
-
-        // 2. ADMIN calls batch-update with 4 items:
-        // Item 1: Valid word1 (茶, chá) -> should succeed, stays DRAFT
-        // Item 2: Homograph 只 with WRONG Pinyin 'zhǐ' -> should fail validation (Pinyin mismatch)
-        // Item 3: Empty meaning -> should fail validation
-        // Item 4: Non-existent ID -> should report not found
-        Guid nonExistentId = Guid.NewGuid();
-        var batchReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
-        batchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        batchReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
-        {
-            Items = new List<BatchUpdateMeaningItemDto>
-            {
-                new()
+                db.Vocabularies.Add(new VocabularyEntity
                 {
                     Id = word1Id,
                     Hanzi = "茶",
                     Pinyin = "chá",
-                    MeaningVi = "trà, chè",
-                    PartOfSpeech = "Danh từ"
-                },
-                new()
-                {
-                    Id = wordHomographId,
-                    Hanzi = "只",
-                    Pinyin = "zhǐ", // WRONG pinyin for HSK 1 zhī!
-                    MeaningVi = "chỉ (phó từ)",
-                    PartOfSpeech = "Phó từ"
-                },
-                new()
+                    Homograph = isoTag,
+                    MeaningVi = "",
+                    PartOfSpeech = "Danh từ",
+                    HskLevel = 1,
+                    Status = "DRAFT",
+                    SourceDataset = "HSK 3.0",
+                    SourceEntryId = $"T-{isoTag}-17"
+                });
+
+                // Homograph word: 只 pronounced zhī (measure word) in HSK 1
+                db.Vocabularies.Add(new VocabularyEntity
                 {
                     Id = wordHomographId,
                     Hanzi = "只",
                     Pinyin = "zhī",
-                    MeaningVi = "   ", // Empty meaning!
-                    PartOfSpeech = "Lượng từ"
-                },
-                new()
-                {
-                    Id = nonExistentId,
-                    Hanzi = "测试",
-                    MeaningVi = "thử nghiệm"
-                }
+                    Homograph = isoTag,
+                    MeaningVi = "",
+                    PartOfSpeech = "Lượng từ",
+                    HskLevel = 1,
+                    Status = "DRAFT",
+                    SourceDataset = "HSK 3.0",
+                    SourceEntryId = $"T-{isoTag}-287"
+                });
+
+                await db.SaveChangesAsync();
             }
-        });
 
-        var batchRes = await _client.SendAsync(batchReq);
-        Assert.Equal(HttpStatusCode.OK, batchRes.StatusCode);
+            // 1. STUDENT cannot call batch-update-meanings (Forbidden)
+            var studentReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
+            studentReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            studentReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
+            {
+                Items = new List<BatchUpdateMeaningItemDto>
+                {
+                    new() { Id = word1Id, MeaningVi = "trà" }
+                }
+            });
+            var studentRes = await _client.SendAsync(studentReq);
+            Assert.Equal(HttpStatusCode.Forbidden, studentRes.StatusCode);
 
-        var result = await batchRes.Content.ReadFromJsonAsync<BatchUpdateMeaningsResultDto>(_jsonOptions);
-        Assert.NotNull(result);
-        Assert.Equal(4, result.TotalRequested);
-        Assert.Equal(1, result.UpdatedCount);
-        Assert.Equal(3, result.ErrorCount);
-        Assert.Contains(result.Errors, e => e.Reason.Contains("Pinyin 'zhǐ' không khớp"));
-        Assert.Contains(result.Errors, e => e.Reason.Contains("Nghĩa tiếng Việt không được để trống"));
-        Assert.Contains(result.Errors, e => e.Reason.Contains($"Không tìm thấy từ vựng với ID {nonExistentId}"));
+            // 2. ADMIN calls batch-update with 4 items:
+            // Item 1: Valid word1 (茶, chá) -> should succeed, stays DRAFT
+            // Item 2: Homograph 只 with WRONG Pinyin 'zhǐ' -> should fail validation (Pinyin mismatch)
+            // Item 3: Empty meaning -> should fail validation
+            // Item 4: Non-existent ID -> should report not found
+            Guid nonExistentId = Guid.NewGuid();
+            var batchReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/vocabularies/batch-update-meanings");
+            batchReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            batchReq.Content = JsonContent.Create(new BatchUpdateMeaningsRequestDto
+            {
+                Items = new List<BatchUpdateMeaningItemDto>
+                {
+                    new()
+                    {
+                        Id = word1Id,
+                        Hanzi = "茶",
+                        Pinyin = "chá",
+                        MeaningVi = "trà, chè",
+                        PartOfSpeech = "Danh từ"
+                    },
+                    new()
+                    {
+                        Id = wordHomographId,
+                        Hanzi = "只",
+                        Pinyin = "zhǐ", // WRONG pinyin for HSK 1 zhī!
+                        MeaningVi = "chỉ (phó từ)",
+                        PartOfSpeech = "Phó từ"
+                    },
+                    new()
+                    {
+                        Id = wordHomographId,
+                        Hanzi = "只",
+                        Pinyin = "zhī",
+                        MeaningVi = "   ", // Empty meaning!
+                        PartOfSpeech = "Lượng từ"
+                    },
+                    new()
+                    {
+                        Id = nonExistentId,
+                        Hanzi = "测试",
+                        MeaningVi = "thử nghiệm"
+                    }
+                }
+            });
 
-        // 3. Verify in database: word1 is updated with MeaningVi but STILL DRAFT
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var w1 = await db.Vocabularies.FindAsync(word1Id);
-            Assert.NotNull(w1);
-            Assert.Equal("trà, chè", w1.MeaningVi);
-            Assert.Equal("Danh từ", w1.PartOfSpeech);
-            Assert.Equal("DRAFT", w1.Status);
-            Assert.Equal("HSK 3.0", w1.SourceDataset);
-            Assert.Equal("17", w1.SourceEntryId);
+            var batchRes = await _client.SendAsync(batchReq);
+            Assert.Equal(HttpStatusCode.OK, batchRes.StatusCode);
 
-            var wHomo = await db.Vocabularies.FindAsync(wordHomographId);
-            Assert.NotNull(wHomo);
-            Assert.Equal("", wHomo.MeaningVi); // Not updated because of errors
+            var result = await batchRes.Content.ReadFromJsonAsync<BatchUpdateMeaningsResultDto>(_jsonOptions);
+            Assert.NotNull(result);
+            Assert.Equal(4, result.TotalRequested);
+            Assert.Equal(1, result.UpdatedCount);
+            Assert.Equal(3, result.ErrorCount);
+            Assert.Contains(result.Errors, e => e.Reason.Contains("Pinyin 'zhǐ' không khớp"));
+            Assert.Contains(result.Errors, e => e.Reason.Contains("Nghĩa tiếng Việt không được để trống"));
+            Assert.Contains(result.Errors, e => e.Reason.Contains($"Không tìm thấy từ vựng với ID {nonExistentId}"));
+
+            // 3. Verify in database: word1 is updated with MeaningVi but STILL DRAFT
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var w1 = await db.Vocabularies.FindAsync(word1Id);
+                Assert.NotNull(w1);
+                Assert.Equal("trà, chè", w1.MeaningVi);
+                Assert.Equal("Danh từ", w1.PartOfSpeech);
+                Assert.Equal("DRAFT", w1.Status);
+                Assert.Equal("HSK 3.0", w1.SourceDataset);
+                Assert.Equal($"T-{isoTag}-17", w1.SourceEntryId);
+
+                var wHomo = await db.Vocabularies.FindAsync(wordHomographId);
+                Assert.NotNull(wHomo);
+                Assert.Equal("", wHomo.MeaningVi); // Not updated because of errors
+            }
+
+            // 4. STUDENT still cannot see word1 because it is DRAFT
+            var studentVerifyReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{word1Id}");
+            studentVerifyReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var studentVerifyRes = await _client.SendAsync(studentVerifyReq);
+            Assert.Equal(HttpStatusCode.NotFound, studentVerifyRes.StatusCode);
         }
-
-        // 4. STUDENT still cannot see word1 because it is DRAFT
-        var studentVerifyReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/vocabularies/{word1Id}");
-        studentVerifyReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
-        var studentVerifyRes = await _client.SendAsync(studentVerifyReq);
-        Assert.Equal(HttpStatusCode.NotFound, studentVerifyRes.StatusCode);
+        finally
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var idsToDelete = new[] { word1Id, wordHomographId };
+            var cleanup = await db.Vocabularies.Where(v => idsToDelete.Contains(v.Id)).ToListAsync();
+            if (cleanup.Count > 0)
+            {
+                db.Vocabularies.RemoveRange(cleanup);
+                await db.SaveChangesAsync();
+            }
+        }
     }
 }
