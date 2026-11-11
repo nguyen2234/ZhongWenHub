@@ -1,12 +1,6 @@
 import { lessonContentService } from './lesson-content.service';
 import { LessonPlayerAdapter } from '../adapters/lesson-player.adapter';
 import { findLessonMetadata, getAllCurriculumLessons, HSK_CURRICULUM } from '../../learning/data/curriculumData';
-import { INITIAL_VOCABULARY_LIST } from '../../vocabulary/data/vocabularyBank';
-import { MOCK_GRAMMAR_POINTS } from '../../grammar/mock/mockGrammarData';
-import { HSK1_READING_PASSAGES } from '../data/hsk1ReadingPassages';
-import { HSK2_READING_PASSAGES } from '../data/hsk2ReadingPassages';
-import { HSK3_READING_PASSAGES } from '../data/hsk3ReadingPassages';
-import { HSK4_READING_PASSAGES } from '../data/hsk4ReadingPassages';
 import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
 import type { LessonData, DialogueLine } from '../types';
 
@@ -136,28 +130,6 @@ class HskTextbookService {
         examplePinyin: v.customExamplePinyin || '',
         exampleMeaning: v.customExampleVi || '',
       }));
-    } else if (detailDto.status === 'MOCK' || !detailDto.id.includes('-')) {
-      // Offline fallback only for isolated local testing when API returns mock
-      const bankMatches = INITIAL_VOCABULARY_LIST.filter(
-        (v) => (v.lessonId === lessonNumber && v.hskLevel === hskLevel) ||
-               (meta?.vocabularyIds && meta.vocabularyIds.includes(v.id))
-      );
-      if (bankMatches.length > 0) {
-        vocabularies = bankMatches.map((item, idx) => ({
-          id: item.id,
-          orderNumber: idx + 1,
-          hanzi: item.hanzi,
-          pinyin: item.pinyin,
-          meaning: item.primaryMeaning || item.meanings[0] || '',
-          partOfSpeech: item.wordType,
-          hskLevel: item.hskLevel,
-          radical: item.radical,
-          strokeCount: item.strokeCount,
-          exampleHanzi: item.examples[0]?.hanzi || '',
-          examplePinyin: item.examples[0]?.pinyin || '',
-          exampleMeaning: item.examples[0]?.meaning || '',
-        }));
-      }
     }
 
     // 2. Resolve authentic Grammar Points
