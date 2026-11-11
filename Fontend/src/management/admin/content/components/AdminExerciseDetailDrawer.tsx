@@ -444,6 +444,35 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
                       </span>
                     )}
                   </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '6px',
+                      fontSize: '11px',
+                      padding: '6px 8px',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <span>
+                      Phê duyệt quản trị:{' '}
+                      <strong style={{ color: exercise.administrativeApprovalStatus === 'APPROVED' ? '#0369A1' : '#64748B' }}>
+                        {exercise.administrativeApprovalStatus || 'NONE'}
+                      </strong>
+                    </span>
+                    <span>·</span>
+                    <span>
+                      Kiểm duyệt giảng viên:{' '}
+                      <strong style={{ color: exercise.humanAcademicReviewStatus === 'APPROVED_BASELINE' ? '#15803D' : '#B45309' }}>
+                        {exercise.humanAcademicReviewStatus || 'NOT_REVIEWED'}
+                      </strong>
+                    </span>
+                    {exercise.administrativeApprovalScope && (
+                      <span style={{ color: 'var(--muted)' }}>({exercise.administrativeApprovalScope})</span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     className="ds-input"

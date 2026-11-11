@@ -38,6 +38,7 @@ import type { TableColumn } from '../../../shared/types';
 import type {
   AdminExerciseFilters,
   AdminExerciseItem,
+  AdministrativeApprovalStatus,
   CreateAdminExerciseDTO,
   QuestionReviewStatus,
   UpdateAdminExerciseDTO,
@@ -95,6 +96,7 @@ export const AdminExerciseBankPage: React.FC = () => {
     difficulty: 'ALL',
     status: 'ALL',
     reviewStatus: 'ALL',
+    administrativeApprovalStatus: 'ALL',
     tag: '',
     grammarPointId: initialGrammarId,
     lessonId: initialLessonId,
@@ -513,6 +515,9 @@ export const AdminExerciseBankPage: React.FC = () => {
       width: '150px',
       render: (item) => {
         const rev = REVIEW_BADGE_STYLE[item.reviewStatus || 'DRAFT'] || REVIEW_BADGE_STYLE.DRAFT;
+        const isAdminApproved = item.administrativeApprovalStatus === 'APPROVED';
+        const isHumanApproved =
+          item.reviewStatus === 'APPROVED' || item.humanAcademicReviewStatus === 'APPROVED_BASELINE';
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <ContentStatusBadge status={item.status} />
@@ -529,6 +534,22 @@ export const AdminExerciseBankPage: React.FC = () => {
             >
               {rev.label}
             </span>
+            {isAdminApproved && (
+              <span
+                title={item.administrativeApprovalNotes || 'Phê duyệt quản trị (chưa giảng viên duyệt)'}
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  padding: '1px 6px',
+                  borderRadius: '4px',
+                  backgroundColor: '#E0F2FE',
+                  color: '#0369A1',
+                  width: 'fit-content',
+                }}
+              >
+                {isHumanApproved ? 'Quản trị + GV duyệt' : 'Duyệt QT · Chưa GV duyệt'}
+              </span>
+            )}
           </div>
         );
       },
@@ -693,6 +714,18 @@ export const AdminExerciseBankPage: React.FC = () => {
               </span>
             );
           })}
+          <span
+            style={{
+              fontSize: '11px',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#E0F2FE',
+              color: '#0369A1',
+              border: '1px solid #BAE6FD',
+            }}
+          >
+            Duyệt quản trị: <strong>{stats.adminApprovedCount ?? 0}</strong> · Duyệt GV: <strong>{stats.humanApprovedCount ?? stats.approvedReview}</strong>
+          </span>
           <span
             style={{
               fontSize: '11px',
@@ -1014,6 +1047,25 @@ export const AdminExerciseBankPage: React.FC = () => {
                 <option value="ARCHIVED">Lưu trữ ({stats.archived})</option>
               </select>
 
+              <select
+                className="ds-input"
+                aria-label="Lọc phê duyệt quản trị"
+                value={filters.administrativeApprovalStatus || 'ALL'}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    administrativeApprovalStatus: e.target.value as AdministrativeApprovalStatus | 'ALL',
+                  }));
+                  setCurrentPage(1);
+                }}
+                style={{ height: '36px', fontSize: 'var(--text-xs)' }}
+              >
+                <option value="ALL">Quản trị: Tất cả</option>
+                <option value="APPROVED">Đã duyệt quản trị ({stats.adminApprovedCount ?? 0})</option>
+                <option value="NONE">Chưa duyệt quản trị ({stats.adminUnapprovedCount ?? 0})</option>
+                <option value="REVOKED">Đã thu hồi duyệt QT</option>
+              </select>
+
               <button
                 type="button"
                 className="ds-btn ds-btn-ghost"
@@ -1026,6 +1078,7 @@ export const AdminExerciseBankPage: React.FC = () => {
                     difficulty: 'ALL',
                     status: 'ALL',
                     reviewStatus: 'ALL',
+                    administrativeApprovalStatus: 'ALL',
                     tag: '',
                     grammarPointId: undefined,
                     lessonId: undefined,

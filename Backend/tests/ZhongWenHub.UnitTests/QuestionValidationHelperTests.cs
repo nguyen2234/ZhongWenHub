@@ -106,5 +106,15 @@ public class QuestionValidationHelperTests
             "[\"Bạn bè\",\"Thầy giáo\",\"Học sinh\",\"Bác sĩ\"]", 0, "Bạn bè", substantiveExp, null);
         Assert.True(QuestionValidationHelper.IsPublishQualified(valPass, substantiveExp, "Bạn bè", out _));
     }
+
+    [Fact]
+    public void AdministrativeApproval_StatusNormalization_PreservesSeparationFromAcademicReview()
+    {
+        Assert.Equal("NONE", QuestionValidationHelper.NormalizeAdministrativeApprovalStatus(null));
+        Assert.Equal("NONE", QuestionValidationHelper.NormalizeAdministrativeApprovalStatus("unknown"));
+        Assert.Equal("APPROVED", QuestionValidationHelper.NormalizeAdministrativeApprovalStatus(" approved "));
+        Assert.Equal("REVOKED", QuestionValidationHelper.NormalizeAdministrativeApprovalStatus("revoked"));
+        Assert.NotEqual("APPROVED", QuestionValidationHelper.NormalizeReviewStatus("PENDING_REVIEW"));
+    }
 }
 

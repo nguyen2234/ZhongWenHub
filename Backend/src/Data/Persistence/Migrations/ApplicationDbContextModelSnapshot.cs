@@ -508,6 +508,28 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AdministrativeApprovalNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("AdministrativeApprovalScope")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("AdministrativeApprovalSource")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("AdministrativeApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("NONE");
+
+                    b.Property<DateTime?>("AdministrativeApprovedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("AudioUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -542,6 +564,13 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.Property<int>("HskLevel")
                         .HasColumnType("int");
+
+                    b.Property<string>("HumanAcademicReviewStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("NOT_REVIEWED");
 
                     b.Property<string>("Instruction")
                         .IsRequired()
@@ -658,6 +687,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasIndex("VocabularyId")
                         .HasDatabaseName("idx_exercises_vocab_id");
+
+                    b.HasIndex("HskLevel", "AdministrativeApprovalStatus")
+                        .HasDatabaseName("idx_exercises_hsk_admin_approval");
 
                     b.HasIndex("HskLevel", "Skill", "Difficulty", "Status")
                         .HasDatabaseName("idx_exercises_hsk_skill_diff_status");

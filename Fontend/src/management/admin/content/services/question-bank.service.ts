@@ -4,7 +4,9 @@ import { adminExerciseService } from './admin-exercise.service';
 import type {
   AdminExerciseFilters,
   AdminExerciseItem,
+  AdministrativeApprovalStatus,
   CreateAdminExerciseDTO,
+  HumanAcademicReviewStatus,
   QuestionReviewStatus,
   UpdateAdminExerciseDTO,
 } from '../types/admin-content.types';
@@ -27,6 +29,10 @@ export interface QuestionBankStats {
   needsAcademicReview: number;
   approvedReview: number;
   rejectedReview: number;
+  adminApprovedCount?: number;
+  adminUnapprovedCount?: number;
+  adminApprovedDraftCount?: number;
+  humanApprovedCount?: number;
   archived: number;
   withSubstantiveExplanation: number;
   reportedCount: number;
@@ -37,6 +43,7 @@ export interface QuestionBankStats {
   byType: Record<string, number>;
   byDifficulty: Record<string, number>;
   byReviewStatus: Record<string, number>;
+  byAdministrativeApprovalStatus?: Record<string, number>;
 }
 
 export interface DuplicateCheckMatch {
@@ -147,6 +154,12 @@ function mapApiToAdminItem(e: any): AdminExerciseItem {
     difficulty: normalizeDiffToUi(e.difficulty),
     status: (e.status || 'DRAFT') as ContentStatus,
     reviewStatus: (e.reviewStatus || 'DRAFT') as QuestionReviewStatus,
+    administrativeApprovalStatus: (e.administrativeApprovalStatus || 'NONE') as AdministrativeApprovalStatus,
+    administrativeApprovalScope: e.administrativeApprovalScope || undefined,
+    administrativeApprovalSource: e.administrativeApprovalSource || undefined,
+    administrativeApprovalNotes: e.administrativeApprovalNotes || undefined,
+    administrativeApprovedAt: e.administrativeApprovedAt || undefined,
+    humanAcademicReviewStatus: (e.humanAcademicReviewStatus || 'NOT_REVIEWED') as HumanAcademicReviewStatus,
     tags: e.tags || undefined,
     sourceId: e.sourceId || undefined,
     sourceLicense: e.sourceLicense || undefined,
@@ -205,6 +218,9 @@ class QuestionBankService {
     if (filters.difficulty && filters.difficulty !== 'ALL') params.difficulty = normalizeDiffToApi(filters.difficulty);
     if (filters.status && filters.status !== 'ALL') params.status = filters.status;
     if (filters.reviewStatus && filters.reviewStatus !== 'ALL') params.reviewStatus = filters.reviewStatus;
+    if (filters.administrativeApprovalStatus && filters.administrativeApprovalStatus !== 'ALL') {
+      params.administrativeApprovalStatus = filters.administrativeApprovalStatus;
+    }
     if (filters.lessonId) params.lessonId = filters.lessonId;
     if (filters.grammarPointId) params.grammarPointId = filters.grammarPointId;
     if (filters.tag?.trim()) params.tag = filters.tag.trim();

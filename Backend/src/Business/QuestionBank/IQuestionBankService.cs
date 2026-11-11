@@ -19,6 +19,7 @@ public interface IQuestionBankService
         string? search,
         int page = 1,
         int pageSize = 20,
+        string? administrativeApprovalStatus = null,
         CancellationToken cancellationToken = default);
 
     Task<QuestionBankItemDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
@@ -64,6 +65,11 @@ public interface IQuestionBankService
     Task<BatchActionResultDto> BatchPublishAsync(
         Guid reviewerId,
         List<Guid> questionIds,
+        CancellationToken cancellationToken = default);
+
+    Task<BulkAdministrativeApprovalResultDto> BulkAdministrativeApproveAsync(
+        Guid actingUserId,
+        BulkAdministrativeApprovalRequestDto dto,
         CancellationToken cancellationToken = default);
 
     Task<ReportQuestionResultDto?> ReportQuestionAsync(

@@ -476,6 +476,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(e => e.ContentHash).HasMaxLength(64);
             b.Property(e => e.ReviewNotes).HasMaxLength(1000);
             b.Property(e => e.ReviewedAt).HasColumnType("datetime2");
+            b.Property(e => e.AdministrativeApprovalStatus).HasMaxLength(30).IsRequired().HasDefaultValue("NONE");
+            b.Property(e => e.AdministrativeApprovalScope).HasMaxLength(120);
+            b.Property(e => e.AdministrativeApprovalSource).HasMaxLength(120);
+            b.Property(e => e.AdministrativeApprovalNotes).HasMaxLength(1000);
+            b.Property(e => e.AdministrativeApprovedAt).HasColumnType("datetime2");
+            b.Property(e => e.HumanAcademicReviewStatus).HasMaxLength(30).IsRequired().HasDefaultValue("NOT_REVIEWED");
             b.Property(e => e.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(e => e.UpdatedAt).HasColumnType("datetime2");
 
@@ -504,6 +510,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(e => e.ContentHash).HasDatabaseName("idx_exercises_content_hash");
             b.HasIndex(e => new { e.HskLevel, e.Skill, e.Difficulty, e.Status })
                 .HasDatabaseName("idx_exercises_hsk_skill_diff_status");
+            b.HasIndex(e => new { e.HskLevel, e.AdministrativeApprovalStatus })
+                .HasDatabaseName("idx_exercises_hsk_admin_approval");
         });
 
         // Question Bank Practice Sessions Configuration

@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Business.Common.DTOs;
 using ZhongWenHub.Business.QuestionBank.DTOs;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
@@ -527,6 +528,128 @@ public class QuestionBankIntegrationTests : IClassFixture<CustomWebApplicationFa
             }
             if (tempQuestionId.HasValue)
             {
+                await db.Exercises
+                    .Where(e => e.Id == tempQuestionId.Value)
+                    .ExecuteDeleteAsync();
+            }
+        }
+    }
+
+    [Fact]
+    public async Task BulkAdministrativeApproval_PreservesDraftAndHumanReviewState_AndBlocksPublishAndStudentAccess()
+    {
+        Guid? tempQuestionId = null;
+        try
+        {
+            var studentToken = await GetStudentTokenAsync();
+            var staffToken = await GetContentManagerTokenAsync();
+
+            // 1. RBAC: student cannot trigger bulk administrative approval
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var studentForbidden = await _client.PostAsJsonAsync(
+                "/api/v1/question-bank/administrative-approval/bulk",
+                new BulkAdministrativeApprovalRequestDto { DryRun = true });
+            Assert.Equal(HttpStatusCode.Forbidden, studentForbidden.StatusCode);
+
+            // 2. Verify SQL Server Test stats after bulk administrative approval
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", staffToken);
+            var stats = await _client.GetFromJsonAsync<QuestionBankStatsDto>("/api/v1/question-bank/stats", _jsonOptions);
+            Assert.NotNull(stats);
+            Assert.Equal(5000, stats!.AdminApprovedCount);
+            Assert.Equal(0, stats.AdminUnapprovedCount);
+            Assert.Equal(4663, stats.AdminApprovedDraftCount);
+            Assert.Equal(337, stats.Published);
+            Assert.Equal(337, stats.HumanApprovedCount);
+
+            // 3. Verify filtered query returns 4,663 DRAFT admin-approved items still pending human review
+            var adminDraftPage = await _client.GetFromJsonAsync<PagedResponse<QuestionBankItemDto>>(
+                "/api/v1/question-bank?administrativeApprovalStatus=APPROVED&status=DRAFT&page=1&pageSize=10",
+                _jsonOptions);
+            Assert.NotNull(adminDraftPage);
+            Assert.Equal(4663, adminDraftPage!.TotalItems);
+            Assert.All(adminDraftPage.Items, item =>
+            {
+                Assert.Equal("DRAFT", item.Status);
+                Assert.Equal("APPROVED", item.AdministrativeApprovalStatus);
+                Assert.Equal("PENDING_HUMAN_REVIEW", item.HumanAcademicReviewStatus);
+                Assert.NotEqual("APPROVED", item.ReviewStatus);
+            });
+
+            // 4. Create a temporary HSK 1 DRAFT question to exercise dry-run and apply via API
+            var createRes = await _client.PostAsJsonAsync("/api/v1/question-bank", new CreateQuestionBankItemDto
+            {
+                Type = "multiple-choice",
+                Skill = "vocabulary",
+                HskLevel = 1,
+                Difficulty = "EASY",
+                Title = "AdminApprovalTemp Question",
+                Instruction = "Chọn đáp án đúng.",
+                PromptHanzi = "测试行政审批",
+                PromptPinyin = "cèshì xíngzhèng shěnpī",
+                Options = ["Kiểm thử hành chính", "Bàn học", "Quyển vở", "Ngôi nhà"],
+                CorrectOptionIndex = 0,
+                CorrectAnswer = "Kiểm thử hành chính",
+                Explanation = "Cụm từ '测试行政审批' dùng để kiểm thử luồng phê duyệt quản trị mà không tự xuất bản.",
+                Status = "DRAFT",
+                SourceId = "admin-approval-integration-test",
+                SourceLicense = "INTERNAL_AUTHORED"
+            });
+            Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+            var created = (await createRes.Content.ReadFromJsonAsync<QuestionBankItemDto>(_jsonOptions))!;
+            tempQuestionId = created.Id;
+            Assert.Equal("NONE", created.AdministrativeApprovalStatus);
+            Assert.Equal("NOT_REVIEWED", created.HumanAcademicReviewStatus);
+
+            // Dry run previews 1 newly eligible draft without persisting
+            var dryRunRes = await _client.PostAsJsonAsync(
+                "/api/v1/question-bank/administrative-approval/bulk",
+                new BulkAdministrativeApprovalRequestDto { DryRun = true });
+            Assert.Equal(HttpStatusCode.OK, dryRunRes.StatusCode);
+            var dryRun = (await dryRunRes.Content.ReadFromJsonAsync<BulkAdministrativeApprovalResultDto>(_jsonOptions))!;
+            Assert.True(dryRun.DryRun);
+            Assert.Equal(1, dryRun.NewlyAdminApprovedDraftCount);
+            Assert.Equal(0, dryRun.NewHumanAcademicSignOffCount);
+
+            // Live apply approves administratively without auto-publishing or forging human academic review
+            var applyRes = await _client.PostAsJsonAsync(
+                "/api/v1/question-bank/administrative-approval/bulk",
+                new BulkAdministrativeApprovalRequestDto { DryRun = false });
+            Assert.Equal(HttpStatusCode.OK, applyRes.StatusCode);
+            var apply = (await applyRes.Content.ReadFromJsonAsync<BulkAdministrativeApprovalResultDto>(_jsonOptions))!;
+            Assert.False(apply.DryRun);
+            Assert.Equal(1, apply.NewlyAdminApprovedDraftCount);
+            Assert.Equal(0, apply.NewHumanAcademicSignOffCount);
+            Assert.Equal(337, apply.PublishedCount);
+
+            var fetchedAfter = await _client.GetFromJsonAsync<QuestionBankItemDto>(
+                $"/api/v1/question-bank/{tempQuestionId}",
+                _jsonOptions);
+            Assert.NotNull(fetchedAfter);
+            Assert.Equal("DRAFT", fetchedAfter!.Status);
+            Assert.Equal(created.ReviewStatus, fetchedAfter.ReviewStatus);
+            Assert.Equal("DRAFT", fetchedAfter.ReviewStatus);
+            Assert.Equal("APPROVED", fetchedAfter.AdministrativeApprovalStatus);
+            Assert.Equal("PENDING_HUMAN_REVIEW", fetchedAfter.HumanAcademicReviewStatus);
+
+            // 5. Publish gate MUST still block publishing even though AdministrativeApprovalStatus == APPROVED
+            var publishBlocked = await _client.PostAsync($"/api/v1/question-bank/{tempQuestionId}/publish", null);
+            Assert.Equal(HttpStatusCode.BadRequest, publishBlocked.StatusCode);
+
+            // 6. Student recommendations strictly include only the 337 PUBLISHED questions
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var recs = await _client.GetFromJsonAsync<AdaptiveRecommendationsResponseDto>(
+                "/api/v1/question-bank/recommendations",
+                _jsonOptions);
+            Assert.NotNull(recs);
+            Assert.Equal(337, recs!.TotalPublishedQuestions);
+        }
+        finally
+        {
+            _client.DefaultRequestHeaders.Authorization = null;
+            if (tempQuestionId.HasValue)
+            {
+                using var scope = _factory.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 await db.Exercises
                     .Where(e => e.Id == tempQuestionId.Value)
                     .ExecuteDeleteAsync();

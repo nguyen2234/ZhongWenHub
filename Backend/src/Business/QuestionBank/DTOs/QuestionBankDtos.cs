@@ -33,6 +33,12 @@ public class QuestionBankItemDto
     public Guid? ReviewedByUserId { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewNotes { get; set; }
+    public string AdministrativeApprovalStatus { get; set; } = "NONE";
+    public string? AdministrativeApprovalScope { get; set; }
+    public string? AdministrativeApprovalSource { get; set; }
+    public string? AdministrativeApprovalNotes { get; set; }
+    public DateTime? AdministrativeApprovedAt { get; set; }
+    public string HumanAcademicReviewStatus { get; set; } = "NOT_REVIEWED";
     public Guid? LessonId { get; set; }
     public string? LessonTitle { get; set; }
     public Guid? GrammarPointId { get; set; }
@@ -97,6 +103,10 @@ public class QuestionBankStatsDto
     public int NeedsAcademicReview { get; set; }
     public int ApprovedReview { get; set; }
     public int RejectedReview { get; set; }
+    public int AdminApprovedCount { get; set; }
+    public int AdminUnapprovedCount { get; set; }
+    public int AdminApprovedDraftCount { get; set; }
+    public int HumanApprovedCount { get; set; }
     public int Archived { get; set; }
     public int WithSubstantiveExplanation { get; set; }
     public int ReportedCount { get; set; }
@@ -107,6 +117,7 @@ public class QuestionBankStatsDto
     public Dictionary<string, int> ByType { get; set; } = new();
     public Dictionary<string, int> ByDifficulty { get; set; } = new();
     public Dictionary<string, int> ByReviewStatus { get; set; } = new();
+    public Dictionary<string, int> ByAdministrativeApprovalStatus { get; set; } = new();
 }
 
 public class CheckDuplicatesRequestDto
@@ -245,6 +256,42 @@ public class BatchActionResultDto
     public int UpdatedCount { get; set; }
     public int SkippedCount { get; set; }
     public List<string> Errors { get; set; } = [];
+}
+
+public class BulkAdministrativeApprovalRequestDto
+{
+    [Range(1, 4)]
+    public int MinHskLevel { get; set; } = 1;
+
+    [Range(1, 4)]
+    public int MaxHskLevel { get; set; } = 4;
+
+    [StringLength(120)]
+    public string Scope { get; set; } = "BULK_HSK14_PROJECT_OWNER_ADMIN_APPROVAL";
+
+    [StringLength(120)]
+    public string Source { get; set; } = "PROJECT_OWNER_BULK_ADMIN_DECISION";
+
+    [StringLength(1000)]
+    public string Notes { get; set; } =
+        "Project owner bulk administrative approval for HSK 1-4 bank. Questions remain DRAFT and require human academic review before PUBLISHED.";
+
+    public bool IncludeBaselinePublished { get; set; } = true;
+    public bool DryRun { get; set; } = true;
+}
+
+public class BulkAdministrativeApprovalResultDto
+{
+    public bool DryRun { get; set; }
+    public int NewlyAdminApprovedDraftCount { get; set; }
+    public int BaselinePublishedMarkedCount { get; set; }
+    public int TotalAdminApprovedHsk14Count { get; set; }
+    public int UnapprovedActiveHsk14Count { get; set; }
+    public int RejectedPreservedCount { get; set; }
+    public int PublishedCount { get; set; }
+    public int NewHumanAcademicSignOffCount { get; set; }
+    public DateTime ExecutedAt { get; set; }
+    public string Notes { get; set; } = string.Empty;
 }
 
 // =========================================================================

@@ -47,12 +47,13 @@ public class QuestionBankController : BaseApiController
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] string? administrativeApprovalStatus = null,
         CancellationToken cancellationToken = default)
     {
         var res = await _questionBankService.GetQuestionBankAsync(
             hskLevel, skill, type, difficulty, status, reviewStatus,
             lessonId, grammarPointId, vocabularyId, tag, search,
-            page, pageSize, cancellationToken);
+            page, pageSize, administrativeApprovalStatus, cancellationToken);
         return Ok(res);
     }
 
@@ -256,6 +257,28 @@ public class QuestionBankController : BaseApiController
         if (!userId.HasValue) return Unauthorized();
         var result = await _questionBankService.BatchPublishAsync(userId.Value, questionIds ?? [], cancellationToken);
         return Ok(result);
+    }
+
+    [HttpPost("administrative-approval/bulk")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(BulkAdministrativeApprovalResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> BulkAdministrativeApprove(
+        [FromBody] BulkAdministrativeApprovalRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue) return Unauthorized();
+        try
+        {
+            var result = await _questionBankService.BulkAdministrativeApproveAsync(userId.Value, dto, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return ProblemDetailsResult(400, "Validation Error", ex.Message);
+        }
     }
 
     [HttpPost("{id:guid}/report")]

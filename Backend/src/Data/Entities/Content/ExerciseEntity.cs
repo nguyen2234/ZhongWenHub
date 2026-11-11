@@ -38,5 +38,13 @@ public class ExerciseEntity : BaseEntity
     public Guid? ReviewedByUserId { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewNotes { get; set; }
+
+    // Administrative approval metadata (separate from academic ReviewStatus and Status = PUBLISHED)
+    public string AdministrativeApprovalStatus { get; set; } = "NONE"; // NONE, APPROVED, REVOKED
+    public string? AdministrativeApprovalScope { get; set; }
+    public string? AdministrativeApprovalSource { get; set; }
+    public string? AdministrativeApprovalNotes { get; set; }
+    public DateTime? AdministrativeApprovedAt { get; set; }
+    public string HumanAcademicReviewStatus { get; set; } = "NOT_REVIEWED"; // NOT_REVIEWED, PENDING_HUMAN_REVIEW, APPROVED_BASELINE, REJECTED
 }
 

@@ -112,6 +112,12 @@ public static partial class QuestionValidationHelper
             : fallback;
     }
 
+    public static string NormalizeAdministrativeApprovalStatus(string? rawStatus, string fallback = "NONE")
+    {
+        var s = (rawStatus ?? fallback).Trim().ToUpperInvariant();
+        return s is "NONE" or "APPROVED" or "REVOKED" ? s : fallback;
+    }
+
     public static bool HasSubstantiveExplanation(string? explanation, string? correctAnswer)
     {
         if (string.IsNullOrWhiteSpace(explanation)) return false;

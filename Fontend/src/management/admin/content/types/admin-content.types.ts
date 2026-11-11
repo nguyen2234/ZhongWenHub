@@ -89,6 +89,14 @@ export type QuestionReviewStatus =
   | 'APPROVED'
   | 'REJECTED';
 
+export type AdministrativeApprovalStatus = 'NONE' | 'APPROVED' | 'REVOKED';
+
+export type HumanAcademicReviewStatus =
+  | 'NOT_REVIEWED'
+  | 'PENDING_HUMAN_REVIEW'
+  | 'APPROVED_BASELINE'
+  | 'REJECTED';
+
 export interface AdminExerciseItem {
   id: string;
   type: ExerciseType;
@@ -98,6 +106,12 @@ export interface AdminExerciseItem {
   difficulty: 'easy' | 'medium' | 'hard';
   status: ContentStatus;
   reviewStatus?: QuestionReviewStatus;
+  administrativeApprovalStatus?: AdministrativeApprovalStatus;
+  administrativeApprovalScope?: string;
+  administrativeApprovalSource?: string;
+  administrativeApprovalNotes?: string;
+  administrativeApprovedAt?: string;
+  humanAcademicReviewStatus?: HumanAcademicReviewStatus;
   tags?: string;
   sourceId?: string;
   sourceLicense?: string;
@@ -138,6 +152,7 @@ export interface AdminExerciseFilters {
   difficulty: 'easy' | 'medium' | 'hard' | 'ALL';
   status: ContentStatus | 'ALL';
   reviewStatus?: QuestionReviewStatus | 'ALL';
+  administrativeApprovalStatus?: AdministrativeApprovalStatus | 'ALL';
   tag?: string;
   grammarPointId?: string;
   lessonId?: string;

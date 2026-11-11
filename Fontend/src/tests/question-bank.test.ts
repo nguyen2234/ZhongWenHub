@@ -88,5 +88,22 @@ describe('Question Bank Frontend Contract & Privacy Rules', () => {
     );
     expect(practiceResultSrc).toContain('Báo lỗi câu hỏi');
   });
+
+  test('Administrative approval metadata remains distinct from human academic review', () => {
+    const adminPageSrc = readFileSync(
+      resolve(import.meta.dir, '../management/admin/content/pages/AdminExerciseBankPage.tsx'),
+      'utf-8'
+    );
+    expect(adminPageSrc).toContain('administrativeApprovalStatus');
+    expect(adminPageSrc).toContain('Duyệt QT · Chưa GV duyệt');
+
+    const drawerSrc = readFileSync(
+      resolve(import.meta.dir, '../management/admin/content/components/AdminExerciseDetailDrawer.tsx'),
+      'utf-8'
+    );
+    expect(drawerSrc).toContain('Phê duyệt quản trị');
+    expect(drawerSrc).toContain('Kiểm duyệt giảng viên');
+    expect(drawerSrc).toContain('humanAcademicReviewStatus');
+  });
 });
 

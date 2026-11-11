@@ -38,6 +38,7 @@ public class QuestionBankService : IQuestionBankService
         string? search,
         int page = 1,
         int pageSize = 20,
+        string? administrativeApprovalStatus = null,
         CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Exercises.AsNoTracking().AsQueryable();
@@ -74,6 +75,12 @@ public class QuestionBankService : IQuestionBankService
         {
             var normRev = QuestionValidationHelper.NormalizeReviewStatus(reviewStatus);
             query = query.Where(e => e.ReviewStatus == normRev);
+        }
+
+        if (!string.IsNullOrWhiteSpace(administrativeApprovalStatus) && !administrativeApprovalStatus.Equals("ALL", StringComparison.OrdinalIgnoreCase))
+        {
+            var normAdmin = QuestionValidationHelper.NormalizeAdministrativeApprovalStatus(administrativeApprovalStatus);
+            query = query.Where(e => e.AdministrativeApprovalStatus == normAdmin);
         }
 
         if (lessonId.HasValue)
@@ -140,6 +147,12 @@ public class QuestionBankService : IQuestionBankService
                 ReviewedByUserId = e.ReviewedByUserId,
                 ReviewedAt = e.ReviewedAt,
                 ReviewNotes = e.ReviewNotes,
+                AdministrativeApprovalStatus = e.AdministrativeApprovalStatus,
+                AdministrativeApprovalScope = e.AdministrativeApprovalScope,
+                AdministrativeApprovalSource = e.AdministrativeApprovalSource,
+                AdministrativeApprovalNotes = e.AdministrativeApprovalNotes,
+                AdministrativeApprovedAt = e.AdministrativeApprovedAt,
+                HumanAcademicReviewStatus = e.HumanAcademicReviewStatus,
                 LessonId = e.LessonId,
                 LessonTitle = e.Lesson != null ? e.Lesson.TitleVi : null,
                 GrammarPointId = e.GrammarPointId,
@@ -316,6 +329,16 @@ public class QuestionBankService : IQuestionBankService
         var needsAcademicReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "NEEDS_ACADEMIC_REVIEW", cancellationToken);
         var approvedReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "APPROVED", cancellationToken);
         var rejectedReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "REJECTED", cancellationToken);
+        var adminApprovedCount = await _dbContext.Exercises.CountAsync(e => e.AdministrativeApprovalStatus == "APPROVED", cancellationToken);
+        var adminUnapprovedCount = await _dbContext.Exercises.CountAsync(
+            e => e.HskLevel >= 1 && e.HskLevel <= 4 && e.Status != "ARCHIVED" && e.ReviewStatus != "REJECTED" && e.AdministrativeApprovalStatus != "APPROVED",
+            cancellationToken);
+        var adminApprovedDraftCount = await _dbContext.Exercises.CountAsync(
+            e => e.AdministrativeApprovalStatus == "APPROVED" && e.Status == "DRAFT",
+            cancellationToken);
+        var humanApprovedCount = await _dbContext.Exercises.CountAsync(
+            e => e.ReviewStatus == "APPROVED" || e.HumanAcademicReviewStatus == "APPROVED_BASELINE",
+            cancellationToken);
         var reportedCount = await _dbContext.Exercises.CountAsync(e => e.Tags != null && e.Tags.Contains("reported-issue"), cancellationToken);
         var withSubstantiveExp = await _dbContext.Exercises.CountAsync(
             e => e.Explanation != null &&
@@ -357,6 +380,11 @@ public class QuestionBankService : IQuestionBankService
             .Select(g => new { Key = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
+        var byAdminApprovalList = await _dbContext.Exercises
+            .GroupBy(e => e.AdministrativeApprovalStatus)
+            .Select(g => new { Key = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
         return new QuestionBankStatsDto
         {
             Total = total,
@@ -367,6 +395,10 @@ public class QuestionBankService : IQuestionBankService
             NeedsAcademicReview = needsAcademicReview,
             ApprovedReview = approvedReview,
             RejectedReview = rejectedReview,
+            AdminApprovedCount = adminApprovedCount,
+            AdminUnapprovedCount = adminUnapprovedCount,
+            AdminApprovedDraftCount = adminApprovedDraftCount,
+            HumanApprovedCount = humanApprovedCount,
             Archived = archived,
             WithSubstantiveExplanation = withSubstantiveExp,
             ReportedCount = reportedCount,
@@ -376,7 +408,8 @@ public class QuestionBankService : IQuestionBankService
             BySkill = bySkillList.ToDictionary(x => x.Key, x => x.Count),
             ByType = byTypeList.ToDictionary(x => x.Key, x => x.Count),
             ByDifficulty = byDiffList.ToDictionary(x => x.Key, x => x.Count),
-            ByReviewStatus = byReviewList.ToDictionary(x => x.Key, x => x.Count)
+            ByReviewStatus = byReviewList.ToDictionary(x => x.Key, x => x.Count),
+            ByAdministrativeApprovalStatus = byAdminApprovalList.ToDictionary(x => x.Key, x => x.Count)
         };
     }
 
@@ -756,6 +789,12 @@ public class QuestionBankService : IQuestionBankService
         }
 
         entity.ReviewStatus = decision;
+        entity.HumanAcademicReviewStatus = decision switch
+        {
+            "APPROVED" => "APPROVED_BASELINE",
+            "REJECTED" => "REJECTED",
+            _ => "PENDING_HUMAN_REVIEW"
+        };
         entity.ReviewedByUserId = reviewerId;
         entity.ReviewedAt = DateTime.UtcNow;
         if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
@@ -865,6 +904,117 @@ public class QuestionBankService : IQuestionBankService
             }
         }
         return res;
+    }
+
+    public async Task<BulkAdministrativeApprovalResultDto> BulkAdministrativeApproveAsync(
+        Guid actingUserId,
+        BulkAdministrativeApprovalRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (dto.MinHskLevel < 1 || dto.MaxHskLevel > 4 || dto.MinHskLevel > dto.MaxHskLevel)
+        {
+            throw new ArgumentException("Chỉ hỗ trợ phê duyệt quản trị hàng loạt trong phạm vi HSK 1-4.");
+        }
+
+        var now = DateTime.UtcNow;
+        var scope = string.IsNullOrWhiteSpace(dto.Scope)
+            ? "BULK_HSK14_PROJECT_OWNER_ADMIN_APPROVAL"
+            : dto.Scope.Trim();
+        var source = string.IsNullOrWhiteSpace(dto.Source)
+            ? "PROJECT_OWNER_BULK_ADMIN_DECISION"
+            : dto.Source.Trim();
+        var notes = string.IsNullOrWhiteSpace(dto.Notes)
+            ? "Project owner bulk administrative approval for HSK 1-4 bank. Questions remain DRAFT and require human academic review before PUBLISHED."
+            : dto.Notes.Trim();
+
+        // Target 1: Unpublished active HSK 1-4 items (MUST preserve Status = DRAFT, ReviewStatus, content, and HumanAcademicReviewStatus)
+        var unapprovedDraftTargets = await _dbContext.Exercises
+            .Where(e => e.HskLevel >= dto.MinHskLevel
+                        && e.HskLevel <= dto.MaxHskLevel
+                        && e.Status != "ARCHIVED"
+                        && e.Status != "PUBLISHED"
+                        && e.ReviewStatus != "REJECTED"
+                        && e.AdministrativeApprovalStatus != "APPROVED")
+            .ToListAsync(cancellationToken);
+
+        // Target 2: Existing PUBLISHED / APPROVED baseline items within scope
+        var baselinePublishedTargets = dto.IncludeBaselinePublished
+            ? await _dbContext.Exercises
+                .Where(e => e.HskLevel >= dto.MinHskLevel
+                            && e.HskLevel <= dto.MaxHskLevel
+                            && e.Status == "PUBLISHED"
+                            && e.ReviewStatus == "APPROVED"
+                            && (e.AdministrativeApprovalStatus != "APPROVED" || e.HumanAcademicReviewStatus != "APPROVED_BASELINE"))
+                .ToListAsync(cancellationToken)
+            : [];
+
+        if (!dto.DryRun)
+        {
+            foreach (var item in unapprovedDraftTargets)
+            {
+                item.AdministrativeApprovalStatus = "APPROVED";
+                item.AdministrativeApprovalScope = scope;
+                item.AdministrativeApprovalSource = source;
+                item.AdministrativeApprovalNotes = notes;
+                item.AdministrativeApprovedAt = now;
+                if (string.IsNullOrWhiteSpace(item.HumanAcademicReviewStatus) || item.HumanAcademicReviewStatus == "NOT_REVIEWED")
+                {
+                    item.HumanAcademicReviewStatus = "PENDING_HUMAN_REVIEW";
+                }
+            }
+
+            foreach (var item in baselinePublishedTargets)
+            {
+                item.AdministrativeApprovalStatus = "APPROVED";
+                item.AdministrativeApprovalScope = "ORIGINAL_PUBLISHED_BASELINE";
+                item.AdministrativeApprovalSource = source;
+                item.AdministrativeApprovalNotes = "Original published baseline question already approved and published prior to bulk administrative approval.";
+                item.AdministrativeApprovedAt ??= item.ReviewedAt ?? now;
+                item.HumanAcademicReviewStatus = "APPROVED_BASELINE";
+            }
+
+            if (unapprovedDraftTargets.Count > 0 || baselinePublishedTargets.Count > 0)
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        var alreadyApproved = await _dbContext.Exercises.CountAsync(
+            e => e.HskLevel >= dto.MinHskLevel && e.HskLevel <= dto.MaxHskLevel
+                 && e.Status != "ARCHIVED" && e.ReviewStatus != "REJECTED"
+                 && e.AdministrativeApprovalStatus == "APPROVED",
+            cancellationToken);
+        var stillUnapproved = await _dbContext.Exercises.CountAsync(
+            e => e.HskLevel >= dto.MinHskLevel && e.HskLevel <= dto.MaxHskLevel
+                 && e.Status != "ARCHIVED" && e.ReviewStatus != "REJECTED"
+                 && e.AdministrativeApprovalStatus != "APPROVED",
+            cancellationToken);
+        var rejectedPreserved = await _dbContext.Exercises.CountAsync(
+            e => e.HskLevel >= dto.MinHskLevel && e.HskLevel <= dto.MaxHskLevel && e.ReviewStatus == "REJECTED",
+            cancellationToken);
+        var publishedCount = await _dbContext.Exercises.CountAsync(
+            e => e.HskLevel >= dto.MinHskLevel && e.HskLevel <= dto.MaxHskLevel && e.Status == "PUBLISHED",
+            cancellationToken);
+
+        return new BulkAdministrativeApprovalResultDto
+        {
+            DryRun = dto.DryRun,
+            NewlyAdminApprovedDraftCount = unapprovedDraftTargets.Count,
+            BaselinePublishedMarkedCount = baselinePublishedTargets.Count,
+            TotalAdminApprovedHsk14Count = dto.DryRun
+                ? alreadyApproved + unapprovedDraftTargets.Count + baselinePublishedTargets.Count
+                : alreadyApproved,
+            UnapprovedActiveHsk14Count = dto.DryRun
+                ? Math.Max(0, stillUnapproved - unapprovedDraftTargets.Count - baselinePublishedTargets.Count)
+                : stillUnapproved,
+            RejectedPreservedCount = rejectedPreserved,
+            PublishedCount = publishedCount,
+            NewHumanAcademicSignOffCount = 0,
+            ExecutedAt = now,
+            Notes = dto.DryRun
+                ? "Dry-run preview: no database rows modified; 0 newly published; 0 new human academic sign-offs."
+                : "Applied bulk administrative approval without auto-publishing DRAFT items or altering academic review status."
+        };
     }
 
     public async Task<ReportQuestionResultDto?> ReportQuestionAsync(
@@ -1986,6 +2136,12 @@ public class QuestionBankService : IQuestionBankService
         ReviewedByUserId = e.ReviewedByUserId,
         ReviewedAt = e.ReviewedAt,
         ReviewNotes = e.ReviewNotes,
+        AdministrativeApprovalStatus = e.AdministrativeApprovalStatus,
+        AdministrativeApprovalScope = e.AdministrativeApprovalScope,
+        AdministrativeApprovalSource = e.AdministrativeApprovalSource,
+        AdministrativeApprovalNotes = e.AdministrativeApprovalNotes,
+        AdministrativeApprovedAt = e.AdministrativeApprovedAt,
+        HumanAcademicReviewStatus = e.HumanAcademicReviewStatus,
         LessonId = e.LessonId,
         LessonTitle = e.Lesson?.TitleVi,
         GrammarPointId = e.GrammarPointId,
