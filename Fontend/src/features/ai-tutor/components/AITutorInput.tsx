@@ -1,97 +1,142 @@
-import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Sparkles } from 'lucide-react';
 
 interface AITutorInputProps {
-  onSend: (text: string) => void;
+  onSend: (text: string) => Promise<boolean> | boolean | void;
   isLoading?: boolean;
   placeholder?: string;
-  contextTag?: string;
 }
 
 export const AITutorInput: React.FC<AITutorInputProps> = ({
   onSend,
   isLoading = false,
   placeholder = 'Hỏi bất kỳ điều gì về bài học hoặc chữ Hán...',
-  contextTag,
 }) => {
   const [text, setText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const isSubmittingRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea cleanly up to ~4 lines
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 108)}px`;
+  }, [text]);
+
+  const submitMessage = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || isLoading || isSubmittingRef.current) return;
+
+    isSubmittingRef.current = true;
+    try {
+      const result = await onSend(trimmed);
+      // Keep user draft intact when a request explicitly fails (returns false)
+      if (result !== false) {
+        setText('');
+      }
+    } finally {
+      isSubmittingRef.current = false;
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim() || isLoading) return;
-    onSend(text.trim());
-    setText('');
+    void submitMessage();
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      void submitMessage();
+    }
+  };
+
+  const canSend = Boolean(text.trim()) && !isLoading;
 
   return (
     <form
       onSubmit={handleSubmit}
+      className="ai-tutor-input-bar"
       style={{
-        padding: 'var(--space-3) var(--space-4)',
-        borderTop: '1px solid var(--border)',
-        backgroundColor: 'var(--surface)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        position: 'sticky',
-        bottom: 0,
-        zIndex: 20,
+        padding: '12px 16px calc(12px + env(safe-area-inset-bottom, 0px)) 16px',
+        borderTop: '1px solid #e2e8f0',
+        backgroundColor: '#ffffff',
+        flexShrink: 0,
       }}
     >
-      {/* Context indicator above input */}
-      {contextTag && (
-        <div style={{ fontSize: '10px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span>Ngữ cảnh:</span>
-          <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{contextTag}</span>
-        </div>
-      )}
-
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-2)',
-          backgroundColor: 'var(--background)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1.5px solid var(--border)',
-          padding: '4px 8px 4px 14px',
+          alignItems: 'flex-end',
+          gap: '8px',
+          backgroundColor: '#f8fafc',
+          borderRadius: '22px',
+          border: isFocused ? '1.5px solid #93c5fd' : '1.5px solid #e2e8f0',
+          padding: '6px 8px 6px 14px',
+          transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          boxShadow: isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
         }}
       >
-        <input
-          type="text"
+        <Sparkles
+          size={16}
+          style={{
+            color: isFocused ? '#2563eb' : '#94a3b8',
+            flexShrink: 0,
+            marginBottom: '8px',
+            transition: 'color 0.15s ease',
+          }}
+        />
+
+        <textarea
+          ref={textareaRef}
+          rows={1}
           value={text}
           disabled={isLoading}
           onChange={(e) => setText(e.target.value)}
-          placeholder={isLoading ? 'Trợ giảng đang suy nghĩ...' : placeholder}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholder}
+          aria-label="Nhập câu hỏi cho Trợ giảng AI"
           style={{
             flex: 1,
+            minWidth: 0,
+            minHeight: '32px',
+            maxHeight: '108px',
+            padding: '6px 0',
             border: 'none',
             outline: 'none',
             backgroundColor: 'transparent',
             fontSize: 'var(--text-xs)',
-            color: 'var(--foreground)',
+            lineHeight: 1.45,
+            color: '#0f172a',
+            fontFamily: 'inherit',
+            resize: 'none',
+            overflowY: 'auto',
           }}
         />
 
-        {/* Future voice action slot ready: can add Mic button here */}
-
         <button
           type="submit"
-          disabled={!text.trim() || isLoading}
+          disabled={!canSend}
+          aria-label="Gửi tin nhắn"
+          title="Gửi câu hỏi (Enter)"
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-lg)',
+            width: '34px',
+            height: '34px',
+            borderRadius: '9999px',
             border: 'none',
-            backgroundColor: text.trim() && !isLoading ? 'var(--primary)' : 'var(--border)',
+            backgroundColor: canSend ? 'var(--primary)' : '#cbd5e1',
             color: '#ffffff',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: text.trim() && !isLoading ? 'pointer' : 'default',
-            transition: 'all 0.15s ease',
+            cursor: canSend ? 'pointer' : 'default',
+            flexShrink: 0,
+            transition: 'background-color 0.15s ease, transform 0.15s ease',
           }}
-          title="Gửi câu hỏi"
         >
           <Send size={15} />
         </button>

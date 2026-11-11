@@ -60,6 +60,10 @@ export const AITutorProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveContext(null);
   };
 
+  const consumeInitialPrompt = () => {
+    setInitialPrompt(undefined);
+  };
+
   return (
     <AITutorContextState.Provider
       value={{
@@ -86,6 +90,7 @@ export const AITutorProvider: React.FC<{ children: React.ReactNode }> = ({ child
         onClose={closeAITutor}
         onClearContext={clearContext}
         initialQuestion={initialPrompt}
+        onConsumeInitialQuestion={consumeInitialPrompt}
       />
     </AITutorContextState.Provider>
   );
