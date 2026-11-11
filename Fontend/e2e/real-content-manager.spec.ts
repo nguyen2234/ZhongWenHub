@@ -194,7 +194,7 @@ test.describe('Phase 2 Content Manager & Student Integration Acceptance (Live SQ
     await page.goto('/ZhongWenHub/management/content-manager/curriculum');
     await expect(page).toHaveURL(/.*\/management\/content-manager\/curriculum/, { timeout: 10000 });
     await expect(page.locator('.lcm-page')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Giáo trình & Bài học' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Giáo trình', exact: true })).toBeVisible();
   });
 
   test('4. Full Content Lifecycle: Create Draft -> Student Cannot See -> Publish -> Student Can See -> Cleanup', async ({

@@ -25,6 +25,7 @@ import { AdminCurriculumPage } from '../../management/admin/content/pages/AdminC
 import { AdminLessonEditorPage } from '../../management/admin/content/pages/AdminLessonEditorPage';
 import { AdminGrammarManagementPage } from '../../management/admin/content/pages/AdminGrammarManagementPage';
 import { AdminExerciseBankPage } from '../../management/admin/content/pages/AdminExerciseBankPage';
+import { AdminExamRepositoryPage } from '../../management/admin/content/pages/AdminExamRepositoryPage';
 import { ContentManagerDashboardPage } from '../../management/content-manager/pages/ContentManagerDashboardPage';
 import { ContentModerationPage } from '../../management/content-manager/pages/ContentModerationPage';
 import { ContentIssuesPage } from '../../management/content-manager/pages/ContentIssuesPage';
@@ -183,6 +184,10 @@ export const managementRoutes: RouteObject[] = [
             element: <AdminLegacyContentRedirect targetPath="/management/content-manager/question-bank" />,
           },
           {
+            path: 'exams',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/exams" />,
+          },
+          {
             path: 'videos',
             element: <AdminLegacyContentRedirect targetPath="/management/content-manager/videos" />,
           },
@@ -292,7 +297,7 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'lesson-editor',
-            element: <Navigate to="/management/content-manager/curriculum/lessons/les-8/edit" replace />,
+            element: <Navigate to="/management/content-manager/curriculum" replace />,
           },
           {
             path: 'grammar',
@@ -307,6 +312,14 @@ export const managementRoutes: RouteObject[] = [
             element: (
               <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
                 <AdminExerciseBankPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'exams',
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminExamRepositoryPage />
               </ManagementRouteGuard>
             ),
           },

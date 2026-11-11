@@ -9,6 +9,7 @@ export interface CurriculumUnitCardProps {
   onEditUnit: (unit: Unit) => void;
   onAddLesson: (unit: Unit) => void;
   onSelectLesson: (lesson: Lesson) => void;
+  onEditLesson?: (lesson: Lesson) => void;
 }
 
 export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
@@ -17,6 +18,7 @@ export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
   onEditUnit,
   onAddLesson,
   onSelectLesson,
+  onEditLesson,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -120,7 +122,8 @@ export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
                     <button
                       type="button"
                       className="ds-btn ds-btn-outline ds-btn-sm"
-                      onClick={() => onSelectLesson(lesson)}
+                      onClick={() => (onEditLesson ? onEditLesson(lesson) : onSelectLesson(lesson))}
+                      title="Mở trình biên tập bài học"
                     >
                       <Edit3 size={13} /> Sửa
                     </button>

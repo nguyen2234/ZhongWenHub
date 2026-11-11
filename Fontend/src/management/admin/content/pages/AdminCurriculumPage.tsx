@@ -158,11 +158,19 @@ export const AdminCurriculumPage: React.FC = () => {
   const grammarBasePath = isContentManager ? '/management/content-manager/grammar' : '/management/admin/grammar';
   const exerciseBasePath = isContentManager ? '/management/content-manager/question-bank' : '/management/admin/exercises';
 
+  const handleEditLesson = useCallback(
+    (lesson: Lesson) => {
+      const basePath = isContentManager ? '/management/content-manager' : '/management/admin';
+      navigate(`${basePath}/curriculum/lessons/${lesson.id}/edit`);
+    },
+    [isContentManager, navigate]
+  );
+
   return (
     <div className="lcm-page">
       <PageHeader
-        title="Giáo trình & Bài học"
-        subtitle="Cấu trúc phân cấp khóa học, đơn vị bài học (Units) và bài giảng chi tiết (Lessons)."
+        title="Giáo trình"
+        subtitle="Chọn HSK, chọn Unit và chọn bài giảng để xem nhanh hoặc mở trình biên tập bài học."
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <button
@@ -311,6 +319,7 @@ export const AdminCurriculumPage: React.FC = () => {
                     onEditUnit={handleOpenEditUnit}
                     onAddLesson={handleOpenAddLesson}
                     onSelectLesson={handleSelectLesson}
+                    onEditLesson={handleEditLesson}
                   />
                 );
               })

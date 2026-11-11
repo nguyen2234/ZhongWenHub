@@ -15,7 +15,7 @@
   Video,
   ShieldAlert,
   History,
-  FileEdit,
+  ClipboardList,
 } from 'lucide-react';
 import type { ManagementNavGroup } from '../types';
 
@@ -218,16 +218,9 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
       },
       {
         id: 'cm-curriculum',
-        label: 'Giáo trình & Bài học',
+        label: 'Giáo trình',
         path: '/management/content-manager/curriculum',
         icon: <FolderKanban size={17} />,
-        roles: ['CONTENT_MANAGER'],
-      },
-      {
-        id: 'cm-lesson-editor',
-        label: 'Trình biên tập bài học',
-        path: '/management/content-manager/curriculum/lessons/les-8/edit',
-        icon: <FileEdit size={17} />,
         roles: ['CONTENT_MANAGER'],
       },
       {
@@ -242,6 +235,13 @@ export const CONTENT_MANAGER_NAV_GROUPS: ManagementNavGroup[] = [
         label: 'Ngân hàng câu hỏi',
         path: '/management/content-manager/question-bank',
         icon: <CheckSquare size={17} />,
+        roles: ['CONTENT_MANAGER'],
+      },
+      {
+        id: 'cm-exams',
+        label: 'Kho đề thi',
+        path: '/management/content-manager/exams',
+        icon: <ClipboardList size={17} />,
         roles: ['CONTENT_MANAGER'],
       },
       {

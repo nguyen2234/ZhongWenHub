@@ -62,11 +62,12 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     // Content Manager routes
     if (path.includes('/content-manager/dashboard')) return { group: 'Tổng quan', title: 'Dashboard Học liệu', link: '/management/content-manager/dashboard' };
     if (path.includes('/content-manager/hsk-repository')) return { group: 'Học liệu & Biên tập', title: 'Kho HSK', link: '/management/content-manager/hsk-repository' };
-    if (path.includes('/content-manager/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
-    if (path.includes('/content-manager/lesson-editor')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
-    if (path.includes('/content-manager/curriculum')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình & Bài học', link: '/management/content-manager/curriculum' };
+    if (path.includes('/content-manager/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình / Biên tập bài học', link: path };
+    if (path.includes('/content-manager/lesson-editor')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình / Biên tập bài học', link: path };
+    if (path.includes('/content-manager/curriculum')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình', link: '/management/content-manager/curriculum' };
     if (path.includes('/content-manager/grammar')) return { group: 'Học liệu & Biên tập', title: 'Ngữ pháp', link: '/management/content-manager/grammar' };
     if (path.includes('/content-manager/question-bank') || path.includes('/content-manager/exercises')) return { group: 'Học liệu & Biên tập', title: 'Ngân hàng câu hỏi', link: '/management/content-manager/question-bank' };
+    if (path.includes('/content-manager/exams')) return { group: 'Học liệu & Biên tập', title: 'Kho đề thi', link: '/management/content-manager/exams' };
     if (path.includes('/content-manager/videos')) return { group: 'Học liệu & Biên tập', title: 'Học liệu video', link: '/management/content-manager/videos' };
     if (path.includes('/content-manager/moderation')) return { group: 'Kiểm duyệt & Vận hành', title: 'Kiểm duyệt & Xuất bản', link: '/management/content-manager/moderation' };
     if (path.includes('/content-manager/issues')) return { group: 'Kiểm duyệt & Vận hành', title: 'Báo cáo lỗi học liệu', link: '/management/content-manager/issues' };
