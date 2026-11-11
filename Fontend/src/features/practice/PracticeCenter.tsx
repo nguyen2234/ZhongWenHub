@@ -1,267 +1,310 @@
-import React, { useEffect, useState } from 'react';
-import type { PracticeRecommendation, MistakeRecord, SkillItemConfig, PracticeMode } from './types';
-import {
-  MOCK_RECOMMENDATION,
-  MOCK_MISTAKE_RECORDS,
-  SKILL_ITEMS,
-  PRACTICE_EXERCISE_POOL,
-} from './data/mockPracticeData';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Dumbbell, History, Target, AlertCircle, Play } from 'lucide-react';
+import { useLearningState } from '../learning';
+import { authTokenService } from '../../core/api/client/auth-token.service';
 import { RecommendedPracticeCard } from './components/RecommendedPracticeCard';
 import { QuickPracticeCard } from './components/QuickPracticeCard';
 import { MistakeReviewCard } from './components/MistakeReviewCard';
 import { SkillPracticeCard } from './components/SkillPracticeCard';
-import { HSKFilterSection } from './components/HSKFilterSection';
+import { HSKFilterSection, type CustomPracticeOptions } from './components/HSKFilterSection';
 import { PracticeSession } from './PracticeSession';
-import { adaptBackendExerciseToShared } from '../exercise-engine';
-import type { SharedExerciseItem, SkillCategory } from '../exercise-engine';
-import { useLearningState } from '../learning';
-import { httpClient } from '../../core/api/client/http-client';
-import { Dumbbell } from 'lucide-react';
+import {
+  SKILL_ITEMS,
+  MOCK_RECOMMENDATION,
+  MOCK_MISTAKE_RECORDS,
+  PRACTICE_EXERCISE_POOL,
+} from './data/mockPracticeData';
+import {
+  adaptPracticeQuestionToShared,
+  practiceQuestionBankService,
+  type AdaptiveRecommendationsResponse,
+  type PracticeQuestionItem,
+  type PracticeSessionHistoryItem,
+} from './services/practice-question-bank.service';
+import type { SkillCategory } from '../exercise-engine';
+import type { MistakeRecord, PracticeMode, PracticeRecommendation, SkillItemConfig } from './types';
 import './practice-center.css';
 
 function isIsolatedTestRuntime(): boolean {
-  const mode = (import.meta as any)?.env?.MODE;
-  const g = globalThis as any;
-  const nodeEnv = g?.process?.env?.NODE_ENV;
-  const isBun = typeof g?.Bun !== 'undefined';
-  return mode === 'test' || nodeEnv === 'test' || isBun;
+  const procEnv = typeof globalThis !== 'undefined' ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env : undefined;
+  return Boolean(
+    procEnv?.VITEST ||
+    procEnv?.BUN_TEST ||
+    procEnv?.NODE_ENV === 'test' ||
+    import.meta.env?.MODE === 'test'
+  );
+}
+
+interface ActiveSessionConfig {
+  mode: PracticeMode;
+  title: string;
+  subtitle: string;
+  hskLevel: number;
+  exercises: PracticeQuestionItem[];
+  backendSessionId?: string;
 }
 
 export const PracticeCenter: React.FC = () => {
-  const { weakKnowledge } = useLearningState();
-  const [exercisePool, setExercisePool] = useState<Record<string, SharedExerciseItem>>(() =>
-    isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : {}
-  );
-  const [isLoadingPool, setIsLoadingPool] = useState<boolean>(() => !isIsolatedTestRuntime());
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { state: learningState } = useLearningState();
 
-  const loadLiveExercises = React.useCallback(async () => {
-    setIsLoadingPool(true);
+  const [recommendationsMeta, setRecommendationsMeta] = useState<AdaptiveRecommendationsResponse | null>(null);
+  const [historyItems, setHistoryItems] = useState<PracticeSessionHistoryItem[]>([]);
+  const [isLoadingMeta, setIsLoadingMeta] = useState<boolean>(() => !isIsolatedTestRuntime());
+  const [isStartingSession, setIsStartingSession] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeSession, setActiveSession] = useState<ActiveSessionConfig | null>(null);
+
+  const loadAdaptiveOverview = useCallback(async () => {
+    if (isIsolatedTestRuntime()) {
+      setIsLoadingMeta(false);
+      return;
+    }
+
+    setIsLoadingMeta(true);
     setLoadError(null);
     try {
-      const response = await httpClient.get<any>('/content/exercises', {
-        params: { page: 1, pageSize: 500 },
-      });
-      const rawItems = Array.isArray(response?.items)
-        ? response.items
-        : Array.isArray(response)
-        ? response
-        : [];
-      const nextPool: Record<string, SharedExerciseItem> = {};
-      for (const raw of rawItems) {
-        const adapted = adaptBackendExerciseToShared(raw);
-        nextPool[String(adapted.id)] = adapted;
-      }
-      setExercisePool(nextPool);
+      const [recs, history] = await Promise.all([
+        practiceQuestionBankService.getRecommendations(),
+        practiceQuestionBankService.getPracticeHistory(8),
+      ]);
+      setRecommendationsMeta(recs);
+      setHistoryItems(Array.isArray(history) ? history : []);
     } catch (err: any) {
-      if (isIsolatedTestRuntime()) {
-        setExercisePool(PRACTICE_EXERCISE_POOL);
-      } else {
-        setLoadError(err?.message || 'Không thể tải ngân hàng bài tập từ máy chủ.');
-      }
+      setLoadError(err?.message || 'Không thể kết nối Ngân hàng câu hỏi để tải đề xuất luyện tập.');
     } finally {
-      setIsLoadingPool(false);
+      setIsLoadingMeta(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!isIsolatedTestRuntime()) {
-      void loadLiveExercises();
-    }
-  }, [loadLiveExercises]);
-
-  const poolValues = React.useMemo(() => Object.values(exercisePool), [exercisePool]);
-  const isRealEvidence = weakKnowledge.length > 0;
-
-  const recommendation: PracticeRecommendation | null = React.useMemo(() => {
-    const topWeak = weakKnowledge[0];
-    if (topWeak) {
-      const matchedIds = topWeak.suggestedPractice.exerciseIds
-        .map(String)
-        .filter((id) => Boolean(exercisePool[id]));
-      const levelIds = poolValues
-        .filter((ex) => ex.hskLevel === topWeak.hskLevel)
-        .slice(0, 6)
-        .map((ex) => String(ex.id));
-      const chosenIds =
-        matchedIds.length > 0
-          ? matchedIds
-          : levelIds.length > 0
-          ? levelIds
-          : poolValues.slice(0, 6).map((ex) => String(ex.id));
-
-      return {
-        id: `rec-${topWeak.knowledgePointId}`,
-        type: 'grammar-focus',
-        skill: topWeak.category as any,
-        hskLevel: topWeak.hskLevel,
-        title: topWeak.topicTitle,
-        subtitle: `${topWeak.category === 'grammar' ? 'Ngữ pháp' : 'Từ vựng'} · HSK ${topWeak.hskLevel}`,
-        reason: topWeak.evidence,
-        exerciseIds: chosenIds,
-        estimatedMinutes: 5,
-        xpReward: Math.min(100, Math.max(5, chosenIds.length * 5)),
-      };
-    }
-
     if (isIsolatedTestRuntime()) {
-      return MOCK_RECOMMENDATION;
-    }
-
-    if (poolValues.length === 0) {
-      return null;
-    }
-
-    const featured = poolValues.slice(0, 6);
-    const firstLevel = featured[0]?.hskLevel || 1;
-    return {
-      id: 'rec-live-foundation',
-      type: 'mixed-review',
-      skill: (featured[0]?.skill || 'comprehensive') as SkillCategory,
-      hskLevel: firstLevel,
-      title: `Ôn tập trọng tâm HSK ${firstLevel}`,
-      subtitle: `${featured.length} câu hỏi chuẩn hóa từ kho dữ liệu`,
-      reason: 'Củng cố từ vựng và mẫu câu trọng tâm đã phát hành.',
-      exerciseIds: featured.map((ex) => String(ex.id)),
-      estimatedMinutes: 5,
-      xpReward: Math.min(100, Math.max(5, featured.length * 5)),
-    };
-  }, [weakKnowledge, exercisePool, poolValues]);
-
-  const mistakes: MistakeRecord[] = React.useMemo(() => {
-    if (weakKnowledge.length > 0) {
-      return weakKnowledge.map((w) => ({
-        exerciseId: w.suggestedPractice.exerciseIds[0] || String(poolValues[0]?.id || ''),
-        mistakeCount: w.incorrectAttempts,
-        lastMistakeAt: w.lastEvaluatedAt ? w.lastEvaluatedAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        masteryState: w.masteryLevel === 'WEAK' ? 'critical' : 'recovering',
-        skill: w.category as any,
-        title: `${w.topicTitle} (${w.evidence})`,
-      }));
-    }
-    return isIsolatedTestRuntime() ? MOCK_MISTAKE_RECORDS : [];
-  }, [weakKnowledge, poolValues]);
-
-  const mistakeIds = React.useMemo(() => {
-    return new Set(mistakes.map((m) => String(m.exerciseId)));
-  }, [mistakes]);
-
-  // Active session state (null when in browse hub)
-  const [activeSession, setActiveSession] = useState<{
-    mode: PracticeMode;
-    title: string;
-    subtitle: string;
-    hskLevel: number;
-    exercises: SharedExerciseItem[];
-  } | null>(null);
-
-  // 1. Launch Recommended Practice
-  const handleStartRecommended = (rec: PracticeRecommendation) => {
-    const list = rec.exerciseIds
-      .map((id) => exercisePool[String(id)])
-      .filter(Boolean) as SharedExerciseItem[];
-    const finalList = list.length > 0 ? list : poolValues.slice(0, 5);
-    if (finalList.length === 0) return;
-
-    setActiveSession({
-      mode: 'recommended',
-      title: rec.title,
-      subtitle: rec.subtitle,
-      hskLevel: rec.hskLevel,
-      exercises: finalList,
-    });
-  };
-
-  // 2. Launch Quick Practice 5'
-  const handleStartQuickPractice = () => {
-    const mixed = [...poolValues].sort(() => 0.5 - Math.random()).slice(0, 10);
-    if (mixed.length === 0) return;
-
-    setActiveSession({
-      mode: 'quick',
-      title: 'Luyện nhanh 5 phút',
-      subtitle: 'Ôn tập tổng hợp cấp tốc',
-      hskLevel: mixed[0]?.hskLevel || 1,
-      exercises: mixed,
-    });
-  };
-
-  // 3. Launch Mistake Review
-  const handleStartMistakesReview = () => {
-    const mistakeExerciseList = mistakes
-      .map((m) => exercisePool[String(m.exerciseId)])
-      .filter(Boolean) as SharedExerciseItem[];
-    const finalList = mistakeExerciseList.length > 0 ? mistakeExerciseList : poolValues.slice(0, 6);
-    if (finalList.length === 0) return;
-
-    setActiveSession({
-      mode: 'mistakes',
-      title: 'Luyện lại lỗi sai',
-      subtitle: 'Tập trung khắc phục điểm yếu',
-      hskLevel: finalList[0]?.hskLevel || 1,
-      exercises: finalList,
-    });
-  };
-
-  // 4. Launch Skill Practice
-  const handleSelectSkill = (skill: SkillItemConfig) => {
-    const skillExercises = poolValues.filter(
-      (ex) => ex.skill === skill.id || skill.id === 'comprehensive'
-    );
-    const finalList = skillExercises.length > 0 ? skillExercises.slice(0, 15) : poolValues.slice(0, 5);
-    if (finalList.length === 0) return;
-
-    setActiveSession({
-      mode: 'skill',
-      title: `${skill.chinese} · ${skill.vietnamese}`,
-      subtitle: 'Luyện chuyên sâu kỹ năng',
-      hskLevel: finalList[0]?.hskLevel || 1,
-      exercises: finalList,
-    });
-  };
-
-  // 5. Launch Custom HSK Filter Practice (Strictly respects metadata)
-  const handleStartCustomPractice = (
-    level: number,
-    skill?: SkillCategory,
-    mistakesOnly?: boolean
-  ) => {
-    let list = poolValues.filter((ex) => ex.hskLevel === level);
-
-    if (skill) {
-      list = list.filter((ex) => ex.skill === skill);
-    }
-    if (mistakesOnly) {
-      list = list.filter((ex) => mistakeIds.has(String(ex.id)));
-    }
-
-    if (list.length === 0) {
+      setIsLoadingMeta(false);
       return;
     }
 
-    setActiveSession({
-      mode: 'hsk-filter',
-      title: `HSK ${level} · ${skill ? skill : 'Tổng hợp'}`,
-      subtitle: mistakesOnly ? 'Chỉ luyện câu từng sai' : 'Bài tập tự chọn chuẩn HSK',
-      hskLevel: level,
-      exercises: list.slice(0, 20),
+    let cancelled = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const triggerLoad = () => {
+      if (!cancelled) {
+        void loadAdaptiveOverview();
+      }
+    };
+
+    if (authTokenService.getAccessToken()) {
+      triggerLoad();
+    } else {
+      // Wait for AuthContext silent refresh on full page reload before calling protected endpoints
+      fallbackTimer = setTimeout(triggerLoad, 1200);
+    }
+
+    const handleSessionReady = () => {
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = undefined;
+      }
+      triggerLoad();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zwh_auth_session_ready', handleSessionReady);
+    }
+
+    return () => {
+      cancelled = true;
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('zwh_auth_session_ready', handleSessionReady);
+      }
+    };
+  }, [loadAdaptiveOverview]);
+
+  const primaryWeakArea = recommendationsMeta?.weakAreas?.[0];
+  const mistakeCount = recommendationsMeta?.mistakeReviewCount ?? 0;
+
+  const recommendation: PracticeRecommendation | null = useMemo(() => {
+    if (isIsolatedTestRuntime()) return MOCK_RECOMMENDATION;
+    if (!recommendationsMeta || recommendationsMeta.totalPublishedQuestions === 0) return null;
+
+    if (primaryWeakArea) {
+      return {
+        id: primaryWeakArea.key,
+        type: 'weakness',
+        skill: (primaryWeakArea.recommendedSkill as SkillCategory) || 'grammar',
+        hskLevel: primaryWeakArea.hskLevel || 1,
+        title: `Củng cố ${primaryWeakArea.title}`,
+        subtitle: `Adaptive Focus · ${primaryWeakArea.reason}`,
+        reason: `Hệ thống phát hiện tỷ lệ đúng hiện tại ${primaryWeakArea.accuracy}% (${primaryWeakArea.wrongCount} lỗi gần đây). Phiên luyện tập ưu tiên 65% câu thuộc điểm yếu này.`,
+        exerciseIds: [],
+        estimatedMinutes: 5,
+        xpReward: 35,
+      };
+    }
+
+    return {
+      id: 'adaptive-general',
+      type: 'adaptive',
+      skill: 'vocabulary',
+      hskLevel: learningState.selectedHskLevel || 1,
+      title: `Luyện tập thích ứng HSK ${learningState.selectedHskLevel || 1}`,
+      subtitle: 'Ngân hàng câu hỏi SQL Server · Chấm điểm bảo mật',
+      reason: `Kho hiện có ${recommendationsMeta.totalPublishedQuestions} câu hỏi đã xuất bản trải rộng Từ vựng, Ngữ pháp, Đọc hiểu và Cấu trúc câu.`,
+      exerciseIds: [],
+      estimatedMinutes: 5,
+      xpReward: 30,
+    };
+  }, [recommendationsMeta, primaryWeakArea, learningState.selectedHskLevel]);
+
+  const isRealEvidence = Boolean(primaryWeakArea);
+
+  const mistakes: MistakeRecord[] = useMemo(() => {
+    if (isIsolatedTestRuntime()) return MOCK_MISTAKE_RECORDS;
+    if (mistakeCount <= 0) return [];
+    return Array.from({ length: Math.min(mistakeCount, 5) }, (_, idx) => ({
+      exerciseId: `wrong-${idx}`,
+      mistakeCount: 1,
+      lastMistakeAt: new Date().toISOString(),
+      masteryState: 'learning',
+      skill: (primaryWeakArea?.recommendedSkill as SkillCategory) || 'grammar',
+      title: primaryWeakArea?.title || 'Câu từng trả lời sai',
+    }));
+  }, [mistakeCount, primaryWeakArea]);
+
+  const liveSkillItems: SkillItemConfig[] = useMemo(() => {
+    return SKILL_ITEMS.map((item) => {
+      if (isIsolatedTestRuntime()) return item;
+      const serverCount = recommendationsMeta?.publishedBySkill?.[item.id] ?? 0;
+      return {
+        ...item,
+        totalExercises: serverCount,
+      };
+    });
+  }, [recommendationsMeta]);
+
+  const startBackendSession = async (params: {
+    mode: PracticeMode;
+    apiMode: string;
+    title: string;
+    subtitle: string;
+    hskLevel?: number;
+    skill?: string;
+    difficulty?: string;
+    questionCount?: number;
+    prioritizeWeakness?: boolean;
+  }) => {
+    if (isIsolatedTestRuntime()) {
+      const poolList = Object.values(PRACTICE_EXERCISE_POOL);
+      const filtered = poolList.filter((ex) => {
+        if (params.hskLevel && ex.hskLevel !== params.hskLevel) return false;
+        if (params.skill && ex.skill !== params.skill) return false;
+        return true;
+      });
+      const chosen = (filtered.length > 0 ? filtered : poolList).slice(0, params.questionCount || 5);
+      setActiveSession({
+        mode: params.mode,
+        title: params.title,
+        subtitle: params.subtitle,
+        hskLevel: params.hskLevel || 1,
+        exercises: chosen,
+      });
+      return;
+    }
+
+    setIsStartingSession(true);
+    setLoadError(null);
+    try {
+      const session = await practiceQuestionBankService.createPracticeSession({
+        hskLevel: params.hskLevel,
+        skill: params.skill,
+        difficulty: params.difficulty,
+        questionCount: params.questionCount ?? 10,
+        mode: params.apiMode,
+        prioritizeWeakness: params.prioritizeWeakness,
+      });
+
+      const adapted = session.questions.map(adaptPracticeQuestionToShared);
+      setActiveSession({
+        mode: params.mode,
+        title: params.title,
+        subtitle: params.subtitle,
+        hskLevel: session.hskLevel || params.hskLevel || 1,
+        exercises: adapted,
+        backendSessionId: session.sessionId,
+      });
+    } catch (err: any) {
+      setLoadError(err?.message || 'Không thể khởi tạo phiên luyện tập.');
+    } finally {
+      setIsStartingSession(false);
+    }
+  };
+
+  const handleStartRecommended = (rec: PracticeRecommendation) => {
+    void startBackendSession({
+      mode: 'recommended',
+      apiMode: 'weakness',
+      title: rec.title,
+      subtitle: 'Luyện tập thích ứng (Adaptive)',
+      hskLevel: rec.hskLevel,
+      skill: rec.skill,
+      questionCount: 10,
+      prioritizeWeakness: true,
     });
   };
 
-  const liveSkillItems = React.useMemo(() => {
-    return SKILL_ITEMS.map((skill) => {
-      const count =
-        skill.id === 'comprehensive'
-          ? poolValues.length
-          : poolValues.filter((ex) => ex.skill === skill.id).length;
-      return {
-        ...skill,
-        totalExercises: count > 0 || !isIsolatedTestRuntime() ? count : skill.totalExercises,
-      };
+  const handleStartQuickPractice = () => {
+    void startBackendSession({
+      mode: 'quick',
+      apiMode: 'random',
+      title: 'Luyện nhanh 5 phút',
+      subtitle: 'Tổng hợp phản xạ nhanh',
+      hskLevel: learningState.selectedHskLevel || 1,
+      questionCount: 8,
     });
-  }, [poolValues]);
+  };
 
-  // If a practice session is active, render purely the Focus Mode!
+  const handleStartMistakesReview = () => {
+    void startBackendSession({
+      mode: 'mistakes',
+      apiMode: 'mistake-review',
+      title: 'Ôn lại lỗi sai',
+      subtitle: 'Khắc phục câu từng làm sai',
+      questionCount: 10,
+      prioritizeWeakness: true,
+    });
+  };
+
+  const handleSelectSkill = (skill: SkillItemConfig) => {
+    void startBackendSession({
+      mode: 'skill',
+      apiMode: 'skill',
+      title: `Kỹ năng ${skill.vietnamese}`,
+      subtitle: skill.chinese,
+      skill: skill.id,
+      questionCount: 10,
+    });
+  };
+
+  const handleStartCustomPractice = (
+    level: number,
+    skill?: SkillCategory,
+    mistakesOnly?: boolean,
+    options?: CustomPracticeOptions
+  ) => {
+    void startBackendSession({
+      mode: 'hsk-filter',
+      apiMode: mistakesOnly ? 'mistake-review' : options?.prioritizeWeakness ? 'weakness' : 'hsk-filter',
+      title: `Luyện tập HSK ${level}`,
+      subtitle: skill ? `Kỹ năng ${skill}` : 'Tổng hợp HSK',
+      hskLevel: level,
+      skill,
+      difficulty: options?.difficulty && options.difficulty !== 'ALL' ? options.difficulty : undefined,
+      questionCount: options?.questionCount ?? 10,
+      prioritizeWeakness: options?.prioritizeWeakness,
+    });
+  };
+
   if (activeSession) {
     return (
       <PracticeSession
@@ -270,42 +313,46 @@ export const PracticeCenter: React.FC = () => {
         subtitle={activeSession.subtitle}
         hskLevel={activeSession.hskLevel}
         exercises={activeSession.exercises}
-        onExit={() => setActiveSession(null)}
+        backendSessionId={activeSession.backendSessionId}
+        onExit={() => {
+          setActiveSession(null);
+          void loadAdaptiveOverview();
+        }}
         onContinueRecommended={() => {
+          setActiveSession(null);
           if (recommendation) handleStartRecommended(recommendation);
         }}
-        onReviewMistakes={() => handleStartMistakesReview()}
+        onReviewMistakes={() => {
+          setActiveSession(null);
+          handleStartMistakesReview();
+        }}
       />
     );
   }
 
-  // =========================================================================
-  // PRACTICE CENTER HOME (Option A: Action-Driven Cascade)
-  // =========================================================================
   return (
     <div className="practice-page-container">
-      {/* 1. Header (Clean, inspiring, no tall banner) */}
       <header className="practice-header">
         <div>
           <div className="practice-header-brand-badge">
             <Dumbbell size={13} />
-            <span>TRUNG TÂM LUYỆN TẬP PHẢN XẠ</span>
+            <span>TRUNG TÂM LUYỆN TẬP THÍCH ỨNG</span>
           </div>
           <h1 className="practice-header-title">
             Trung tâm luyện tập
             <span className="practice-header-title-hanzi">巩固你学过的知识</span>
           </h1>
           <p className="practice-header-subtitle">
-            Củng cố kiến thức đã học, rèn luyện phản xạ ngôn ngữ và khắc phục triệt để các câu từng làm sai theo chu trình lặp lại ngắt quãng.
+            Tạo phiên luyện tập theo HSK 1–4, kỹ năng, độ khó hoặc điểm yếu từ dữ liệu thực tế — chấm điểm máy chủ & cộng XP tự động.
           </p>
         </div>
       </header>
 
-      {isLoadingPool && (
+      {(isLoadingMeta || isStartingSession) && (
         <div
           role="status"
           style={{
-            padding: '14px 18px',
+            padding: '12px 16px',
             borderRadius: '14px',
             backgroundColor: '#f8fafc',
             border: '1px solid #e2e8f0',
@@ -314,7 +361,9 @@ export const PracticeCenter: React.FC = () => {
             fontWeight: 600,
           }}
         >
-          Đang đồng bộ ngân hàng câu hỏi đã xuất bản từ máy chủ...
+          {isStartingSession
+            ? 'Đang tạo phiên luyện tập từ Ngân hàng câu hỏi...'
+            : 'Đang đồng bộ phân tích điểm yếu & kho câu hỏi từ máy chủ...'}
         </div>
       )}
 
@@ -334,10 +383,13 @@ export const PracticeCenter: React.FC = () => {
             gap: '12px',
           }}
         >
-          <span>{loadError}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={16} />
+            <span>{loadError}</span>
+          </div>
           <button
             type="button"
-            onClick={() => void loadLiveExercises()}
+            onClick={() => void loadAdaptiveOverview()}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
@@ -353,23 +405,6 @@ export const PracticeCenter: React.FC = () => {
         </div>
       )}
 
-      {!isLoadingPool && !loadError && poolValues.length === 0 && (
-        <div
-          style={{
-            padding: '20px',
-            borderRadius: '16px',
-            backgroundColor: '#fffbeb',
-            border: '1px solid #fde68a',
-            color: '#92400e',
-            fontSize: '14px',
-            fontWeight: 600,
-          }}
-        >
-          Hiện chưa có bài tập nào được xuất bản trong ngân hàng câu hỏi.
-        </div>
-      )}
-
-      {/* 2. Primary Hero Section: "Đề xuất cho bạn" (Top #1 CTA Priority) */}
       <section aria-label="Tiếp tục luyện tập và đề xuất">
         <RecommendedPracticeCard
           recommendation={recommendation}
@@ -378,45 +413,160 @@ export const PracticeCenter: React.FC = () => {
         />
       </section>
 
-      {/* 3. Fast Action Row: Quick Practice (5 min) & Mistake Review */}
       <section className="practice-quick-dual-row" aria-label="Luyện nhanh và Ôn lỗi sai">
         <QuickPracticeCard onStart={handleStartQuickPractice} />
-        <MistakeReviewCard
-          mistakes={mistakes}
-          onStartReview={handleStartMistakesReview}
-        />
+        <MistakeReviewCard mistakes={mistakes} onStartReview={handleStartMistakesReview} />
       </section>
 
-      {/* 4. Skill Practice Grid (6 categories: 词汇, 语法, 听力, 阅读, 句子, 综合) */}
+      {/* Adaptive Weak Areas Breakdown */}
+      {recommendationsMeta && recommendationsMeta.weakAreas.length > 0 && (
+        <section
+          aria-label="Phân tích điểm yếu thích ứng"
+          style={{
+            padding: '18px',
+            borderRadius: '18px',
+            backgroundColor: 'var(--surface, #ffffff)',
+            border: '1px solid var(--border, #e2e8f0)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '15px' }}>
+            <Target size={18} color="#DC2626" />
+            <span>Lỗ hổng kiến thức cần ưu tiên (Adaptive Learning)</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px' }}>
+            {recommendationsMeta.weakAreas.map((w) => (
+              <div
+                key={w.key}
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid #FECACA',
+                  backgroundColor: '#FFF5F5',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#991B1B' }}>{w.title}</div>
+                  <div style={{ fontSize: '12px', color: '#7F1D1D', marginTop: '2px' }}>{w.reason}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void startBackendSession({
+                      mode: 'recommended',
+                      apiMode: 'weakness',
+                      title: w.title,
+                      subtitle: 'Ôn tập điểm yếu',
+                      hskLevel: w.hskLevel,
+                      skill: w.recommendedSkill,
+                      questionCount: 8,
+                      prioritizeWeakness: true,
+                    })
+                  }
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: 'fit-content',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#DC2626',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Play size={13} fill="currentColor" />
+                  <span>Luyện điểm yếu</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="practice-skill-section" aria-label="Luyện tập theo kỹ năng">
         <div className="practice-section-header">
           <div>
             <h2 className="practice-section-title">Luyện tập theo kỹ năng</h2>
             <span className="practice-section-subtitle">
-              6 phân hệ rèn luyện chuyên biệt cho từng khía cạnh ngôn ngữ
+              Lấy câu hỏi đã xuất bản theo từng kỹ năng từ Ngân hàng câu hỏi
             </span>
           </div>
         </div>
 
         <div className="practice-skill-grid">
           {liveSkillItems.map((skill) => (
-            <SkillPracticeCard
-              key={skill.id}
-              skill={skill}
-              onSelect={handleSelectSkill}
-            />
+            <SkillPracticeCard key={skill.id} skill={skill} onSelect={handleSelectSkill} />
           ))}
         </div>
       </section>
 
-      {/* 5. Practice By HSK & Custom Filters (Accurate metadata) */}
       <section aria-label="Bộ lọc luyện tập theo HSK">
         <HSKFilterSection
-          exercisePool={exercisePool}
-          mistakeIds={mistakeIds}
+          exercisePool={isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined}
+          publishedByHsk={recommendationsMeta?.publishedByHsk}
+          mistakeCount={mistakeCount}
           onStartCustomPractice={handleStartCustomPractice}
         />
       </section>
+
+      {/* Recent Server Practice History */}
+      {historyItems.length > 0 && (
+        <section
+          aria-label="Lịch sử phiên luyện tập gần đây"
+          style={{
+            padding: '18px',
+            borderRadius: '18px',
+            backgroundColor: 'var(--surface, #ffffff)',
+            border: '1px solid var(--border, #e2e8f0)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '15px' }}>
+            <History size={18} color="var(--primary, #e60012)" />
+            <span>Lịch sử luyện tập gần đây ({historyItems.length} phiên)</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+            {historyItems.map((h) => (
+              <div
+                key={h.sessionId}
+                style={{
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border, #e2e8f0)',
+                  backgroundColor: 'var(--background, #f8fafc)',
+                  fontSize: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                  <span>
+                    {h.hskLevel ? `HSK ${h.hskLevel}` : 'Tổng hợp'} · {h.skill || 'Tất cả'} ({h.mode})
+                  </span>
+                  <span style={{ color: h.status === 'COMPLETED' ? '#16A34A' : '#D97706' }}>{h.status}</span>
+                </div>
+                <div style={{ color: 'var(--muted, #64748b)' }}>
+                  Đúng: <strong>{h.correctCount}/{h.totalQuestions}</strong> ({Math.round(h.accuracy)}%) · XP:{' '}
+                  <strong>+{h.xpAwarded}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

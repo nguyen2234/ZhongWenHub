@@ -8,6 +8,7 @@ using ZhongWenHub.Business.Authorization;
 using ZhongWenHub.Business.Common;
 using ZhongWenHub.Business.Content;
 using ZhongWenHub.Business.Exams;
+using ZhongWenHub.Business.QuestionBank;
 using ZhongWenHub.Business.Learning;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
@@ -96,6 +97,7 @@ public static class DependencyInjection
         services.AddScoped<ILearningService, LearningService>();
         services.AddScoped<IContentService, ContentService>();
         services.AddScoped<IExamService, ExamService>();
+        services.AddScoped<IQuestionBankService, QuestionBankService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         return services;

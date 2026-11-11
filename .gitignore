@@ -44,3 +44,6 @@ resources/
 *.zip
 *.rar
 *.7z
+
+# Downloaded third-party raw dumps (re-fetchable via scripts/question_bank_pipeline.py)
+data/question-bank/inanskr_raw/

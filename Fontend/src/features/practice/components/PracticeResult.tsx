@@ -1,9 +1,11 @@
 import React from 'react';
 import { Trophy, CheckCircle2, Clock, Zap, ArrowRight, RotateCcw, Home, AlertCircle } from 'lucide-react';
 import type { PracticeSessionResult } from '../types';
+import type { BackendQuestionResultItem } from '../services/practice-question-bank.service';
 
 interface PracticeResultProps {
   result: PracticeSessionResult;
+  questionResults?: BackendQuestionResultItem[];
   onContinueRecommended: () => void;
   onReviewMistakes: () => void;
   onBackToCenter: () => void;
@@ -11,6 +13,7 @@ interface PracticeResultProps {
 
 export const PracticeResult: React.FC<PracticeResultProps> = ({
   result,
+  questionResults,
   onContinueRecommended,
   onReviewMistakes,
   onBackToCenter,
@@ -174,6 +177,59 @@ export const PracticeResult: React.FC<PracticeResultProps> = ({
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Detailed Server-Graded Question Review */}
+        {questionResults && questionResults.length > 0 && (
+          <div
+            style={{
+              width: '100%',
+              maxHeight: '280px',
+              overflowY: 'auto',
+              textAlign: 'left',
+              padding: 'var(--space-3)',
+              borderRadius: 'var(--radius-xl)',
+              backgroundColor: 'var(--background)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
+          >
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--foreground)' }}>
+              Chi tiết đáp án & Giải thích ({result.correctAnswers}/{result.totalQuestions}):
+            </div>
+            {questionResults.map((qr, idx) => (
+              <div
+                key={qr.questionId}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '8px',
+                  border: `1px solid ${qr.isCorrect ? '#BBF7D0' : '#FECACA'}`,
+                  backgroundColor: qr.isCorrect ? '#F0FDF4' : '#FEF2F2',
+                  fontSize: '12px',
+                }}
+              >
+                <div style={{ fontWeight: 700, color: qr.isCorrect ? '#166534' : '#991B1B' }}>
+                  {idx + 1}. {qr.isCorrect ? '✓' : '✗'} {qr.title}
+                </div>
+                <div style={{ color: '#334155', marginTop: '2px' }}>
+                  Bạn chọn: <strong>{qr.givenAnswer || '(Bỏ trống)'}</strong>
+                  {!qr.isCorrect && qr.correctAnswer && (
+                    <span>
+                      {' '}
+                      · Đáp án đúng: <strong style={{ color: '#059669' }}>{qr.correctAnswer}</strong>
+                    </span>
+                  )}
+                </div>
+                {qr.explanation && (
+                  <div style={{ color: '#475569', marginTop: '3px', fontSize: '11px' }}>
+                    {qr.explanation}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

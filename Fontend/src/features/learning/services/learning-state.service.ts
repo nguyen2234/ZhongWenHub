@@ -498,6 +498,25 @@ export class LearningStateService {
   }
 
   /**
+   * Synchronize authoritative XP, streak, and weak knowledge from Backend SQL Server.
+   */
+  public async refreshFromServer(): Promise<StudentLearningState | null> {
+    if (!learningApiService.isRealUser(this.activeState.studentId)) {
+      return null;
+    }
+    const serverState = await learningApiService.fetchLearningState();
+    if (!serverState) return null;
+    this.activeState = {
+      ...this.activeState,
+      ...serverState,
+    };
+    this.refreshCalculatedFields();
+    learningStorageService.saveLearningState(this.activeState);
+    this.notifyListeners();
+    return this.activeState;
+  }
+
+  /**
    * Reset all demo progress
    */
   public resetDemoProgress(): StudentLearningState {

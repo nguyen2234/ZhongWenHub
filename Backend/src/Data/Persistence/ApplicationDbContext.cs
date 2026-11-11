@@ -37,6 +37,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<ExamEntity> Exams => Set<ExamEntity>();
     public DbSet<ExamQuestionEntity> ExamQuestions => Set<ExamQuestionEntity>();
     public DbSet<StudentExamAttempt> StudentExamAttempts => Set<StudentExamAttempt>();
+    public DbSet<QuestionBankPracticeSessionEntity> QuestionBankPracticeSessions => Set<QuestionBankPracticeSessionEntity>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -201,6 +202,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
             b.HasIndex(p => new { p.UserId, p.AttemptedAt })
                 .HasDatabaseName("idx_practice_attempts_user_attempted");
+            b.HasIndex(p => new { p.UserId, p.HskLevel, p.IsCorrect })
+                .HasDatabaseName("idx_practice_attempts_user_hsk_correct");
         });
 
         // StudentDailyActivity Configuration
@@ -465,6 +468,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(e => e.CorrectAnswer).HasMaxLength(500);
             b.Property(e => e.Explanation).HasMaxLength(1000);
             b.Property(e => e.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PUBLISHED");
+            b.Property(e => e.Difficulty).HasMaxLength(20).IsRequired().HasDefaultValue("MEDIUM");
+            b.Property(e => e.Tags).HasMaxLength(500);
+            b.Property(e => e.SourceId).HasMaxLength(200);
+            b.Property(e => e.SourceLicense).HasMaxLength(100);
+            b.Property(e => e.ReviewStatus).HasMaxLength(30).IsRequired().HasDefaultValue("DRAFT");
+            b.Property(e => e.ContentHash).HasMaxLength(64);
+            b.Property(e => e.ReviewNotes).HasMaxLength(1000);
+            b.Property(e => e.ReviewedAt).HasColumnType("datetime2");
             b.Property(e => e.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(e => e.UpdatedAt).HasColumnType("datetime2");
 
@@ -478,9 +489,47 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .HasForeignKey(e => e.GrammarPointId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            b.HasOne(e => e.Vocabulary)
+                .WithMany()
+                .HasForeignKey(e => e.VocabularyId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             b.HasIndex(e => e.HskLevel).HasDatabaseName("idx_exercises_hsk_level");
             b.HasIndex(e => e.Skill).HasDatabaseName("idx_exercises_skill");
             b.HasIndex(e => e.Status).HasDatabaseName("idx_exercises_status");
+            b.HasIndex(e => e.Type).HasDatabaseName("idx_exercises_type");
+            b.HasIndex(e => e.ReviewStatus).HasDatabaseName("idx_exercises_review_status");
+            b.HasIndex(e => e.VocabularyId).HasDatabaseName("idx_exercises_vocab_id");
+            b.HasIndex(e => e.SourceId).HasDatabaseName("idx_exercises_source_id");
+            b.HasIndex(e => e.ContentHash).HasDatabaseName("idx_exercises_content_hash");
+            b.HasIndex(e => new { e.HskLevel, e.Skill, e.Difficulty, e.Status })
+                .HasDatabaseName("idx_exercises_hsk_skill_diff_status");
+        });
+
+        // Question Bank Practice Sessions Configuration
+        builder.Entity<QuestionBankPracticeSessionEntity>(b =>
+        {
+            b.ToTable("question_bank_practice_sessions");
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Skill).HasMaxLength(50);
+            b.Property(s => s.Difficulty).HasMaxLength(20);
+            b.Property(s => s.Mode).HasMaxLength(30).IsRequired().HasDefaultValue("random");
+            b.Property(s => s.Status).HasMaxLength(20).IsRequired().HasDefaultValue("IN_PROGRESS");
+            b.Property(s => s.ExerciseIdsJson).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(s => s.SelectionReasonsJson).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(s => s.AnswersJson).HasColumnType("nvarchar(max)");
+            b.Property(s => s.StartedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(s => s.CompletedAt).HasColumnType("datetime2");
+            b.Property(s => s.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(s => s.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(s => new { s.UserId, s.StartedAt })
+                .HasDatabaseName("idx_qb_practice_sessions_user_started");
         });
 
         // Wallet & Subscription Entities Configuration

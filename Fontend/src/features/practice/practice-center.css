@@ -591,3 +591,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+.practice-session-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--surface, #ffffff);
+  border-top: 1px solid var(--border, #e2e8f0);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  z-index: 920;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 1023px) {
+  .practice-session-footer {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}

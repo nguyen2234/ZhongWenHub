@@ -81,6 +81,8 @@ export interface CreateAdminGrammarDTO {
 
 export interface UpdateAdminGrammarDTO extends Partial<CreateAdminGrammarDTO> {}
 
+export type QuestionReviewStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+
 export interface AdminExerciseItem {
   id: string;
   type: ExerciseType;
@@ -89,6 +91,13 @@ export interface AdminExerciseItem {
   hskLevelId: string;
   difficulty: 'easy' | 'medium' | 'hard';
   status: ContentStatus;
+  reviewStatus?: QuestionReviewStatus;
+  tags?: string;
+  sourceId?: string;
+  sourceLicense?: string;
+  qualityScore?: number;
+  contentHash?: string;
+  reviewNotes?: string;
   title: string;
   instruction: string;
   promptHanzi?: string;
@@ -102,7 +111,11 @@ export interface AdminExerciseItem {
   correctSentence?: string;
   explanation: string;
   grammarPointId?: string;
+  grammarTitle?: string;
   lessonId?: string;
+  lessonTitle?: string;
+  vocabularyId?: string;
+  vocabularyHanzi?: string;
   xpReward: number;
   createdAt: string;
   updatedAt: string;
@@ -116,6 +129,8 @@ export interface AdminExerciseFilters {
   type: ExerciseType | 'ALL';
   difficulty: 'easy' | 'medium' | 'hard' | 'ALL';
   status: ContentStatus | 'ALL';
+  reviewStatus?: QuestionReviewStatus | 'ALL';
+  tag?: string;
   grammarPointId?: string;
   lessonId?: string;
 }
@@ -126,6 +141,9 @@ export interface CreateAdminExerciseDTO {
   hskLevel: number;
   difficulty: 'easy' | 'medium' | 'hard';
   status: ContentStatus;
+  tags?: string;
+  sourceId?: string;
+  sourceLicense?: string;
   title: string;
   instruction: string;
   promptHanzi?: string;
@@ -140,6 +158,7 @@ export interface CreateAdminExerciseDTO {
   explanation: string;
   grammarPointId?: string;
   lessonId?: string;
+  vocabularyId?: string;
   xpReward: number;
 }
 

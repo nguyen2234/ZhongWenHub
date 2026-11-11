@@ -23,5 +23,20 @@ public class ExerciseEntity : BaseEntity
 
     public Guid? GrammarPointId { get; set; }
     public GrammarPointEntity? GrammarPoint { get; set; }
+
+    public Guid? VocabularyId { get; set; }
+    public VocabularyEntity? Vocabulary { get; set; }
+
+    // Question Bank metadata, licensing & moderation workflow
+    public string Difficulty { get; set; } = "MEDIUM"; // EASY, MEDIUM, HARD
+    public string? Tags { get; set; }
+    public string? SourceId { get; set; }
+    public string? SourceLicense { get; set; }
+    public string ReviewStatus { get; set; } = "DRAFT"; // DRAFT, PENDING_REVIEW, APPROVED, REJECTED
+    public double? QualityScore { get; set; }
+    public string? ContentHash { get; set; }
+    public Guid? ReviewedByUserId { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public string? ReviewNotes { get; set; }
 }
 
