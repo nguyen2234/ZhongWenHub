@@ -3,7 +3,7 @@
 
 - **Dự án:** ZhongWenHub
 - **Mã nhiệm vụ:** `ZWH-HSK1-LEARNING-AND-CONTENT-CRUD`
-- **Môi trường:** Content Management Portal + ASP.NET Core API + SQL Server Express
+- **Môi trường:** Content Management Portal + ASP.NET Core API + SQL Server Express (`ZhongWenHub_Ephemeral_QA` cho full E2E; `ZhongWenHub_Test` & `ZhongWenHub_Dev` giữ nguyên READ-ONLY)
 - **Vai trò người dùng:** `CONTENT_MANAGER` / `ADMIN`
 - **Tập tin kiểm thử:** `Fontend/src/management/admin/content/pages/AdminLessonEditorPage.tsx`, `Fontend/src/management/admin/content/services/curriculum.service.ts`
 
@@ -71,12 +71,14 @@ Quản trị viên nội dung có toàn quyền thực hiện các thao tác qu�
 - `linkedExerciseIds`: Cập nhật `e.LessonId = id` trong bảng `exercises`.
 - Toàn bộ thao tác thực hiện trong một Transaction đơn nhất, tự động Rollback nếu có lỗi.
 
-### 2.3. Khóa bảo vệ xóa bài học có tiến độ:
-- Khi gọi `DELETE /api/v1/content/lessons/{id}`, phương thức `DeleteLessonAsync` kiểm tra sự tồn tại của bản ghi trong bảng `student_lesson_progress`.
+### 2.3. Khóa bảo vệ xóa bài học có tiến độ & RBAC:
+- Khi gọi `DELETE /api/v1/content/lessons/{id}`, phương thức `DeleteLessonAsync` kiểm tra sự tồn tại bản ghi theo `p.LessonId.ToLower() == idLower` (kể cả legacy alias `les-1`) trong `StudentLessonProgress`.
 - Nếu bài học đã có tiến độ học viên: **Chặn đứng và ném ngoại lệ `InvalidOperationException`**, trả về HTTP 400 (`CANNOT_DELETE_ACTIVE_LESSON`). Bài học phải được lưu trữ dạng `ARCHIVED` thay vì xóa cứng.
+- Tài khoản `STUDENT` gọi `POST /api/v1/content/lessons` bị chặn với HTTP **403 Forbidden** (đã xác minh trong Playwright E2E).
 
 ---
 
 ## 3. KẾT LUẬN
 
-Hệ thống quản trị nội dung bài học HSK 1 đã được kiểm chứng hoạt động bền vững từ giao diện CMS đến cơ sở dữ liệu SQL Server, hoàn toàn không chỉ lưu ở React state mà được ghi nhận thực tế vào database.
+Hệ thống quản trị nội dung bài học HSK 1 và Kho đề thi đã được kiểm chứng E2E hoạt động bền vững từ giao diện CMS đến SQL Server trong cơ sở dữ liệu cô lập `ZhongWenHub_Ephemeral_QA`, trong khi `ZhongWenHub_Test` và `ZhongWenHub_Dev` được giữ nguyên hoàn toàn không bị chỉnh sửa.
+

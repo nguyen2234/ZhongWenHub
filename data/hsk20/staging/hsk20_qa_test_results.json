@@ -1,10 +1,10 @@
 {
   "timestamp": "2026-11-11T02:04:00Z",
   "suite": "HSK 2.0 Rigorous QA & Negative Tamper Verification",
-  "passedCount": 11,
+  "passedCount": 12,
   "failedCount": 0,
   "positiveSuitesCount": 7,
-  "negativeSuitesCount": 4,
+  "negativeSuitesCount": 5,
   "testResults": [
     {
       "id": "POS-1.1",
@@ -59,6 +59,11 @@
     {
       "id": "NEG-2.4",
       "name": "Catch Illegal HSK 4A/4B Sublevels",
+      "status": "PASS"
+    },
+    {
+      "id": "NEG-2.5",
+      "name": "Reject Empty Snapshot & Block ZhongWenHub_Dev",
       "status": "PASS"
     }
   ]

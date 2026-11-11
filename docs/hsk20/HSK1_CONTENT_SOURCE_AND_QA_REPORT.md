@@ -64,7 +64,7 @@ Toàn bộ 150 từ vựng HSK 1 đã được kiểm tra nghiêm ngặt qua `sc
 
 ## 3. KIỂM ĐỊNH HỆ THỐNG ĐIỂM NGỮ PHÁP HSK 1
 
-- **Tổng số điểm ngữ pháp HSK 1:** 46 điểm (chuẩn hóa theo giáo trình chuẩn HSK Standard Course).
+- **Tổng số điểm ngữ pháp HSK 1:** 50 điểm ở lớp staging (`hsk20_grammar_hsk1.json`), với 36 điểm chuẩn hóa hoạt động (active curated + AllSet HSK 1).
 - **Tiêu đề sư phạm:** 100% điểm ngữ pháp đã được dịch sang tên gọi tiếng Việt chuẩn (loại bỏ hoàn toàn tiền tố `Ngữ pháp: `).
 - **Cấu trúc trường:** 100% điểm ngữ pháp có đầy đủ công thức `structure`, giải thích `explanationVi` và tối thiểu 3 câu ví dụ minh họa kèm chữ Hán, Pinyin và nghĩa tiếng Việt.
 
@@ -72,4 +72,5 @@ Toàn bộ 150 từ vựng HSK 1 đã được kiểm tra nghiêm ngặt qua `sc
 
 ## 4. KẾT LUẬN
 
-Bộ dữ liệu HSK 1 (150 từ vựng và 46 điểm ngữ pháp) đạt 100% tiêu chí kiểm định tự động của bài kiểm thử QA. Trạng thái học thuật được ghi nhận minh bạch: `VERIFIED_BY_AUTOMATED_RULES` và `PENDING_HUMAN_EXPERT_SIGN_OFF`.
+Bộ dữ liệu staging HSK 1 (150 từ vựng khớp 150/150 DrKameleon và 50 điểm ngữ pháp staging / 36 active) đạt 12/12 suite kiểm định tự động (`verify_hsk20_data_quality.py`, bao gồm `NEG-2.5`). Trạng thái học thuật được ghi nhận minh bạch: `VERIFIED_BY_AUTOMATED_RULES` và `PENDING_HUMAN_EXPERT_SIGN_OFF`.
+
