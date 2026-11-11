@@ -303,6 +303,7 @@ public class CreatePracticeSessionRequestDto
     public int? HskLevel { get; set; }
     public string? Skill { get; set; }
     public string? Difficulty { get; set; }
+    public string? Type { get; set; }
     [Range(1, 30)]
     public int QuestionCount { get; set; } = 10;
     public string Mode { get; set; } = "random"; // random, weakness, mistake-review, skill, hsk-filter
@@ -468,6 +469,9 @@ public class AdaptiveRecommendationsResponseDto
     public Dictionary<int, int> PublishedByHsk { get; set; } = new();
     public Dictionary<string, int> PublishedBySkill { get; set; } = new();
     public Dictionary<string, int> PublishedByDifficulty { get; set; } = new();
+    public Dictionary<string, int> PublishedByType { get; set; } = new();
+    public List<int> AvailableHskLevels { get; set; } = [];
+    public Dictionary<string, List<int>> AvailableHskLevelsByType { get; set; } = new();
     public int MistakeReviewCount { get; set; }
     public List<AdaptiveRecommendationDto> WeakAreas { get; set; } = [];
     public List<PracticeStatBucketDto> SkillStats { get; set; } = [];

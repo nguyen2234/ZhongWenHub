@@ -609,3 +609,439 @@
     bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* =========================================================================
+   NEW EXERCISE OVERVIEW HERO, 5-CARD FORMATS GRID & GUIDE
+   ========================================================================= */
+
+.practice-intro-card {
+  flex-direction: column;
+  gap: 20px;
+}
+
+.practice-intro-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.practice-intro-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.practice-stat-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  min-width: 0;
+}
+
+.practice-stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.practice-stat-icon.formats {
+  background-color: #fee2e2;
+  color: var(--primary, #e60012);
+}
+
+.practice-stat-icon.levels {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.practice-stat-icon.retry {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.practice-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted, #64748b);
+}
+
+.practice-stat-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--foreground, #0f172a);
+  margin-top: 2px;
+}
+
+.practice-stat-hint {
+  font-size: 11px;
+  color: var(--muted, #64748b);
+  margin-top: 1px;
+}
+
+.practice-stat-action-link {
+  margin-top: 2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary, #e60012);
+  cursor: pointer;
+}
+
+.practice-stat-action-link:disabled {
+  color: #94a3b8;
+  cursor: default;
+}
+
+.practice-level-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.practice-level-strip-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #475569);
+}
+
+.practice-level-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.practice-level-pill {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.practice-level-pill:hover {
+  border-color: var(--primary, #e60012);
+  color: var(--primary, #e60012);
+}
+
+.practice-level-pill.active {
+  background-color: var(--primary, #e60012);
+  border-color: var(--primary, #e60012);
+  color: #ffffff;
+}
+
+.practice-unavailable-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 13px;
+}
+
+.practice-formats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.practice-formats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.practice-format-card {
+  background-color: var(--surface, #ffffff);
+  border: 1.5px solid var(--border, #e2e8f0);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.practice-format-card.available:hover {
+  border-color: #fda4af;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  transform: translateY(-2px);
+}
+
+.practice-format-card.selected {
+  border-color: var(--primary, #e60012);
+  box-shadow: 0 0 0 3px rgba(230, 0, 18, 0.08);
+}
+
+.practice-format-card.unavailable {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.practice-format-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-format-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background-color: #fee2e2;
+  color: var(--primary, #e60012);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.practice-format-card.unavailable .practice-format-order {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.practice-format-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.practice-format-status-badge.ready {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.practice-format-status-badge.pending {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.practice-format-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.practice-format-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--foreground, #0f172a);
+  line-height: 1.35;
+}
+
+.practice-format-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted, #475569);
+  line-height: 1.5;
+}
+
+.practice-format-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.practice-format-levels-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.practice-format-level-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.practice-format-unavailable-note {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.practice-format-start-btn {
+  width: 100%;
+  min-height: 42px;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--primary, #e60012);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.practice-format-start-btn:hover:not(:disabled) {
+  background-color: #cc0010;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.25);
+}
+
+.practice-format-start-btn.disabled,
+.practice-format-start-btn:disabled {
+  background-color: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Guide Card at Bottom */
+.practice-guide-card {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.practice-guide-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.practice-guide-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: #fee2e2;
+  color: var(--primary, #e60012);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.practice-guide-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--foreground, #0f172a);
+}
+
+.practice-guide-subtitle {
+  margin: 3px 0 0 0;
+  font-size: 13px;
+  color: var(--muted, #64748b);
+}
+
+.practice-guide-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.practice-guide-step {
+  padding: 14px;
+  border-radius: 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.practice-guide-step-num {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary, #e60012);
+  background-color: #fee2e2;
+  padding: 3px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.practice-guide-step-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  margin-bottom: 4px;
+}
+
+.practice-guide-step-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, #475569);
+  line-height: 1.45;
+}
+
+@media (max-width: 1024px) {
+  .practice-formats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .practice-guide-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .practice-intro-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-formats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .practice-formats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-guide-steps {
+    grid-template-columns: 1fr;
+  }
+}

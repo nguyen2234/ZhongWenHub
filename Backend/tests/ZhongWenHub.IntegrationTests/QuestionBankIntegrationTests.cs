@@ -656,5 +656,75 @@ public class QuestionBankIntegrationTests : IClassFixture<CustomWebApplicationFa
             }
         }
     }
+
+    [Fact]
+    public async Task Practice_RecommendationsAndTypeFilter_ReturnRealPublishedCountsAndStrictFormats()
+    {
+        var studentToken = await GetStudentTokenAsync();
+        var createdSessionIds = new List<Guid>();
+
+        try
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+
+            var recs = await _client.GetFromJsonAsync<AdaptiveRecommendationsResponseDto>(
+                "/api/v1/question-bank/recommendations",
+                _jsonOptions);
+
+            Assert.NotNull(recs);
+            Assert.True(recs!.AvailableHskLevels.Count > 0);
+            Assert.Equal(recs.AvailableHskLevels.OrderBy(x => x).ToList(), recs.AvailableHskLevels);
+            Assert.True(recs.PublishedByType.TryGetValue("sentence-order", out var orderCount) && orderCount > 0);
+            Assert.True(recs.PublishedByType.TryGetValue("fill-blank", out var fillCount) && fillCount > 0);
+            Assert.Equal(0, recs.PublishedByType.GetValueOrDefault("listen-fill-blank"));
+            Assert.Equal(0, recs.PublishedByType.GetValueOrDefault("listen-order"));
+            Assert.Equal(0, recs.PublishedByType.GetValueOrDefault("reading-cloze"));
+            Assert.True(recs.AvailableHskLevelsByType.TryGetValue("sentence-order", out var orderLevels) && orderLevels.Count > 0);
+
+            var orderSessionRes = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                Type = "sentence-order",
+                QuestionCount = 3,
+                Mode = "random"
+            });
+            Assert.Equal(HttpStatusCode.Created, orderSessionRes.StatusCode);
+            var orderSession = (await orderSessionRes.Content.ReadFromJsonAsync<PracticeSessionDto>(_jsonOptions))!;
+            createdSessionIds.Add(orderSession.SessionId);
+            Assert.NotEmpty(orderSession.Questions);
+            Assert.All(orderSession.Questions, q => Assert.Contains(q.Type, new[] { "sentence-ordering", "sentence-order", "sentence_order" }));
+
+            var fillSessionRes = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                Type = "fill-blank",
+                QuestionCount = 3,
+                Mode = "random"
+            });
+            Assert.Equal(HttpStatusCode.Created, fillSessionRes.StatusCode);
+            var fillSession = (await fillSessionRes.Content.ReadFromJsonAsync<PracticeSessionDto>(_jsonOptions))!;
+            createdSessionIds.Add(fillSession.SessionId);
+            Assert.NotEmpty(fillSession.Questions);
+            Assert.All(fillSession.Questions, q => Assert.Contains(q.Type, new[] { "fill-in-the-blank", "fill-blank", "fill_blank" }));
+
+            var unavailableRes = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                Type = "listen-fill-blank",
+                QuestionCount = 5,
+                Mode = "random"
+            });
+            Assert.Equal(HttpStatusCode.BadRequest, unavailableRes.StatusCode);
+        }
+        finally
+        {
+            _client.DefaultRequestHeaders.Authorization = null;
+            if (createdSessionIds.Count > 0)
+            {
+                using var scope = _factory.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await db.QuestionBankPracticeSessions
+                    .Where(s => createdSessionIds.Contains(s.Id))
+                    .ExecuteDeleteAsync();
+            }
+        }
+    }
 }
 

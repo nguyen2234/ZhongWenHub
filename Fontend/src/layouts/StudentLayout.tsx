@@ -114,8 +114,8 @@ export const StudentLayout: React.FC = () => {
 
   const getPageTitle = () => {
     if (pathname.startsWith('/ai-tutor')) return 'Không gian AI Tutor Chuyên nghiệp';
-    if (pathname.startsWith('/ai-live')) return 'Luyện giao tiếp AI Live';
-    if (pathname.startsWith('/ai-grading')) return 'AI Chấm điểm & Sửa văn';
+    if (pathname.startsWith('/ai-live') || pathname.startsWith('/conversation')) return 'Hội thoại AI Live';
+    if (pathname.startsWith('/ai-grading') || pathname.startsWith('/letter-writing')) return 'Viết thư & AI Chấm điểm';
     if (pathname.startsWith('/ai-analytics')) return 'Phân tích Năng lực AI';
     if (pathname.startsWith('/homework')) return 'Bài tập & Bài kiểm tra';
     if (pathname.startsWith('/vocabulary')) return 'Kho từ vựng & Spaced Repetition';
@@ -131,7 +131,7 @@ export const StudentLayout: React.FC = () => {
     if (pathname.startsWith('/profile')) return 'Hồ sơ Học viên';
     if (pathname.startsWith('/settings')) return 'Cài đặt Hệ thống';
     if (pathname.startsWith('/learning-path')) return 'Lộ trình HSK';
-    if (pathname.startsWith('/practice')) return 'Trung tâm Luyện tập';
+    if (pathname.startsWith('/practice')) return 'Bài tập luyện tiếng Trung';
     if (pathname.startsWith('/design-system')) return 'Design System Showcase';
     return 'Dashboard Học tập';
   };

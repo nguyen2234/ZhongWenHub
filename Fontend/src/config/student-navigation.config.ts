@@ -24,6 +24,8 @@ import {
   BrainCircuit,
   ClipboardList,
   Gamepad2,
+  MessageSquare,
+  Mail,
 } from 'lucide-react';
 
 export interface SecondaryFeatureItem {
@@ -111,22 +113,6 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         matchPrefixes: ['/lesson'],
       },
       {
-        id: 'practice',
-        path: '/practice',
-        label: 'Bài tập',
-        icon: Dumbbell,
-        matchPrefixes: ['/practice', '/homework'],
-      },
-    ],
-  },
-
-  // 3. Nhóm Kho kiến thức (Phân hệ Từ vựng & Ngữ pháp độc lập)
-  {
-    id: 'knowledge',
-    groupTitle: 'KHO KIẾN THỨC',
-    defaultOpen: true,
-    items: [
-      {
         id: 'vocabulary',
         path: '/vocabulary',
         label: 'Từ vựng HSK 1–6',
@@ -144,13 +130,29 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         badgeType: 'primary',
         matchPrefixes: ['/grammar'],
       },
+      {
+        id: 'videos',
+        path: '/videos',
+        label: 'Học qua video',
+        icon: Film,
+        badge: 'Mới',
+        badgeType: 'ai',
+        matchPrefixes: ['/videos'],
+      },
+      {
+        id: 'practice',
+        path: '/practice',
+        label: 'Bài tập',
+        icon: Dumbbell,
+        matchPrefixes: ['/practice', '/homework'],
+      },
     ],
   },
 
-  // 4. Nhóm Luyện tập
+  // 3. Nhóm Kỹ năng (đổi tên từ Luyện tập)
   {
     id: 'skills',
-    groupTitle: 'LUYỆN TẬP',
+    groupTitle: 'KỸ NĂNG',
     defaultOpen: true,
     items: [
       {
@@ -168,22 +170,6 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         matchPrefixes: ['/skills/speaking'],
       },
       {
-        id: 'games',
-        path: '/games',
-        label: 'Trò chơi học tập',
-        icon: Gamepad2,
-        matchPrefixes: ['/games'],
-      },
-      {
-        id: 'mock-exams',
-        path: '/mock-exams',
-        label: 'Luyện thi HSK',
-        icon: Award,
-        badge: 'Thi thử',
-        badgeType: 'streak',
-        matchPrefixes: ['/mock-exams'],
-      },
-      {
         id: 'reading',
         path: '/skills/reading',
         label: 'Đọc hiểu',
@@ -197,24 +183,29 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: PenTool,
         matchPrefixes: ['/skills/writing'],
       },
-      {
-        id: 'videos',
-        path: '/videos',
-        label: 'Học qua video',
-        icon: Film,
-        badge: 'Mới',
-        badgeType: 'ai',
-        matchPrefixes: ['/videos'],
-      },
     ],
   },
 
-  // 5. Nhóm Cá nhân hóa
+  // 4. Nhóm Luyện tập (tạo mới bên dưới Kỹ năng)
   {
-    id: 'personal',
-    groupTitle: 'CÁ NHÂN HÓA',
+    id: 'practice-zone',
+    groupTitle: 'LUYỆN TẬP',
     defaultOpen: true,
     items: [
+      {
+        id: 'conversation',
+        path: '/ai-live',
+        label: 'Hội thoại',
+        icon: MessageSquare,
+        matchPrefixes: ['/ai-live', '/conversation'],
+      },
+      {
+        id: 'letter-writing',
+        path: '/ai-grading',
+        label: 'Viết thư',
+        icon: Mail,
+        matchPrefixes: ['/ai-grading', '/letter-writing'],
+      },
       {
         id: 'ai-tutor',
         path: '/ai-tutor',
@@ -222,14 +213,7 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: Sparkles,
         badge: 'AI',
         badgeType: 'ai',
-        matchPrefixes: ['/ai-tutor', '/ai-live', '/ai-grading', '/ai-analytics'],
-      },
-      {
-        id: 'progress',
-        path: '/progress',
-        label: 'Tiến độ học tập',
-        icon: TrendingUp,
-        matchPrefixes: ['/progress', '/learning-results', '/achievements', '/leaderboard'],
+        matchPrefixes: ['/ai-tutor', '/ai-analytics', '/ai-learning'],
       },
     ],
   },

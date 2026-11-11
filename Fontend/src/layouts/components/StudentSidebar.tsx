@@ -29,13 +29,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Manage collapsible state for the 5 navigation groups
+  // Manage collapsible state for the 4 navigation groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     overview: true,
     courses: true,
-    knowledge: true,
     skills: true,
-    personal: true,
+    'practice-zone': true,
   });
 
   const toggleGroup = (groupId: string) => {
@@ -60,12 +59,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         if (prefix === '/dashboard' || prefix === '/') {
           return pathname === '/dashboard' || pathname === '/';
         }
-        return pathname === prefix || pathname.startsWith(prefix);
+        return pathname === prefix || pathname.startsWith(`${prefix}/`);
       });
     }
     // Handle query params comparison if any
     const cleanItemPath = item.path.split('?')[0];
-    return pathname === cleanItemPath || (cleanItemPath !== '/' && pathname.startsWith(cleanItemPath));
+    return pathname === cleanItemPath || (cleanItemPath !== '/' && pathname.startsWith(`${cleanItemPath}/`));
   };
 
   const handleItemClick = (item: StudentNavGroupItem) => {

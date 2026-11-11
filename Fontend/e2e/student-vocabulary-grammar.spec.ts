@@ -34,18 +34,22 @@ test.describe('Student Portal: Reorganized Sidebar & Dedicated Vocabulary/Gramma
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
-    // 1.2 Verify 5 distinct collapsible navigation groups in sidebar (desktop rail or mobile drawer)
+    // 1.2 Verify 4 reorganized collapsible navigation groups in sidebar
     const sidebar = await openSidebarContainer(page);
 
     await expect(sidebar.getByText('TỔNG QUAN')).toBeVisible();
     await expect(sidebar.getByText('KHÓA HỌC')).toBeVisible();
-    await expect(sidebar.getByText('KHO KIẾN THỨC')).toBeVisible();
+    await expect(sidebar.getByText('KỸ NĂNG')).toBeVisible();
     await expect(sidebar.getByText('LUYỆN TẬP')).toBeVisible();
-    await expect(sidebar.getByText('CÁ NHÂN HÓA')).toBeVisible();
+    await expect(sidebar.getByText('KHO KIẾN THỨC')).toHaveCount(0);
 
-    // 1.3 Verify KHO KIẾN THỨC contains Từ vựng HSK 1–6 and Ngữ pháp HSK 1–6
+    // 1.3 Verify KHÓA HỌC contains Từ vựng HSK 1–6, Ngữ pháp HSK 1–6, Học qua video, Bài tập
     await expect(sidebar.getByText('Từ vựng HSK 1–6')).toBeVisible();
     await expect(sidebar.getByText('Ngữ pháp HSK 1–6')).toBeVisible();
+    await expect(sidebar.getByText('Học qua video')).toBeVisible();
+    await expect(sidebar.getByText('Bài tập')).toBeVisible();
+    await expect(sidebar.getByText('Hội thoại')).toBeVisible();
+    await expect(sidebar.getByText('Viết thư')).toBeVisible();
 
     // 1.4 Verify independent scroll container exists
     const scrollContainer = sidebar.locator('.student-sidebar-scroll');

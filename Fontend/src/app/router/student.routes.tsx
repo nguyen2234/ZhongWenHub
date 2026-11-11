@@ -154,7 +154,7 @@ export const studentRoutes: RouteObject[] = [
         element: <LearningResultsPage />,
       },
 
-      // E. TRỢ LÝ AI
+      // E. LUYỆN TẬP & TRỢ LÝ AI
       {
         path: 'ai-tutor',
         element: <AITutorWorkspacePage />,
@@ -164,7 +164,15 @@ export const studentRoutes: RouteObject[] = [
         element: <AILivePage />,
       },
       {
+        path: 'conversation',
+        element: <AILivePage />,
+      },
+      {
         path: 'ai-grading',
+        element: <AIGradingPage />,
+      },
+      {
+        path: 'letter-writing',
         element: <AIGradingPage />,
       },
       {

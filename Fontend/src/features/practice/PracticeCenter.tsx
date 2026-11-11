@@ -1,5 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Dumbbell, History, Target, AlertCircle, Play } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  Dumbbell,
+  History,
+  Target,
+  AlertCircle,
+  Play,
+  BookOpenCheck,
+  RotateCcw,
+  Layers,
+  Award,
+  ArrowRight,
+  Clock,
+} from 'lucide-react';
 import { useLearningState } from '../learning';
 import { authTokenService } from '../../core/api/client/auth-token.service';
 import { RecommendedPracticeCard } from './components/RecommendedPracticeCard';
@@ -14,6 +27,13 @@ import {
   MOCK_MISTAKE_RECORDS,
   PRACTICE_EXERCISE_POOL,
 } from './data/mockPracticeData';
+import {
+  PRACTICE_FORMATS,
+  formatHskRangeSummary,
+  getFormatAvailability,
+  resolveDynamicHskLevels,
+  type PracticeFormatDefinition,
+} from './data/exerciseFormats';
 import {
   adaptPracticeQuestionToShared,
   practiceQuestionBankService,
@@ -46,6 +66,7 @@ interface ActiveSessionConfig {
 
 export const PracticeCenter: React.FC = () => {
   const { state: learningState } = useLearningState();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [recommendationsMeta, setRecommendationsMeta] = useState<AdaptiveRecommendationsResponse | null>(null);
   const [historyItems, setHistoryItems] = useState<PracticeSessionHistoryItem[]>([]);
@@ -53,6 +74,7 @@ export const PracticeCenter: React.FC = () => {
   const [isStartingSession, setIsStartingSession] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeSession, setActiveSession] = useState<ActiveSessionConfig | null>(null);
+  const [selectedHskFilter, setSelectedHskFilter] = useState<number | null>(null);
 
   const loadAdaptiveOverview = useCallback(async () => {
     if (isIsolatedTestRuntime()) {
@@ -172,6 +194,43 @@ export const PracticeCenter: React.FC = () => {
     }));
   }, [mistakeCount, primaryWeakArea]);
 
+  const dynamicHskLevels = useMemo(
+    () =>
+      resolveDynamicHskLevels(
+        recommendationsMeta,
+        isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined
+      ),
+    [recommendationsMeta]
+  );
+
+  const formatCardsWithAvailability = useMemo(
+    () =>
+      PRACTICE_FORMATS.map((format) => ({
+        format,
+        availability: getFormatAvailability(
+          format,
+          recommendationsMeta,
+          isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined,
+          selectedHskFilter
+        ),
+      })),
+    [recommendationsMeta, selectedHskFilter]
+  );
+
+  const availableFormatsCount = useMemo(
+    () => formatCardsWithAvailability.filter((item) => item.availability.isAvailable).length,
+    [formatCardsWithAvailability]
+  );
+
+  const selectedTypeParam = (searchParams.get('type') || '').trim().toLowerCase();
+  const selectedParamFormat = useMemo(
+    () =>
+      selectedTypeParam
+        ? formatCardsWithAvailability.find((item) => item.format.type === selectedTypeParam)
+        : undefined,
+    [formatCardsWithAvailability, selectedTypeParam]
+  );
+
   const liveSkillItems: SkillItemConfig[] = useMemo(() => {
     return SKILL_ITEMS.map((item) => {
       if (isIsolatedTestRuntime()) return item;
@@ -191,6 +250,7 @@ export const PracticeCenter: React.FC = () => {
     hskLevel?: number;
     skill?: string;
     difficulty?: string;
+    type?: string;
     questionCount?: number;
     prioritizeWeakness?: boolean;
   }) => {
@@ -199,14 +259,19 @@ export const PracticeCenter: React.FC = () => {
       const filtered = poolList.filter((ex) => {
         if (params.hskLevel && ex.hskLevel !== params.hskLevel) return false;
         if (params.skill && ex.skill !== params.skill) return false;
+        if (params.type && ex.type !== params.type) return false;
         return true;
       });
+      if (params.type && filtered.length === 0) {
+        setLoadError('Chưa có câu hỏi khả dụng cho dạng bài này.');
+        return;
+      }
       const chosen = (filtered.length > 0 ? filtered : poolList).slice(0, params.questionCount || 5);
       setActiveSession({
         mode: params.mode,
         title: params.title,
         subtitle: params.subtitle,
-        hskLevel: params.hskLevel || 1,
+        hskLevel: params.hskLevel || dynamicHskLevels[0] || 1,
         exercises: chosen,
       });
       return;
@@ -219,6 +284,7 @@ export const PracticeCenter: React.FC = () => {
         hskLevel: params.hskLevel,
         skill: params.skill,
         difficulty: params.difficulty,
+        type: params.type,
         questionCount: params.questionCount ?? 10,
         mode: params.apiMode,
         prioritizeWeakness: params.prioritizeWeakness,
@@ -229,7 +295,7 @@ export const PracticeCenter: React.FC = () => {
         mode: params.mode,
         title: params.title,
         subtitle: params.subtitle,
-        hskLevel: session.hskLevel || params.hskLevel || 1,
+        hskLevel: session.hskLevel || params.hskLevel || dynamicHskLevels[0] || 1,
         exercises: adapted,
         backendSessionId: session.sessionId,
       });
@@ -238,6 +304,28 @@ export const PracticeCenter: React.FC = () => {
     } finally {
       setIsStartingSession(false);
     }
+  };
+
+  const handleStartFormat = (format: PracticeFormatDefinition, isAvailable: boolean) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('type', format.type);
+    setSearchParams(nextParams, { replace: true });
+
+    if (!isAvailable) {
+      return;
+    }
+
+    void startBackendSession({
+      mode: 'hsk-filter',
+      apiMode: 'random',
+      type: format.type,
+      hskLevel: selectedHskFilter ?? undefined,
+      title: format.title,
+      subtitle: selectedHskFilter
+        ? `HSK ${selectedHskFilter} · Ngân hàng câu hỏi`
+        : 'Ngân hàng câu hỏi chuẩn hóa',
+      questionCount: 10,
+    });
   };
 
   const handleStartRecommended = (rec: PracticeRecommendation) => {
@@ -332,21 +420,200 @@ export const PracticeCenter: React.FC = () => {
 
   return (
     <div className="practice-page-container">
-      <header className="practice-header">
-        <div>
+      {/* 1. Intro Hero Card + Real Stats */}
+      <header className="practice-header practice-intro-card">
+        <div className="practice-intro-content">
           <div className="practice-header-brand-badge">
             <Dumbbell size={13} />
-            <span>TRUNG TÂM LUYỆN TẬP THÍCH ỨNG</span>
+            <span>BÀI TẬP LUYỆN TẬP · NGÂN HÀNG CÂU HỎI</span>
           </div>
           <h1 className="practice-header-title">
-            Trung tâm luyện tập
-            <span className="practice-header-title-hanzi">巩固你学过的知识</span>
+            Bài tập luyện tiếng Trung
           </h1>
           <p className="practice-header-subtitle">
-            Tạo phiên luyện tập theo HSK 1–4, kỹ năng, độ khó hoặc điểm yếu từ dữ liệu thực tế — chấm điểm máy chủ & cộng XP tự động.
+            Rèn luyện phản xạ cấu trúc câu, điền từ ngữ cảnh và kỹ năng ngôn ngữ qua dữ liệu thật từ Ngân hàng câu hỏi — chấm điểm máy chủ &amp; tích lũy XP tự động.
           </p>
         </div>
+
+        <div className="practice-intro-stats" aria-label="Thống kê nhanh kho bài tập">
+          <div className="practice-stat-box">
+            <div className="practice-stat-icon formats">
+              <Layers size={18} />
+            </div>
+            <div>
+              <div className="practice-stat-label">Dạng bài</div>
+              <div className="practice-stat-value">
+                {availableFormatsCount}/{PRACTICE_FORMATS.length} khả dụng
+              </div>
+              <div className="practice-stat-hint">
+                {recommendationsMeta
+                  ? `${recommendationsMeta.totalPublishedQuestions} câu đã xuất bản`
+                  : isLoadingMeta
+                    ? 'Đang đồng bộ...'
+                    : 'Dữ liệu thực hành'}
+              </div>
+            </div>
+          </div>
+
+          <div className="practice-stat-box">
+            <div className="practice-stat-icon levels">
+              <Award size={18} />
+            </div>
+            <div>
+              <div className="practice-stat-label">Cấp độ</div>
+              <div className="practice-stat-value">
+                {formatHskRangeSummary(dynamicHskLevels, isLoadingMeta)}
+              </div>
+              <div className="practice-stat-hint">
+                {dynamicHskLevels.length > 0
+                  ? `${dynamicHskLevels.length} cấp độ có câu hỏi`
+                  : 'Cập nhật từ máy chủ'}
+              </div>
+            </div>
+          </div>
+
+          <div className="practice-stat-box">
+            <div className="practice-stat-icon retry">
+              <RotateCcw size={18} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="practice-stat-label">Luyện lại</div>
+              <div className="practice-stat-value">{mistakeCount} câu cần ôn</div>
+              <button
+                type="button"
+                className="practice-stat-action-link"
+                disabled={mistakeCount === 0}
+                onClick={handleStartMistakesReview}
+              >
+                {mistakeCount > 0 ? 'Ôn lại lỗi sai →' : 'Chưa có lỗi sai'}
+              </button>
+            </div>
+          </div>
+        </div>
       </header>
+
+      {/* Dynamic HSK Level Filter Strip (populated strictly from backend) */}
+      {dynamicHskLevels.length > 0 && (
+        <section className="practice-level-strip" aria-label="Lọc nhanh theo cấp độ HSK khả dụng">
+          <span className="practice-level-strip-label">Cấp độ áp dụng:</span>
+          <div className="practice-level-pills">
+            <button
+              type="button"
+              className={`practice-level-pill ${selectedHskFilter === null ? 'active' : ''}`}
+              onClick={() => setSelectedHskFilter(null)}
+            >
+              Tất cả cấp độ
+            </button>
+            {dynamicHskLevels.map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                className={`practice-level-pill ${selectedHskFilter === lvl ? 'active' : ''}`}
+                onClick={() => setSelectedHskFilter(lvl)}
+              >
+                HSK {lvl}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Selected deep-link unavailable notice */}
+      {selectedParamFormat && !isLoadingMeta && !selectedParamFormat.availability.isAvailable && (
+        <div role="status" className="practice-unavailable-banner">
+          <Clock size={18} />
+          <div>
+            <strong>{selectedParamFormat.format.title}:</strong>{' '}
+            {selectedParamFormat.format.unavailableReason}
+          </div>
+        </div>
+      )}
+
+      {/* 2. 5-Card Exercise Formats Grid */}
+      <section className="practice-formats-section" aria-label="Danh sách dạng bài tập luyện tiếng Trung">
+        <div className="practice-section-header">
+          <div>
+            <h2 className="practice-section-title">Chọn dạng bài luyện tập</h2>
+            <span className="practice-section-subtitle">
+              Hiển thị trạng thái sẵn sàng thực tế từ Ngân hàng câu hỏi đã xuất bản
+            </span>
+          </div>
+        </div>
+
+        <div className="practice-formats-grid">
+          {formatCardsWithAvailability.map(({ format, availability }) => {
+            const isSelected = selectedTypeParam === format.type;
+            return (
+              <article
+                key={format.type}
+                data-format-type={format.type}
+                data-available={availability.isAvailable ? 'true' : 'false'}
+                className={`practice-format-card ${
+                  availability.isAvailable ? 'available' : 'unavailable'
+                } ${isSelected ? 'selected' : ''}`}
+              >
+                <div className="practice-format-card-top">
+                  <span className="practice-format-order">{format.orderLabel}</span>
+                  <span
+                    className={`practice-format-status-badge ${
+                      availability.isAvailable ? 'ready' : 'pending'
+                    }`}
+                  >
+                    {availability.statusLabel}
+                  </span>
+                </div>
+
+                <div className="practice-format-card-body">
+                  <h3 className="practice-format-title">{format.title}</h3>
+                  <p className="practice-format-desc">{format.description}</p>
+                </div>
+
+                <div className="practice-format-card-footer">
+                  {availability.isAvailable ? (
+                    <div className="practice-format-levels-row">
+                      {availability.availableHskLevels.map((lvl) => (
+                        <span key={lvl} className="practice-format-level-tag">
+                          HSK {lvl}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="practice-format-unavailable-note">
+                      {format.unavailableReason}
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    className={`practice-format-start-btn ${
+                      availability.isAvailable ? '' : 'disabled'
+                    }`}
+                    disabled={!availability.isAvailable || isStartingSession}
+                    aria-label={
+                      availability.isAvailable
+                        ? `BẮT ĐẦU ${format.title}`
+                        : `${format.title} - Chưa khả dụng`
+                    }
+                    onClick={() => handleStartFormat(format, availability.isAvailable)}
+                  >
+                    <span>{availability.isAvailable ? 'BẮT ĐẦU' : 'Chưa khả dụng'}</span>
+                    {availability.isAvailable && <ArrowRight size={15} />}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className="practice-section-header" style={{ marginTop: '4px' }}>
+        <div>
+          <h2 className="practice-section-title">Trung tâm luyện tập theo cấp độ &amp; kỹ năng</h2>
+          <span className="practice-section-subtitle">
+            Tạo phiên luyện tập thích ứng theo HSK, kỹ năng, độ khó và điểm yếu cá nhân
+          </span>
+        </div>
+      </div>
 
       {(isLoadingMeta || isStartingSession) && (
         <div
@@ -514,6 +781,7 @@ export const PracticeCenter: React.FC = () => {
         <HSKFilterSection
           exercisePool={isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined}
           publishedByHsk={recommendationsMeta?.publishedByHsk}
+          availableHskLevels={dynamicHskLevels}
           mistakeCount={mistakeCount}
           onStartCustomPractice={handleStartCustomPractice}
         />
@@ -640,6 +908,62 @@ export const PracticeCenter: React.FC = () => {
           </div>
         </section>
       )}
+      {/* 5. Bottom Practice Guide Card */}
+      <section className="practice-guide-card" aria-label="Hướng dẫn luyện tập">
+        <div className="practice-guide-header">
+          <div className="practice-guide-icon">
+            <BookOpenCheck size={20} />
+          </div>
+          <div>
+            <h2 className="practice-guide-title">Hướng dẫn luyện tập</h2>
+            <p className="practice-guide-subtitle">
+              Quy trình 4 bước giúp bạn tận dụng tối đa hệ thống chấm điểm chuẩn hóa và ôn tập lỗi sai
+            </p>
+          </div>
+        </div>
+
+        <div className="practice-guide-steps">
+          <div className="practice-guide-step">
+            <span className="practice-guide-step-num">01</span>
+            <div>
+              <div className="practice-guide-step-title">Chọn dạng bài &amp; cấp độ</div>
+              <p className="practice-guide-step-desc">
+                Nhấn <strong>BẮT ĐẦU</strong> ở dạng bài khả dụng hoặc lọc theo cấp độ HSK từ Ngân hàng câu hỏi.
+              </p>
+            </div>
+          </div>
+
+          <div className="practice-guide-step">
+            <span className="practice-guide-step-num">02</span>
+            <div>
+              <div className="practice-guide-step-title">Hoàn thành từng câu hỏi</div>
+              <p className="practice-guide-step-desc">
+                Sắp xếp thẻ từ theo đúng trật tự câu hoặc điền đáp án chính xác vào chỗ trống.
+              </p>
+            </div>
+          </div>
+
+          <div className="practice-guide-step">
+            <span className="practice-guide-step-num">03</span>
+            <div>
+              <div className="practice-guide-step-title">Chấm điểm máy chủ &amp; nhận XP</div>
+              <p className="practice-guide-step-desc">
+                Đáp án được đối chiếu trên máy chủ để xem giải thích chi tiết và cộng XP vào tiến độ học tập.
+              </p>
+            </div>
+          </div>
+
+          <div className="practice-guide-step">
+            <span className="practice-guide-step-num">04</span>
+            <div>
+              <div className="practice-guide-step-title">Ôn lại các câu làm sai</div>
+              <p className="practice-guide-step-desc">
+                Sử dụng nút <strong>Luyện lại</strong> để làm lại các câu hay nhầm và lấp đầy lỗ hổng kiến thức.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

@@ -32,6 +32,9 @@ export interface AdaptiveRecommendationsResponse {
   publishedByHsk: Record<number, number>;
   publishedBySkill: Record<string, number>;
   publishedByDifficulty: Record<string, number>;
+  publishedByType?: Record<string, number>;
+  availableHskLevels?: number[];
+  availableHskLevelsByType?: Record<string, number[]>;
   mistakeReviewCount: number;
   weakAreas: AdaptiveWeakArea[];
   skillStats?: PracticeStatBucket[];
@@ -186,6 +189,7 @@ class PracticeQuestionBankService {
     hskLevel?: number;
     skill?: string;
     difficulty?: string;
+    type?: string;
     questionCount?: number;
     mode?: string;
     prioritizeWeakness?: boolean;
@@ -194,6 +198,7 @@ class PracticeQuestionBankService {
       hskLevel: params.hskLevel ?? null,
       skill: params.skill ?? null,
       difficulty: params.difficulty ?? null,
+      type: params.type ?? null,
       questionCount: params.questionCount ?? 10,
       mode: params.mode ?? 'random',
       prioritizeWeakness: Boolean(params.prioritizeWeakness),

@@ -1092,6 +1092,52 @@ public class QuestionBankService : IQuestionBankService
             .Select(g => new { g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
 
+        var byTypeAndHskRows = await publishedQuery
+            .GroupBy(e => new { e.Type, e.HskLevel })
+            .Select(g => new { g.Key.Type, g.Key.HskLevel, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var byType = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["sentence-order"] = 0,
+            ["fill-blank"] = 0,
+            ["listen-fill-blank"] = 0,
+            ["listen-order"] = 0,
+            ["reading-cloze"] = 0
+        };
+        var hskByTypeSet = new Dictionary<string, SortedSet<int>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in byTypeAndHskRows)
+        {
+            if (row.Count <= 0) continue;
+            var canonicalType = ResolveCanonicalPracticeType(row.Type);
+            byType[canonicalType] = byType.TryGetValue(canonicalType, out var cur)
+                ? cur + row.Count
+                : row.Count;
+
+            if (row.HskLevel > 0)
+            {
+                if (!hskByTypeSet.TryGetValue(canonicalType, out var set))
+                {
+                    set = new SortedSet<int>();
+                    hskByTypeSet[canonicalType] = set;
+                }
+                set.Add(row.HskLevel);
+            }
+        }
+
+        var availableHskLevels = byHsk
+            .Where(kv => kv.Key > 0 && kv.Value > 0)
+            .Select(kv => kv.Key)
+            .OrderBy(level => level)
+            .ToList();
+
+        var availableHskLevelsByType = byType.Keys
+            .ToDictionary(
+                key => key,
+                key => hskByTypeSet.TryGetValue(key, out var set) ? set.ToList() : new List<int>(),
+                StringComparer.OrdinalIgnoreCase);
+
         var recentAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
             .Where(a => a.UserId == userId)
@@ -1113,6 +1159,9 @@ public class QuestionBankService : IQuestionBankService
             PublishedByHsk = byHsk,
             PublishedBySkill = bySkill,
             PublishedByDifficulty = byDiff,
+            PublishedByType = byType,
+            AvailableHskLevels = availableHskLevels,
+            AvailableHskLevelsByType = availableHskLevelsByType,
             MistakeReviewCount = mistakeCount,
             WeakAreas = weakAreas,
             SkillStats = skillStats,
@@ -1133,6 +1182,9 @@ public class QuestionBankService : IQuestionBankService
             : null;
         var normDiff = !string.IsNullOrWhiteSpace(dto.Difficulty) && !dto.Difficulty.Equals("ALL", StringComparison.OrdinalIgnoreCase)
             ? QuestionValidationHelper.NormalizeDifficulty(dto.Difficulty)
+            : null;
+        var normTypeAliases = !string.IsNullOrWhiteSpace(dto.Type) && !dto.Type.Equals("ALL", StringComparison.OrdinalIgnoreCase)
+            ? ExpandPracticeTypeAliases(dto.Type)
             : null;
 
         // 1. Gather user's attempt history + last 5 sessions to prevent back-to-back repetition
@@ -1216,7 +1268,7 @@ public class QuestionBankService : IQuestionBankService
             .AsNoTracking()
             .Where(e => e.Status == "PUBLISHED");
 
-        if (dto.HskLevel.HasValue && dto.HskLevel.Value is >= 1 and <= 4)
+        if (dto.HskLevel.HasValue && dto.HskLevel.Value is >= 1 and <= 6)
         {
             candidateQuery = candidateQuery.Where(e => e.HskLevel == dto.HskLevel.Value);
         }
@@ -1229,6 +1281,11 @@ public class QuestionBankService : IQuestionBankService
         if (normDiff != null)
         {
             candidateQuery = candidateQuery.Where(e => e.Difficulty == normDiff);
+        }
+
+        if (normTypeAliases != null)
+        {
+            candidateQuery = candidateQuery.Where(e => normTypeAliases.Contains(e.Type));
         }
 
         if (mode == "mistake-review" && wrongExerciseIds.Count > 0)
@@ -1262,10 +1319,12 @@ public class QuestionBankService : IQuestionBankService
         if (pool.Count == 0 && normDiff != null)
         {
             var relaxedQuery = _dbContext.Exercises.AsNoTracking().Where(e => e.Status == "PUBLISHED");
-            if (dto.HskLevel.HasValue && dto.HskLevel.Value is >= 1 and <= 4)
+            if (dto.HskLevel.HasValue && dto.HskLevel.Value is >= 1 and <= 6)
                 relaxedQuery = relaxedQuery.Where(e => e.HskLevel == dto.HskLevel.Value);
             if (normSkill != null)
                 relaxedQuery = relaxedQuery.Where(e => e.Skill == normSkill);
+            if (normTypeAliases != null)
+                relaxedQuery = relaxedQuery.Where(e => normTypeAliases.Contains(e.Type));
 
             pool = await relaxedQuery
                 .OrderByDescending(e => e.QualityScore ?? 80.0)
@@ -2179,4 +2238,34 @@ public class QuestionBankService : IQuestionBankService
         SelectionReasonCode = reason?.ReasonCode,
         SelectionReasonLabel = reason?.ReasonLabel
     };
+
+    private static string ResolveCanonicalPracticeType(string? rawType)
+    {
+        var norm = (rawType ?? string.Empty).Trim().ToLowerInvariant();
+        return norm switch
+        {
+            "sentence-ordering" or "sentence-order" or "sentence_order" or "sap-xep-cau" => "sentence-order",
+            "fill-in-the-blank" or "fill-blank" or "fill_blank" or "dien-tu" => "fill-blank",
+            "listen-fill-blank" or "listening-fill-blank" => "listen-fill-blank",
+            "listen-order" or "listening-order" => "listen-order",
+            "reading-cloze" => "reading-cloze",
+            "listen-choice" or "listening" => "listen-choice",
+            "reading" => "reading",
+            "multiple-choice" or "mcq" or "meaning" or "" => "multiple-choice",
+            _ => norm
+        };
+    }
+
+    private static string[] ExpandPracticeTypeAliases(string rawType)
+    {
+        var canonical = ResolveCanonicalPracticeType(rawType);
+        return canonical switch
+        {
+            "sentence-order" => ["sentence-ordering", "sentence-order", "sentence_order"],
+            "fill-blank" => ["fill-in-the-blank", "fill-blank", "fill_blank"],
+            "listen-choice" => ["listen-choice", "listening"],
+            "multiple-choice" => ["multiple-choice", "mcq", "meaning"],
+            _ => [canonical]
+        };
+    }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Filter, Play, AlertCircle } from 'lucide-react';
 import type { SkillCategory, SharedExerciseItem } from '../../exercise-engine';
 
@@ -11,6 +11,7 @@ export interface CustomPracticeOptions {
 interface HSKFilterSectionProps {
   exercisePool?: Record<string, SharedExerciseItem>;
   publishedByHsk?: Record<number, number>;
+  availableHskLevels?: number[];
   mistakeCount?: number;
   mistakeIds?: Set<string>;
   onStartCustomPractice: (
@@ -24,6 +25,7 @@ interface HSKFilterSectionProps {
 export const HSKFilterSection: React.FC<HSKFilterSectionProps> = ({
   exercisePool = {},
   publishedByHsk,
+  availableHskLevels,
   mistakeCount = 0,
   mistakeIds = new Set<string>(),
   onStartCustomPractice,
@@ -35,25 +37,42 @@ export const HSKFilterSection: React.FC<HSKFilterSectionProps> = ({
   const [onlyMistakes, setOnlyMistakes] = useState<boolean>(false);
   const [prioritizeWeakness, setPrioritizeWeakness] = useState<boolean>(true);
 
-  const hskLevels = [1, 2, 3, 4];
-
   const poolByLevel = useMemo(() => {
+    const counts: Record<number, number> = {};
     if (publishedByHsk) {
-      return {
-        1: publishedByHsk[1] || 0,
-        2: publishedByHsk[2] || 0,
-        3: publishedByHsk[3] || 0,
-        4: publishedByHsk[4] || 0,
-      };
+      Object.entries(publishedByHsk).forEach(([lvlStr, count]) => {
+        const lvl = Number(lvlStr);
+        if (Number.isInteger(lvl) && lvl > 0 && Number(count) > 0) {
+          counts[lvl] = Number(count);
+        }
+      });
+      return counts;
     }
-    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
     Object.values(exercisePool).forEach((ex) => {
-      if (ex.hskLevel && counts[ex.hskLevel] !== undefined) {
-        counts[ex.hskLevel]++;
+      if (ex.hskLevel && ex.hskLevel > 0) {
+        counts[ex.hskLevel] = (counts[ex.hskLevel] || 0) + 1;
       }
     });
     return counts;
   }, [exercisePool, publishedByHsk]);
+
+  const hskLevels = useMemo(() => {
+    if (availableHskLevels && availableHskLevels.length > 0) {
+      return [...new Set(availableHskLevels.filter((lvl) => Number.isInteger(lvl) && lvl > 0))].sort(
+        (a, b) => a - b
+      );
+    }
+    return Object.keys(poolByLevel)
+      .map(Number)
+      .filter((lvl) => Number.isInteger(lvl) && lvl > 0)
+      .sort((a, b) => a - b);
+  }, [availableHskLevels, poolByLevel]);
+
+  useEffect(() => {
+    if (hskLevels.length > 0 && !hskLevels.includes(selectedHsk)) {
+      setSelectedHsk(hskLevels[0]);
+    }
+  }, [hskLevels, selectedHsk]);
 
   const availableForLevel = useMemo(() => {
     if (publishedByHsk) {
@@ -200,15 +219,18 @@ export const HSKFilterSection: React.FC<HSKFilterSectionProps> = ({
         </div>
       </div>
 
-      {!isAvailable ? (
+      {hskLevels.length === 0 || !isAvailable ? (
         <div className="practice-filter-warning">
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: '2px' }}>
             <AlertCircle size={15} />
             <span>Chưa có câu hỏi đã xuất bản cho lựa chọn này</span>
           </div>
           <p style={{ margin: 0 }}>
-            Kho đã xuất bản hiện có HSK 1 ({poolByLevel[1]}), HSK 2 ({poolByLevel[2]}), HSK 3 ({poolByLevel[3]}), HSK 4 (
-            {poolByLevel[4]}).
+            {hskLevels.length > 0
+              ? `Kho đã xuất bản hiện có ${hskLevels
+                  .map((lvl) => `HSK ${lvl} (${poolByLevel[lvl] || 0})`)
+                  .join(', ')}.`
+              : 'Chưa ghi nhận cấp độ HSK khả dụng từ máy chủ.'}
           </p>
         </div>
       ) : (

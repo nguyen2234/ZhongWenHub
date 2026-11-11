@@ -20,28 +20,33 @@ import { StudentLayout } from '../layouts/StudentLayout';
 
 describe('Phase FE-5.6: Centered Layout, Better Spacing & Invisible Sidebar Scrollbar', () => {
   describe('1. Sidebar Navigation Structure & Badges Integrity', () => {
-    it('contains all 5 required navigation groups including knowledge repository', () => {
-      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(5);
+    it('contains all 4 reorganized navigation groups in required order', () => {
+      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(4);
       const groupIds = HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.id);
-      expect(groupIds).toEqual(['overview', 'courses', 'knowledge', 'skills', 'personal']);
+      expect(groupIds).toEqual(['overview', 'courses', 'skills', 'practice-zone']);
     });
 
-    it('validates badges for AI Tutor, Lộ trình mới and SRS features in sidebar', () => {
+    it('validates badges for AI Tutor, Lộ trình mới and SRS features in sidebar and keeps legacy modules in STUDENT_MAIN_NAV_ITEMS', () => {
       const allItems = HANBEEGO_STUDENT_NAV_GROUPS.flatMap((g) => g.items);
+      const coursesItems = HANBEEGO_STUDENT_NAV_GROUPS.find((g) => g.id === 'courses')?.items ?? [];
+      const practiceZoneItems = HANBEEGO_STUDENT_NAV_GROUPS.find((g) => g.id === 'practice-zone')?.items ?? [];
       const aiItem = allItems.find((i) => i.id === 'ai-tutor');
       const beginnerItem = allItems.find((i) => i.id === 'beginner');
       const vocabItem = allItems.find((i) => i.id === 'vocabulary');
-      const mockItem = allItems.find((i) => i.id === 'mock-exams');
       const videoItem = allItems.find((i) => i.id === 'videos');
+      const legacyMockItem = STUDENT_MAIN_NAV_ITEMS.flatMap((i) => i.secondaryFeatures || []).find(
+        (s) => s.id === 'mock-exams'
+      );
 
+      expect(coursesItems.some((i) => i.path === '/practice' && i.label === 'Bài tập')).toBe(true);
+      expect(practiceZoneItems.some((i) => i.path === '/practice' || i.label === 'Bài tập')).toBe(false);
       expect(aiItem).toBeDefined();
       expect(aiItem?.badge).toBe('AI');
       expect(beginnerItem).toBeDefined();
       expect(beginnerItem?.badge).toBe('Mới');
       expect(vocabItem).toBeDefined();
       expect(vocabItem?.badge).toBe('SRS');
-      expect(mockItem).toBeDefined();
-      expect(mockItem?.badge).toBe('Thi thử');
+      expect(legacyMockItem).toBeDefined();
       expect(videoItem).toBeDefined();
       expect(videoItem?.badge).toBe('Mới');
     });
