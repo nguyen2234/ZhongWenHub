@@ -41,8 +41,11 @@ export interface CoursePublicationReadiness {
   hskLevel: number;
   courseTitle: string;
   courseStatus: string;
+  unitCount?: number;
+  standardLessonTarget?: number | null;
   totalLessons: number;
   publishedCount: number;
+  draftCount?: number;
   readyToPublishCount: number;
   pendingReviewCount: number;
   blockedCount: number;
@@ -83,10 +86,10 @@ class CurriculumService {
    * Throws on network failure so UI can surface error states and retry buttons.
    */
   async syncFromApi(): Promise<void> {
-    const [apiCourses, apiUnits, apiLessons] = await Promise.all([
+    const [apiCourses, apiUnits, firstLessonPage] = await Promise.all([
       httpClient.get<any[]>('/content/courses'),
       httpClient.get<any[]>('/content/units'),
-      httpClient.get<any>('/content/lessons', { params: { pageSize: 100 } }),
+      httpClient.get<any>('/content/lessons', { params: { pageSize: 500, page: 1 } }),
     ]);
 
     if (Array.isArray(apiCourses)) {
@@ -95,7 +98,14 @@ class CurriculumService {
         code: c.code,
         name: c.title,
         description: c.description || '',
+        hskLevel: c.hskLevel,
         status: c.status,
+        unitCount: c.unitCount ?? 0,
+        lessonCount: c.lessonCount ?? 0,
+        publishedLessonCount: c.publishedLessonCount ?? 0,
+        draftLessonCount: c.draftLessonCount ?? 0,
+        pendingReviewLessonCount: c.pendingReviewLessonCount ?? 0,
+        archivedLessonCount: c.archivedLessonCount ?? 0,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt || c.createdAt,
       }));
@@ -105,7 +115,7 @@ class CurriculumService {
         courseId: c.id,
         hskLevelId: `level-hsk-${c.hskLevel || idx + 1}`,
         name: c.name || `HSK ${c.hskLevel || idx + 1}`,
-        orderIndex: c.orderIndex || idx + 1,
+        orderIndex: c.orderIndex || c.hskLevel || idx + 1,
       }));
     }
 
@@ -126,13 +136,28 @@ class CurriculumService {
       }));
     }
 
-    const lessonItems = Array.isArray(apiLessons) ? apiLessons : (apiLessons?.items || []);
+    let lessonItems = Array.isArray(firstLessonPage) ? firstLessonPage : (firstLessonPage?.items || []);
+    const totalPages = firstLessonPage?.totalPages ?? 1;
+    if (totalPages > 1) {
+      const remainingRequests: Promise<any>[] = [];
+      for (let p = 2; p <= totalPages; p++) {
+        remainingRequests.push(httpClient.get<any>('/content/lessons', { params: { pageSize: 500, page: p } }));
+      }
+      const nextPages = await Promise.all(remainingRequests);
+      for (const nextPage of nextPages) {
+        const nextItems = Array.isArray(nextPage) ? nextPage : (nextPage?.items || []);
+        lessonItems = [...lessonItems, ...nextItems];
+      }
+    }
+
     lessons = lessonItems.map((l: any) => ({
       id: l.id,
+      courseId: l.courseId,
       unitId: l.unitId || '',
       lessonNumber: l.lessonNumber,
       titleZh: l.titleZh,
       titleVi: l.titleVi,
+      pinyin: l.pinyin || '',
       durationMinutes: l.durationMinutes,
       xpReward: l.xpReward,
       orderIndex: l.orderIndex,
@@ -205,7 +230,8 @@ class CurriculumService {
   async createUnit(courseLevelId: string, dto: UpdateUnitDTO): Promise<Unit> {
     const courseId = courseLevels.find((cl) => cl.id === courseLevelId)?.courseId || courseLevelId;
     const existingUnitsForCourse = units.filter((u) => u.courseLevelId === courseId);
-    const unitNumber = existingUnitsForCourse.length + 1;
+    const maxUnitNumber = existingUnitsForCourse.reduce((max, u) => Math.max(max, u.unitNumber || 0), 0);
+    const unitNumber = maxUnitNumber + 1;
 
     const payload = {
       courseId,
@@ -283,8 +309,10 @@ class CurriculumService {
       throw new Error('Không tìm thấy thông tin khóa học hợp lệ cho bài học.');
     }
 
-    const unitLessons = lessons.filter((l) => l.unitId === unitId);
-    const lessonNumber = unitLessons.length + 1;
+    const courseUnitIds = new Set(units.filter((u) => u.courseLevelId === courseId).map((u) => u.id));
+    const courseLessons = lessons.filter((l) => l.courseId === courseId || courseUnitIds.has(l.unitId));
+    const nextLessonNumber = courseLessons.reduce((max, l) => Math.max(max, l.lessonNumber || 0), 0) + 1;
+    const lessonNumber = dto.lessonNumber && dto.lessonNumber >= 1 ? Math.floor(dto.lessonNumber) : nextLessonNumber;
 
     const payload = {
       courseId,
@@ -292,28 +320,32 @@ class CurriculumService {
       lessonNumber,
       titleZh: dto.titleZh.trim(),
       titleVi: dto.titleVi.trim(),
+      pinyin: dto.pinyin?.trim() || '',
       durationMinutes: dto.durationMinutes,
       xpReward: dto.xpReward,
       orderIndex: dto.orderIndex ?? lessonNumber,
-      status: dto.status,
+      status: 'DRAFT',
       summary: dto.summary.trim(),
+      allowExceedStandardLimit: Boolean(dto.allowExceedStandardLimit),
     };
 
     const res = await httpClient.post<any>('/content/lessons', payload);
     const newLesson: Lesson = {
       id: res.id,
+      courseId: res.courseId || courseId,
       unitId: res.unitId || unitId,
       lessonNumber: res.lessonNumber,
       titleZh: res.titleZh,
       titleVi: res.titleVi,
+      pinyin: res.pinyin || '',
       durationMinutes: res.durationMinutes,
       xpReward: res.xpReward,
       orderIndex: res.orderIndex,
-      status: res.status,
+      status: res.status || 'DRAFT',
       summary: res.summary || '',
-      linkedVocabularyCount: 0,
-      linkedGrammarCount: 0,
-      exerciseCount: 0,
+      linkedVocabularyCount: res.vocabularyCount ?? 0,
+      linkedGrammarCount: res.grammarCount ?? 0,
+      exerciseCount: res.exerciseCount ?? 0,
       createdAt: res.createdAt,
       updatedAt: res.updatedAt || res.createdAt,
     };
@@ -325,9 +357,11 @@ class CurriculumService {
   async updateLesson(id: string, dto: UpdateLessonDTO): Promise<Lesson> {
     const existing = lessons.find((l) => l.id === id);
     const payload = {
-      lessonNumber: existing?.lessonNumber ?? 1,
+      unitId: existing?.unitId || undefined,
+      lessonNumber: dto.lessonNumber && dto.lessonNumber >= 1 ? Math.floor(dto.lessonNumber) : (existing?.lessonNumber ?? 1),
       titleZh: dto.titleZh.trim(),
       titleVi: dto.titleVi.trim(),
+      pinyin: dto.pinyin !== undefined ? dto.pinyin.trim() : (existing?.pinyin || ''),
       durationMinutes: dto.durationMinutes,
       xpReward: dto.xpReward,
       orderIndex: dto.orderIndex,
@@ -338,18 +372,20 @@ class CurriculumService {
     const res = await httpClient.put<any>(`/content/lessons/${id}`, payload);
     const updatedLesson: Lesson = {
       id: res.id,
+      courseId: res.courseId || existing?.courseId,
       unitId: res.unitId || existing?.unitId || '',
       lessonNumber: res.lessonNumber,
       titleZh: res.titleZh,
       titleVi: res.titleVi,
+      pinyin: res.pinyin || '',
       durationMinutes: res.durationMinutes,
       xpReward: res.xpReward,
       orderIndex: res.orderIndex,
       status: res.status,
       summary: res.summary || '',
-      linkedVocabularyCount: existing?.linkedVocabularyCount ?? 0,
-      linkedGrammarCount: existing?.linkedGrammarCount ?? 0,
-      exerciseCount: existing?.exerciseCount ?? 0,
+      linkedVocabularyCount: res.vocabularyCount ?? existing?.linkedVocabularyCount ?? 0,
+      linkedGrammarCount: res.grammarCount ?? existing?.linkedGrammarCount ?? 0,
+      exerciseCount: res.exerciseCount ?? existing?.exerciseCount ?? 0,
       createdAt: res.createdAt,
       updatedAt: res.updatedAt || res.createdAt,
     };

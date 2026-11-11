@@ -27,6 +27,7 @@ export default defineConfig({
   testMatch: [
     '**/exam-repository-e2e.spec.ts',
     '**/hsk1-published-student-and-cms.spec.ts',
+    '**/curriculum-create-and-counts.spec.ts',
   ],
   fullyParallel: false,
   workers: 1,

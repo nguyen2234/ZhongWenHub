@@ -11,8 +11,12 @@ public class CourseDto
     public int HskLevel { get; set; }
     public string Status { get; set; } = "PUBLISHED";
     public int OrderIndex { get; set; }
+    public int UnitCount { get; set; }
     public int LessonCount { get; set; }
     public int PublishedLessonCount { get; set; }
+    public int DraftLessonCount { get; set; }
+    public int PendingReviewLessonCount { get; set; }
+    public int ArchivedLessonCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -187,10 +191,16 @@ public class CreateLessonDto
 
     public string? Pinyin { get; set; }
     public string? Summary { get; set; }
+
+    [Range(1, 300, ErrorMessage = "Thời lượng phải từ 1 đến 300 phút.")]
     public int DurationMinutes { get; set; } = 30;
+
+    [Range(0, 1000, ErrorMessage = "Điểm thưởng XP phải từ 0 đến 1000.")]
     public int XpReward { get; set; } = 50;
+
     public int OrderIndex { get; set; } = 1;
-    public string Status { get; set; } = "PUBLISHED";
+    public string Status { get; set; } = "DRAFT";
+    public bool AllowExceedStandardLimit { get; set; } = false;
     public string? DialogueJson { get; set; }
     public string? ListeningJson { get; set; }
 }
@@ -690,8 +700,11 @@ public class CoursePublicationReadinessDto
     public int HskLevel { get; set; }
     public string CourseTitle { get; set; } = string.Empty;
     public string CourseStatus { get; set; } = string.Empty;
+    public int UnitCount { get; set; }
+    public int? StandardLessonTarget { get; set; }
     public int TotalLessons { get; set; }
     public int PublishedCount { get; set; }
+    public int DraftCount { get; set; }
     public int ReadyToPublishCount { get; set; }
     public int PendingReviewCount { get; set; }
     public int BlockedCount { get; set; }

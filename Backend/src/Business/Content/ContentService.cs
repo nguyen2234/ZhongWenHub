@@ -45,6 +45,17 @@ public class ContentService : IContentService
         var courses = await query.OrderBy(c => c.OrderIndex).ToListAsync(cancellationToken);
 
         var courseIds = courses.Select(c => c.Id).ToList();
+        var unitStats = await _dbContext.Units.AsNoTracking()
+            .Where(u => courseIds.Contains(u.CourseId))
+            .GroupBy(u => u.CourseId)
+            .Select(g => new
+            {
+                CourseId = g.Key,
+                UnitCount = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+        var unitMap = unitStats.ToDictionary(u => u.CourseId, u => u.UnitCount);
+
         var lessonStats = await _dbContext.Lessons.AsNoTracking()
             .Where(l => courseIds.Contains(l.CourseId))
             .GroupBy(l => l.CourseId)
@@ -52,7 +63,10 @@ public class ContentService : IContentService
             {
                 CourseId = g.Key,
                 Total = g.Count(),
-                Published = g.Count(l => l.Status == "PUBLISHED")
+                Published = g.Count(l => l.Status == "PUBLISHED"),
+                Draft = g.Count(l => l.Status == "DRAFT"),
+                PendingReview = g.Count(l => l.Status == "PENDING_REVIEW"),
+                Archived = g.Count(l => l.Status == "ARCHIVED")
             })
             .ToListAsync(cancellationToken);
 
@@ -61,6 +75,7 @@ public class ContentService : IContentService
         return courses.Select(c =>
         {
             statsMap.TryGetValue(c.Id, out var s);
+            unitMap.TryGetValue(c.Id, out var uCount);
             return new CourseDto
             {
                 Id = c.Id,
@@ -70,8 +85,12 @@ public class ContentService : IContentService
                 HskLevel = c.HskLevel,
                 Status = c.Status,
                 OrderIndex = c.OrderIndex,
+                UnitCount = uCount,
                 LessonCount = s?.Total ?? 0,
                 PublishedLessonCount = s?.Published ?? 0,
+                DraftLessonCount = s?.Draft ?? 0,
+                PendingReviewLessonCount = s?.PendingReview ?? 0,
+                ArchivedLessonCount = s?.Archived ?? 0,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             };
@@ -86,8 +105,12 @@ public class ContentService : IContentService
             return null;
         }
 
+        var unitCount = await _dbContext.Units.CountAsync(u => u.CourseId == id, cancellationToken);
         var totalLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id, cancellationToken);
         var publishedLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "PUBLISHED", cancellationToken);
+        var draftLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "DRAFT", cancellationToken);
+        var pendingLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "PENDING_REVIEW", cancellationToken);
+        var archivedLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "ARCHIVED", cancellationToken);
 
         return new CourseDto
         {
@@ -98,8 +121,12 @@ public class ContentService : IContentService
             HskLevel = course.HskLevel,
             Status = course.Status,
             OrderIndex = course.OrderIndex,
+            UnitCount = unitCount,
             LessonCount = totalLessons,
             PublishedLessonCount = publishedLessons,
+            DraftLessonCount = draftLessons,
+            PendingReviewLessonCount = pendingLessons,
+            ArchivedLessonCount = archivedLessons,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt
         };
@@ -149,8 +176,12 @@ public class ContentService : IContentService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        var unitCount = await _dbContext.Units.CountAsync(u => u.CourseId == id, cancellationToken);
         var totalLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id, cancellationToken);
         var publishedLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "PUBLISHED", cancellationToken);
+        var draftLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "DRAFT", cancellationToken);
+        var pendingLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "PENDING_REVIEW", cancellationToken);
+        var archivedLessons = await _dbContext.Lessons.CountAsync(l => l.CourseId == id && l.Status == "ARCHIVED", cancellationToken);
 
         return new CourseDto
         {
@@ -161,8 +192,12 @@ public class ContentService : IContentService
             HskLevel = course.HskLevel,
             Status = course.Status,
             OrderIndex = course.OrderIndex,
+            UnitCount = unitCount,
             LessonCount = totalLessons,
             PublishedLessonCount = publishedLessons,
+            DraftLessonCount = draftLessons,
+            PendingReviewLessonCount = pendingLessons,
+            ArchivedLessonCount = archivedLessons,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt
         };
@@ -264,6 +299,20 @@ public class ContentService : IContentService
 
     public async Task<UnitDto> CreateUnitAsync(CreateUnitDto dto, CancellationToken cancellationToken = default)
     {
+        var courseExists = await _dbContext.Courses.AnyAsync(c => c.Id == dto.CourseId, cancellationToken);
+        if (!courseExists)
+        {
+            throw new InvalidOperationException("Không tìm thấy khóa học tương ứng để tạo Unit.");
+        }
+
+        var duplicateUnitNumber = await _dbContext.Units.AnyAsync(
+            u => u.CourseId == dto.CourseId && u.UnitNumber == dto.UnitNumber,
+            cancellationToken);
+        if (duplicateUnitNumber)
+        {
+            throw new InvalidOperationException($"Unit #{dto.UnitNumber} đã tồn tại trong khóa học này.");
+        }
+
         var unit = new UnitEntity
         {
             Id = Guid.NewGuid(),
@@ -334,6 +383,12 @@ public class ContentService : IContentService
     {
         var unit = await _dbContext.Units.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
         if (unit == null) return false;
+
+        var hasLessons = await _dbContext.Lessons.AnyAsync(l => l.UnitId == id, cancellationToken);
+        if (hasLessons)
+        {
+            throw new InvalidOperationException("Không thể xóa Unit đang chứa bài học. Vui lòng xóa hoặc chuyển các bài học trước.");
+        }
 
         _dbContext.Units.Remove(unit);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -540,15 +595,27 @@ public class ContentService : IContentService
         };
     }
 
-    public async Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Standard HSK 2.0 lesson cap per course level: HSK 1 = 15, HSK 2 = 15, HSK 3 = 20, HSK 4 = 20 (70 total).
+    /// </summary>
+    public static int? ResolveStandardCurriculumLimit(int hskLevel) => hskLevel switch
     {
-        var course = await _dbContext.Courses.FindAsync(new object[] { dto.CourseId }, cancellationToken);
-        if (course == null)
-        {
-            throw new InvalidOperationException("Không tìm thấy khóa học tương ứng.");
-        }
+        1 or 2 => 15,
+        3 or 4 => 20,
+        _ => null,
+    };
 
-        var targetStatus = (dto.Status ?? "DRAFT").Trim().ToUpperInvariant();
+    /// <summary>
+    /// Validates curriculum rules before persisting a newly created lesson:
+    /// new lessons always default to DRAFT, reject direct PUBLISHED creation, and enforce HSK 1-4 quotas unless confirmed.
+    /// </summary>
+    public static string ValidateAndNormalizeNewLessonCreation(
+        int hskLevel,
+        int existingCourseLessonCount,
+        string? requestedStatus,
+        bool allowExceedStandardLimit)
+    {
+        var targetStatus = (requestedStatus ?? "DRAFT").Trim().ToUpperInvariant();
         if (targetStatus == "PUBLISHED")
         {
             throw new InvalidOperationException("Không thể tạo trực tiếp bài học ở trạng thái PUBLISHED. Mọi bài học mới bắt buộc phải khởi tạo ở trạng thái DRAFT và trải qua quy trình kiểm duyệt Release Gate.");
@@ -557,6 +624,52 @@ public class ContentService : IContentService
         {
             targetStatus = "DRAFT";
         }
+
+        var standardLimit = ResolveStandardCurriculumLimit(hskLevel);
+        if (standardLimit.HasValue && existingCourseLessonCount >= standardLimit.Value && !allowExceedStandardLimit)
+        {
+            throw new InvalidOperationException(
+                $"Khóa học HSK {hskLevel} đã đủ {standardLimit.Value}/{standardLimit.Value} bài theo chuẩn HSK 2.0. Không tự ý thêm bài thứ {existingCourseLessonCount + 1} khi chưa có xác nhận mở rộng quản trị.");
+        }
+
+        return targetStatus;
+    }
+
+    public async Task<LessonDto> CreateLessonAsync(CreateLessonDto dto, Guid? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        var course = await _dbContext.Courses.FindAsync(new object[] { dto.CourseId }, cancellationToken);
+        if (course == null)
+        {
+            throw new InvalidOperationException("Không tìm thấy khóa học tương ứng.");
+        }
+
+        if (dto.UnitId.HasValue && dto.UnitId.Value != Guid.Empty)
+        {
+            var unit = await _dbContext.Units.AsNoTracking().FirstOrDefaultAsync(u => u.Id == dto.UnitId.Value, cancellationToken);
+            if (unit == null)
+            {
+                throw new InvalidOperationException("Không tìm thấy Unit tương ứng để gắn bài học.");
+            }
+            if (unit.CourseId != dto.CourseId)
+            {
+                throw new InvalidOperationException("Unit được chọn không thuộc khóa học hiện tại.");
+            }
+        }
+
+        var duplicateLessonNumber = await _dbContext.Lessons.AnyAsync(
+            l => l.CourseId == dto.CourseId && l.LessonNumber == dto.LessonNumber,
+            cancellationToken);
+        if (duplicateLessonNumber)
+        {
+            throw new InvalidOperationException($"Bài số #{dto.LessonNumber} đã tồn tại trong khóa học {course.Code}. Không được tạo bài trùng số.");
+        }
+
+        var existingCount = await _dbContext.Lessons.CountAsync(l => l.CourseId == dto.CourseId, cancellationToken);
+        var targetStatus = ValidateAndNormalizeNewLessonCreation(
+            course.HskLevel,
+            existingCount,
+            dto.Status,
+            dto.AllowExceedStandardLimit);
 
         var lesson = new LessonEntity
         {
@@ -611,8 +724,33 @@ public class ContentService : IContentService
 
         if (dto.UnitId.HasValue)
         {
-            lesson.UnitId = dto.UnitId.Value == Guid.Empty ? null : dto.UnitId.Value;
+            if (dto.UnitId.Value == Guid.Empty)
+            {
+                lesson.UnitId = null;
+            }
+            else
+            {
+                var unit = await _dbContext.Units.AsNoTracking().FirstOrDefaultAsync(u => u.Id == dto.UnitId.Value, cancellationToken);
+                if (unit == null)
+                {
+                    throw new InvalidOperationException("Không tìm thấy Unit tương ứng để gắn bài học.");
+                }
+                if (unit.CourseId != lesson.CourseId)
+                {
+                    throw new InvalidOperationException("Unit được chọn không thuộc khóa học của bài học.");
+                }
+                lesson.UnitId = dto.UnitId.Value;
+            }
         }
+
+        var duplicateNumber = await _dbContext.Lessons.AnyAsync(
+            l => l.CourseId == lesson.CourseId && l.Id != id && l.LessonNumber == dto.LessonNumber,
+            cancellationToken);
+        if (duplicateNumber)
+        {
+            throw new InvalidOperationException($"Bài số #{dto.LessonNumber} đã tồn tại trong khóa học này. Không thể lưu trùng số bài.");
+        }
+
         lesson.LessonNumber = dto.LessonNumber;
         lesson.TitleZh = dto.TitleZh.Trim();
         lesson.TitleVi = dto.TitleVi.Trim();
@@ -813,14 +951,19 @@ public class ContentService : IContentService
             grammarCounts.GetValueOrDefault(l.Id, 0),
             exerciseCounts.GetValueOrDefault(l.Id, 0))).ToList();
 
+        var unitCount = await _dbContext.Units.CountAsync(u => u.CourseId == course.Id, cancellationToken);
+
         return new CoursePublicationReadinessDto
         {
             CourseId = course.Id,
             HskLevel = course.HskLevel,
             CourseTitle = course.Title,
             CourseStatus = course.Status,
+            UnitCount = unitCount,
+            StandardLessonTarget = ResolveStandardCurriculumLimit(course.HskLevel),
             TotalLessons = evaluations.Count,
             PublishedCount = evaluations.Count(x => x.CurrentStatus == "PUBLISHED"),
+            DraftCount = evaluations.Count(x => x.CurrentStatus == "DRAFT"),
             ReadyToPublishCount = evaluations.Count(x => x.CurrentStatus != "PUBLISHED" && x.IsReadyForPublish),
             PendingReviewCount = evaluations.Count(x => x.CurrentStatus == "PENDING_REVIEW"),
             BlockedCount = evaluations.Count(x => !x.IsReadyForPublish),

@@ -145,12 +145,20 @@ public class ContentController : BaseApiController
     [HttpPost("units")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(UnitDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUnit([FromBody] CreateUnitDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var created = await _contentService.CreateUnitAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetUnitById), new { id = created.Id }, created);
+        try
+        {
+            var created = await _contentService.CreateUnitAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetUnitById), new { id = created.Id }, created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "UNIT_VALIDATION_FAILED" });
+        }
     }
 
     [HttpPut("units/{id:guid}")]
@@ -172,15 +180,23 @@ public class ContentController : BaseApiController
     [HttpDelete("units/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUnit(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await _contentService.DeleteUnitAsync(id, cancellationToken);
-        if (!deleted)
+        try
         {
-            return NotFound(new { message = $"Không tìm thấy Unit với ID {id}." });
+            var deleted = await _contentService.DeleteUnitAsync(id, cancellationToken);
+            if (!deleted)
+            {
+                return NotFound(new { message = $"Không tìm thấy Unit với ID {id}." });
+            }
+            return NoContent();
         }
-        return NoContent();
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message, code = "CANNOT_DELETE_UNIT_WITH_LESSONS" });
+        }
     }
 
     // ==========================================

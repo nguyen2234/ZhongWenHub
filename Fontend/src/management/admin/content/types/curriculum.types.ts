@@ -9,7 +9,14 @@ export interface Course {
   code: string;
   name: string;
   description: string;
+  hskLevel?: number;
   status: ContentStatus;
+  unitCount?: number;
+  lessonCount?: number;
+  publishedLessonCount?: number;
+  draftLessonCount?: number;
+  pendingReviewLessonCount?: number;
+  archivedLessonCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,10 +56,12 @@ export interface Unit {
  */
 export interface Lesson {
   id: string;
+  courseId?: string;
   unitId: string;
   lessonNumber: number;
   titleZh: string;
   titleVi: string;
+  pinyin?: string;
   durationMinutes: number;
   xpReward: number;
   orderIndex: number;
@@ -100,11 +109,14 @@ export interface UpdateUnitDTO {
 }
 
 export interface UpdateLessonDTO {
+  lessonNumber?: number;
   titleZh: string;
   titleVi: string;
+  pinyin?: string;
   durationMinutes: number;
   xpReward: number;
   orderIndex: number;
   status: ContentStatus;
   summary: string;
+  allowExceedStandardLimit?: boolean;
 }

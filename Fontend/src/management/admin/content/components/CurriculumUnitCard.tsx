@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, Edit3, Eye, Clock, BookOpen, Layers, CheckSquare } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Edit3, Eye, Clock, BookOpen, Layers, CheckSquare, Trash2 } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import type { Lesson, Unit } from '../types';
 
@@ -7,20 +7,29 @@ export interface CurriculumUnitCardProps {
   unit: Unit;
   lessons: Lesson[];
   onEditUnit: (unit: Unit) => void;
+  onDeleteUnit?: (unit: Unit) => Promise<void> | void;
   onAddLesson: (unit: Unit) => void;
   onSelectLesson: (lesson: Lesson) => void;
   onEditLesson?: (lesson: Lesson) => void;
+  onDeleteLesson?: (lesson: Lesson) => Promise<void> | void;
 }
 
 export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
   unit,
   lessons,
   onEditUnit,
+  onDeleteUnit,
   onAddLesson,
   onSelectLesson,
   onEditLesson,
+  onDeleteLesson,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [confirmDeleteUnit, setConfirmDeleteUnit] = useState(false);
+  const [confirmDeleteLessonId, setConfirmDeleteLessonId] = useState<string | null>(null);
+
+  const publishedCount = lessons.filter((l) => l.status === 'PUBLISHED').length;
+  const draftCount = lessons.filter((l) => l.status === 'DRAFT').length;
 
   return (
     <div className={`lcm-unit-card ${isExpanded ? 'is-expanded' : ''}`}>
@@ -43,7 +52,7 @@ export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
 
         <div className="lcm-unit-meta" onClick={(e) => e.stopPropagation()}>
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
-            <strong>{unit.publishedLessonCount ?? lessons.filter((l) => l.status === 'PUBLISHED').length}</strong> / {lessons.length} bài đã xuất bản
+            <strong>{publishedCount}</strong> / {lessons.length} bài đã xuất bản · {draftCount} nháp
           </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
@@ -55,6 +64,31 @@ export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
             >
               <Edit3 size={13} /> Sửa Unit
             </button>
+            {onDeleteUnit && lessons.length === 0 && (
+              confirmDeleteUnit ? (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-sm"
+                  style={{ backgroundColor: 'var(--danger, #ef4444)', color: '#fff', borderColor: 'var(--danger, #ef4444)' }}
+                  onClick={async () => {
+                    setConfirmDeleteUnit(false);
+                    await onDeleteUnit(unit);
+                  }}
+                >
+                  <Trash2 size={13} /> Xác nhận xóa Unit
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="ds-btn ds-btn-ghost ds-btn-sm"
+                  onClick={() => setConfirmDeleteUnit(true)}
+                  title="Xóa Unit rỗng"
+                  style={{ color: 'var(--danger, #ef4444)' }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              )
+            )}
             <button
               type="button"
               className="ds-btn ds-btn-primary ds-btn-sm"
@@ -127,6 +161,31 @@ export const CurriculumUnitCard: React.FC<CurriculumUnitCardProps> = ({
                     >
                       <Edit3 size={13} /> Sửa
                     </button>
+                    {onDeleteLesson && lesson.status !== 'PUBLISHED' && (
+                      confirmDeleteLessonId === lesson.id ? (
+                        <button
+                          type="button"
+                          className="ds-btn ds-btn-sm"
+                          style={{ backgroundColor: 'var(--danger, #ef4444)', color: '#fff', borderColor: 'var(--danger, #ef4444)' }}
+                          onClick={async () => {
+                            setConfirmDeleteLessonId(null);
+                            await onDeleteLesson(lesson);
+                          }}
+                        >
+                          Xác nhận xóa
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="ds-btn ds-btn-ghost ds-btn-sm"
+                          onClick={() => setConfirmDeleteLessonId(lesson.id)}
+                          title="Xóa bài học chưa xuất bản"
+                          style={{ color: 'var(--danger, #ef4444)' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
