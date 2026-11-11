@@ -21,13 +21,23 @@ APPROVAL_TOKEN_FILE = os.path.join(STAGING_DIR, "USER_APPROVAL_TOKEN.signed")
 class SecurityException(Exception):
     pass
 
-def connect_to_verified_test_db():
+def validate_target_db_name(target_db):
+    if target_db == "ZhongWenHub_Dev":
+        raise SecurityException("CRITICAL VIOLATION: 'ZhongWenHub_Dev' is STRICTLY READ-ONLY! Immediate abort.")
+    if target_db != "ZhongWenHub_Test" and not target_db.startswith("ZhongWenHub_Ephemeral_"):
+        raise SecurityException(
+            f"Target DB mismatch: Only 'ZhongWenHub_Test' or 'ZhongWenHub_Ephemeral_*' allowed, got '{target_db}'!"
+        )
+
+
+def connect_to_verified_test_db(target_db="ZhongWenHub_Test"):
+    validate_target_db_name(target_db)
     import pyodbc
-    conn_str = "Driver={ODBC Driver 17 for SQL Server};Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=yes;Timeout=5;"
+    conn_str = f"Driver={{ODBC Driver 17 for SQL Server}};Server=.\\SQLEXPRESS;Database={target_db};Trusted_Connection=yes;TrustServerCertificate=yes;Timeout=5;"
     try:
         conn = pyodbc.connect(conn_str, autocommit=False)
     except Exception as e:
-        raise ConnectionError(f"Could not connect to ZhongWenHub_Test: {e}")
+        raise ConnectionError(f"Could not connect to {target_db}: {e}")
 
     cursor = conn.cursor()
     cursor.execute("SELECT DB_NAME()")
@@ -37,18 +47,17 @@ def connect_to_verified_test_db():
         conn.close()
         raise SecurityException("CRITICAL VIOLATION: Connected to read-only 'ZhongWenHub_Dev'! Immediate abort.")
 
-    if current_db != "ZhongWenHub_Test":
+    if current_db != target_db:
         conn.close()
-        raise SecurityException(f"Target DB mismatch: Expected 'ZhongWenHub_Test', but connected to '{current_db}'!")
+        raise SecurityException(f"Target DB mismatch: Expected '{target_db}', but connected to '{current_db}'!")
 
     return conn, cursor
 
-def create_snapshot():
-    print("=== Creating Pre-Import Record-Level Snapshot for ZhongWenHub_Test ===")
-    
+def create_snapshot(target_db="ZhongWenHub_Test", snapshot_file=SNAPSHOT_FILE):
+    print(f"=== Creating Pre-Import Record-Level Snapshot for {target_db} ===")
+    conn, cursor = connect_to_verified_test_db(target_db)
     try:
-        conn, cursor = connect_to_verified_test_db()
-        print(f"Connected to verified database: ZhongWenHub_Test")
+        print(f"Connected to verified database: {target_db}")
 
         # 1. Fetch vocabularies
         cursor.execute("SELECT Id, HskLevel, Hanzi, Pinyin, MeaningVi, PartOfSpeech, LessonId, Status FROM vocabularies")
@@ -95,87 +104,94 @@ def create_snapshot():
                 "dialogueJson": r[7],
                 "listeningJson": r[8]
             })
-
+    finally:
         conn.close()
 
-        snapshot = {
-            "database": "ZhongWenHub_Test",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": "LIVE_DB_RECORD_LEVEL_SNAPSHOT",
-            "counts": {
-                "vocabularies": len(vocab_rows),
-                "grammarPoints": len(grammar_rows),
-                "lessons": len(lesson_rows)
-            },
-            "vocabularies": vocab_rows,
-            "grammarPoints": grammar_rows,
-            "lessons": lesson_rows
-        }
-    except Exception as e:
-        print(f"ODBC query error ({e}). Using verified fallback snapshot structure.")
-        snapshot = {
-            "database": "ZhongWenHub_Test",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": "FALLBACK_SCHEMA_SNAPSHOT",
-            "counts": {
-                "vocabularies": 2022,
-                "grammarPoints": 461,
-                "lessons": 140
-            },
-            "vocabularies": [],
-            "grammarPoints": [],
-            "lessons": []
-        }
+    if not vocab_rows or not grammar_rows or not lesson_rows:
+        raise RuntimeError(
+            f"Refusing incomplete snapshot: vocabularies={len(vocab_rows)}, grammarPoints={len(grammar_rows)}, lessons={len(lesson_rows)}"
+        )
 
-    os.makedirs(STAGING_DIR, exist_ok=True)
-    with open(SNAPSHOT_FILE, "w", encoding="utf-8") as f:
+    snapshot = {
+        "database": target_db,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "status": "LIVE_DB_RECORD_LEVEL_SNAPSHOT",
+        "counts": {
+            "vocabularies": len(vocab_rows),
+            "grammarPoints": len(grammar_rows),
+            "lessons": len(lesson_rows)
+        },
+        "vocabularies": vocab_rows,
+        "grammarPoints": grammar_rows,
+        "lessons": lesson_rows
+    }
+
+    os.makedirs(os.path.dirname(os.path.abspath(snapshot_file)), exist_ok=True)
+    with open(snapshot_file, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
-    print(f"Snapshot successfully saved: {SNAPSHOT_FILE}")
+    print(f"Snapshot successfully saved: {snapshot_file}")
     print(f"Captured: {snapshot['counts']['vocabularies']} vocabularies, {snapshot['counts']['grammarPoints']} grammar points, {snapshot['counts']['lessons']} lessons.")
 
-def verify_rollback():
-    print("=== Verifying Rollback Snapshot Integrity ===")
-    if not os.path.exists(SNAPSHOT_FILE):
-        print(f"[ERROR] Snapshot file does not exist: {SNAPSHOT_FILE}")
+def verify_snapshot_payload(snap):
+    if snap.get("status") != "LIVE_DB_RECORD_LEVEL_SNAPSHOT":
         return False
-    with open(SNAPSHOT_FILE, "r", encoding="utf-8") as f:
+    return (
+        len(snap.get("vocabularies", [])) > 0
+        and len(snap.get("grammarPoints", [])) > 0
+        and len(snap.get("lessons", [])) > 0
+    )
+
+def verify_rollback(snapshot_file=SNAPSHOT_FILE):
+    print("=== Verifying Rollback Snapshot Integrity ===")
+    if not os.path.exists(snapshot_file):
+        print(f"[ERROR] Snapshot file does not exist: {snapshot_file}")
+        return False
+    with open(snapshot_file, "r", encoding="utf-8") as f:
         snap = json.load(f)
     print(f"Snapshot verified: DB={snap.get('database')}, timestamp={snap.get('timestamp')}")
     print(f"Stored counts: {snap.get('counts')}")
-    has_records = len(snap.get("vocabularies", [])) > 0 or snap.get("counts", {}).get("vocabularies", 0) > 0
-    print(f"Contains recoverable records: {has_records}")
+    has_records = verify_snapshot_payload(snap)
+    print(f"Contains complete recoverable records: {has_records}")
     return has_records
 
-def execute_rollback():
-    print("=== Executing Rollback on ZhongWenHub_Test ===")
-    if not os.path.exists(SNAPSHOT_FILE):
-        raise FileNotFoundError(f"Snapshot file not found: {SNAPSHOT_FILE}")
+def execute_rollback(target_db="ZhongWenHub_Test", snapshot_file=SNAPSHOT_FILE):
+    print(f"=== Executing Rollback on {target_db} ===")
+    if not os.path.exists(snapshot_file):
+        raise FileNotFoundError(f"Snapshot file not found: {snapshot_file}")
 
-    with open(SNAPSHOT_FILE, "r", encoding="utf-8") as f:
+    with open(snapshot_file, "r", encoding="utf-8") as f:
         snap = json.load(f)
 
-    if snap.get("database") != "ZhongWenHub_Test":
-        raise SecurityException(f"Snapshot targets '{snap.get('database')}', cannot rollback to ZhongWenHub_Test!")
+    if not verify_snapshot_payload(snap):
+        raise ValueError("Snapshot file does not contain recoverable record-level arrays. Aborting rollback.")
 
-    conn, cursor = connect_to_verified_test_db()
+    if snap.get("database") != target_db:
+        raise SecurityException(f"Snapshot targets '{snap.get('database')}', cannot rollback to '{target_db}'!")
+
+    conn, cursor = connect_to_verified_test_db(target_db)
     try:
-        print(f"Restoring {len(snap.get('vocabularies', []))} vocabularies and {len(snap.get('grammarPoints', []))} grammar points...")
-        
-        # Restore vocabularies
-        for v in snap.get("vocabularies", []):
+        print(f"Restoring {len(snap['vocabularies'])} vocabularies, {len(snap['grammarPoints'])} grammar points, and {len(snap['lessons'])} lessons...")
+
+        for v in snap["vocabularies"]:
             cursor.execute("""
                 UPDATE vocabularies
                 SET Pinyin = ?, MeaningVi = ?, PartOfSpeech = ?, LessonId = ?, Status = ?
                 WHERE Id = ?
             """, (v["pinyin"], v["meaningVi"], v.get("partOfSpeech", ""), v.get("lessonId"), v.get("status", "PUBLISHED"), v["id"]))
 
-        # Restore grammar points
-        for g in snap.get("grammarPoints", []):
+        for g in snap["grammarPoints"]:
             cursor.execute("""
                 UPDATE grammar_points
                 SET Code = ?, Title = ?, StructureFormula = ?, Explanation = ?, LessonId = ?, Status = ?
                 WHERE Id = ?
             """, (g["code"], g["title"], g["structureFormula"], g["explanation"], g.get("lessonId"), g.get("status", "PUBLISHED"), g["id"]))
+
+        for l in snap["lessons"]:
+            cursor.execute("""
+                UPDATE lessons
+                SET TitleZh = ?, TitleVi = ?, Pinyin = ?, Summary = ?, Status = ?, DialogueJson = ?, ListeningJson = ?
+                WHERE Id = ?
+            """, (l["titleZh"], l["titleVi"], l.get("pinyin"), l.get("summary"), l.get("status", "DRAFT"), l.get("dialogueJson"), l.get("listeningJson"), l["id"]))
 
         conn.commit()
         print("Rollback transaction successfully committed.")
@@ -191,11 +207,13 @@ if __name__ == "__main__":
     parser.add_argument("--snapshot", action="store_true", help="Create full record snapshot")
     parser.add_argument("--verify", action="store_true", help="Verify rollback snapshot integrity")
     parser.add_argument("--rollback", action="store_true", help="Execute rollback to snapshot state")
+    parser.add_argument("--target", default="ZhongWenHub_Test", help="Target database (ZhongWenHub_Test or ZhongWenHub_Ephemeral_*)")
+    parser.add_argument("--file", default=SNAPSHOT_FILE, help="Snapshot JSON file path")
     args = parser.parse_args()
 
     if args.rollback:
-        execute_rollback()
+        execute_rollback(args.target, args.file)
     elif args.verify:
-        verify_rollback()
+        sys.exit(0 if verify_rollback(args.file) else 1)
     else:
-        create_snapshot()
+        create_snapshot(args.target, args.file)

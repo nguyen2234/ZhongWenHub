@@ -1150,9 +1150,11 @@ public class ContentService : IContentService
         var lesson = await _dbContext.Lessons.FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         if (lesson == null) return false;
 
-        var idStr = id.ToString();
+        var idLower = id.ToString().ToLowerInvariant();
         var hasProgress = await _dbContext.StudentLessonProgresses.AnyAsync(
-            p => p.LessonId == idStr, cancellationToken);
+            p => p.LessonId.ToLower() == idLower
+                 || (idLower == "aaaaaaaa-1111-1111-1111-111111111111" && p.LessonId.ToLower() == "les-1"),
+            cancellationToken);
 
         if (hasProgress)
         {

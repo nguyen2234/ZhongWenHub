@@ -55,4 +55,52 @@ public class StudentProgressSafetyTests
         var stateDto = new StudentLearningStateDto();
         Assert.Equal(LearningService.Lesson1Guid, stateDto.CurrentLessonId);
     }
+
+    [Theory]
+    [InlineData("DRAFT")]
+    [InlineData("PENDING_REVIEW")]
+    [InlineData("ARCHIVED")]
+    [InlineData(null)]
+    [InlineData("")]
+    public void EnsureLessonPublishedOrThrow_NonPublishedLesson_ThrowsKeyNotFound(string? status)
+    {
+        Assert.Throws<KeyNotFoundException>(() =>
+            LearningService.EnsureLessonPublishedOrThrow(status, "aaaaaaaa-4444-4444-4444-444444444444"));
+    }
+
+    [Fact]
+    public void EnsureLessonPublishedOrThrow_PublishedLesson_DoesNotThrow()
+    {
+        LearningService.EnsureLessonPublishedOrThrow("PUBLISHED", LearningService.Lesson1Guid);
+        LearningService.EnsureLessonPublishedOrThrow("published", LearningService.Lesson1Guid);
+    }
+
+    [Theory]
+    [InlineData(0, 50)]
+    [InlineData(-100, 50)]
+    [InlineData(20, 20)]
+    [InlineData(99999, 200)]
+    public void ResolveServerLessonXp_ClampsAndDefaults(int dbXpReward, int expected)
+    {
+        Assert.Equal(expected, LearningService.ResolveServerLessonXp(dbXpReward));
+    }
+
+    [Theory]
+    [InlineData(0, 5, 5)]
+    [InlineData(5, 5, 25)]
+    [InlineData(100, 5, 25)]
+    [InlineData(100, 100, 100)]
+    public void ResolvePracticeSessionXp_PreventsClientSpoofing(int correct, int total, int expected)
+    {
+        Assert.Equal(expected, LearningService.ResolvePracticeSessionXp(correct, total));
+    }
+
+    [Theory]
+    [InlineData(0, 5)]
+    [InlineData(10, 30)]
+    [InlineData(9999, 60)]
+    public void ResolveSrsSessionXp_BoundsReviewedWords(int reviewedCount, int expected)
+    {
+        Assert.Equal(expected, LearningService.ResolveSrsSessionXp(reviewedCount));
+    }
 }

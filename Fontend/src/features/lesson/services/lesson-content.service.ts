@@ -8,10 +8,18 @@ import { httpClient } from '../../../core/api/client/http-client';
  * Service for fetching normalized lesson content (LessonDetailDTO).
  * Connects to ASP.NET Core REST API: GET /api/v1/content/lessons/{lessonId}
  */
+function isIsolatedTestRuntime(): boolean {
+  const mode = (import.meta as any)?.env?.MODE;
+  const g = globalThis as any;
+  const nodeEnv = g?.process?.env?.NODE_ENV;
+  const isBun = typeof g?.Bun !== 'undefined';
+  return mode === 'test' || nodeEnv === 'test' || isBun;
+}
+
 class LessonContentService {
   /**
    * Fetch normalized lesson details by ID.
-   * Connects to live Backend SQL Server API with graceful fallback to mock data.
+   * Connects to live Backend SQL Server API. Mock fixture fallback is strictly isolated to unit-test runtimes.
    */
   async getLessonDetail(lessonId: string = 'les-1'): Promise<LessonDetailDTO> {
     // 1. Always attempt to fetch from live Backend API
@@ -31,16 +39,26 @@ class LessonContentService {
         if (live && live.id) {
           return this.adaptLiveBackendToDetailDTO(live);
         }
+        throw new Error('Dữ liệu bài học trả về từ máy chủ không hợp lệ.');
       } catch (error: any) {
         // If 404 (e.g. DRAFT lesson hidden from Student, or not found), do not mask it with fake data!
         if (error?.status === 404 || error?.statusCode === 404) {
           throw new Error('Bài học không tồn tại hoặc chưa được phát hành (Draft).');
         }
-        console.warn('[LessonContentService] Live API fetch failed, checking local mocks:', error);
+        if (!isIsolatedTestRuntime()) {
+          throw new Error(
+            error?.message || 'Không thể tải nội dung bài học từ máy chủ. Vui lòng thử lại.'
+          );
+        }
+        console.warn('[LessonContentService] Isolated test runtime API unavailable, using test fixture:', error);
       }
     }
 
-    // 2. In mock mode / local dev without API, resolve metadata from curriculumData
+    if (!isIsolatedTestRuntime()) {
+      throw new Error('Không tìm thấy mã bài học hợp lệ.');
+    }
+
+    // 2. Isolated test-runtime fixture resolution only (never used in browser runtime)
     try {
       const detail = adaptEditorDraftToDetailDTO(MOCK_LESSON_8_DRAFT);
       if (lessonId) {
@@ -58,14 +76,14 @@ class LessonContentService {
             id: `level-hsk-${lessonMeta.hskLevel}`,
             code: `HSK${lessonMeta.hskLevel}`,
             name: `HSK ${lessonMeta.hskLevel}`,
-            standardCode: 'HSK_3_0',
-            standardVersion: '3.0',
+            standardCode: 'HSK_2_0',
+            standardVersion: '2.0',
           };
         }
       }
       return detail;
     } catch (error) {
-      console.warn('[LessonContentService] Error resolving draft, falling back to legacy bridge:', error);
+      console.warn('[LessonContentService] Error resolving test fixture, falling back to legacy bridge:', error);
       return this.legacyFallbackBridge(lesson8Data);
     }
   }
@@ -228,16 +246,16 @@ class LessonContentService {
     return {
       id: live.id,
       courseLevelId: 'level-hsk-1',
-      unitId: 'unit-1',
-      unitNumber: 1,
+      unitId: live.unitId || 'unit-1',
+      unitNumber: live.unitNumber || 1,
       lessonNumber: live.lessonNumber,
       status: live.status,
       hskLevel: {
         id: 'level-hsk-1',
         code: 'HSK1',
         name: 'HSK 1',
-        standardCode: 'HSK_3_0',
-        standardVersion: '3.0',
+        standardCode: 'HSK_2_0',
+        standardVersion: '2.0',
       },
       intro: {
         titleZh: live.titleZh,
@@ -280,8 +298,8 @@ class LessonContentService {
         id: `level-hsk-${legacy.hskLevel}`,
         code: `HSK${legacy.hskLevel}`,
         name: `HSK ${legacy.hskLevel}`,
-        standardCode: 'HSK_3_0',
-        standardVersion: '3.0',
+        standardCode: 'HSK_2_0',
+        standardVersion: '2.0',
       },
       intro: {
         titleZh: legacy.hanziTitle,

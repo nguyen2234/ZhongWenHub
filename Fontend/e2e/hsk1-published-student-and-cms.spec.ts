@@ -32,6 +32,36 @@ test.describe('Phase F: Full HSK 1 Publication (15/15) + Student Learning + Cont
     page,
     request,
   }) => {
+    // Negative Security Checks while Lesson 4 is still DRAFT: Student cannot read DRAFT content, record DRAFT progress, or mutate CMS endpoints
+    const studentPreToken = await loginApi(
+      request,
+      testCredentials.student.email,
+      testCredentials.student.password()
+    );
+    const draftL4Guid = 'aaaaaaaa-4444-4444-4444-444444444444';
+    const draftGetRes = await request.get(`/api/v1/content/lessons/${draftL4Guid}`, {
+      headers: { Authorization: `Bearer ${studentPreToken}` },
+    });
+    expect(draftGetRes.status()).toBe(404);
+
+    const draftProgRes = await request.put(`/api/v1/learning/me/lessons/${draftL4Guid}/progress`, {
+      headers: { Authorization: `Bearer ${studentPreToken}` },
+      data: { currentStepIndex: 2, maxUnlockedStepIndex: 2 },
+    });
+    expect(draftProgRes.status()).toBe(404);
+
+    const draftCompRes = await request.post(`/api/v1/learning/me/lessons/${draftL4Guid}/complete`, {
+      headers: { Authorization: `Bearer ${studentPreToken}` },
+      data: { quizScore: 5, totalQuizQuestions: 5, xpEarned: 99999 },
+    });
+    expect(draftCompRes.status()).toBe(404);
+
+    const studentCmsCreate = await request.post('/api/v1/content/lessons', {
+      headers: { Authorization: `Bearer ${studentPreToken}` },
+      data: { courseId: draftL4Guid, lessonNumber: 99, titleZh: 'Forbidden', titleVi: 'Forbidden' },
+    });
+    expect(studentCmsCreate.status()).toBe(403);
+
     // Login as Content Manager
     await page.goto('/ZhongWenHub/login');
     await page.fill('#login-email', testCredentials.contentManager.email);
@@ -192,10 +222,10 @@ test.describe('Phase F: Full HSK 1 Publication (15/15) + Student Learning + Cont
       await page.waitForTimeout(100);
     }
 
-    // Complete Lesson 4 via Backend API and verify idempotency (second call awards zero duplicate XP)
+    // Complete Lesson 4 via Backend API with spoofed client xpEarned=99999 and verify server uses DB XpReward + idempotency
     const complete1 = await request.post(`/api/v1/learning/me/lessons/${lesson4.id}/complete`, {
       headers: { Authorization: `Bearer ${studentToken}` },
-      data: { quizScore: 4, totalQuizQuestions: 5, xpEarned: 50 },
+      data: { quizScore: 4, totalQuizQuestions: 5, xpEarned: 99999 },
     });
     expect(complete1.ok()).toBeTruthy();
 
@@ -206,6 +236,7 @@ test.describe('Phase F: Full HSK 1 Publication (15/15) + Student Learning + Cont
     const summaryAfter1 = await summaryAfter1Res.json();
     const xpAfter1 = Number(summaryAfter1.xpTotal ?? summaryAfter1.totalXp ?? 0);
     expect(xpAfter1).toBeGreaterThanOrEqual(xpBefore);
+    expect(xpAfter1 - xpBefore).toBeLessThanOrEqual(200);
 
     // Re-submitting completion MUST NOT award duplicate XP
     const complete2 = await request.post(`/api/v1/learning/me/lessons/${lesson4.id}/complete`, {

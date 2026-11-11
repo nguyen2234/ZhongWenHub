@@ -424,7 +424,31 @@ public class LearningService : ILearningService
         }).ToList();
     }
 
-    private async Task<string> ResolveAndValidateLessonIdAsync(string? lessonId, CancellationToken cancellationToken)
+    public static int ResolveServerLessonXp(int dbXpReward)
+        => dbXpReward > 0 ? Math.Clamp(dbXpReward, 10, 200) : 50;
+
+    public static int ResolvePracticeSessionXp(int correctQuestions, int totalQuestions)
+    {
+        var validQuestions = Math.Clamp(totalQuestions, 1, 50);
+        var validCorrect = Math.Clamp(correctQuestions, 0, validQuestions);
+        return Math.Clamp(validCorrect * 5, 5, 100);
+    }
+
+    public static int ResolveSrsSessionXp(int wordsReviewedCount)
+    {
+        var reviewedCount = Math.Clamp(wordsReviewedCount, 1, 50);
+        return Math.Clamp(reviewedCount * 3, 5, 60);
+    }
+
+    public static void EnsureLessonPublishedOrThrow(string? status, string lessonId)
+    {
+        if (!string.Equals(status, "PUBLISHED", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new KeyNotFoundException($"Bài học '{lessonId}' chưa được xuất bản.");
+        }
+    }
+
+    private async Task<(string NormalizedId, int ServerXpReward)> ResolveAndValidateLessonIdAsync(string? lessonId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(lessonId))
         {
@@ -442,17 +466,13 @@ public class LearningService : ILearningService
                 var matched = await _context.Lessons.AsNoTracking()
                     .Include(l => l.Course)
                     .Where(l => (l.Course == null || l.Course.HskLevel == 1) && (l.LessonNumber == lessonNum || l.OrderIndex == lessonNum))
-                    .Select(l => l.Id)
+                    .Select(l => new { l.Id, l.Status, l.XpReward })
                     .FirstOrDefaultAsync(cancellationToken);
 
-                if (matched != Guid.Empty)
+                if (matched != null)
                 {
-                    return matched.ToString().ToLowerInvariant();
-                }
-
-                if (lessonNum == 1)
-                {
-                    return Lesson1Guid;
+                    EnsureLessonPublishedOrThrow(matched.Status, lessonId);
+                    return (matched.Id.ToString().ToLowerInvariant(), ResolveServerLessonXp(matched.XpReward));
                 }
 
                 throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
@@ -463,12 +483,18 @@ public class LearningService : ILearningService
         // 2. Check if it's a GUID
         if (Guid.TryParse(trimmed, out var guid))
         {
-            var exists = await _context.Lessons.AsNoTracking().AnyAsync(l => l.Id == guid, cancellationToken);
-            if (exists || guid == Guid.Parse(Lesson1Guid))
+            var matched = await _context.Lessons.AsNoTracking()
+                .Where(l => l.Id == guid)
+                .Select(l => new { l.Id, l.Status, l.XpReward })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (matched == null)
             {
-                return guid.ToString().ToLowerInvariant();
+                throw new KeyNotFoundException($"Không tìm thấy bài học với GUID '{lessonId}'.");
             }
-            throw new KeyNotFoundException($"Không tìm thấy bài học với GUID '{lessonId}'.");
+
+            EnsureLessonPublishedOrThrow(matched.Status, lessonId);
+            return (guid.ToString().ToLowerInvariant(), ResolveServerLessonXp(matched.XpReward));
         }
 
         throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
@@ -476,7 +502,7 @@ public class LearningService : ILearningService
 
     public async Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default)
     {
-        var normalizedId = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
+        var (normalizedId, _) = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
         var isLesson1 = IsLesson1(lessonId);
 
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
@@ -537,7 +563,7 @@ public class LearningService : ILearningService
 
     public async Task<StudentLearningStateDto> CompleteLessonAsync(Guid userId, string lessonId, CompleteLessonDto dto, CancellationToken cancellationToken = default)
     {
-        var normalizedId = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
+        var (normalizedId, serverXpReward) = await ResolveAndValidateLessonIdAsync(lessonId, cancellationToken);
         var isLesson1 = IsLesson1(lessonId);
 
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
@@ -550,7 +576,8 @@ public class LearningService : ILearningService
                 .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
 
         var now = DateTime.UtcNow;
-        var xpAmount = dto.XpEarned > 0 ? dto.XpEarned : 100;
+        // Always derive XP from authoritative DB Lesson.XpReward, ignoring client-supplied dto.XpEarned.
+        var xpAmount = serverXpReward;
 
         if (lesson == null)
         {
@@ -687,7 +714,7 @@ public class LearningService : ILearningService
         var yesterdayStr = GetYesterdayDateString();
 
         var eventId = $"practice_session_{dto.SessionId}";
-        var xpAmount = dto.XpEarned > 0 ? dto.XpEarned : 20;
+        var xpAmount = ResolvePracticeSessionXp(dto.CorrectQuestions, dto.TotalQuestions);
 
         await AwardIdempotentXpAsync(profile, eventId, xpAmount, "PRACTICE_SESSION", $"Luyện tập {dto.SessionId}", todayStr, cancellationToken);
 
@@ -834,7 +861,7 @@ public class LearningService : ILearningService
         var yesterdayStr = GetYesterdayDateString();
 
         var eventId = $"srs_session_{todayStr}_{DateTime.UtcNow.Ticks}";
-        var xpAmount = dto.SessionXp > 0 ? dto.SessionXp : 30;
+        var xpAmount = ResolveSrsSessionXp(dto.WordsReviewedCount);
 
         await AwardIdempotentXpAsync(profile, eventId, xpAmount, "SRS_SESSION", "Ôn tập thẻ từ vựng SRS", todayStr, cancellationToken);
 

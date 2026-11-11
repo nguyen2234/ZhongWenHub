@@ -177,6 +177,28 @@ def run_negative_suite():
     print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
     results.append({"id": "NEG-2.4", "name": "Catch Illegal HSK 4A/4B Sublevels", "status": "PASS" if t_pass else "FAIL"})
 
+    # NEG 2.5: REJECT EMPTY FALLBACK SNAPSHOT PAYLOAD
+    print("--- [NEG 2.5] Catch Empty Fallback Snapshot & Database Lock ---")
+    from scripts.hsk20.snapshot_and_rollback import verify_snapshot_payload, validate_target_db_name, SecurityException
+    fake_empty_snap = {
+        "database": "ZhongWenHub_Test",
+        "status": "FALLBACK_SCHEMA_SNAPSHOT",
+        "counts": {"vocabularies": 2022, "grammarPoints": 461, "lessons": 140},
+        "vocabularies": [],
+        "grammarPoints": [],
+        "lessons": [],
+    }
+    rejected_empty = not verify_snapshot_payload(fake_empty_snap)
+    dev_blocked = False
+    try:
+        validate_target_db_name("ZhongWenHub_Dev")
+    except SecurityException:
+        dev_blocked = True
+    t_pass = rejected_empty and dev_blocked
+    print(f"  Rejected empty snapshot: {rejected_empty} | Blocked ZhongWenHub_Dev: {dev_blocked}")
+    print(f"  STATUS: {'PASS' if t_pass else 'FAIL'}\n")
+    results.append({"id": "NEG-2.5", "name": "Reject Empty Snapshot & Block ZhongWenHub_Dev", "status": "PASS" if t_pass else "FAIL"})
+
     return results
 
 def main():
