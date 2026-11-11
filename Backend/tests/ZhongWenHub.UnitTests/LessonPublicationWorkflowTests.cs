@@ -43,6 +43,22 @@ public class LessonPublicationWorkflowTests
         var leakResult = ContentService.EvaluateLessonReleaseReadiness(badDialogueLesson, vocabCount: 10, grammarCount: 2, exerciseCount: 2);
         Assert.False(leakResult.DialogueValid);
         Assert.False(leakResult.IsReadyForPublish);
+
+        // '(Bản thảo)' placeholder label -> BLOCKED
+        var draftLabelLesson = BuildCompleteLesson();
+        draftLabelLesson.TitleVi = "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)";
+        var draftLabelResult = ContentService.EvaluateLessonReleaseReadiness(draftLabelLesson, vocabCount: 10, grammarCount: 2, exerciseCount: 2);
+        Assert.False(draftLabelResult.IsReadyForPublish);
+        Assert.Equal("BLOCKED", draftLabelResult.ReadinessState);
+        Assert.Contains(draftLabelResult.BlockerReasons, r => r.Contains("Bản thảo"));
+
+        // Unpublished parent Unit -> BLOCKED
+        var draftUnitLesson = BuildCompleteLesson();
+        draftUnitLesson.Unit = new UnitEntity { Id = Guid.NewGuid(), UnitNumber = 3, TitleVi = "Unit 3", Status = "DRAFT" };
+        var draftUnitResult = ContentService.EvaluateLessonReleaseReadiness(draftUnitLesson, vocabCount: 10, grammarCount: 2, exerciseCount: 2);
+        Assert.False(draftUnitResult.IsReadyForPublish);
+        Assert.Equal("BLOCKED", draftUnitResult.ReadinessState);
+        Assert.Contains(draftUnitResult.BlockerReasons, r => r.Contains("Unit 3"));
     }
 
     [Fact]
@@ -89,3 +105,4 @@ public class LessonPublicationWorkflowTests
         ContentService.ValidateLessonPublishTransition(readyLesson, reviewerId, readyDto);
     }
 }
+

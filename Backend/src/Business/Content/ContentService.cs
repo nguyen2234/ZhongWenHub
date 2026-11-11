@@ -744,9 +744,15 @@ public class ContentService : IContentService
             .FirstOrDefaultAsync(l => l.Id == lessonId, cancellationToken);
         if (lesson == null) return null;
 
-        var vocabCount = await _dbContext.Vocabularies.CountAsync(v => v.LessonId == lessonId, cancellationToken);
-        var grammarCount = await _dbContext.GrammarPoints.CountAsync(g => g.LessonId == lessonId, cancellationToken);
-        var exerciseCount = await _dbContext.Exercises.CountAsync(e => e.LessonId == lessonId, cancellationToken);
+        var vocabCount = await _dbContext.Vocabularies.CountAsync(
+            v => v.LessonId == lessonId && v.Status != "ARCHIVED" && !string.IsNullOrWhiteSpace(v.MeaningVi),
+            cancellationToken);
+        var grammarCount = await _dbContext.GrammarPoints.CountAsync(
+            g => g.LessonId == lessonId && g.Status != "ARCHIVED" && (g.ExamplesJson == null || !g.ExamplesJson.Contains("在中文交流中，我们经常使用")),
+            cancellationToken);
+        var exerciseCount = await _dbContext.Exercises.CountAsync(
+            e => e.LessonId == lessonId && e.Status != "ARCHIVED",
+            cancellationToken);
 
         return EvaluateLessonReleaseReadiness(lesson, vocabCount, grammarCount, exerciseCount);
     }
@@ -780,7 +786,7 @@ public class ContentService : IContentService
         var vocabCounts = lessonIds.Count == 0
             ? new Dictionary<Guid, int>()
             : await _dbContext.Vocabularies.AsNoTracking()
-                .Where(v => v.LessonId.HasValue && lessonIds.Contains(v.LessonId.Value))
+                .Where(v => v.LessonId.HasValue && lessonIds.Contains(v.LessonId.Value) && v.Status != "ARCHIVED" && !string.IsNullOrWhiteSpace(v.MeaningVi))
                 .GroupBy(v => v.LessonId!.Value)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
@@ -788,7 +794,7 @@ public class ContentService : IContentService
         var grammarCounts = lessonIds.Count == 0
             ? new Dictionary<Guid, int>()
             : await _dbContext.GrammarPoints.AsNoTracking()
-                .Where(g => g.LessonId.HasValue && lessonIds.Contains(g.LessonId.Value))
+                .Where(g => g.LessonId.HasValue && lessonIds.Contains(g.LessonId.Value) && g.Status != "ARCHIVED" && (g.ExamplesJson == null || !g.ExamplesJson.Contains("在中文交流中，我们经常使用")))
                 .GroupBy(g => g.LessonId!.Value)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
@@ -796,7 +802,7 @@ public class ContentService : IContentService
         var exerciseCounts = lessonIds.Count == 0
             ? new Dictionary<Guid, int>()
             : await _dbContext.Exercises.AsNoTracking()
-                .Where(e => e.LessonId.HasValue && lessonIds.Contains(e.LessonId.Value))
+                .Where(e => e.LessonId.HasValue && lessonIds.Contains(e.LessonId.Value) && e.Status != "ARCHIVED")
                 .GroupBy(e => e.LessonId!.Value)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
@@ -942,6 +948,24 @@ public class ContentService : IContentService
         if (exerciseCount < 1)
         {
             blockerReasons.Add("Bài học chưa có bài tập tương tác kiểm tra đầu ra.");
+        }
+
+        // Gate 0: Metadata completeness, draft placeholders & published Unit check
+        if (string.IsNullOrWhiteSpace(lesson.TitleZh) || string.IsNullOrWhiteSpace(lesson.TitleVi))
+        {
+            blockerReasons.Add("Tiêu đề bài học (TitleZh/TitleVi) không được để trống.");
+        }
+
+        if ((lesson.TitleVi?.Contains("Bản thảo", StringComparison.OrdinalIgnoreCase) ?? false)
+            || (lesson.TitleZh?.Contains("Bản thảo", StringComparison.OrdinalIgnoreCase) ?? false)
+            || (lesson.DialogueJson?.Contains("Bản thảo", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            blockerReasons.Add("Nội dung hoặc tiêu đề bài học còn nhãn '(Bản thảo)'.");
+        }
+
+        if (lesson.Unit != null && !lesson.Unit.Status.Equals("PUBLISHED", StringComparison.OrdinalIgnoreCase))
+        {
+            blockerReasons.Add($"Unit {lesson.Unit.UnitNumber} chứa bài học đang ở trạng thái {lesson.Unit.Status} (yêu cầu PUBLISHED).");
         }
 
         bool audioExists = dialogueValid && listeningValid;
