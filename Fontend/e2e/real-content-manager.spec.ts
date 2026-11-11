@@ -4,12 +4,13 @@ import { testCredentials } from './config/test-credentials.config';
 
 async function loginViaUi(
   page: Page,
-  email = 'content.hongphuc.demo@zhongwenhub.edu.vn',
-  password = 'Demo@2026!ZhongWen'
+  email = testCredentials.contentManager.email,
+  password?: string
 ) {
+  const resolvedPassword = password ?? testCredentials.contentManager.password();
   await page.goto('/ZhongWenHub/login');
   await page.fill('#login-email', email);
-  await page.fill('#login-password', password);
+  await page.fill('#login-password', resolvedPassword);
   await Promise.all([
     page.waitForResponse((res) => res.url().includes('/auth/login') && res.status() === 200),
     page.click('button[type="submit"]'),

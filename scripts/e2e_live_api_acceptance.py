@@ -1,12 +1,81 @@
+"""
+ZhongWenHub E2E Live API Acceptance Script
+===========================================
+
+This script verifies authentication, RBAC, CMS content, and student learning APIs
+against a live backend instance.
+
+REQUIRED environment variables (no defaults — script will exit with instructions if missing):
+  E2E_ADMIN_PASSWORD            Admin account password
+  E2E_CONTENT_MANAGER_PASSWORD  Content Manager account password
+  E2E_TEACHER_PASSWORD          Teacher account password
+  E2E_STUDENT_PASSWORD          Student account password
+
+OPTIONAL environment variables (defaults shown):
+  E2E_ADMIN_EMAIL               admin@gmail.com
+  E2E_CONTENT_MANAGER_EMAIL     content.hongphuc.demo@zhongwenhub.edu.vn
+  E2E_TEACHER_EMAIL             teacher.son.demo@zhongwenhub.edu.vn
+  E2E_STUDENT_EMAIL             student.an.demo@zhongwenhub.edu.vn
+  E2E_API_BASE_URL              http://127.0.0.1:5000/api/v1
+
+Setup example (mirror the pattern used in Fontend/.env.local):
+  # Windows PowerShell
+  $env:E2E_ADMIN_PASSWORD = "..."
+  $env:E2E_CONTENT_MANAGER_PASSWORD = "..."
+  $env:E2E_TEACHER_PASSWORD = "..."
+  $env:E2E_STUDENT_PASSWORD = "..."
+  python scripts/e2e_live_api_acceptance.py
+
+  # Linux / macOS
+  export E2E_ADMIN_PASSWORD="..."
+  export E2E_CONTENT_MANAGER_PASSWORD="..."
+  export E2E_TEACHER_PASSWORD="..."
+  export E2E_STUDENT_PASSWORD="..."
+  python scripts/e2e_live_api_acceptance.py
+"""
+
 import sys
+import os
 import urllib.request
+import urllib.error
 import json
 import uuid
 
 # Force UTF-8 output
 sys.stdout.reconfigure(encoding='utf-8')
 
-BASE_URL = "http://127.0.0.1:5000/api/v1"
+# --- Credentials from environment variables ---
+ADMIN_EMAIL = os.environ.get('E2E_ADMIN_EMAIL', 'admin@gmail.com')
+ADMIN_PASSWORD = os.environ.get('E2E_ADMIN_PASSWORD', '')
+CM_EMAIL = os.environ.get('E2E_CONTENT_MANAGER_EMAIL', 'content.hongphuc.demo@zhongwenhub.edu.vn')
+CM_PASSWORD = os.environ.get('E2E_CONTENT_MANAGER_PASSWORD', '')
+TEACHER_EMAIL = os.environ.get('E2E_TEACHER_EMAIL', 'teacher.son.demo@zhongwenhub.edu.vn')
+TEACHER_PASSWORD = os.environ.get('E2E_TEACHER_PASSWORD', '')
+STUDENT_EMAIL = os.environ.get('E2E_STUDENT_EMAIL', 'student.an.demo@zhongwenhub.edu.vn')
+STUDENT_PASSWORD = os.environ.get('E2E_STUDENT_PASSWORD', '')
+
+BASE_URL = os.environ.get('E2E_API_BASE_URL', 'http://127.0.0.1:5000/api/v1')
+
+# --- Validate required env vars before making any network calls ---
+_required = {
+    'E2E_ADMIN_PASSWORD': ADMIN_PASSWORD,
+    'E2E_CONTENT_MANAGER_PASSWORD': CM_PASSWORD,
+    'E2E_TEACHER_PASSWORD': TEACHER_PASSWORD,
+    'E2E_STUDENT_PASSWORD': STUDENT_PASSWORD,
+}
+_missing = [k for k, v in _required.items() if not v]
+if _missing:
+    print("[FATAL] The following required environment variables are not set:")
+    for var in _missing:
+        print(f"  - {var}")
+    print("\nPlease set them before running this script.")
+    print("Example (PowerShell):")
+    for var in _missing:
+        print(f"  $env:{var} = '<password>'")
+    print("  python scripts/e2e_live_api_acceptance.py")
+    print("\nSee Fontend/.env.local for the pattern used for frontend credentials.")
+    sys.exit(1)
+
 
 def request_json(method, endpoint, data=None, token=None):
     payload = json.dumps(data).encode('utf-8') if data is not None else None
@@ -26,22 +95,22 @@ def request_json(method, endpoint, data=None, token=None):
             return e.code, body
 
 print("=== 1. AUTHENTICATION OF REAL ROLES IN ZHONGWENHUB_DEV ===")
-status, res = request_json("POST", "/auth/login", {"usernameOrEmail": "admin@gmail.com", "password": "admin"})
+status, res = request_json("POST", "/auth/login", {"usernameOrEmail": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
 assert status == 200, f"Admin login failed: {status} {res}"
 admin_token = res["accessToken"]
 print(" [PASS] Admin login SUCCESS (200 OK) - Roles:", res.get("user", {}).get("roles"))
 
-status, res = request_json("POST", "/auth/login", {"usernameOrEmail": "content.hongphuc.demo@zhongwenhub.edu.vn", "password": "Demo@2026!ZhongWen"})
+status, res = request_json("POST", "/auth/login", {"usernameOrEmail": CM_EMAIL, "password": CM_PASSWORD})
 assert status == 200, f"ContentManager login failed: {status} {res}"
 cm_token = res["accessToken"]
 print(" [PASS] ContentManager login SUCCESS (200 OK) - Roles:", res.get("user", {}).get("roles"))
 
-status, res = request_json("POST", "/auth/login", {"usernameOrEmail": "teacher.son.demo@zhongwenhub.edu.vn", "password": "Demo@2026!ZhongWen"})
+status, res = request_json("POST", "/auth/login", {"usernameOrEmail": TEACHER_EMAIL, "password": TEACHER_PASSWORD})
 assert status == 200, f"Teacher login failed: {status} {res}"
 teacher_token = res["accessToken"]
 print(" [PASS] Teacher login SUCCESS (200 OK) - Roles:", res.get("user", {}).get("roles"))
 
-status, res = request_json("POST", "/auth/login", {"usernameOrEmail": "student.an.demo@zhongwenhub.edu.vn", "password": "Demo@2026!ZhongWen"})
+status, res = request_json("POST", "/auth/login", {"usernameOrEmail": STUDENT_EMAIL, "password": STUDENT_PASSWORD})
 assert status == 200, f"Student login failed: {status} {res}"
 student_token = res["accessToken"]
 print(" [PASS] Student login SUCCESS (200 OK) - Roles:", res.get("user", {}).get("roles"))

@@ -127,8 +127,8 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
     }
 
     // 5.4 Re-login
-    await page.fill('#login-email', 'student.an.demo@zhongwenhub.edu.vn');
-    await page.fill('#login-password', 'Demo@2026!ZhongWen');
+    await page.fill('#login-email', testCredentials.student.email);
+    await page.fill('#login-password', testCredentials.student.password());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 12000 });
 
