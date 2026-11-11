@@ -31,9 +31,11 @@ publish/
 .DS_Store
 Thumbs.db
 
-# Test outputs
+# Test outputs & temporary scratch artifacts
 test-results/
 playwright-report/
+Fontend/scratch/
+Fontend/screenshots/*.png
 
 # Python
 __pycache__/

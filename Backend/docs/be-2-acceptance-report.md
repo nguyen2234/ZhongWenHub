@@ -90,18 +90,19 @@
 ## F. BẢO MẬT & COMPLIANCE
 
 1. **JWT Signature & Claims:** Khóa ký HS256 tối thiểu 32 ký tự, mã hóa đầy đủ thông tin người dùng và vai trò.
-2. **HttpOnly Cookie:** Refresh token không thể truy cập từ JavaScript, ngăn chặn đánh cắp qua XSS.
-3. **Chống tấn công lặp / vô hạn:** `HttpClient` phía Frontend và `AuthService` phía Backend chặn lặp refresh 401 không kiểm soát.
+2. **HttpOnly Cookie & Hash Storage:** Refresh token thô chỉ trả qua cookie `HttpOnly` (`Path=/api/v1/auth`); dữ liệu lưu trong DB là giá trị băm SHA-256 (`TokenHash`).
+3. **Token Reuse & Chống lặp 401:** Khi phát hiện Refresh Token đã thu hồi (`IsRevoked == true`) được gửi lại, hệ thống thu hồi khẩn cấp toàn bộ token đang hoạt động của user và ghi audit log; `HttpClient` phía Frontend chặn lặp refresh 401 không kiểm soát.
 4. **Phòng chống leo quyền (Anti-Privilege Escalation):**
    - Admin không thể cấp `SUPER_ADMIN`.
    - Admin không thể sửa đổi hoặc khóa `SUPER_ADMIN`.
    - Người dùng không thể tự gán vai trò cho bản thân.
    - Không thể xóa hoặc khóa Super Admin duy nhất.
 5. **Audit Logging:** Toàn bộ thao tác nhạy cảm được ghi log vào `auth_audit_records`.
+6. **Ghi chú kiến trúc lịch sử:** Ở thời điểm BE-2 (`29/10/2026`), Backend dùng Clean Architecture 4 project (`Domain`, `Application`, `Infrastructure`, `Api` với PostgreSQL Npgsql) trước khi được tái cấu trúc sang 3 tầng `Api/Business/Data` + SQL Server.
 
 ---
 
-## G. KẾT LUẬN & ĐÁNH GIÁ
+## G. KẾT QUẢ & ĐÁNH GIÁ
 
 Hệ thống BE-2 đã hoàn thành toàn diện 100% các tiêu chí yêu cầu của đồ án ZhongWenHub. Luồng xác thực, phân quyền RBAC và quản lý tài khoản người dùng hoạt động ổn định, chính xác và an toàn trên cả Backend (.NET 8 + PostgreSQL) và Frontend (React 19 + Bun).
 
