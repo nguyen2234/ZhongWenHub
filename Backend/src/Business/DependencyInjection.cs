@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
 using ZhongWenHub.Business.Common;
@@ -99,6 +100,12 @@ public static class DependencyInjection
         services.AddScoped<IExamService, ExamService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        // AI Tutor & Gemini Provider
+        services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
+        services.AddHttpClient<IAIProvider, GeminiProvider>();
+        services.AddScoped<IAITutorContextVerifier, EfAITutorContextVerifier>();
+        services.AddScoped<IAITutorService, AITutorService>();
 
         return services;
     }

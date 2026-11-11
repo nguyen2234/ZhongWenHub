@@ -90,7 +90,12 @@ function getCopyableMessageText(message: AITutorMessage): string {
       return '';
     })
     .filter(Boolean);
-  return parts.join('\n\n') || message.structuredResponse?.summary || '';
+  return (
+    parts.join('\n\n') ||
+    message.structuredResponse?.markdownFallback ||
+    message.structuredResponse?.summary ||
+    ''
+  );
 }
 
 export const AITutorMessageItem: React.FC<AITutorMessageItemProps> = ({
@@ -213,7 +218,9 @@ export const AITutorMessageItem: React.FC<AITutorMessageItemProps> = ({
             }}
           >
             {renderFormattedContent(
-              message.content || 'Mình có thể hỗ trợ gì cho bạn hôm nay?'
+              message.content ||
+                message.structuredResponse?.markdownFallback ||
+                'Mình có thể hỗ trợ gì cho bạn hôm nay?'
             )}
           </div>
         )}

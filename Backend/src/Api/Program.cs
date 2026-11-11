@@ -51,6 +51,9 @@ builder.Services.AddRateLimiter(options =>
     var loginPermitLimit = builder.Configuration.GetValue<int?>("RateLimiting:LoginPermitLimit")
         ?? (builder.Environment.IsDevelopment() ? 60 : 20);
 
+    var aiTutorPermitLimit = builder.Configuration.GetValue<int?>("Gemini:RateLimitPermitPerMinute")
+        ?? (builder.Environment.IsDevelopment() ? 30 : 20);
+
     options.AddPolicy("LoginRateLimit", httpContext =>
     {
         var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -64,16 +67,39 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
+
+    options.AddPolicy("AITutorRateLimit", httpContext =>
+    {
+        var userId = httpContext.User?.FindFirst("sub")?.Value
+            ?? httpContext.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var partitionKey = !string.IsNullOrWhiteSpace(userId)
+            ? $"user:{userId}"
+            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: partitionKey,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = aiTutorPermitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
     options.OnRejected = async (context, token) =>
     {
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "application/problem+json";
+        var isAiTutor = context.HttpContext.Request.Path.StartsWithSegments("/api/v1/ai-tutor");
         var problem = new ApiProblemDetailsDto
         {
             Type = "https://httpstatuses.com/429",
             Title = "Quá nhiều yêu cầu",
             Status = StatusCodes.Status429TooManyRequests,
-            Detail = "Bạn đã thực hiện quá nhiều yêu cầu đăng nhập từ địa chỉ IP này. Vui lòng thử lại sau ít phút.",
+            Detail = isAiTutor
+                ? "Bạn đang gửi quá nhiều câu hỏi tới Trợ giảng AI. Vui lòng đợi ít phút rồi thử lại."
+                : "Bạn đã thực hiện quá nhiều yêu cầu đăng nhập từ địa chỉ IP này. Vui lòng thử lại sau ít phút.",
             Instance = context.HttpContext.Request.Path,
             TraceId = context.HttpContext.TraceIdentifier
         };

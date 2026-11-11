@@ -51,6 +51,7 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const hasInitializedWelcomeRef = useRef(false);
   const isNearBottomRef = useRef(true);
@@ -94,6 +95,7 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
       isSendingRef.current = true;
       forceScrollRef.current = true;
       setSendError(null);
+      setLastFailedPrompt(null);
 
       const userMsgId = `msg-u-${Date.now()}`;
       const userMsg: AITutorMessage = {
@@ -127,10 +129,11 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
 
         setMessages((prev) => [...prev, aiMsg]);
         return true;
-      } catch {
+      } catch (err) {
         // Roll back pending user bubble so draft stays in input ready for retry without duplication
         setMessages((prev) => prev.filter((m) => m.id !== userMsgId));
-        setSendError('Không thể gửi tin nhắn lúc này. Nội dung bạn nhập vẫn được giữ lại.');
+        setLastFailedPrompt(trimmed);
+        setSendError(AITutorService.getErrorMessage(err));
         return false;
       } finally {
         isSendingRef.current = false;
@@ -348,20 +351,44 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
             </div>
           )}
 
-          {/* Non-blocking Send Error Notice (preserves user draft in input) */}
+          {/* Non-blocking Send Error Notice (preserves user draft in input + retry) */}
           {sendError && (
             <div
               role="alert"
               style={{
-                padding: '8px 12px',
+                padding: '10px 12px',
                 borderRadius: '10px',
                 backgroundColor: '#fef2f2',
                 border: '1px solid #fecaca',
                 color: '#b91c1c',
                 fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
               }}
             >
-              {sendError}
+              <span style={{ lineHeight: 1.4 }}>{sendError}</span>
+              {lastFailedPrompt && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => void handleSendMessage(lastFailedPrompt)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '4px 10px',
+                    borderRadius: '9999px',
+                    border: '1px solid #fca5a5',
+                    backgroundColor: '#ffffff',
+                    color: '#b91c1c',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Thử lại
+                </button>
+              )}
             </div>
           )}
         </div>

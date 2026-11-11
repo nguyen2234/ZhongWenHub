@@ -70,6 +70,8 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [lastFailedQuery, setLastFailedQuery] = useState<string | null>(null);
   const [showPinyin, setShowPinyin] = useState<boolean>(true);
   const [showTranslation, setShowTranslation] = useState<boolean>(true);
   const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState<boolean>(false);
@@ -127,6 +129,8 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
 
     isSendingRef.current = true;
     forceScrollRef.current = true;
+    setSendError(null);
+    setLastFailedQuery(null);
     const draftBeforeSend = inputText;
     if (!textToSend) {
       setInputText('');
@@ -156,7 +160,10 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
         id: `msg-ai-${Date.now()}`,
         conversationId: activeConvId,
         role: 'assistant',
-        content: resp.summary || 'Đây là giải đáp chi tiết từ Trợ giảng AI:',
+        content:
+          resp.type === 'markdown'
+            ? resp.markdownFallback || resp.summary || 'Phản hồi từ Trợ giảng AI:'
+            : resp.summary || 'Đây là giải đáp chi tiết từ Trợ giảng AI:',
         structuredResponse: resp,
         createdAt: new Date().toISOString(),
       };
@@ -169,9 +176,11 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
           c.id === activeConvId ? { ...c, lastMessage: query, updatedAt: 'Vừa xong' } : c
         )
       );
-    } catch {
+    } catch (err) {
       // Preserve draft & remove failed optimistic user message so user can retry cleanly
       setMessages((prev) => prev.filter((m) => m.id !== userMsgId));
+      setLastFailedQuery(query);
+      setSendError(AITutorService.getErrorMessage(err));
       if (!textToSend && draftBeforeSend) {
         setInputText(draftBeforeSend);
       } else {
@@ -624,6 +633,47 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--muted)', fontSize: 'var(--text-xs)', padding: 'var(--space-2)' }}>
               <RotateCcw size={14} className="animate-spin" />
               <span>Trợ giảng đang phản hồi...</span>
+            </div>
+          )}
+
+          {/* Error Notice & Retry */}
+          {sendError && (
+            <div
+              role="alert"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#b91c1c',
+                fontSize: 'var(--text-xs)',
+              }}
+            >
+              <span>{sendError}</span>
+              {lastFailedQuery && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => void handleSendMessage(lastFailedQuery)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '4px 10px',
+                    borderRadius: '9999px',
+                    border: '1px solid #fca5a5',
+                    backgroundColor: '#ffffff',
+                    color: '#b91c1c',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Thử lại
+                </button>
+              )}
             </div>
           )}
 
