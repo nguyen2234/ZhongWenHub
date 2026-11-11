@@ -67,6 +67,8 @@ const TYPES: Array<{ type: ExerciseType; label: string }> = [
 
 const REVIEW_BADGE_STYLE: Record<string, { label: string; bg: string; fg: string }> = {
   APPROVED: { label: 'Đã duyệt', bg: '#DCFCE7', fg: '#166534' },
+  VALIDATED: { label: 'Đã chuẩn hóa', bg: '#E0F2FE', fg: '#0369A1' },
+  NEEDS_ACADEMIC_REVIEW: { label: 'Chờ chuyên môn', bg: '#FFEDD5', fg: '#9A3412' },
   PENDING_REVIEW: { label: 'Chờ kiểm duyệt', bg: '#FEF9C3', fg: '#854D0E' },
   REJECTED: { label: 'Từ chối', bg: '#FEE2E2', fg: '#991B1B' },
   DRAFT: { label: 'Nháp', bg: '#F1F5F9', fg: '#475569' },
@@ -109,9 +111,13 @@ export const AdminExerciseBankPage: React.FC = () => {
     published: 0,
     draft: 0,
     pendingReview: 0,
+    validatedReview: 0,
+    needsAcademicReview: 0,
     approvedReview: 0,
     rejectedReview: 0,
     archived: 0,
+    withSubstantiveExplanation: 0,
+    reportedCount: 0,
     linkedToLessons: 0,
     standaloneBank: 0,
     byHsk: { 1: 0, 2: 0, 3: 0, 4: 0 },
@@ -236,22 +242,68 @@ export const AdminExerciseBankPage: React.FC = () => {
     }
   };
 
-  const handleBatchReview = async (publishImmediately: boolean) => {
+  const handleBatchReview = async (
+    publishImmediately: boolean,
+    decision: 'APPROVED' | 'REJECTED' = 'APPROVED'
+  ) => {
     if (selectedIds.length === 0) return;
     setErrorMessage(null);
     try {
+      const notes =
+        decision === 'REJECTED'
+          ? 'Từ chối hàng loạt từ CMS kiểm duyệt.'
+          : 'Duyệt hàng loạt từ CMS';
       const res = await questionBankService.batchReview(
         selectedIds,
-        'APPROVED',
-        'Duyệt hàng loạt từ CMS',
+        decision,
+        notes,
         publishImmediately
       );
+      const skipNote =
+        res.skippedCount > 0 && res.errors.length > 0
+          ? ` (Bỏ qua ${res.skippedCount} câu chưa đạt điều kiện: ${res.errors[0]})`
+          : res.skippedCount > 0
+            ? ` (Bỏ qua ${res.skippedCount} câu)`
+            : '';
       setActionMessage(
-        `${publishImmediately ? 'Duyệt & xuất bản' : 'Duyệt'} thành công ${res.updatedCount}/${res.requestedCount} câu hỏi.`
+        `${decision === 'REJECTED' ? 'Từ chối' : publishImmediately ? 'Duyệt & xuất bản' : 'Duyệt'} thành công ${res.updatedCount}/${res.requestedCount} câu hỏi.${skipNote}`
       );
       await loadData();
     } catch (err: any) {
       setErrorMessage(err?.message || 'Lỗi xử lý hàng loạt.');
+    }
+  };
+
+  const handleReviewAction = async (
+    id: string,
+    decision: QuestionReviewStatus,
+    notes?: string,
+    publishImmediately = false
+  ) => {
+    setErrorMessage(null);
+    try {
+      const updated = await questionBankService.reviewQuestion(
+        id,
+        decision === 'DRAFT' ? 'PENDING_REVIEW' : decision,
+        notes,
+        publishImmediately
+      );
+      setSelectedExercise(updated);
+      setActionMessage(`Đã cập nhật trạng thái kiểm duyệt thành ${updated.reviewStatus}.`);
+      await loadData();
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Không thể cập nhật trạng thái kiểm duyệt.');
+    }
+  };
+
+  const handleReportQuestion = async (id: string, reason: string) => {
+    setErrorMessage(null);
+    try {
+      const res = await questionBankService.reportQuestion(id, reason);
+      setActionMessage(res.message);
+      await loadData();
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Không thể gửi báo lỗi câu hỏi.');
     }
   };
 
@@ -641,6 +693,39 @@ export const AdminExerciseBankPage: React.FC = () => {
               </span>
             );
           })}
+          <span
+            style={{
+              fontSize: '11px',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#ECFDF5',
+              color: '#065F46',
+              border: '1px solid #A7F3D0',
+            }}
+          >
+            Giải thích chuẩn: <strong>{stats.withSubstantiveExplanation}/{stats.total}</strong>
+          </span>
+          <button
+            type="button"
+            className="ds-btn ds-btn-ghost"
+            onClick={() => {
+              setFilters((prev) => ({
+                ...prev,
+                tag: prev.tag === 'reported-issue' ? '' : 'reported-issue',
+              }));
+              setCurrentPage(1);
+            }}
+            style={{
+              fontSize: '11px',
+              padding: '3px 8px',
+              height: 'auto',
+              border: '1px solid #FECACA',
+              backgroundColor: filters.tag === 'reported-issue' ? '#FEE2E2' : '#FFF1F2',
+              color: '#991B1B',
+            }}
+          >
+            Bị báo lỗi: <strong>{stats.reportedCount}</strong>
+          </button>
           <button
             type="button"
             className="ds-btn ds-btn-ghost"
@@ -748,7 +833,7 @@ export const AdminExerciseBankPage: React.FC = () => {
               type="button"
               className="ds-btn ds-btn-secondary"
               style={{ height: '32px', fontSize: '12px' }}
-              onClick={() => handleBatchReview(false)}
+              onClick={() => handleBatchReview(false, 'APPROVED')}
             >
               <ShieldCheck size={14} /> Duyệt (APPROVED)
             </button>
@@ -756,9 +841,17 @@ export const AdminExerciseBankPage: React.FC = () => {
               type="button"
               className="ds-btn ds-btn-primary"
               style={{ height: '32px', fontSize: '12px' }}
-              onClick={() => handleBatchReview(true)}
+              onClick={() => handleBatchReview(true, 'APPROVED')}
             >
               <Send size={14} /> Duyệt & Xuất bản
+            </button>
+            <button
+              type="button"
+              className="ds-btn ds-btn-secondary"
+              style={{ height: '32px', fontSize: '12px', color: '#B91C1C', borderColor: '#FCA5A5' }}
+              onClick={() => handleBatchReview(false, 'REJECTED')}
+            >
+              Từ chối hàng loạt
             </button>
           </div>
         </div>
@@ -898,6 +991,8 @@ export const AdminExerciseBankPage: React.FC = () => {
               >
                 <option value="ALL">Kiểm duyệt: Tất cả</option>
                 <option value="PENDING_REVIEW">Chờ kiểm duyệt ({stats.pendingReview})</option>
+                <option value="VALIDATED">Đã chuẩn hóa ({stats.validatedReview})</option>
+                <option value="NEEDS_ACADEMIC_REVIEW">Chờ chuyên môn ({stats.needsAcademicReview})</option>
                 <option value="APPROVED">Đã duyệt ({stats.approvedReview})</option>
                 <option value="REJECTED">Từ chối ({stats.rejectedReview})</option>
                 <option value="DRAFT">Nháp</option>
@@ -1042,6 +1137,8 @@ export const AdminExerciseBankPage: React.FC = () => {
         onClose={handleCloseDrawer}
         onSave={handleSaveExercise}
         onDelete={handleDeleteExercise}
+        onReviewAction={handleReviewAction}
+        onReportQuestion={handleReportQuestion}
         onNavigateToGrammar={(gid) => navigate(`/management/content-manager/grammar?search=${encodeURIComponent(gid)}`)}
         onNavigateToLesson={(lid) => navigate(`/management/content-manager/curriculum/${lid}/edit`)}
       />

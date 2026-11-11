@@ -79,5 +79,32 @@ public class QuestionValidationHelperTests
         Assert.True(QuestionValidationHelper.GradeSubmission(fill, null, null, null, "火车站。").IsCorrect);
         Assert.False(QuestionValidationHelper.GradeSubmission(fill, null, null, null, "飞机场").IsCorrect);
     }
+
+    [Fact]
+    public void Phase2_ExplanationAndPublishGates_RejectTautologiesAndUnapprovedReviewStatus()
+    {
+        Assert.False(QuestionValidationHelper.HasSubstantiveExplanation("Đáp án đúng là '朋友'.", "朋友"));
+        Assert.False(QuestionValidationHelper.HasSubstantiveExplanation("Đáp án đúng là '吃饭' (HSK 4 TEST-01).", "吃饭"));
+        Assert.False(QuestionValidationHelper.HasSubstantiveExplanation("Chữ đúng.", "好"));
+        Assert.True(QuestionValidationHelper.HasSubstantiveExplanation(
+            "\"朋友\" (péngyou) là danh từ chỉ bạn bè; các phương án khác chỉ thành viên gia đình nên không phù hợp ngữ cảnh.",
+            "朋友"));
+
+        Assert.Equal("VALIDATED", QuestionValidationHelper.NormalizeReviewStatus("validated"));
+        Assert.Equal("NEEDS_ACADEMIC_REVIEW", QuestionValidationHelper.NormalizeReviewStatus("needs_academic_review"));
+
+        var valFail = QuestionValidationHelper.ValidateQuestion(
+            "multiple-choice", "vocabulary", 1, "EASY",
+            "HSK 1 - Từ vựng", "Chọn đáp án đúng.", "朋友", "péngyou", null, null,
+            "[\"Bạn bè\",\"Thầy giáo\",\"Học sinh\",\"Bác sĩ\"]", 0, "Bạn bè", "Đáp án đúng là 'Bạn bè'.", null);
+        Assert.False(QuestionValidationHelper.IsPublishQualified(valFail, "Đáp án đúng là 'Bạn bè'.", "Bạn bè", out _));
+
+        const string substantiveExp = "Từ '朋友' (péngyou) mang nghĩa bạn bè. 'Thầy giáo' (老师), 'Học sinh' (学生) và 'Bác sĩ' (医生) thuộc nhóm nghề nghiệp.";
+        var valPass = QuestionValidationHelper.ValidateQuestion(
+            "multiple-choice", "vocabulary", 1, "EASY",
+            "HSK 1 - Từ vựng", "Chọn đáp án đúng.", "朋友", "péngyou", null, null,
+            "[\"Bạn bè\",\"Thầy giáo\",\"Học sinh\",\"Bác sĩ\"]", 0, "Bạn bè", substantiveExp, null);
+        Assert.True(QuestionValidationHelper.IsPublishQualified(valPass, substantiveExp, "Bạn bè", out _));
+    }
 }
 

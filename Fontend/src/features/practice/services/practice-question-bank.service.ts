@@ -19,6 +19,14 @@ export interface AdaptiveWeakArea {
   reason: string;
 }
 
+export interface PracticeStatBucket {
+  key: string;
+  label: string;
+  totalAttempts: number;
+  correctCount: number;
+  accuracy: number;
+}
+
 export interface AdaptiveRecommendationsResponse {
   totalPublishedQuestions: number;
   publishedByHsk: Record<number, number>;
@@ -26,6 +34,9 @@ export interface AdaptiveRecommendationsResponse {
   publishedByDifficulty: Record<string, number>;
   mistakeReviewCount: number;
   weakAreas: AdaptiveWeakArea[];
+  skillStats?: PracticeStatBucket[];
+  hskStats?: PracticeStatBucket[];
+  grammarStats?: PracticeStatBucket[];
 }
 
 export interface StudentPracticeQuestionPayload {
@@ -203,6 +214,17 @@ class PracticeQuestionBankService {
   async getPracticeHistory(limit = 10): Promise<PracticeSessionHistoryItem[]> {
     return httpClient.get<PracticeSessionHistoryItem[]>(`${this.baseEndpoint}/practice-history`, {
       params: { limit },
+    });
+  }
+
+  async reportQuestion(
+    questionId: string,
+    reason: string,
+    details?: string
+  ): Promise<{ questionId: string; reviewStatus: string; tags: string; message: string }> {
+    return httpClient.post(`${this.baseEndpoint}/${questionId}/report`, {
+      reason,
+      details,
     });
   }
 }

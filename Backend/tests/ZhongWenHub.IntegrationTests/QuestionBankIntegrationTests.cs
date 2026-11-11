@@ -368,6 +368,28 @@ public class QuestionBankIntegrationTests : IClassFixture<CustomWebApplicationFa
             swStats.Stop();
             Assert.Equal(HttpStatusCode.OK, statsRes.StatusCode);
             Assert.True(swStats.ElapsedMilliseconds < 2500, $"Stats aggregation over >5500 rows took {swStats.ElapsedMilliseconds}ms");
+
+            var studentToken = await GetStudentTokenAsync();
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var swSession = Stopwatch.StartNew();
+            var sessRes = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                HskLevel = 1,
+                Mode = "random",
+                QuestionCount = 10
+            });
+            swSession.Stop();
+            Assert.Equal(HttpStatusCode.Created, sessRes.StatusCode);
+            Assert.True(swSession.ElapsedMilliseconds < 2500, $"Practice session creation under >5500 rows took {swSession.ElapsedMilliseconds}ms");
+            var createdSession = await sessRes.Content.ReadFromJsonAsync<PracticeSessionDto>(_jsonOptions);
+            if (createdSession != null)
+            {
+                using var cleanupScope = _factory.Services.CreateScope();
+                var cleanupDb = cleanupScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await cleanupDb.QuestionBankPracticeSessions
+                    .Where(s => s.Id == createdSession.SessionId)
+                    .ExecuteDeleteAsync();
+            }
         }
         finally
         {
@@ -377,6 +399,138 @@ public class QuestionBankIntegrationTests : IClassFixture<CustomWebApplicationFa
             await db.Exercises
                 .Where(e => e.SourceId == benchTag)
                 .ExecuteDeleteAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Phase2_PublishGate_AntiRepeat_Analytics_And_ReportQuestion_WorkEndToEnd()
+    {
+        var staffToken = await GetContentManagerTokenAsync();
+        var studentToken = await GetStudentTokenAsync();
+        Guid? tempQuestionId = null;
+        var sessionIds = new List<Guid>();
+
+        try
+        {
+            // 1. Create a question with a tautological explanation, approve it, verify publish gate rejects,
+            // then update explanation to substantive Vietnamese and verify publish succeeds.
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", staffToken);
+            var createRes = await _client.PostAsJsonAsync("/api/v1/question-bank", new CreateQuestionBankItemDto
+            {
+                Type = "multiple-choice",
+                Skill = "vocabulary",
+                HskLevel = 1,
+                Difficulty = "EASY",
+                Title = "Phase2 Test Vocabulary",
+                Instruction = "Chọn nghĩa tiếng Việt đúng cho từ vựng sau.",
+                PromptHanzi = "测试词Phase2",
+                PromptPinyin = "cèshìcí",
+                Options = ["Từ kiểm thử", "Bút chì", "Quyển sách", "Cái bàn"],
+                CorrectOptionIndex = 0,
+                CorrectAnswer = "Từ kiểm thử",
+                Explanation = "Đáp án đúng là 'Từ kiểm thử'.",
+                Status = "DRAFT",
+                SourceId = "phase2-integration-test",
+                SourceLicense = "INTERNAL_AUTHORED"
+            });
+            Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+            var createdItem = await createRes.Content.ReadFromJsonAsync<QuestionBankItemDto>(_jsonOptions);
+            Assert.NotNull(createdItem);
+            tempQuestionId = createdItem!.Id;
+            Assert.False(createdItem.HasSubstantiveExplanation);
+
+            var approveRes = await _client.PostAsJsonAsync($"/api/v1/question-bank/{tempQuestionId}/review", new ReviewQuestionRequestDto
+            {
+                Decision = "APPROVED",
+                ReviewNotes = "Academic check pass"
+            });
+            Assert.Equal(HttpStatusCode.OK, approveRes.StatusCode);
+
+            var publishFail = await _client.PostAsync($"/api/v1/question-bank/{tempQuestionId}/publish", null);
+            Assert.Equal(HttpStatusCode.BadRequest, publishFail.StatusCode);
+
+            var updateRes = await _client.PutAsJsonAsync($"/api/v1/question-bank/{tempQuestionId}", new UpdateQuestionBankItemDto
+            {
+                Type = "multiple-choice",
+                Skill = "vocabulary",
+                HskLevel = 1,
+                Difficulty = "EASY",
+                Title = "Phase2 Test Vocabulary",
+                Instruction = "Chọn nghĩa tiếng Việt đúng cho từ vựng sau.",
+                PromptHanzi = "测试词Phase2",
+                PromptPinyin = "cèshìcí",
+                Options = ["Từ kiểm thử", "Bút chì", "Quyển sách", "Cái bàn"],
+                CorrectOptionIndex = 0,
+                CorrectAnswer = "Từ kiểm thử",
+                Explanation = "Danh từ '测试词' (cèshìcí) nghĩa là từ kiểm thử; 'Bút chì' là 铅笔, 'Quyển sách' là 书, 'Cái bàn' là 桌子.",
+                Status = "DRAFT",
+                SourceId = "phase2-integration-test",
+                SourceLicense = "INTERNAL_AUTHORED"
+            });
+            Assert.Equal(HttpStatusCode.OK, updateRes.StatusCode);
+
+            var publishOk = await _client.PostAsync($"/api/v1/question-bank/{tempQuestionId}/publish", null);
+            Assert.Equal(HttpStatusCode.OK, publishOk.StatusCode);
+
+            // 2. Student reports this temporary item -> tagged & marked NEEDS_ACADEMIC_REVIEW
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var reportRes = await _client.PostAsJsonAsync($"/api/v1/question-bank/{tempQuestionId}/report", new ReportQuestionRequestDto
+            {
+                Reason = "Nội dung kiểm thử cần rà soát",
+                Details = "Test report từ Integration Test."
+            });
+            Assert.Equal(HttpStatusCode.OK, reportRes.StatusCode);
+            var reportBody = await reportRes.Content.ReadFromJsonAsync<ReportQuestionResultDto>(_jsonOptions);
+            Assert.NotNull(reportBody);
+            Assert.Contains("reported-issue", reportBody!.Tags);
+            Assert.Equal("NEEDS_ACADEMIC_REVIEW", reportBody.ReviewStatus);
+
+            // 3. Consecutive practice sessions avoid repeating questions back-to-back & recommendations return skill/HSK stats
+            var sess1Res = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                HskLevel = 1,
+                Mode = "random",
+                QuestionCount = 8
+            });
+            Assert.Equal(HttpStatusCode.Created, sess1Res.StatusCode);
+            var sess1 = (await sess1Res.Content.ReadFromJsonAsync<PracticeSessionDto>(_jsonOptions))!;
+            sessionIds.Add(sess1.SessionId);
+
+            var sess2Res = await _client.PostAsJsonAsync("/api/v1/question-bank/practice-sessions", new CreatePracticeSessionRequestDto
+            {
+                HskLevel = 1,
+                Mode = "random",
+                QuestionCount = 8
+            });
+            Assert.Equal(HttpStatusCode.Created, sess2Res.StatusCode);
+            var sess2 = (await sess2Res.Content.ReadFromJsonAsync<PracticeSessionDto>(_jsonOptions))!;
+            sessionIds.Add(sess2.SessionId);
+
+            var overlap = sess1.Questions.Select(q => q.Id).Intersect(sess2.Questions.Select(q => q.Id)).Count();
+            Assert.Equal(0, overlap);
+
+            var recs = await _client.GetFromJsonAsync<AdaptiveRecommendationsResponseDto>("/api/v1/question-bank/recommendations", _jsonOptions);
+            Assert.NotNull(recs);
+            Assert.NotNull(recs!.SkillStats);
+            Assert.NotNull(recs.HskStats);
+        }
+        finally
+        {
+            _client.DefaultRequestHeaders.Authorization = null;
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            if (sessionIds.Count > 0)
+            {
+                await db.QuestionBankPracticeSessions
+                    .Where(s => sessionIds.Contains(s.Id))
+                    .ExecuteDeleteAsync();
+            }
+            if (tempQuestionId.HasValue)
+            {
+                await db.Exercises
+                    .Where(e => e.Id == tempQuestionId.Value)
+                    .ExecuteDeleteAsync();
+            }
         }
     }
 }

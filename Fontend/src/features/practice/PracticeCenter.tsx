@@ -519,6 +519,79 @@ export const PracticeCenter: React.FC = () => {
         />
       </section>
 
+      {/* Student Skill / HSK / Grammar Analytics */}
+      {((recommendationsMeta?.skillStats?.length ?? 0) > 0 ||
+        (recommendationsMeta?.hskStats?.length ?? 0) > 0 ||
+        (recommendationsMeta?.grammarStats?.length ?? 0) > 0) && (
+        <section
+          aria-label="Phân tích năng lực luyện tập"
+          style={{
+            padding: '18px',
+            borderRadius: '18px',
+            backgroundColor: 'var(--surface, #ffffff)',
+            border: '1px solid var(--border, #e2e8f0)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontWeight: 700, fontSize: '15px' }}>
+              Thống kê độ chính xác theo Kỹ năng · HSK · Ngữ pháp
+            </div>
+            <span style={{ fontSize: '12px', color: 'var(--muted, #64748b)' }}>
+              Cập nhật trực tiếp từ lịch sử làm bài của bạn
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+            {[
+              { title: 'Theo kỹ năng', items: recommendationsMeta?.skillStats || [] },
+              { title: 'Theo cấp độ HSK', items: recommendationsMeta?.hskStats || [] },
+              { title: 'Điểm ngữ pháp nổi bật', items: recommendationsMeta?.grammarStats || [] },
+            ]
+              .filter((g) => g.items.length > 0)
+              .map((group) => (
+                <div
+                  key={group.title}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border, #e2e8f0)',
+                    backgroundColor: 'var(--background, #f8fafc)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--foreground)' }}>
+                    {group.title}
+                  </div>
+                  {group.items.slice(0, 5).map((b) => (
+                    <div key={b.key} style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '11px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>{b.label}</span>
+                        <span style={{ color: b.accuracy >= 75 ? '#16A34A' : b.accuracy >= 50 ? '#D97706' : '#DC2626', fontWeight: 700 }}>
+                          {Math.round(b.accuracy)}% ({b.correctCount}/{b.totalAttempts})
+                        </span>
+                      </div>
+                      <div style={{ height: '5px', borderRadius: '999px', backgroundColor: '#E2E8F0', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            width: `${Math.min(100, Math.max(4, Math.round(b.accuracy)))}%`,
+                            height: '100%',
+                            backgroundColor: b.accuracy >= 75 ? '#16A34A' : b.accuracy >= 50 ? '#F59E0B' : '#EF4444',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* Recent Server Practice History */}
       {historyItems.length > 0 && (
         <section

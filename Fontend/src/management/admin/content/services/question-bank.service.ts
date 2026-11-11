@@ -23,9 +23,13 @@ export interface QuestionBankStats {
   published: number;
   draft: number;
   pendingReview: number;
+  validatedReview: number;
+  needsAcademicReview: number;
   approvedReview: number;
   rejectedReview: number;
   archived: number;
+  withSubstantiveExplanation: number;
+  reportedCount: number;
   linkedToLessons: number;
   standaloneBank: number;
   byHsk: Record<number, number>;
@@ -159,6 +163,8 @@ function mapApiToAdminItem(e: any): AdminExerciseItem {
     correctOptionIndex: e.correctOptionIndex ?? undefined,
     correctSentence: e.correctAnswer ?? e.correctSentence ?? undefined,
     explanation: e.explanation || '',
+    hasSubstantiveExplanation: Boolean(e.hasSubstantiveExplanation),
+    isReported: Boolean(e.isReported),
     grammarPointId: e.grammarPointId || undefined,
     grammarTitle: e.grammarTitle || undefined,
     lessonId: e.lessonId || undefined,
@@ -224,9 +230,13 @@ class QuestionBankService {
         published: s.published,
         draft: s.draft,
         pendingReview: s.pending,
+        validatedReview: 0,
+        needsAcademicReview: 0,
         approvedReview: s.published,
         rejectedReview: 0,
         archived: s.archived,
+        withSubstantiveExplanation: s.total,
+        reportedCount: 0,
         linkedToLessons: 0,
         standaloneBank: s.total,
         byHsk: s.byHsk,
@@ -362,7 +372,7 @@ class QuestionBankService {
 
   async reviewQuestion(
     id: string,
-    decision: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW',
+    decision: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW' | 'VALIDATED' | 'NEEDS_ACADEMIC_REVIEW',
     reviewNotes?: string,
     publishImmediately = false
   ): Promise<AdminExerciseItem> {
@@ -376,7 +386,7 @@ class QuestionBankService {
 
   async batchReview(
     questionIds: string[],
-    decision: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW',
+    decision: 'APPROVED' | 'REJECTED' | 'PENDING_REVIEW' | 'VALIDATED' | 'NEEDS_ACADEMIC_REVIEW',
     reviewNotes?: string,
     publishImmediately = false
   ): Promise<BatchActionResult> {
@@ -386,6 +396,14 @@ class QuestionBankService {
       reviewNotes,
       publishImmediately,
     });
+  }
+
+  async reportQuestion(
+    id: string,
+    reason: string,
+    details?: string
+  ): Promise<{ questionId: string; reviewStatus: string; tags: string; message: string }> {
+    return httpClient.post(`${this.baseEndpoint}/${id}/report`, { reason, details });
   }
 
   async publishQuestion(id: string): Promise<AdminExerciseItem> {

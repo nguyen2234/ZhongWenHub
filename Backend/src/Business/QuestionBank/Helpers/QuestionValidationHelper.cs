@@ -107,7 +107,65 @@ public static partial class QuestionValidationHelper
     public static string NormalizeReviewStatus(string? rawReviewStatus, string fallback = "DRAFT")
     {
         var s = (rawReviewStatus ?? fallback).Trim().ToUpperInvariant();
-        return s is "DRAFT" or "PENDING_REVIEW" or "APPROVED" or "REJECTED" ? s : fallback;
+        return s is "DRAFT" or "PENDING_REVIEW" or "VALIDATED" or "NEEDS_ACADEMIC_REVIEW" or "APPROVED" or "REJECTED"
+            ? s
+            : fallback;
+    }
+
+    public static bool HasSubstantiveExplanation(string? explanation, string? correctAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(explanation)) return false;
+        var exp = explanation.Trim();
+        if (exp.Length < 24) return false;
+
+        var normExp = NormalizeAnswerText(exp);
+        var normAns = NormalizeAnswerText(StripParentheticalNote(correctAnswer));
+        if (string.IsNullOrEmpty(normExp)) return false;
+        if (!string.IsNullOrEmpty(normAns) && normExp == normAns) return false;
+
+        // Reject trivial tautologies like "Đáp án đúng là 'X' (nguồn ...)." without actual explanation
+        if ((exp.StartsWith("Đáp án đúng là", StringComparison.OrdinalIgnoreCase) ||
+             exp.StartsWith("Đáp án đúng:", StringComparison.OrdinalIgnoreCase) ||
+             exp.StartsWith("Chữ Hán đúng là", StringComparison.OrdinalIgnoreCase)) &&
+            exp.Length < 70 &&
+            !exp.Contains("ngữ pháp", StringComparison.OrdinalIgnoreCase) &&
+            !exp.Contains("Phân biệt", StringComparison.OrdinalIgnoreCase) &&
+            !exp.Contains("Nghĩa", StringComparison.OrdinalIgnoreCase) &&
+            !exp.Contains("Ví dụ", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // Reject if removing answer and source boilerplate leaves almost nothing meaningful
+        if (!string.IsNullOrEmpty(normAns) && normExp.StartsWith("đápánđúng" + normAns, StringComparison.Ordinal) &&
+            normExp.Length - ("đápánđúng" + normAns).Length < 14)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static bool IsPublishQualified(
+        QuestionValidationResult validation,
+        string? explanation,
+        string? correctAnswer,
+        out string failureReason)
+    {
+        if (!validation.IsValid)
+        {
+            failureReason = string.Join(" ", validation.Errors);
+            return false;
+        }
+
+        if (!HasSubstantiveExplanation(explanation, correctAnswer))
+        {
+            failureReason = "Cần bổ sung giải thích đáp án bằng tiếng Việt đủ chi tiết (>= 24 ký tự, nêu lý do/ngữ pháp/phân biệt, không chỉ lặp lại đáp án) trước khi xuất bản.";
+            return false;
+        }
+
+        failureReason = string.Empty;
+        return true;
     }
 
     public static List<string> ParseOptions(string? optionsJson)
@@ -292,9 +350,11 @@ public static partial class QuestionValidationHelper
             }
         }
 
-        if (string.IsNullOrWhiteSpace(explanation))
+        if (!HasSubstantiveExplanation(explanation, resolvedCorrectAns))
         {
-            warnings.Add("Thiếu giải thích chi tiết (Explanation).");
+            warnings.Add(string.IsNullOrWhiteSpace(explanation)
+                ? "Thiếu giải thích chi tiết (Explanation)."
+                : "Giải thích còn sơ sài hoặc chỉ lặp lại đáp án; nên bổ sung lý do ngữ pháp/ngữ nghĩa.");
         }
         if (string.IsNullOrWhiteSpace(promptPinyin) && !string.IsNullOrWhiteSpace(promptHanzi))
         {
@@ -304,9 +364,10 @@ public static partial class QuestionValidationHelper
         // Compute deterministic 0..100 quality score
         double score = 0;
         if (errors.Count == 0) score += 55;
-        if (!string.IsNullOrWhiteSpace(explanation) && explanation.Trim().Length >= 10) score += 15;
+        if (HasSubstantiveExplanation(explanation, resolvedCorrectAns)) score += 20;
+        else if (!string.IsNullOrWhiteSpace(explanation) && explanation.Trim().Length >= 10) score += 5;
         if (!string.IsNullOrWhiteSpace(promptPinyin)) score += 10;
-        if (!string.IsNullOrWhiteSpace(promptVietnamese)) score += 10;
+        if (!string.IsNullOrWhiteSpace(promptVietnamese)) score += 5;
         if (options.Count >= 4 || normalizedType is "fill-blank" or "sentence-order") score += 5;
         if (!string.IsNullOrWhiteSpace(tags)) score += 5;
 

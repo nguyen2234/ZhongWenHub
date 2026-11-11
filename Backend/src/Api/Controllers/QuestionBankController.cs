@@ -258,6 +258,23 @@ public class QuestionBankController : BaseApiController
         return Ok(result);
     }
 
+    [HttpPost("{id:guid}/report")]
+    [Authorize]
+    [ProducesResponseType(typeof(ReportQuestionResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReportQuestion(
+        Guid id,
+        [FromBody] ReportQuestionRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue) return Unauthorized();
+        var result = await _questionBankService.ReportQuestionAsync(id, userId.Value, dto, cancellationToken);
+        if (result == null) return ProblemDetailsResult(404, "Not Found", "Không tìm thấy câu hỏi.");
+        return Ok(result);
+    }
+
     // =========================================================================
     // Student Adaptive Practice Sessions (NO answer leak before submit)
     // =========================================================================

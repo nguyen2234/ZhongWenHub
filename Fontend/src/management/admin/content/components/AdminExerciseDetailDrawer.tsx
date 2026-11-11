@@ -14,6 +14,7 @@ import { ContentStatusBadge } from './ContentStatusBadge';
 import { AdminExerciseEnginePreviewHost } from './AdminExerciseEnginePreviewHost';
 import type {
   AdminExerciseItem,
+  QuestionReviewStatus,
   UpdateAdminExerciseDTO,
 } from '../types/admin-content.types';
 import type {
@@ -28,6 +29,13 @@ export interface AdminExerciseDetailDrawerProps {
   onClose: () => void;
   onSave: (id: string, dto: UpdateAdminExerciseDTO) => void;
   onDelete?: (id: string) => void;
+  onReviewAction?: (
+    id: string,
+    decision: QuestionReviewStatus,
+    notes?: string,
+    publishImmediately?: boolean
+  ) => Promise<void> | void;
+  onReportQuestion?: (id: string, reason: string) => Promise<void> | void;
   onNavigateToGrammar?: (grammarId: string) => void;
   onNavigateToLesson?: (lessonId: string) => void;
 }
@@ -47,11 +55,15 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
   onClose,
   onSave,
   onDelete,
+  onReviewAction,
+  onReportQuestion,
   onNavigateToGrammar,
   onNavigateToLesson,
 }) => {
   const [activeTab, setActiveTab] = useState<'PREVIEW' | 'EDITOR' | 'METADATA'>('PREVIEW');
   const [isEditing, setIsEditing] = useState(false);
+  const [reviewNoteInput, setReviewNoteInput] = useState('');
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -155,13 +167,14 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
             padding: 'var(--space-4) var(--space-5)',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
+            gap: 'var(--space-2)',
             backgroundColor: 'var(--background)',
           }}
         >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
               <span
                 style={{
                   fontSize: 'var(--text-xs)',
@@ -213,7 +226,7 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
             </h2>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
             {!isEditing ? (
               <button
                 type="button"
@@ -356,7 +369,7 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
               {/* Reusable Exercise Engine Preview Host */}
               <AdminExerciseEnginePreviewHost exercise={exercise} />
 
-              {/* Explanation card */}
+              {/* Explanation card + Quality badge */}
               <div
                 style={{
                   padding: 'var(--space-3)',
@@ -365,13 +378,137 @@ export const AdminExerciseDetailDrawer: React.FC<AdminExerciseDetailDrawerProps>
                   border: '1px solid var(--border)',
                 }}
               >
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                  Lời giải thích chuẩn cho học viên:
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>
+                    Lời giải thích chuẩn cho học viên:
+                  </span>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <span
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: '999px',
+                        backgroundColor: exercise.hasSubstantiveExplanation ? '#DCFCE7' : '#FEF3C7',
+                        color: exercise.hasSubstantiveExplanation ? '#166534' : '#92400E',
+                      }}
+                    >
+                      {exercise.hasSubstantiveExplanation ? 'Giải thích đạt chuẩn' : 'Cần bổ sung giải thích'}
+                    </span>
+                    {exercise.isReported && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '2px 7px',
+                          borderRadius: '999px',
+                          backgroundColor: '#FEE2E2',
+                          color: '#B91C1C',
+                        }}
+                      >
+                        Đã bị báo lỗi
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-main)', lineHeight: 1.6 }}>
-                  {exercise.explanation}
+                  {exercise.explanation || '(Chưa có giải thích)'}
                 </div>
+                {(exercise.sourceId || exercise.sourceLicense) && (
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed var(--border)', fontSize: '11px', color: 'var(--muted)' }}>
+                    Nguồn: <strong>{exercise.sourceId || 'Nội bộ'}</strong> · Giấy phép:{' '}
+                    <strong>{exercise.sourceLicense || 'INTERNAL_AUTHORED'}</strong>
+                    {exercise.qualityScore != null && ` · Điểm chất lượng: ${exercise.qualityScore}/100`}
+                  </div>
+                )}
               </div>
+
+              {/* Phase 2 Review & Fault Reporting Controls */}
+              {(onReviewAction || onReportQuestion) && (
+                <div
+                  style={{
+                    padding: 'var(--space-3)',
+                    backgroundColor: '#F8FAFC',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700 }}>
+                    <span>Kiểm duyệt học thuật ({exercise.reviewStatus || 'DRAFT'})</span>
+                    {exercise.reviewNotes && (
+                      <span style={{ fontWeight: 500, color: 'var(--muted)' }}>
+                        Ghi chú hiện tại: {exercise.reviewNotes}
+                      </span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    className="ds-input"
+                    value={reviewNoteInput}
+                    onChange={(e) => {
+                      setReviewNoteInput(e.target.value);
+                      if (reviewError) setReviewError(null);
+                    }}
+                    placeholder="Ghi chú kiểm duyệt hoặc lý do từ chối / báo lỗi..."
+                    style={{ width: '100%', height: '34px', fontSize: 'var(--text-xs)' }}
+                  />
+                  {reviewError && (
+                    <div style={{ fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{reviewError}</div>
+                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {onReviewAction && (
+                      <>
+                        <button
+                          type="button"
+                          className="ds-btn ds-btn-primary"
+                          style={{ height: '30px', fontSize: '11px', padding: '0 10px' }}
+                          onClick={() => void onReviewAction(exercise.id, 'APPROVED', reviewNoteInput.trim() || undefined, false)}
+                        >
+                          Duyệt (APPROVED)
+                        </button>
+                        <button
+                          type="button"
+                          className="ds-btn ds-btn-secondary"
+                          style={{ height: '30px', fontSize: '11px', padding: '0 10px' }}
+                          onClick={() => void onReviewAction(exercise.id, 'NEEDS_ACADEMIC_REVIEW', reviewNoteInput.trim() || 'Chuyển giảng viên rà soát chuyên môn')}
+                        >
+                          Cần chuyên môn duyệt
+                        </button>
+                        <button
+                          type="button"
+                          className="ds-btn ds-btn-secondary"
+                          style={{ height: '30px', fontSize: '11px', padding: '0 10px', color: '#B91C1C', borderColor: '#FCA5A5' }}
+                          onClick={() => {
+                            if (!reviewNoteInput.trim()) {
+                              setReviewError('Vui lòng nhập lý do trước khi từ chối (REJECTED).');
+                              return;
+                            }
+                            void onReviewAction(exercise.id, 'REJECTED', reviewNoteInput.trim());
+                          }}
+                        >
+                          Từ chối (REJECTED)
+                        </button>
+                      </>
+                    )}
+                    {onReportQuestion && (
+                      <button
+                        type="button"
+                        className="ds-btn ds-btn-ghost"
+                        style={{ height: '30px', fontSize: '11px', padding: '0 10px', color: '#B45309' }}
+                        onClick={() => {
+                          const reason = reviewNoteInput.trim() || 'Báo lỗi từ CMS kiểm định';
+                          void onReportQuestion(exercise.id, reason);
+                        }}
+                      >
+                        Báo lỗi câu hỏi
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

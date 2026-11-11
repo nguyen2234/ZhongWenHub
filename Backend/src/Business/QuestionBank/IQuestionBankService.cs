@@ -66,6 +66,12 @@ public interface IQuestionBankService
         List<Guid> questionIds,
         CancellationToken cancellationToken = default);
 
+    Task<ReportQuestionResultDto?> ReportQuestionAsync(
+        Guid id,
+        Guid reporterUserId,
+        ReportQuestionRequestDto dto,
+        CancellationToken cancellationToken = default);
+
     // Student Adaptive Learning & Practice Sessions
     Task<AdaptiveRecommendationsResponseDto> GetAdaptiveRecommendationsAsync(
         Guid userId,

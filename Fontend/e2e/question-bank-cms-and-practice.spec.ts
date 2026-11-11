@@ -22,8 +22,22 @@ test.describe('Question Bank CMS & Student Adaptive Practice End-to-End', () => 
       timeout: 12000,
     });
 
-    // Filter by HSK 4 + PENDING_REVIEW (shows imported InAnskr/vocab queue items)
+    // Filter by HSK 4 + NEEDS_ACADEMIC_REVIEW and VALIDATED (Phase 2 audited datasets)
     await page.selectOption('select[aria-label="Lọc cấp độ HSK"]', '4');
+    await page.selectOption('select[aria-label="Lọc kiểm duyệt"]', 'NEEDS_ACADEMIC_REVIEW');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('tbody tr:visible, .mgmt-mobile-card:visible').first()).toBeVisible({
+      timeout: 12000,
+    });
+
+    // Open first item drawer -> inspect Live Preview, Substantive Explanation badge & Source/License
+    await page.locator('tbody tr:visible, .mgmt-mobile-card:visible').first().click();
+    await expect(page.getByText(/Giải thích đạt chuẩn|Cần bổ sung giải thích/i)).toBeVisible({
+      timeout: 8000,
+    });
+    await expect(page.getByText(/Giấy phép:/i)).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Đóng drawer' }).click();
+
     await page.selectOption('select[aria-label="Lọc kiểm duyệt"]', 'PENDING_REVIEW');
     await page.waitForLoadState('networkidle');
 
@@ -41,25 +55,10 @@ test.describe('Question Bank CMS & Student Adaptive Practice End-to-End', () => 
     page,
   }) => {
     const bulkRequests: string[] = [];
-    let sessionPayloadRaw = '';
 
     page.on('request', (req) => {
       if (req.url().includes('/content/exercises') && req.url().includes('pageSize=500')) {
         bulkRequests.push(req.url());
-      }
-    });
-
-    page.on('response', async (res) => {
-      if (
-        res.url().includes('/api/v1/question-bank/practice-sessions') &&
-        res.request().method() === 'POST' &&
-        !res.url().endsWith('/submit')
-      ) {
-        try {
-          sessionPayloadRaw = await res.text();
-        } catch {
-          // ignore
-        }
       }
     });
 
@@ -80,11 +79,18 @@ test.describe('Question Bank CMS & Student Adaptive Practice End-to-End', () => 
     await page.waitForLoadState('networkidle');
     expect(bulkRequests).toHaveLength(0);
 
-    // Choose HSK 1 + 5 questions in filter card
+    // Choose HSK 1 + 5 questions in filter card & capture exact session payload synchronously
     await page.selectOption('select[aria-label="Chọn số câu hỏi"]', '5');
     const startBtn = page.getByRole('button', { name: /Bắt đầu luyện tập \(5 câu\)/i });
     await expect(startBtn).toBeVisible({ timeout: 10000 });
+    const sessionResPromise = page.waitForResponse(
+      (res) =>
+        res.url().includes('/api/v1/question-bank/practice-sessions') &&
+        res.request().method() === 'POST' &&
+        !res.url().endsWith('/submit')
+    );
     await startBtn.click();
+    const sessionPayloadRaw = await (await sessionResPromise).text();
 
     // Wait for practice session header
     await expect(page.getByText('1 / 5')).toBeVisible({ timeout: 12000 });
@@ -125,10 +131,19 @@ test.describe('Question Bank CMS & Student Adaptive Practice End-to-End', () => 
       await nextOrSubmit.click();
     }
 
-    // Verify backend-graded Result screen appears
+    // Verify backend-graded Result screen appears & exposes Báo lỗi câu hỏi control
     await expect(page.getByRole('heading', { name: /Hoàn thành luyện tập/i })).toBeVisible({
       timeout: 15000,
     });
     await expect(page.getByText(/Chi tiết đáp án & Giải thích/i)).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('button', { name: /Báo lỗi câu hỏi/i }).first()).toBeVisible({
+      timeout: 5000,
+    });
+
+    // Return to Practice Center & verify adaptive analytics & history rendered from SQL Server
+    await page.getByRole('button', { name: /Về Trung tâm luyện tập/i }).click();
+    await expect(page.getByText(/Thống kê độ chính xác theo Kỹ năng/i)).toBeVisible({
+      timeout: 12000,
+    });
   });
 });

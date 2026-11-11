@@ -154,6 +154,11 @@ public class QuestionBankService : IQuestionBankService
         foreach (var item in items)
         {
             item.Options = QuestionValidationHelper.ParseOptions(item.OptionsJson);
+            item.HasSubstantiveExplanation = QuestionValidationHelper.HasSubstantiveExplanation(
+                item.Explanation,
+                item.CorrectAnswer);
+            item.IsReported = !string.IsNullOrWhiteSpace(item.Tags) &&
+                item.Tags.Contains("reported-issue", StringComparison.OrdinalIgnoreCase);
         }
 
         return new PagedResponse<QuestionBankItemDto>(items, total, safePage, safePageSize);
@@ -266,9 +271,16 @@ public class QuestionBankService : IQuestionBankService
         entity.VocabularyId = dto.VocabularyId;
 
         var requestedStatus = QuestionValidationHelper.NormalizeStatus(dto.Status, entity.Status);
-        if (requestedStatus == "PUBLISHED" && entity.ReviewStatus != "APPROVED")
+        if (requestedStatus == "PUBLISHED")
         {
-            entity.ReviewStatus = "APPROVED";
+            if (!QuestionValidationHelper.IsPublishQualified(validation, entity.Explanation, entity.CorrectAnswer, out var reason))
+            {
+                throw new ArgumentException(reason);
+            }
+            if (entity.ReviewStatus != "APPROVED")
+            {
+                entity.ReviewStatus = "APPROVED";
+            }
         }
         entity.Status = requestedStatus;
         entity.UpdatedAt = DateTime.UtcNow;
@@ -300,8 +312,19 @@ public class QuestionBankService : IQuestionBankService
         var draft = await _dbContext.Exercises.CountAsync(e => e.Status == "DRAFT", cancellationToken);
         var archived = await _dbContext.Exercises.CountAsync(e => e.Status == "ARCHIVED", cancellationToken);
         var pendingReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "PENDING_REVIEW", cancellationToken);
+        var validatedReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "VALIDATED", cancellationToken);
+        var needsAcademicReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "NEEDS_ACADEMIC_REVIEW", cancellationToken);
         var approvedReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "APPROVED", cancellationToken);
         var rejectedReview = await _dbContext.Exercises.CountAsync(e => e.ReviewStatus == "REJECTED", cancellationToken);
+        var reportedCount = await _dbContext.Exercises.CountAsync(e => e.Tags != null && e.Tags.Contains("reported-issue"), cancellationToken);
+        var withSubstantiveExp = await _dbContext.Exercises.CountAsync(
+            e => e.Explanation != null &&
+                 e.Explanation.Trim().Length >= 24 &&
+                 !(e.Explanation.Trim().Length < 70 &&
+                   (e.Explanation.StartsWith("Đáp án đúng là '") ||
+                    e.Explanation.StartsWith("Đáp án đúng:") ||
+                    e.Explanation.StartsWith("Chữ Hán đúng là '"))),
+            cancellationToken);
         var linkedToLessons = await _dbContext.Exercises.CountAsync(e => e.LessonId != null, cancellationToken);
 
         var byHskList = await _dbContext.Exercises
@@ -340,9 +363,13 @@ public class QuestionBankService : IQuestionBankService
             Published = published,
             Draft = draft,
             PendingReview = pendingReview,
+            ValidatedReview = validatedReview,
+            NeedsAcademicReview = needsAcademicReview,
             ApprovedReview = approvedReview,
             RejectedReview = rejectedReview,
             Archived = archived,
+            WithSubstantiveExplanation = withSubstantiveExp,
+            ReportedCount = reportedCount,
             LinkedToLessons = linkedToLessons,
             StandaloneBank = total - linkedToLessons,
             ByHsk = byHsk,
@@ -705,7 +732,7 @@ public class QuestionBankService : IQuestionBankService
 
         var decision = QuestionValidationHelper.NormalizeReviewStatus(dto.Decision, "PENDING_REVIEW");
 
-        if (decision == "APPROVED" || dto.PublishImmediately)
+        if (decision is "APPROVED" or "VALIDATED" || dto.PublishImmediately)
         {
             var val = QuestionValidationHelper.ValidateQuestion(
                 entity.Type, entity.Skill, entity.HskLevel, entity.Difficulty,
@@ -718,6 +745,12 @@ public class QuestionBankService : IQuestionBankService
                 throw new ArgumentException($"Câu hỏi chưa đạt chuẩn kiểm duyệt: {string.Join(" ", val.Errors)}");
             }
 
+            if (dto.PublishImmediately &&
+                !QuestionValidationHelper.IsPublishQualified(val, entity.Explanation, entity.CorrectAnswer, out var publishReason))
+            {
+                throw new ArgumentException(publishReason);
+            }
+
             entity.QualityScore = val.QualityScore;
             entity.ContentHash ??= val.ContentHash;
         }
@@ -725,11 +758,17 @@ public class QuestionBankService : IQuestionBankService
         entity.ReviewStatus = decision;
         entity.ReviewedByUserId = reviewerId;
         entity.ReviewedAt = DateTime.UtcNow;
-        entity.ReviewNotes = dto.ReviewNotes?.Trim();
-
-        if (decision == "REJECTED")
+        if (!string.IsNullOrWhiteSpace(dto.ReviewNotes))
         {
-            entity.Status = "DRAFT";
+            entity.ReviewNotes = dto.ReviewNotes.Trim();
+        }
+
+        if (decision is "REJECTED" or "NEEDS_ACADEMIC_REVIEW")
+        {
+            if (entity.LessonId == null || decision == "REJECTED")
+            {
+                entity.Status = "DRAFT";
+            }
         }
         else if (decision == "APPROVED" && dto.PublishImmediately)
         {
@@ -790,12 +829,13 @@ public class QuestionBankService : IQuestionBankService
             entity.PromptVietnamese, entity.AudioUrl, entity.OptionsJson, entity.CorrectOptionIndex,
             entity.CorrectAnswer, entity.Explanation, entity.Tags);
 
-        if (!val.IsValid)
+        if (!QuestionValidationHelper.IsPublishQualified(val, entity.Explanation, entity.CorrectAnswer, out var publishReason))
         {
-            throw new InvalidOperationException($"Câu hỏi chưa đạt validation để xuất bản: {string.Join(" ", val.Errors)}");
+            throw new InvalidOperationException(publishReason);
         }
 
         entity.Status = "PUBLISHED";
+        entity.QualityScore = val.QualityScore;
         entity.ReviewedByUserId ??= reviewerId;
         entity.ReviewedAt ??= DateTime.UtcNow;
         entity.UpdatedAt = DateTime.UtcNow;
@@ -825,6 +865,52 @@ public class QuestionBankService : IQuestionBankService
             }
         }
         return res;
+    }
+
+    public async Task<ReportQuestionResultDto?> ReportQuestionAsync(
+        Guid id,
+        Guid reporterUserId,
+        ReportQuestionRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _dbContext.Exercises.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity == null) return null;
+
+        var existingTags = (entity.Tags ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+        if (!existingTags.Any(t => string.Equals(t, "reported-issue", StringComparison.OrdinalIgnoreCase)))
+        {
+            existingTags.Add("reported-issue");
+        }
+        entity.Tags = string.Join(",", existingTags);
+
+        var detailPart = string.IsNullOrWhiteSpace(dto.Details) ? string.Empty : $" — {dto.Details.Trim()}";
+        var noteLine = $"[Reported {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC by {reporterUserId:N}] {dto.Reason.Trim()}{detailPart}";
+        entity.ReviewNotes = string.IsNullOrWhiteSpace(entity.ReviewNotes)
+            ? noteLine
+            : $"{noteLine}\n{entity.ReviewNotes}";
+        if (entity.ReviewNotes.Length > 1900)
+        {
+            entity.ReviewNotes = entity.ReviewNotes[..1900];
+        }
+
+        // Only move standalone bank items back to NEEDS_ACADEMIC_REVIEW; keep published lesson items flagged without breaking curriculum.
+        if (entity.LessonId == null)
+        {
+            entity.ReviewStatus = "NEEDS_ACADEMIC_REVIEW";
+        }
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new ReportQuestionResultDto
+        {
+            QuestionId = entity.Id,
+            ReviewStatus = entity.ReviewStatus,
+            Tags = entity.Tags ?? string.Empty,
+            Message = "Đã ghi nhận báo cáo lỗi câu hỏi và chuyển vào hàng đợi kiểm duyệt học thuật."
+        };
     }
 
     // =========================================================================
@@ -859,10 +945,11 @@ public class QuestionBankService : IQuestionBankService
             .AsNoTracking()
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.AttemptedAt)
-            .Take(250)
+            .Take(300)
             .ToListAsync(cancellationToken);
 
         var weakAreas = BuildWeakAreas(recentAttempts);
+        var (skillStats, hskStats, grammarStats) = await BuildAnalyticsBucketsAsync(recentAttempts, cancellationToken);
         var mistakeCount = recentAttempts
             .Where(a => !a.IsCorrect)
             .Select(a => a.ExerciseId)
@@ -876,7 +963,10 @@ public class QuestionBankService : IQuestionBankService
             PublishedBySkill = bySkill,
             PublishedByDifficulty = byDiff,
             MistakeReviewCount = mistakeCount,
-            WeakAreas = weakAreas
+            WeakAreas = weakAreas,
+            SkillStats = skillStats,
+            HskStats = hskStats,
+            GrammarStats = grammarStats
         };
     }
 
@@ -894,13 +984,40 @@ public class QuestionBankService : IQuestionBankService
             ? QuestionValidationHelper.NormalizeDifficulty(dto.Difficulty)
             : null;
 
-        // 1. Gather user's attempt history for adaptive selection (zero leaks)
+        // 1. Gather user's attempt history + last 5 sessions to prevent back-to-back repetition
         var attempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.AttemptedAt)
             .Take(300)
             .ToListAsync(cancellationToken);
+
+        var recentSessionPayloads = await _dbContext.QuestionBankPracticeSessions
+            .AsNoTracking()
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.StartedAt)
+            .Take(5)
+            .Select(s => s.ExerciseIdsJson)
+            .ToListAsync(cancellationToken);
+
+        var lastSessionIds = new HashSet<Guid>();
+        var recentSessionIds = new HashSet<Guid>();
+        for (var sIdx = 0; sIdx < recentSessionPayloads.Count; sIdx++)
+        {
+            try
+            {
+                var ids = JsonSerializer.Deserialize<List<Guid>>(recentSessionPayloads[sIdx]) ?? [];
+                foreach (var qid in ids)
+                {
+                    if (sIdx == 0) lastSessionIds.Add(qid);
+                    else recentSessionIds.Add(qid);
+                }
+            }
+            catch
+            {
+                // ignore malformed session id cache
+            }
+        }
 
         var weakAreas = BuildWeakAreas(attempts);
         var weakSkills = weakAreas
@@ -912,11 +1029,29 @@ public class QuestionBankService : IQuestionBankService
             .Select(w => w.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var wrongExerciseIds = attempts
-            .Where(a => !a.IsCorrect && Guid.TryParse(a.ExerciseId, out _))
-            .Select(a => Guid.Parse(a.ExerciseId))
-            .Distinct()
+        // Most recent outcome per exercise so mastered mistakes cool down while unresolved mistakes stay prioritized
+        var latestAttemptByEx = new Dictionary<Guid, StudentPracticeAttempt>();
+        foreach (var att in attempts)
+        {
+            if (Guid.TryParse(att.ExerciseId, out var exGuid) && !latestAttemptByEx.ContainsKey(exGuid))
+            {
+                latestAttemptByEx[exGuid] = att;
+            }
+        }
+
+        var wrongExerciseIds = latestAttemptByEx
+            .Where(kv => !kv.Value.IsCorrect)
+            .Select(kv => kv.Key)
             .ToHashSet();
+
+        var dueReviewCutoff = DateTime.UtcNow.AddDays(-3);
+        var dueReviewExerciseIds = latestAttemptByEx
+            .Where(kv => kv.Value.AttemptedAt <= dueReviewCutoff)
+            .Select(kv => kv.Key)
+            .ToHashSet();
+
+        var attemptedExerciseIds = latestAttemptByEx.Keys.ToHashSet();
+        var preferredDifficulty = ResolveAdaptiveDifficulty(attempts, dto.HskLevel);
 
         var dueVocabHanzi = await _dbContext.StudentVocabularyProgresses
             .AsNoTracking()
@@ -957,7 +1092,10 @@ public class QuestionBankService : IQuestionBankService
             {
                 return await PersistAndMaterializeSessionAsync(
                     userId, dto.HskLevel, normSkill, normDiff, mode,
-                    SelectCandidatesWithReasons(mistakePool, count, mode, weakSkills, weakKnowledgeIds, wrongExerciseIds, dueVocabHanzi),
+                    SelectCandidatesWithReasons(
+                        mistakePool, count, mode, weakSkills, weakKnowledgeIds,
+                        wrongExerciseIds, dueReviewExerciseIds, attemptedExerciseIds,
+                        lastSessionIds, recentSessionIds, dueVocabHanzi, preferredDifficulty),
                     cancellationToken);
             }
         }
@@ -998,7 +1136,12 @@ public class QuestionBankService : IQuestionBankService
             weakSkills,
             weakKnowledgeIds,
             wrongExerciseIds,
-            dueVocabHanzi);
+            dueReviewExerciseIds,
+            attemptedExerciseIds,
+            lastSessionIds,
+            recentSessionIds,
+            dueVocabHanzi,
+            preferredDifficulty);
 
         return await PersistAndMaterializeSessionAsync(
             userId, dto.HskLevel, normSkill, normDiff, mode, picked, cancellationToken);
@@ -1239,48 +1382,77 @@ public class QuestionBankService : IQuestionBankService
         HashSet<string?> weakSkills,
         HashSet<string> weakKnowledgeIds,
         HashSet<Guid> wrongExerciseIds,
-        List<string> dueVocabHanzi)
+        HashSet<Guid> dueReviewExerciseIds,
+        HashSet<Guid> attemptedExerciseIds,
+        HashSet<Guid> lastSessionIds,
+        HashSet<Guid> recentSessionIds,
+        List<string> dueVocabHanzi,
+        string preferredDifficulty)
     {
         var rng = Random.Shared;
+
+        double ComputeRepeatPenalty(Guid id) =>
+            lastSessionIds.Contains(id) ? -180 : recentSessionIds.Contains(id) ? -70 : 0;
 
         if (mode is not ("weakness" or "adaptive" or "mistake-review"))
         {
             return pool
-                .OrderBy(_ => rng.Next())
+                .OrderByDescending(c =>
+                    ComputeRepeatPenalty(c.Id)
+                    + (!attemptedExerciseIds.Contains(c.Id) ? 25 : 0)
+                    + rng.NextDouble() * 12)
                 .Take(count)
                 .Select(c => (c, new PracticeQuestionSelectionReasonDto
                 {
-                    ReasonCode = mode == "skill" ? "SKILL_FILTER" : "RANDOM_PRACTICE",
-                    ReasonLabel = mode == "skill"
-                        ? $"Luyện tập kỹ năng {c.Skill}"
-                        : $"Luyện tập tổng hợp HSK {c.HskLevel}"
+                    ReasonCode = !attemptedExerciseIds.Contains(c.Id)
+                        ? "UNSEEN_DISCOVERY"
+                        : mode == "skill" ? "SKILL_FILTER" : "RANDOM_PRACTICE",
+                    ReasonLabel = !attemptedExerciseIds.Contains(c.Id)
+                        ? $"Câu hỏi mới HSK {c.HskLevel} chưa luyện"
+                        : mode == "skill"
+                            ? $"Luyện tập kỹ năng {c.Skill}"
+                            : $"Luyện tập tổng hợp HSK {c.HskLevel}"
                 }))
                 .ToList();
         }
 
-        // Score every candidate: prioritize weak skills, past mistakes, and SRS-due vocabulary (~65% target),
-        // then backfill remaining (~35%) with spaced exploratory questions.
+        // Weighted adaptive pool (~65% targeted mistakes/weakness/due-review/unseen, ~35% spaced variety),
+        // strictly avoiding back-to-back repeats from the immediately preceding sessions when pool permits.
         var priority = new List<(CandidateMeta Candidate, double Score, PracticeQuestionSelectionReasonDto Reason)>();
-        var exploratory = new List<(CandidateMeta Candidate, PracticeQuestionSelectionReasonDto Reason)>();
+        var exploratory = new List<(CandidateMeta Candidate, double Score, PracticeQuestionSelectionReasonDto Reason)>();
 
         foreach (var c in pool)
         {
+            var penalty = ComputeRepeatPenalty(c.Id);
             double score = 0;
             var code = "EXPLORATION_REVIEW";
             var label = $"Củng cố kiến thức HSK {c.HskLevel}";
 
             if (wrongExerciseIds.Contains(c.Id))
             {
-                score += 60;
+                score += 70;
                 code = "PAST_MISTAKE_REVIEW";
-                label = "Câu bạn từng làm sai trước đây";
+                label = "Câu bạn từng trả lời sai gần đây";
             }
 
             if (c.GrammarPointId.HasValue && weakKnowledgeIds.Contains(c.GrammarPointId.Value.ToString()))
             {
                 score += 45;
-                code = "WEAK_GRAMMAR_POINT";
-                label = "Điểm ngữ pháp cần củng cố thêm";
+                if (code == "EXPLORATION_REVIEW")
+                {
+                    code = "WEAK_GRAMMAR_POINT";
+                    label = "Điểm ngữ pháp cần củng cố thêm";
+                }
+            }
+
+            if (dueReviewExerciseIds.Contains(c.Id))
+            {
+                score += 40;
+                if (code == "EXPLORATION_REVIEW")
+                {
+                    code = "DUE_FOR_REVIEW";
+                    label = "Câu đến hạn ôn tập lại để ghi nhớ dài hạn";
+                }
             }
 
             if (weakSkills.Contains(c.Skill))
@@ -1289,14 +1461,14 @@ public class QuestionBankService : IQuestionBankService
                 if (code == "EXPLORATION_REVIEW")
                 {
                     code = "WEAK_SKILL_TARGET";
-                    label = $"Kỹ năng {c.Skill} có tỷ lệ đúng thấp";
+                    label = $"Kỹ năng {c.Skill} đang có tỷ lệ đúng thấp";
                 }
             }
 
             if (!string.IsNullOrWhiteSpace(c.PromptHanzi) &&
                 dueVocabHanzi.Any(h => c.PromptHanzi.Contains(h, StringComparison.Ordinal)))
             {
-                score += 25;
+                score += 30;
                 if (code == "EXPLORATION_REVIEW")
                 {
                     code = "SRS_DUE_VOCABULARY";
@@ -1304,9 +1476,25 @@ public class QuestionBankService : IQuestionBankService
                 }
             }
 
-            if (score > 0)
+            if (!attemptedExerciseIds.Contains(c.Id))
             {
-                priority.Add((c, score + rng.NextDouble() * 5, new PracticeQuestionSelectionReasonDto
+                score += 22;
+                if (code == "EXPLORATION_REVIEW")
+                {
+                    code = "UNSEEN_DISCOVERY";
+                    label = $"Câu mới HSK {c.HskLevel} chưa từng làm";
+                }
+            }
+
+            if (string.Equals(c.Difficulty, preferredDifficulty, StringComparison.OrdinalIgnoreCase))
+            {
+                score += 15;
+            }
+
+            var finalScore = score + penalty + rng.NextDouble() * 6;
+            if (score > 25)
+            {
+                priority.Add((c, finalScore, new PracticeQuestionSelectionReasonDto
                 {
                     ReasonCode = code,
                     ReasonLabel = label
@@ -1314,10 +1502,12 @@ public class QuestionBankService : IQuestionBankService
             }
             else
             {
-                exploratory.Add((c, new PracticeQuestionSelectionReasonDto
+                exploratory.Add((c, finalScore, new PracticeQuestionSelectionReasonDto
                 {
-                    ReasonCode = "SPACED_VARIETY",
-                    ReasonLabel = $"Ôn tập đan xen kỹ năng {c.Skill}"
+                    ReasonCode = !attemptedExerciseIds.Contains(c.Id) ? "UNSEEN_DISCOVERY" : "SPACED_VARIETY",
+                    ReasonLabel = !attemptedExerciseIds.Contains(c.Id)
+                        ? $"Mở rộng câu mới HSK {c.HskLevel}"
+                        : $"Ôn tập đan xen kỹ năng {c.Skill}"
                 }));
             }
         }
@@ -1332,7 +1522,12 @@ public class QuestionBankService : IQuestionBankService
         var remaining = count - selected.Count;
         if (remaining > 0)
         {
-            selected.AddRange(exploratory.OrderBy(_ => rng.Next()).Take(remaining));
+            var pickedSet = selected.Select(x => x.Candidate.Id).ToHashSet();
+            selected.AddRange(exploratory
+                .Where(e => !pickedSet.Contains(e.Candidate.Id))
+                .OrderByDescending(e => e.Score)
+                .Take(remaining)
+                .Select(x => (x.Candidate, x.Reason)));
         }
 
         if (selected.Count < count && priority.Count > selected.Count)
@@ -1346,6 +1541,110 @@ public class QuestionBankService : IQuestionBankService
         }
 
         return selected;
+    }
+
+    private static string ResolveAdaptiveDifficulty(List<StudentPracticeAttempt> attempts, int? targetHskLevel)
+    {
+        var scoped = targetHskLevel.HasValue
+            ? attempts.Where(a => a.HskLevel == targetHskLevel.Value).ToList()
+            : attempts;
+        if (scoped.Count < 4) return "EASY";
+        var acc = scoped.Count(a => a.IsCorrect) * 100.0 / scoped.Count;
+        if (acc < 60) return "EASY";
+        if (acc < 82) return "MEDIUM";
+        return "HARD";
+    }
+
+    private async Task<(List<PracticeStatBucketDto> SkillStats, List<PracticeStatBucketDto> HskStats, List<PracticeStatBucketDto> GrammarStats)> BuildAnalyticsBucketsAsync(
+        List<StudentPracticeAttempt> attempts,
+        CancellationToken cancellationToken)
+    {
+        if (attempts.Count == 0)
+        {
+            return ([], [], []);
+        }
+
+        var skillStats = attempts
+            .GroupBy(a => QuestionValidationHelper.NormalizeSkill(a.Category))
+            .Select(g =>
+            {
+                var total = g.Count();
+                var correct = g.Count(x => x.IsCorrect);
+                return new PracticeStatBucketDto
+                {
+                    Key = g.Key,
+                    Label = g.Key switch
+                    {
+                        "vocabulary" => "Từ vựng",
+                        "grammar" => "Ngữ pháp",
+                        "reading" => "Đọc hiểu",
+                        "listening" => "Luyện nghe",
+                        "sentence" => "Cấu trúc câu",
+                        _ => "Tổng hợp"
+                    },
+                    TotalAttempts = total,
+                    CorrectCount = correct,
+                    Accuracy = Math.Round(correct * 100.0 / total, 1)
+                };
+            })
+            .OrderByDescending(x => x.TotalAttempts)
+            .ToList();
+
+        var hskStats = attempts
+            .Where(a => a.HskLevel is >= 1 and <= 6)
+            .GroupBy(a => a.HskLevel)
+            .Select(g =>
+            {
+                var total = g.Count();
+                var correct = g.Count(x => x.IsCorrect);
+                return new PracticeStatBucketDto
+                {
+                    Key = $"hsk{g.Key}",
+                    Label = $"HSK {g.Key}",
+                    TotalAttempts = total,
+                    CorrectCount = correct,
+                    Accuracy = Math.Round(correct * 100.0 / total, 1)
+                };
+            })
+            .OrderBy(x => x.Key)
+            .ToList();
+
+        var grammarGuids = attempts
+            .Select(a => Guid.TryParse(a.KnowledgePointId, out var g) ? g : (Guid?)null)
+            .Where(g => g.HasValue)
+            .Select(g => g!.Value)
+            .Distinct()
+            .Take(20)
+            .ToList();
+
+        var grammarNames = grammarGuids.Count > 0
+            ? await _dbContext.GrammarPoints
+                .AsNoTracking()
+                .Where(g => grammarGuids.Contains(g.Id))
+                .ToDictionaryAsync(g => g.Id, g => g.Title, cancellationToken)
+            : new Dictionary<Guid, string>();
+
+        var grammarStats = attempts
+            .Where(a => Guid.TryParse(a.KnowledgePointId, out var gid) && grammarNames.ContainsKey(gid))
+            .GroupBy(a => Guid.Parse(a.KnowledgePointId))
+            .Select(g =>
+            {
+                var total = g.Count();
+                var correct = g.Count(x => x.IsCorrect);
+                return new PracticeStatBucketDto
+                {
+                    Key = g.Key.ToString(),
+                    Label = grammarNames.GetValueOrDefault(g.Key, "Điểm ngữ pháp"),
+                    TotalAttempts = total,
+                    CorrectCount = correct,
+                    Accuracy = Math.Round(correct * 100.0 / total, 1)
+                };
+            })
+            .OrderBy(x => x.Accuracy)
+            .Take(8)
+            .ToList();
+
+        return (skillStats, hskStats, grammarStats);
     }
 
     private async Task<PracticeSessionDto> PersistAndMaterializeSessionAsync(
@@ -1674,6 +1973,8 @@ public class QuestionBankService : IQuestionBankService
         CorrectOptionIndex = e.CorrectOptionIndex,
         CorrectAnswer = e.CorrectAnswer,
         Explanation = e.Explanation,
+        HasSubstantiveExplanation = QuestionValidationHelper.HasSubstantiveExplanation(e.Explanation, e.CorrectAnswer),
+        IsReported = !string.IsNullOrWhiteSpace(e.Tags) && e.Tags.Contains("reported-issue", StringComparison.OrdinalIgnoreCase),
         XpReward = e.XpReward,
         Status = e.Status,
         ReviewStatus = e.ReviewStatus,

@@ -1,7 +1,10 @@
-import React from 'react';
-import { Trophy, CheckCircle2, Clock, Zap, ArrowRight, RotateCcw, Home, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trophy, CheckCircle2, Clock, Zap, ArrowRight, RotateCcw, Home, AlertCircle, Flag } from 'lucide-react';
 import type { PracticeSessionResult } from '../types';
-import type { BackendQuestionResultItem } from '../services/practice-question-bank.service';
+import {
+  practiceQuestionBankService,
+  type BackendQuestionResultItem,
+} from '../services/practice-question-bank.service';
 
 interface PracticeResultProps {
   result: PracticeSessionResult;
@@ -18,6 +21,26 @@ export const PracticeResult: React.FC<PracticeResultProps> = ({
   onReviewMistakes,
   onBackToCenter,
 }) => {
+  const [reportingId, setReportingId] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportedIds, setReportedIds] = useState<Record<string, string>>({});
+  const [reportBusy, setReportBusy] = useState(false);
+
+  const handleSubmitReport = async (questionId: string) => {
+    const cleanReason = reportReason.trim() || 'Câu hỏi hoặc giải thích chưa chính xác';
+    setReportBusy(true);
+    try {
+      await practiceQuestionBankService.reportQuestion(questionId, cleanReason);
+      setReportedIds((prev) => ({ ...prev, [questionId]: 'Đã gửi báo lỗi để kiểm duyệt' }));
+      setReportingId(null);
+      setReportReason('');
+    } catch {
+      setReportedIds((prev) => ({ ...prev, [questionId]: 'Không thể gửi báo lỗi lúc này' }));
+    } finally {
+      setReportBusy(false);
+    }
+  };
+
   const minutes = Math.floor(result.timeSpentSeconds / 60);
   const seconds = result.timeSpentSeconds % 60;
   const timeFormatted = `${minutes}p ${seconds < 10 ? '0' : ''}${seconds}s`;
@@ -228,6 +251,89 @@ export const PracticeResult: React.FC<PracticeResultProps> = ({
                     {qr.explanation}
                   </div>
                 )}
+                <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {reportedIds[qr.questionId] ? (
+                    <span style={{ fontSize: '11px', color: '#B45309', fontWeight: 600 }}>
+                      {reportedIds[qr.questionId]}
+                    </span>
+                  ) : reportingId === qr.questionId ? (
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                      <input
+                        type="text"
+                        value={reportReason}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        placeholder="Mô tả ngắn lỗi (sai đáp án, chính tả, thiếu ngữ cảnh...)"
+                        style={{
+                          flex: 1,
+                          fontSize: '11px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #CBD5E1',
+                          backgroundColor: '#FFFFFF',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={reportBusy}
+                        onClick={() => void handleSubmitReport(qr.questionId)}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: '#D97706',
+                          color: '#FFFFFF',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {reportBusy ? 'Đang gửi...' : 'Gửi'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReportingId(null);
+                          setReportReason('');
+                        }}
+                        style={{
+                          fontSize: '11px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #CBD5E1',
+                          backgroundColor: '#FFFFFF',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReportingId(qr.questionId);
+                          setReportReason('');
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#B45309',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Flag size={11} />
+                        <span>Báo lỗi câu hỏi</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

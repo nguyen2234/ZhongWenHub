@@ -81,7 +81,13 @@ export interface CreateAdminGrammarDTO {
 
 export interface UpdateAdminGrammarDTO extends Partial<CreateAdminGrammarDTO> {}
 
-export type QuestionReviewStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+export type QuestionReviewStatus =
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'VALIDATED'
+  | 'NEEDS_ACADEMIC_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED';
 
 export interface AdminExerciseItem {
   id: string;
@@ -96,6 +102,8 @@ export interface AdminExerciseItem {
   sourceId?: string;
   sourceLicense?: string;
   qualityScore?: number;
+  hasSubstantiveExplanation?: boolean;
+  isReported?: boolean;
   contentHash?: string;
   reviewNotes?: string;
   title: string;

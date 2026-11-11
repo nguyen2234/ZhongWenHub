@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   adaptPracticeQuestionToShared,
+  practiceQuestionBankService,
   type StudentPracticeQuestionPayload,
 } from '../features/practice/services/practice-question-bank.service';
 import { questionBankService } from '../management/admin/content/services/question-bank.service';
@@ -67,6 +68,25 @@ describe('Question Bank Frontend Contract & Privacy Rules', () => {
     } finally {
       defaultApiConfig.useMock = prevMock;
     }
+  });
+
+  test('Phase 2 contracts expose extended review statuses, analytics and fault reporting', () => {
+    expect(typeof questionBankService.reportQuestion).toBe('function');
+    expect(typeof practiceQuestionBankService.reportQuestion).toBe('function');
+
+    const adminPageSrc = readFileSync(
+      resolve(import.meta.dir, '../management/admin/content/pages/AdminExerciseBankPage.tsx'),
+      'utf-8'
+    );
+    expect(adminPageSrc).toContain('VALIDATED');
+    expect(adminPageSrc).toContain('NEEDS_ACADEMIC_REVIEW');
+    expect(adminPageSrc).toContain('reported-issue');
+
+    const practiceResultSrc = readFileSync(
+      resolve(import.meta.dir, '../features/practice/components/PracticeResult.tsx'),
+      'utf-8'
+    );
+    expect(practiceResultSrc).toContain('Báo lỗi câu hỏi');
   });
 });
 

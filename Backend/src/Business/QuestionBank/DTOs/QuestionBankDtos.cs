@@ -20,6 +20,8 @@ public class QuestionBankItemDto
     public int? CorrectOptionIndex { get; set; }
     public string? CorrectAnswer { get; set; }
     public string? Explanation { get; set; }
+    public bool HasSubstantiveExplanation { get; set; }
+    public bool IsReported { get; set; }
     public int XpReward { get; set; } = 10;
     public string Status { get; set; } = "DRAFT";
     public string ReviewStatus { get; set; } = "DRAFT";
@@ -91,9 +93,13 @@ public class QuestionBankStatsDto
     public int Published { get; set; }
     public int Draft { get; set; }
     public int PendingReview { get; set; }
+    public int ValidatedReview { get; set; }
+    public int NeedsAcademicReview { get; set; }
     public int ApprovedReview { get; set; }
     public int RejectedReview { get; set; }
     public int Archived { get; set; }
+    public int WithSubstantiveExplanation { get; set; }
+    public int ReportedCount { get; set; }
     public int LinkedToLessons { get; set; }
     public int StandaloneBank { get; set; }
     public Dictionary<int, int> ByHsk { get; set; } = new();
@@ -382,6 +388,33 @@ public class AdaptiveRecommendationDto
     public string Reason { get; set; } = string.Empty;
 }
 
+public class ReportQuestionRequestDto
+{
+    [Required(ErrorMessage = "Vui lòng nhập lý do báo cáo câu hỏi.")]
+    [StringLength(300)]
+    public string Reason { get; set; } = string.Empty;
+
+    [StringLength(1000)]
+    public string? Details { get; set; }
+}
+
+public class ReportQuestionResultDto
+{
+    public Guid QuestionId { get; set; }
+    public string ReviewStatus { get; set; } = string.Empty;
+    public string Tags { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+}
+
+public class PracticeStatBucketDto
+{
+    public string Key { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public int TotalAttempts { get; set; }
+    public int CorrectCount { get; set; }
+    public double Accuracy { get; set; }
+}
+
 public class AdaptiveRecommendationsResponseDto
 {
     public int TotalPublishedQuestions { get; set; }
@@ -390,5 +423,8 @@ public class AdaptiveRecommendationsResponseDto
     public Dictionary<string, int> PublishedByDifficulty { get; set; } = new();
     public int MistakeReviewCount { get; set; }
     public List<AdaptiveRecommendationDto> WeakAreas { get; set; } = [];
+    public List<PracticeStatBucketDto> SkillStats { get; set; } = [];
+    public List<PracticeStatBucketDto> HskStats { get; set; } = [];
+    public List<PracticeStatBucketDto> GrammarStats { get; set; } = [];
 }
 
