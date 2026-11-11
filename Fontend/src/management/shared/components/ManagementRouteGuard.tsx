@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import type { UserRole } from '../../../types/roles';
 // ROLE_DEFAULT_PATHS
@@ -123,8 +123,7 @@ export const AdminLegacyContentRedirect: React.FC<{ targetPath: string }> = ({ t
     user.roles.forEach((r) => userRoles.add(r));
   }
   const canManage =
-    userRoles.has('ADMIN') ||
-        userRoles.has('CONTENT_MANAGER') ||
+    userRoles.has('ADMIN') || userRoles.has('CONTENT_MANAGER') ||
     managementAuthService.canManageContent();
 
   if (!canManage) {
@@ -158,7 +157,7 @@ export const AdminLegacyLessonEditorRedirect: React.FC = () => {
   }
   const canManage =
     userRoles.has('ADMIN') ||
-        userRoles.has('CONTENT_MANAGER') ||
+    userRoles.has('CONTENT_MANAGER') ||
     managementAuthService.canManageContent();
 
   if (!canManage) {

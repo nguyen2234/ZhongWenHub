@@ -6,8 +6,6 @@ import {
   Menu,
   X,
   Languages,
-  PanelLeftClose,
-  PanelLeftOpen,
   ChevronDown,
   LogOut,
 } from 'lucide-react';
@@ -52,9 +50,17 @@ export const StudentLayout: React.FC = () => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isPinyinActive, setIsPinyinActive] = useState(true);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const mainScrollRef = useRef<HTMLDivElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('zwh_sidebar_collapsed') === 'true';
   });
+
+  // Reset independent main content scroll position cleanly when switching student routes
+  useEffect(() => {
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTop = 0;
+    }
+  }, [pathname]);
 
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed((prev) => {
@@ -136,155 +142,222 @@ export const StudentLayout: React.FC = () => {
     return 'Dashboard Học tập';
   };
 
+  const activeSidebarWidth = isSidebarCollapsed
+    ? 'var(--student-sidebar-collapsed-width, 72px)'
+    : 'var(--student-sidebar-width, 256px)';
+
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
+    <div
+      className="student-app-shell"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto minmax(0, 1fr)',
+        gridTemplateRows: 'var(--app-header-height, 64px) minmax(0, 1fr)',
+        gridTemplateAreas: '"sidebar header" "sidebar main"',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: 'var(--background)',
+      }}
+    >
       {/* =====================================================================
-          1. HANBEEGO-INSPIRED TOP HEADER
+          1. FIXED APP SHELL SIDEBAR (CSS Grid Left Column: Unified Logo + Scrollable Nav)
+          ===================================================================== */}
+      <aside
+        className="desktop-sidebar-wrapper student-sidebar-wrapper"
+        style={{
+          gridArea: 'sidebar',
+          width: activeSidebarWidth,
+          height: '100%',
+          minHeight: 0,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <StudentSidebar
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+          showBrandHeader={true}
+        />
+      </aside>
+
+      {/* Mobile Slide-in Drawer (< 1024px) */}
+      {isMobileDrawerOpen && (
+        <div
+          className="mobile-sidebar-drawer-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 'var(--z-drawer)',
+            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+            display: 'flex',
+            overscrollBehavior: 'none',
+            touchAction: 'none',
+          }}
+          onClick={() => setIsMobileDrawerOpen(false)}
+        >
+          <div
+            className="mobile-sidebar-drawer"
+            style={{
+              width: 'min(300px, 85vw)',
+              height: '100dvh',
+              maxHeight: '100dvh',
+              backgroundColor: '#ffffff',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Điều hướng học viên"
+          >
+            <div
+              style={{
+                padding: '14px 16px',
+                borderBottom: '1.5px solid #f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--primary)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'var(--font-hanzi)',
+                    fontWeight: 700,
+                    fontSize: '16px',
+                  }}
+                >
+                  华
+                </div>
+                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800 }}>ZhongWenHub</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileDrawerOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                aria-label="Đóng thanh điều hướng"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <StudentSidebar
+                isCollapsed={false}
+                showBrandHeader={false}
+                onNavigate={() => setIsMobileDrawerOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          2. FIXED APP SHELL HEADER (CSS Grid Top Row: Search, Stats & Profile)
           ===================================================================== */}
       <header
+        className="student-app-header"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
+          gridArea: 'header',
+          position: 'relative',
+          zIndex: 20,
           display: 'flex',
-          height: 'var(--app-header-height)',
+          height: 'var(--app-header-height, 64px)',
+          minWidth: 0,
           alignItems: 'center',
           borderBottom: '1px solid var(--border)',
           backgroundColor: 'var(--surface)',
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Left section: Aligned with the Sidebar width (256px or 72px) */}
-        <div
-          style={{
-            display: 'flex',
-            height: '100%',
-            alignItems: 'center',
-            justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
-            gap: '10px',
-            padding: isSidebarCollapsed ? '0 10px' : '0 16px',
-            width: isSidebarCollapsed ? 'var(--student-sidebar-collapsed-width, 72px)' : 'var(--student-sidebar-width, 256px)',
-            borderRight: '1.5px solid #f1f5f9',
-            flexShrink: 0,
-            boxSizing: 'border-box',
-            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-          className="header-brand-box"
-        >
-          {/* Mobile Menu Hamburger button */}
-          <button
-            type="button"
-            aria-label="Mở menu"
-            onClick={() => setIsMobileDrawerOpen(true)}
-            className="mobile-hamburger-btn"
+          {/* Mobile-only Hamburger & Brand Logo (Hidden on Desktop >= 1024px) */}
+          <div
             style={{
               display: 'none',
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: '#334155',
+              height: '100%',
               alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: 0,
+              gap: '8px',
+              padding: '0 8px 0 12px',
+              flexShrink: 0,
+              boxSizing: 'border-box',
             }}
+            className="mobile-header-left header-brand-box"
           >
-            <Menu size={20} />
-          </button>
-
-          {/* Logo & Brand text */}
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => navigate('/dashboard')}
-            title="Về Trang chủ ZhongWenHub"
-          >
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--primary)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-hanzi)',
-                fontWeight: 700,
-                fontSize: '20px',
-                boxShadow: '0 3px 0 0 #B80010',
-                flexShrink: 0,
-              }}
-            >
-              华
-            </div>
-            {!isSidebarCollapsed && (
-              <div style={{ display: 'flex', flexDirection: 'column' }} className="header-brand-title">
-                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
-                  ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
-                </span>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
-                  Học tiếng Trung dễ dàng
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop Sidebar Toggle icon */}
-          {!isSidebarCollapsed && (
+            {/* Mobile Menu Hamburger button */}
             <button
               type="button"
-              onClick={toggleSidebarCollapse}
-              aria-label="Thu gọn thanh điều hướng"
-              className="desktop-sidebar-toggle-btn"
+              aria-label="Mở menu"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="mobile-hamburger-btn"
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
+                display: 'none',
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--radius-md)',
                 border: 'none',
                 backgroundColor: 'transparent',
-                color: '#94a3b8',
+                color: '#334155',
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 padding: 0,
               }}
-              title="Thu gọn sidebar"
             >
-              <PanelLeftClose size={16} />
+              <Menu size={20} />
             </button>
-          )}
-        </div>
 
-        {/* Center / Search Input Trigger */}
-        <div className="header-search-container" style={{ flex: 1, padding: '0 12px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          {/* Quick Expand button when sidebar is collapsed (Desktop only) */}
-          {isSidebarCollapsed && (
-            <button
-              type="button"
-              onClick={toggleSidebarCollapse}
-              aria-label="Mở rộng thanh điều hướng"
-              className="desktop-sidebar-expand-btn"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                color: '#64748b',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              title="Mở rộng sidebar"
+            {/* Mobile Logo & Brand text */}
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}
+              onClick={() => navigate('/dashboard')}
+              title="Về Trang chủ ZhongWenHub"
             >
-              <PanelLeftOpen size={16} />
-            </button>
-          )}
+              <div
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-hanzi)',
+                  fontWeight: 700,
+                  fontSize: '18px',
+                  boxShadow: '0 2px 0 0 #B80010',
+                  flexShrink: 0,
+                }}
+              >
+                华
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }} className="header-brand-title">
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
+                  ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Center / Search Input Trigger */}
+          <div className="header-search-container" style={{ flex: 1, padding: '0 12px 0 16px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
 
           {/* Desktop/Tablet Full Search Bar */}
           <button
@@ -688,126 +761,28 @@ export const StudentLayout: React.FC = () => {
       </header>
 
       {/* =====================================================================
-          2. HANBEEGO-STYLE TWO-PANE BODY (Sticky Sidebar + Main Content)
+          3. SCROLLABLE MAIN CONTENT PANE (Only this region scrolls vertically)
           ===================================================================== */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100dvh - var(--app-header-height))' }}>
-        {/* Persistent Desktop Sidebar */}
-        <aside
-          className="desktop-sidebar-wrapper student-sidebar-wrapper"
-          style={{
-            position: 'sticky',
-            top: 'var(--app-header-height)',
-            height: 'calc(100dvh - var(--app-header-height))',
-            maxHeight: 'calc(100dvh - var(--app-header-height))',
-            flexShrink: 0,
-            alignSelf: 'flex-start',
-            zIndex: 'var(--z-sidebar)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-        >
-          <StudentSidebar
-            isCollapsed={isSidebarCollapsed}
-            onToggleCollapse={toggleSidebarCollapse}
-          />
-        </aside>
-
-        {/* Mobile Slide-in Drawer */}
-        {isMobileDrawerOpen && (
-          <div
-            className="mobile-sidebar-drawer-overlay"
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 'var(--z-drawer)',
-              backgroundColor: 'rgba(15, 23, 42, 0.5)',
-              display: 'flex',
-              overscrollBehavior: 'none',
-              touchAction: 'none',
-            }}
-            onClick={() => setIsMobileDrawerOpen(false)}
-          >
-            <div
-              className="mobile-sidebar-drawer"
-              style={{
-                width: 'min(300px, 85vw)',
-                height: '100dvh',
-                maxHeight: '100dvh',
-                backgroundColor: '#ffffff',
-                boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Điều hướng học viên"
-            >
-              <div
-                style={{
-                  padding: '14px 16px',
-                  borderBottom: '1.5px solid #f1f5f9',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexShrink: 0,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--primary)',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'var(--font-hanzi)',
-                      fontWeight: 700,
-                      fontSize: '16px',
-                    }}
-                  >
-                    华
-                  </div>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800 }}>ZhongWenHub</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileDrawerOpen(false)}
-                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
-                  aria-label="Đóng thanh điều hướng"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <StudentSidebar
-                  isCollapsed={false}
-                  onNavigate={() => setIsMobileDrawerOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content Viewport hosting Outlet and Footer */}
-        <div
-          style={{
-            minWidth: 0,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'var(--background)',
-          }}
-        >
-          <main className="student-main-viewport" style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
-            <Outlet />
-          </main>
+      <div
+        ref={mainScrollRef}
+        className="student-main-pane student-main-scroll"
+        style={{
+          gridArea: 'main',
+          minWidth: 0,
+          minHeight: 0,
+          height: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'var(--background)',
+          boxSizing: 'border-box',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        <main className="student-main-viewport" style={{ flex: '1 0 auto', width: '100%', boxSizing: 'border-box' }}>
+          <Outlet />
+        </main>
 
           {/* Clean Responsive Footer */}
           <footer
@@ -848,7 +823,6 @@ export const StudentLayout: React.FC = () => {
               </div>
             </div>
           </footer>
-        </div>
       </div>
 
       {/* Mobile-First Fixed Bottom Navigation */}
@@ -860,27 +834,31 @@ export const StudentLayout: React.FC = () => {
       {/* Responsive Breakpoint CSS */}
       <style>{`
         @media (max-width: 1023px) {
+          .student-app-shell {
+            grid-template-columns: minmax(0, 1fr) !important;
+            grid-template-areas:
+              "header"
+              "main" !important;
+          }
           .desktop-sidebar-wrapper {
             display: none !important;
+          }
+          .student-main-pane {
+            width: 100% !important;
+          }
+          .mobile-header-left {
+            display: flex !important;
           }
           .mobile-hamburger-btn {
             display: inline-flex !important;
           }
-          .header-brand-box {
-            width: auto !important;
-            border-right: none !important;
-            padding: 0 8px 0 12px !important;
+          .header-search-container {
+            padding: 0 12px !important;
           }
           .header-admin-link {
             display: none !important;
           }
           .header-admin-text {
-            display: none !important;
-          }
-          .desktop-sidebar-toggle-btn {
-            display: none !important;
-          }
-          .desktop-sidebar-expand-btn {
             display: none !important;
           }
           .student-main-viewport {

@@ -16,6 +16,7 @@ export interface StudentSidebarProps {
   className?: string;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  showBrandHeader?: boolean;
 }
 
 export const StudentSidebar: React.FC<StudentSidebarProps> = ({
@@ -23,6 +24,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   className = '',
   isCollapsed = false,
   onToggleCollapse,
+  showBrandHeader = true,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,32 +41,44 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
 
   // Scroll only the sidebar's own scroll container when route changes if active item is outside view
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+    const syncActiveItemScroll = () => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
 
-    const activeEl = container.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!activeEl) return;
+      const activeEl = container.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!activeEl) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    if (containerRect.height <= 0 || itemRect.height <= 0) return;
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = activeEl.getBoundingClientRect();
+      if (containerRect.height <= 0 || itemRect.height <= 0) return;
 
-    const padding = 8;
-    if (itemRect.top < containerRect.top + padding) {
-      const nextTop = Math.max(0, container.scrollTop - (containerRect.top - itemRect.top + padding));
-      if (typeof container.scrollTo === 'function') {
-        container.scrollTo({ top: nextTop, behavior: 'smooth' });
-      } else {
-        container.scrollTop = nextTop;
+      const padding = 8;
+      if (itemRect.top < containerRect.top + padding) {
+        const nextTop = Math.max(
+          0,
+          container.scrollTop - (containerRect.top - itemRect.top + padding)
+        );
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: nextTop, behavior: 'auto' });
+        } else {
+          container.scrollTop = nextTop;
+        }
+      } else if (itemRect.bottom > containerRect.bottom - padding) {
+        const nextTop = container.scrollTop + (itemRect.bottom - containerRect.bottom + padding);
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: nextTop, behavior: 'auto' });
+        } else {
+          container.scrollTop = nextTop;
+        }
       }
-    } else if (itemRect.bottom > containerRect.bottom - padding) {
-      const nextTop = container.scrollTop + (itemRect.bottom - containerRect.bottom + padding);
-      if (typeof container.scrollTo === 'function') {
-        container.scrollTo({ top: nextTop, behavior: 'smooth' });
-      } else {
-        container.scrollTop = nextTop;
-      }
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      const rafId = window.requestAnimationFrame(syncActiveItemScroll);
+      return () => window.cancelAnimationFrame(rafId);
     }
+    syncActiveItemScroll();
+    return undefined;
   }, [pathname, location.search, isCollapsed]);
 
   const toggleGroup = (groupId: string) => {
@@ -120,52 +134,136 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
       }}
       aria-label="Thanh điều hướng học tập"
     >
-      {/* Sidebar Top Header & Collapse Toggle */}
-      {onToggleCollapse && (
+      {/* Unified Brand Header & Collapse Toggle */}
+      {(showBrandHeader || onToggleCollapse) && (
         <div
+          className="student-sidebar-brand-header"
           style={{
-            padding: isCollapsed ? '12px 0' : '12px 16px',
+            minHeight: 'var(--app-header-height, 64px)',
+            padding: isCollapsed ? '10px 8px' : '0 12px 0 16px',
             display: 'flex',
+            flexDirection: isCollapsed ? 'column' : 'row',
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
-            borderBottom: '1px solid #f8fafc',
+            gap: isCollapsed ? '8px' : '10px',
+            borderBottom: '1px solid var(--border, #e2e8f0)',
             flexShrink: 0,
+            boxSizing: 'border-box',
           }}
         >
-          {!isCollapsed && (
-            <span
+          {showBrandHeader ? (
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/dashboard');
+                if (onNavigate) onNavigate();
+              }}
+              title="Về Trang chủ ZhongWenHub"
+              aria-label="Về Trang chủ ZhongWenHub"
               style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#94a3b8',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                flex: isCollapsed ? '0 0 auto' : '1 1 auto',
+                minWidth: 0,
+                overflow: 'hidden',
+                padding: 0,
+                border: 'none',
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                textAlign: 'left',
               }}
             >
-              Menu học tập
-            </span>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, #e11d48 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  fontFamily: 'var(--font-hanzi)',
+                  fontWeight: 700,
+                  fontSize: '18px',
+                  boxShadow: '0 4px 10px -2px rgba(211, 47, 47, 0.25)',
+                  flexShrink: 0,
+                }}
+              >
+                华
+              </div>
+              {!isCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+                  <span
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      color: 'var(--foreground)',
+                      lineHeight: 1.15,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    ZhongWenHub
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#64748b',
+                      fontWeight: 500,
+                      lineHeight: 1.2,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    Học tiếng Trung dễ dàng
+                  </span>
+                </div>
+              )}
+            </button>
+          ) : (
+            !isCollapsed && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#94a3b8',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                Menu học tập
+              </span>
+            )
           )}
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            aria-label={isCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '30px',
-              height: '30px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#f8fafc',
-              color: '#64748b',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            title={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
-          >
-            {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-          </button>
+
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              aria-label={isCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '30px',
+                height: '30px',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#f8fafc',
+                color: '#64748b',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                flexShrink: 0,
+              }}
+              title={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
+            >
+              {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+            </button>
+          )}
         </div>
       )}
 

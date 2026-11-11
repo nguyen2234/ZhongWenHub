@@ -110,7 +110,7 @@ describe('Student Sidebar & Practice Formats Architecture', () => {
     expect(src).not.toContain('const hskLevels = [1, 2, 3, 4]');
   });
 
-  test('StudentSidebar removes Kippy AI widget cleanly and keeps independent scrollable nav + active auto-scroll', () => {
+  test('StudentSidebar removes Kippy AI widget cleanly, hosts unified brand header & keeps independent scroll', () => {
     const sidebarSrc = readFileSync(
       resolve(import.meta.dir, '../layouts/components/StudentSidebar.tsx'),
       'utf-8'
@@ -119,8 +119,32 @@ describe('Student Sidebar & Practice Formats Architecture', () => {
     expect(sidebarSrc).not.toContain('Luyện giao tiếp 24/7');
     expect(sidebarSrc).not.toContain('Luyện phản xạ ngay');
     expect(sidebarSrc).not.toContain('Luyện nói AI Live Kippy');
+    expect(sidebarSrc).toContain('student-sidebar-brand-header');
+    expect(sidebarSrc).toContain('ZhongWenHub');
+    expect(sidebarSrc).toContain('Học tiếng Trung dễ dàng');
+    expect(sidebarSrc).toContain('showBrandHeader');
     expect(sidebarSrc).toContain('scrollContainerRef');
     expect(sidebarSrc).toContain('[aria-current="page"]');
+  });
+
+  test('StudentLayout implements CSS Grid Fixed App Shell (100dvh, overflow hidden, scrollable main, fixed header & sidebar)', () => {
+    const layoutSrc = readFileSync(
+      resolve(import.meta.dir, '../layouts/StudentLayout.tsx'),
+      'utf-8'
+    );
+    expect(layoutSrc).toContain('student-app-shell');
+    expect(layoutSrc).toContain("height: '100dvh'");
+    expect(layoutSrc).toContain("overflow: 'hidden'");
+    expect(layoutSrc).toContain("gridArea: 'sidebar'");
+    expect(layoutSrc).toContain("gridArea: 'header'");
+    expect(layoutSrc).toContain("gridArea: 'main'");
+    expect(layoutSrc).toContain("overflowY: 'auto'");
+    expect(layoutSrc).toContain('minHeight: 0');
+    expect(layoutSrc).toContain('minWidth: 0');
+    expect(layoutSrc).toContain('grid-template-columns: minmax(0, 1fr) !important;');
+    expect(layoutSrc).toContain('mobile-header-left');
+    expect(layoutSrc).toContain('showBrandHeader={false}');
+    expect(layoutSrc).toContain('mobile-sidebar-drawer');
   });
 });
 

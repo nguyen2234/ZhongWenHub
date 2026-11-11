@@ -270,22 +270,31 @@ test.describe('Sidebar Reorganization & Practice Exercises Redesign', () => {
       page.getByRole('heading', { level: 1, name: /Bài tập luyện tiếng Trung/i })
     ).toBeVisible({ timeout: 10000 });
 
+    const mainScroll = page.locator('.student-main-scroll');
     const beforeMainScrollSidebarTop = await scrollBox.evaluate((el) => el.scrollTop);
-    await page.evaluate(() => window.scrollTo(0, 450));
+    const mainOverflow = await mainScroll.evaluate((el) => {
+      el.scrollTop = 450;
+      return {
+        mainScrollTop: el.scrollTop,
+        windowScrollY: window.scrollY,
+      };
+    });
     await page.waitForTimeout(150);
     const afterMainScrollSidebarTop = await scrollBox.evaluate((el) => el.scrollTop);
+    expect(mainOverflow.mainScrollTop).toBeGreaterThan(0);
+    expect(mainOverflow.windowScrollY).toBe(0);
     expect(afterMainScrollSidebarTop).toBe(beforeMainScrollSidebarTop);
 
-    // Reset sidebar to top, scroll sidebar manually to bottom, confirm window scroll stays untouched
-    const windowScrollBefore = await page.evaluate(() => window.scrollY);
+    // Reset sidebar to top, scroll sidebar manually to bottom, confirm main & window scroll stay untouched
+    const mainScrollBefore = await mainScroll.evaluate((el) => el.scrollTop);
     await scrollBox.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
     await page.waitForTimeout(100);
     const sidebarScrollAfter = await scrollBox.evaluate((el) => el.scrollTop);
-    const windowScrollAfter = await page.evaluate(() => window.scrollY);
+    const mainScrollAfter = await mainScroll.evaluate((el) => el.scrollTop);
     expect(sidebarScrollAfter).toBeGreaterThan(0);
-    expect(windowScrollAfter).toBe(windowScrollBefore);
+    expect(mainScrollAfter).toBe(mainScrollBefore);
 
     // 4.4 Reset sidebar scroll to top and navigate via Quick Search SPA transition to /ai-tutor
     // -> StudentSidebar auto-scroll brings active item into view without clicking the sidebar directly
@@ -312,6 +321,267 @@ test.describe('Sidebar Reorganization & Practice Exercises Redesign', () => {
     expect(activeVisibility?.topOk).toBe(true);
     expect(activeVisibility?.bottomOk).toBe(true);
     expect(activeVisibility?.scrollTop).toBeGreaterThan(0);
+
+    expect(pageErrors).toEqual([]);
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('5. Fixed App Shell (Grid header + sidebar + scrollable main) across 500/768/1080, Vocabulary, AI Live & mobile', async ({
+    page,
+  }) => {
+    await loginStudent(page);
+
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    // Navigate via sidebar click to /practice
+    const isInitiallyMobile = (page.viewportSize()?.width ?? 1440) < 768;
+    if (!isInitiallyMobile) {
+      await page.locator('aside.student-sidebar-container').first().getByRole('button', { name: /^Bài tập$/i }).click();
+    } else {
+      await page.locator('.mobile-hamburger-btn').click();
+      await page.locator('.mobile-sidebar-drawer').getByRole('button', { name: /^Bài tập$/i }).click();
+    }
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Bài tập luyện tiếng Trung/i })
+    ).toBeVisible({ timeout: 10000 });
+
+    // Check CSS Grid Fixed App Shell at 500px, 768px, and 1080px heights (no body scrollbar, no fixed hacks)
+    for (const height of [500, 768, 1080]) {
+      await page.setViewportSize({ width: 1440, height });
+      await page.waitForTimeout(350);
+
+      const shellMetrics = await page.evaluate(() => {
+        const shell = document.querySelector<HTMLElement>('.student-app-shell');
+        const wrapper = document.querySelector<HTMLElement>('.desktop-sidebar-wrapper');
+        const header = document.querySelector<HTMLElement>('.student-app-header');
+        const mainPane = document.querySelector<HTMLElement>('.student-main-scroll');
+        const brandHeader = wrapper?.querySelector<HTMLElement>('.student-sidebar-brand-header');
+        if (!shell || !wrapper || !header || !mainPane || !brandHeader) return null;
+
+        const shellStyle = getComputedStyle(shell);
+        const wrapperStyle = getComputedStyle(wrapper);
+        const headerStyle = getComputedStyle(header);
+        const mainStyle = getComputedStyle(mainPane);
+        const wRect = wrapper.getBoundingClientRect();
+        const hRect = header.getBoundingClientRect();
+        const mRect = mainPane.getBoundingClientRect();
+
+        return {
+          shellDisplay: shellStyle.display,
+          shellOverflow: shellStyle.overflow,
+          shellHeight: Math.round(shell.getBoundingClientRect().height),
+          wrapperPosition: wrapperStyle.position,
+          wrapperTop: Math.round(wRect.top),
+          wrapperLeft: Math.round(wRect.left),
+          wrapperWidth: Math.round(wRect.width),
+          wrapperHeight: Math.round(wRect.height),
+          headerPosition: headerStyle.position,
+          headerTop: Math.round(hRect.top),
+          headerLeft: Math.round(hRect.left),
+          headerHeight: Math.round(hRect.height),
+          mainOverflowY: mainStyle.overflowY,
+          mainTop: Math.round(mRect.top),
+          mainLeft: Math.round(mRect.left),
+          brandTop: Math.round(brandHeader.getBoundingClientRect().top),
+          innerHeight: window.innerHeight,
+          docScrollHeight: document.documentElement.scrollHeight,
+          overflowX: document.documentElement.scrollWidth > window.innerWidth + 1,
+        };
+      });
+
+      expect(shellMetrics).not.toBeNull();
+      expect(shellMetrics?.shellDisplay).toBe('grid');
+      expect(shellMetrics?.shellOverflow).toBe('hidden');
+      expect(Math.abs((shellMetrics?.shellHeight ?? 0) - (shellMetrics?.innerHeight ?? 0))).toBeLessThanOrEqual(1);
+      expect(shellMetrics?.docScrollHeight).toBeLessThanOrEqual((shellMetrics?.innerHeight ?? 0) + 1);
+      expect(shellMetrics?.overflowX).toBe(false);
+
+      expect(shellMetrics?.wrapperPosition).not.toBe('fixed');
+      expect(shellMetrics?.wrapperTop).toBe(0);
+      expect(shellMetrics?.wrapperLeft).toBe(0);
+      expect(shellMetrics?.wrapperWidth).toBe(256);
+      expect(Math.abs((shellMetrics?.wrapperHeight ?? 0) - (shellMetrics?.innerHeight ?? 0))).toBeLessThanOrEqual(1);
+      expect(shellMetrics?.brandTop).toBe(0);
+
+      expect(shellMetrics?.headerTop).toBe(0);
+      expect(shellMetrics?.headerLeft).toBeGreaterThanOrEqual(255);
+      expect(shellMetrics?.headerHeight).toBe(64);
+      expect(shellMetrics?.mainOverflowY).toBe('auto');
+      expect(shellMetrics?.mainTop).toBe(64);
+      expect(shellMetrics?.mainLeft).toBeGreaterThanOrEqual(255);
+
+      const sidebar = page.locator('.desktop-sidebar-wrapper');
+      await expect(sidebar.getByText('ZhongWenHub')).toBeVisible();
+      await expect(sidebar.getByText('Học tiếng Trung dễ dàng')).toBeVisible();
+      await expect(page.locator('header .mobile-header-left')).toBeHidden();
+    }
+
+    // Scroll /practice top-to-bottom inside .student-main-scroll and confirm header & sidebar stay fixed at top=0
+    await page.setViewportSize({ width: 1440, height: 768 });
+    const practiceScroll = await page.evaluate(() => {
+      const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+      mainPane.scrollTop = mainPane.scrollHeight;
+      const header = document.querySelector<HTMLElement>('.student-app-header')!;
+      const wrapper = document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!;
+      return {
+        scrollHeight: mainPane.scrollHeight,
+        clientHeight: mainPane.clientHeight,
+        mainScrollTop: mainPane.scrollTop,
+        windowScrollY: window.scrollY,
+        headerTop: Math.round(header.getBoundingClientRect().top),
+        wrapperTop: Math.round(wrapper.getBoundingClientRect().top),
+      };
+    });
+    expect(practiceScroll.scrollHeight).toBeGreaterThan(practiceScroll.clientHeight);
+    expect(practiceScroll.mainScrollTop).toBeGreaterThan(0);
+    expect(practiceScroll.windowScrollY).toBe(0);
+    expect(practiceScroll.headerTop).toBe(0);
+    expect(practiceScroll.wrapperTop).toBe(0);
+
+    await page.screenshot({ path: 'e2e/screenshots/17-fixed-sidebar-unified-logo-desktop.png' });
+
+    // Collapse/expand sidebar and confirm Grid automatically syncs both header & main content widths (256 <-> 72)
+    const sidebar = page.locator('.desktop-sidebar-wrapper aside.student-sidebar-container');
+    await sidebar.getByRole('button', { name: /Thu gọn thanh điều hướng/i }).click();
+    await page.waitForTimeout(300);
+
+    const collapsedMetrics = await page.evaluate(() => {
+      const wrapper = document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!;
+      const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+      const header = document.querySelector<HTMLElement>('.student-app-header')!;
+      return {
+        sidebarWidth: Math.round(wrapper.getBoundingClientRect().width),
+        mainLeft: Math.round(mainPane.getBoundingClientRect().left),
+        headerLeft: Math.round(header.getBoundingClientRect().left),
+        headerWidth: Math.round(header.getBoundingClientRect().width),
+        expectedRightWidth: window.innerWidth - 72,
+      };
+    });
+    expect(collapsedMetrics.sidebarWidth).toBe(72);
+    expect(collapsedMetrics.mainLeft).toBeGreaterThanOrEqual(71);
+    expect(collapsedMetrics.headerLeft).toBeGreaterThanOrEqual(71);
+    expect(Math.abs(collapsedMetrics.headerWidth - collapsedMetrics.expectedRightWidth)).toBeLessThanOrEqual(2);
+    await expect(sidebar.getByText('ZhongWenHub')).toBeHidden();
+    await expect(sidebar.getByRole('button', { name: /Mở rộng thanh điều hướng/i })).toBeVisible();
+
+    await sidebar.getByRole('button', { name: /Mở rộng thanh điều hướng/i }).click();
+    await page.waitForTimeout(300);
+
+    // Compact desktop (1024x768) -> 216px sidebar, header & main pane flush without clipping toggle button
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.waitForTimeout(350);
+    const compactDesktopMetrics = await page.evaluate(() => {
+      const wrapper = document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!;
+      const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+      const header = document.querySelector<HTMLElement>('.student-app-header')!;
+      const collapseBtn = wrapper.querySelector<HTMLElement>('button[aria-label="Thu gọn thanh điều hướng"]');
+      return {
+        sidebarWidth: Math.round(wrapper.getBoundingClientRect().width),
+        mainLeft: Math.round(mainPane.getBoundingClientRect().left),
+        headerLeft: Math.round(header.getBoundingClientRect().left),
+        collapseBtnRight: collapseBtn ? Math.round(collapseBtn.getBoundingClientRect().right) : 999,
+        overflowX: document.documentElement.scrollWidth > window.innerWidth + 1,
+      };
+    });
+    expect(compactDesktopMetrics.sidebarWidth).toBe(216);
+    expect(compactDesktopMetrics.mainLeft).toBeGreaterThanOrEqual(215);
+    expect(compactDesktopMetrics.headerLeft).toBeGreaterThanOrEqual(215);
+    expect(compactDesktopMetrics.collapseBtnRight).toBeLessThanOrEqual(216);
+    expect(compactDesktopMetrics.overflowX).toBe(false);
+
+    // Scroll Vocabulary from top to bottom and verify header + sidebar stay fixed at 0 & main scroll resets cleanly
+    await page.setViewportSize({ width: 1440, height: 768 });
+    await sidebar.getByRole('button', { name: /Từ vựng HSK/i }).click();
+    await expect(page).toHaveURL(/.*\/vocabulary/);
+    await expect(page.locator('.student-main-scroll')).toBeVisible();
+    await page.waitForTimeout(600);
+    const vocabScrollMetrics = await page.evaluate(() => {
+      const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+      const initialTop = mainPane.scrollTop;
+      mainPane.scrollTop = mainPane.scrollHeight;
+      return {
+        initialTop,
+        scrolledTop: mainPane.scrollTop,
+        windowScrollY: window.scrollY,
+        headerTop: Math.round(document.querySelector<HTMLElement>('.student-app-header')!.getBoundingClientRect().top),
+        wrapperTop: Math.round(document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!.getBoundingClientRect().top),
+      };
+    });
+    expect(vocabScrollMetrics.initialTop).toBe(0);
+    expect(vocabScrollMetrics.scrolledTop).toBeGreaterThan(0);
+    expect(vocabScrollMetrics.windowScrollY).toBe(0);
+    expect(vocabScrollMetrics.headerTop).toBe(0);
+    expect(vocabScrollMetrics.wrapperTop).toBe(0);
+
+    // Navigate through key student pages including Hội thoại AI Live (/ai-live)
+    await sidebar.getByRole('button', { name: /^Giáo trình HSK$/i }).click();
+    await expect(page).toHaveURL(/.*mode=hsk/);
+    await sidebar.getByRole('button', { name: /^Ngữ pháp HSK/i }).click();
+    await expect(page).toHaveURL(/.*\/grammar/);
+
+    await sidebar.getByRole('button', { name: /^Hội thoại$/i }).click();
+    await expect(page).toHaveURL(/.*\/ai-live/);
+    await expect(page.getByText('Hội Thoại AI Live (Kippy)')).toBeVisible({ timeout: 10000 });
+    const micBtn = page.locator('button[title="Nhấn để nói"], button[title="Đang bật Mic"]');
+    await expect(micBtn).toBeVisible();
+    const aiLiveMetrics = await page.evaluate(() => {
+      const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+      mainPane.scrollTop = mainPane.scrollHeight;
+      return {
+        windowScrollY: window.scrollY,
+        docScrollHeight: document.documentElement.scrollHeight,
+        innerHeight: window.innerHeight,
+        headerTop: Math.round(document.querySelector<HTMLElement>('.student-app-header')!.getBoundingClientRect().top),
+        wrapperTop: Math.round(document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!.getBoundingClientRect().top),
+      };
+    });
+    expect(aiLiveMetrics.windowScrollY).toBe(0);
+    expect(aiLiveMetrics.docScrollHeight).toBeLessThanOrEqual(aiLiveMetrics.innerHeight + 1);
+    expect(aiLiveMetrics.headerTop).toBe(0);
+    expect(aiLiveMetrics.wrapperTop).toBe(0);
+    await micBtn.scrollIntoViewIfNeeded();
+    await expect(micBtn).toBeVisible();
+
+    // Check tablet portrait (768x1024) and mobile (390x844): fixed header, scrollable main, single-logo drawer
+    for (const vp of [
+      { width: 768, height: 1024 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(vp);
+      await page.waitForTimeout(350);
+      const mobileLayout = await page.evaluate(() => {
+        const wrapper = document.querySelector<HTMLElement>('.desktop-sidebar-wrapper')!;
+        const mainPane = document.querySelector<HTMLElement>('.student-main-scroll')!;
+        const header = document.querySelector<HTMLElement>('.student-app-header')!;
+        mainPane.scrollTop = 200;
+        return {
+          desktopSidebarDisplay: getComputedStyle(wrapper).display,
+          mainLeft: Math.round(mainPane.getBoundingClientRect().left),
+          mainScrollTop: mainPane.scrollTop,
+          headerTop: Math.round(header.getBoundingClientRect().top),
+          windowScrollY: window.scrollY,
+        };
+      });
+      expect(mobileLayout.desktopSidebarDisplay).toBe('none');
+      expect(mobileLayout.mainLeft).toBe(0);
+      expect(mobileLayout.headerTop).toBe(0);
+      expect(mobileLayout.windowScrollY).toBe(0);
+      await expect(page.locator('header .mobile-header-left')).toBeVisible();
+
+      await page.locator('.mobile-hamburger-btn').click();
+      const drawer = page.locator('.mobile-sidebar-drawer');
+      const drawerSidebar = drawer.locator('aside.student-sidebar-container');
+      await expect(drawerSidebar).toBeVisible();
+      await expect(drawer.getByText('ZhongWenHub')).toHaveCount(1);
+      await page.getByRole('button', { name: 'Đóng thanh điều hướng' }).click();
+    }
 
     expect(pageErrors).toEqual([]);
     expect(consoleErrors).toEqual([]);
