@@ -13,7 +13,7 @@ public class CompleteLessonDto
 {
     [Range(0, 100)]
     public int QuizScore { get; set; }
-    [Range(1, 100)]
+    [Range(0, 100)]
     public int TotalQuizQuestions { get; set; } = 5;
     public int XpEarned { get; set; } = 100;
 }
@@ -29,8 +29,7 @@ public class RecordPracticeAttemptDto
     public string TopicTitle { get; set; } = string.Empty;
     public string Category { get; set; } = "grammar";
     public int HskLevel { get; set; } = 1;
-    [Required]
-    public string UserAnswer { get; set; } = string.Empty;
+    public string? UserAnswer { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
 }
 

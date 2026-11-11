@@ -55,8 +55,17 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
     await page.goto('/ZhongWenHub/lesson/aaaaaaaa-1111-1111-1111-111111111111/focus');
     await page.waitForLoadState('networkidle');
 
-    // Verify Focus Mode loaded
-    await expect(page.getByText('Giới thiệu').first()).toBeVisible({ timeout: 10000 });
+    // Verify Focus Mode loaded cleanly; if persisted progress resumed past Step 1, select Step 1 deterministically
+    const step1Indicator = page.locator('button[title^="1. Giới thiệu"]').first();
+    await expect(step1Indicator).toBeVisible({ timeout: 10000 });
+    if (!(await page.getByText('MỤC TIÊU BÀI HỌC HSK 1').isVisible())) {
+      await step1Indicator.click();
+    }
+    await expect(page.getByText('MỤC TIÊU BÀI HỌC HSK 1')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('1 / 7').first()).toBeVisible({ timeout: 10000 });
+    if ((page.viewportSize()?.width ?? 1440) >= 640) {
+      await expect(page.getByText('Giới thiệu').first()).toBeVisible({ timeout: 10000 });
+    }
 
     // 2.3 Step navigation in Focus Mode using primary action bar
     const nextStepBtn = page.locator('nav[aria-label="Điều hướng bài học"] button.ds-btn-primary, nav[aria-label*="Điều hướng"] button').last();
@@ -65,7 +74,10 @@ test.describe('Student Exercise & Quiz End-to-End Acceptance (Live SQL Server & 
     await page.waitForTimeout(500);
 
     // 2.4 Verify Vocabulary step is active
-    await expect(page.getByText('Từ vựng').first()).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('2 / 7').first()).toBeVisible({ timeout: 8000 });
+    if ((page.viewportSize()?.width ?? 1440) >= 640) {
+      await expect(page.getByText('Từ vựng').first()).toBeVisible({ timeout: 8000 });
+    }
     await page.screenshot({ path: 'e2e/screenshots/10-focus-vocab-active.png' });
 
     // 2.5 Advance through Grammar, Dialogue, Listening, Exercise, Quiz

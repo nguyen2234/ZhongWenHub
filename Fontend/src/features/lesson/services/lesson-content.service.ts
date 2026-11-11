@@ -3,6 +3,7 @@ import { MOCK_LESSON_8_DRAFT } from '../../../management/admin/content/data/mock
 import { adaptEditorDraftToDetailDTO } from '../adapters/lesson-player.adapter';
 import { lesson8Data } from '../data/lesson8';
 import { httpClient } from '../../../core/api/client/http-client';
+import { adaptBackendExerciseToShared } from '../../exercise-engine';
 
 /**
  * Service for fetching normalized lesson content (LessonDetailDTO).
@@ -138,6 +139,24 @@ class LessonContentService {
               examples = [];
             }
           }
+          let quickPractice: any;
+          if (g.practiceJson) {
+            try {
+              const qp = typeof g.practiceJson === 'string' ? JSON.parse(g.practiceJson) : g.practiceJson;
+              if (qp && typeof qp === 'object' && Array.isArray(qp.options) && qp.options.length > 0) {
+                quickPractice = {
+                  question: qp.question || qp.prompt || '',
+                  pinyin: qp.pinyin || '',
+                  blankWordTranslation: qp.blankWordTranslation || '',
+                  options: qp.options.map(String),
+                  correctIndex: typeof qp.correctIndex === 'number' ? qp.correctIndex : 0,
+                  explanation: qp.explanation || '',
+                };
+              }
+            } catch {
+              quickPractice = undefined;
+            }
+          }
           return {
             id: g.id,
             lessonId: live.id,
@@ -148,37 +167,44 @@ class LessonContentService {
             structureFormula: g.structureFormula,
             displayOrder: idx + 1,
             examples,
+            quickPractice,
           };
         })
       : [];
 
     const exercises = Array.isArray(live.exercises)
-      ? live.exercises.map((e: any, idx: number) => {
-          let options: string[] = [];
-          if (e.optionsJson) {
-            try {
-              options = JSON.parse(e.optionsJson);
-            } catch {
-              options = [];
-            }
-          }
+      ? live.exercises.map((e: any, idx: number, arr: any[]) => {
+          const shared = adaptBackendExerciseToShared(e);
+          // Allocate trailing MCQ exercises to Mini Quiz when DB exercises don't separate section,
+          // so Step 7 QuizStep delivers real assessment questions and non-empty practice steps.
+          const hasExplicitQuiz = arr.some((item) => item.section === 'QUIZ');
+          const quizStartIdx = arr.length >= 4 ? arr.length - 2 : arr.length >= 2 ? arr.length - 1 : arr.length;
+          const section: 'PRACTICE' | 'QUIZ' = hasExplicitQuiz
+            ? (e.section === 'QUIZ' ? 'QUIZ' : 'PRACTICE')
+            : (idx >= quizStartIdx ? 'QUIZ' : 'PRACTICE');
+
           return {
             id: e.id,
             lessonId: live.id,
             exerciseId: e.id,
-            section: 'PRACTICE' as const,
+            section,
             displayOrder: idx + 1,
             exercise: {
-              id: e.id,
-              type: e.type,
-              title: e.title,
-              instruction: e.instruction,
-              promptHanzi: e.promptHanzi,
-              promptPinyin: e.promptPinyin,
-              promptVietnamese: e.promptVietnamese,
-              options,
-              correctOptionIndex: e.correctOptionIndex ?? 0,
-              explanation: e.explanation,
+              id: String(shared.id),
+              type: shared.type,
+              title: shared.title,
+              instruction: shared.instruction,
+              promptHanzi: shared.promptHanzi,
+              promptPinyin: shared.promptPinyin,
+              promptVietnamese: shared.promptVietnamese,
+              audioUrl: shared.audioUrl,
+              options: shared.options || [],
+              correctOptionIndex: shared.correctOptionIndex ?? 0,
+              matchingPairs: shared.matchingPairs,
+              sentenceTokens: shared.sentenceTokens,
+              correctSentence: shared.correctSentence,
+              explanation: shared.explanation,
+              xpReward: shared.xpReward,
             },
           };
         })
@@ -188,6 +214,7 @@ class LessonContentService {
     let dialogueLines: any[] = [];
     let dialogueTitle = `Hội thoại bài ${live.lessonNumber || ''}`;
     let dialogueSituation = live.summary || 'Tình huống giao tiếp cơ bản';
+    let dialogueAudioUrl: string | undefined;
 
     if (live.dialogueJson) {
       try {
@@ -199,30 +226,23 @@ class LessonContentService {
           if (parsed.title) {
             dialogueTitle = parsed.title;
           }
+          if (parsed.audioUrl) {
+            dialogueAudioUrl = parsed.audioUrl;
+          }
           if (parsed.situationVi || parsed.situation || parsed.topic) {
             dialogueSituation = parsed.situationVi || parsed.situation || parsed.topic;
           }
-          if (Array.isArray(parsed.lines)) {
-            dialogueLines = parsed.lines.map((l: any, idx: number) => ({
-              id: String(l.id || idx + 1),
-              speakerName: l.speakerName || l.speaker || (idx % 2 === 0 ? 'Người A' : 'Người B'),
-              speakerRole: l.speakerRole || '',
-              zh: l.zh || l.hanzi || '',
-              pinyin: l.pinyin || '',
-              meaningVi: l.meaningVi || l.meaning || '',
-              displayOrder: l.displayOrder || idx + 1,
-            }));
-          } else if (Array.isArray(parsed)) {
-            dialogueLines = parsed.map((l: any, idx: number) => ({
-              id: String(l.id || idx + 1),
-              speakerName: l.speakerName || l.speaker || (idx % 2 === 0 ? 'Người A' : 'Người B'),
-              speakerRole: l.speakerRole || '',
-              zh: l.zh || l.hanzi || '',
-              pinyin: l.pinyin || '',
-              meaningVi: l.meaningVi || l.meaning || '',
-              displayOrder: l.displayOrder || idx + 1,
-            }));
-          }
+          const rawLines = Array.isArray(parsed.lines) ? parsed.lines : Array.isArray(parsed) ? parsed : [];
+          dialogueLines = rawLines.map((l: any, idx: number) => ({
+            id: String(l.id || idx + 1),
+            speakerName: l.speakerName || l.speaker || (idx % 2 === 0 ? 'Người A' : 'Người B'),
+            speakerRole: l.speakerRole || '',
+            zh: l.zh || l.hanzi || '',
+            pinyin: l.pinyin || '',
+            meaningVi: l.meaningVi || l.meaning || '',
+            audioUrl: l.audioUrl || undefined,
+            displayOrder: l.displayOrder || idx + 1,
+          }));
         }
       } catch {
         // ignore JSON parse error
@@ -237,23 +257,55 @@ class LessonContentService {
           listenings = parsed;
         } else if (parsed && Array.isArray(parsed.items)) {
           listenings = parsed.items;
+        } else if (parsed && typeof parsed === 'object') {
+          const qs = Array.isArray(parsed.questions) ? parsed.questions : [];
+          const primaryQ = qs[0] || {};
+          listenings = [
+            {
+              id: `listen-${live.id}`,
+              title: parsed.title || `Nghe hiểu bài ${live.lessonNumber || ''}`,
+              audioUrl: parsed.audioUrl || undefined,
+              transcriptZh: parsed.scriptHanzi || parsed.transcriptZh || '',
+              transcriptPinyin: parsed.scriptPinyin || parsed.transcriptPinyin || '',
+              transcriptVi: parsed.scriptVietnamese || parsed.transcriptVi || '',
+              prompt: primaryQ.question || parsed.prompt || 'Nghe đoạn hội thoại và chọn đáp án đúng:',
+              options: Array.isArray(primaryQ.options)
+                ? primaryQ.options.map((opt: any, idx: number) => ({
+                    id: idx + 1,
+                    text: String(opt),
+                    isCorrect: idx === (typeof primaryQ.correctOptionIndex === 'number' ? primaryQ.correctOptionIndex : 0),
+                  }))
+                : [],
+              explanation: primaryQ.explanation || parsed.explanation || 'Đối chiếu lại lời thoại và phiên âm.',
+            },
+          ];
         }
       } catch {
         // ignore JSON parse error
       }
     }
 
+    const resolvedHskLevel =
+      typeof live.hskLevel === 'number' && live.hskLevel > 0
+        ? live.hskLevel
+        : typeof live.course?.hskLevel === 'number' && live.course.hskLevel > 0
+        ? live.course.hskLevel
+        : (() => {
+            const m = String(live.courseTitle || '').match(/HSK\s*(\d+)/i);
+            return m ? parseInt(m[1], 10) : 1;
+          })();
+
     return {
       id: live.id,
-      courseLevelId: 'level-hsk-1',
+      courseLevelId: `level-hsk-${resolvedHskLevel}`,
       unitId: live.unitId || 'unit-1',
       unitNumber: live.unitNumber || 1,
       lessonNumber: live.lessonNumber,
       status: live.status,
       hskLevel: {
-        id: 'level-hsk-1',
-        code: 'HSK1',
-        name: 'HSK 1',
+        id: `level-hsk-${resolvedHskLevel}`,
+        code: `HSK${resolvedHskLevel}`,
+        name: `HSK ${resolvedHskLevel}`,
         standardCode: 'HSK_2_0',
         standardVersion: '2.0',
       },
@@ -275,6 +327,7 @@ class LessonContentService {
         id: `diag-${live.id}`,
         title: dialogueTitle,
         situationVi: dialogueSituation,
+        audioUrl: dialogueAudioUrl,
         lines: dialogueLines,
       },
       listenings,

@@ -52,3 +52,4 @@
 2. **Root-level Duplicate Documentation:** 56 files (`HSK30_*` and `DOTNET10_FULL_MIGRATION_REPORT.md`) duplicated verbatim at root despite existing inside `docs/hsk30/`.
 3. **Bytecode Artifact Committed:** `scripts/__pycache__/build_hsk_vocab_meanings.cpython-312.pyc` committed despite `.gitignore` rule.
 4. **Live Browser Playwright E2E:** Not run in automated CI without an active UI server + user-approved test DB run; backend unit tests (38/38) and frontend unit tests (288/288) are verified directly.
+

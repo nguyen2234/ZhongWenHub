@@ -59,3 +59,4 @@
 1. Có `USER_APPROVAL_TOKEN.signed` cho phép cập nhật dữ liệu trên `ZhongWenHub_Test` theo chuẩn HSK 2.0 đã staging (`data/hsk20/staging/hsk20_vocab_hsk1.json`).
 2. Liên kết đủ `>= 5` từ vựng HSK 2.0 đã kiểm nghĩa Việt cho Bài 2, Bài 3 và Bài 4–15 (từ 291 từ vựng HSK 1 hiện chưa gắn `LessonId` hoặc import chuẩn HSK 2.0), gỡ hậu tố `"(Bản thảo)"` ở tiêu đề Bài 4, đồng bộ trạng thái `PUBLISHED` cho Grammar Points và Units 3–6.
 3. Thực thi đúng 2 bước bởi 2 tài khoản khác nhau: người biên tập gửi `PENDING_REVIEW` -> người kiểm duyệt khác phê duyệt `PUBLISHED`.
+

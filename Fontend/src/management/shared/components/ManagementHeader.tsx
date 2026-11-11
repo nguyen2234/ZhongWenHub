@@ -8,14 +8,14 @@ import {
   User,
   Settings,
   LogOut,
-  ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
   CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
 import { authService } from '../../../features/auth/services/authService';
-import { PortalSwitcher } from './PortalSwitcher';
+import { useAuthContext } from '../../../features/auth/context/AuthContext';
+import { PortalSwitcher, getActivePortalLabel } from './PortalSwitcher';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -36,8 +36,20 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+
+  const userInitials = (userName || 'U')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(-2)
+    .join('')
+    .toUpperCase();
+  const canAccessAdminSettings =
+    user?.role === 'ADMIN' || Boolean(user?.roles?.includes('ADMIN'));
+  const activePortalLabel = getActivePortalLabel(location.pathname);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifyRef = useRef<HTMLDivElement>(null);
@@ -255,9 +267,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           </kbd>
         </div>
 
-        {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
-        <PortalSwitcher variant="header" />
-
         {/* Notifications Popover */}
         <div style={{ position: 'relative' }} ref={notifyRef}>
           <button
@@ -423,7 +432,8 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((prev) => !prev)}
-            aria-label="Menu tài khoản quản trị"
+            aria-label={`Tài khoản ${userName} - ${activePortalLabel}`}
+            data-testid="profile-menu-trigger"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -453,7 +463,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 flexShrink: 0,
               }}
             >
-              MA
+              {userInitials}
             </div>
 
             <div
@@ -469,7 +479,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 {userName}
               </span>
               <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 500 }}>
-                {currentRole}
+                {activePortalLabel}
               </span>
             </div>
 
@@ -479,17 +489,21 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           {/* User Dropdown */}
           {isUserMenuOpen && (
             <div
+              role="menu"
+              data-testid="profile-menu-dropdown"
               style={{
                 position: 'absolute',
                 right: 0,
                 top: '46px',
-                width: '240px',
+                width: 'min(276px, calc(100vw - 24px))',
+                maxHeight: 'calc(100dvh - 80px)',
+                overflowY: 'auto',
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-xl)',
                 boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
                 padding: 'var(--space-2)',
-                zIndex: 60,
+                zIndex: 70,
               }}
             >
               {/* Account Meta */}
@@ -513,7 +527,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 >
                   {userEmail}
                 </div>
-                <div style={{ marginTop: '5px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                   <span
                     style={{
                       fontSize: '9.5px',
@@ -524,7 +538,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                       color: 'var(--primary)',
                     }}
                   >
-                    VAI TRÒ:{' '}
                     {currentRole === 'CONTENT_MANAGER'
                       ? 'QUẢN LÝ HỌC LIỆU'
                       : currentRole === 'TEACHER'
@@ -532,6 +545,18 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                         : currentRole === 'SUPPORT'
                           ? 'NHÂN VIÊN HỖ TRỢ'
                           : 'QUẢN TRỊ VIÊN'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor: '#ecfdf5',
+                      color: '#047857',
+                    }}
+                  >
+                    {activePortalLabel}
                   </span>
                 </div>
               </div>
@@ -541,7 +566,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 type="button"
                 onClick={() => {
                   setIsUserMenuOpen(false);
-                  alert('Chức năng: Xem thông tin cá nhân quản trị');
+                  navigate('/profile');
                 }}
                 style={{
                   display: 'flex',
@@ -564,7 +589,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
               </button>
 
               <Link
-                to="/management/admin/settings"
+                to={canAccessAdminSettings ? '/management/admin/settings' : '/settings'}
                 onClick={() => setIsUserMenuOpen(false)}
                 style={{
                   display: 'flex',
@@ -583,32 +608,13 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 className="dropdown-item"
               >
                 <Settings size={14} style={{ color: 'var(--muted)' }} />
-                <span>Cài đặt hệ thống</span>
+                <span>{canAccessAdminSettings ? 'Cài đặt hệ thống' : 'Cài đặt tài khoản'}</span>
               </Link>
 
-              <Link
-                to="/dashboard"
-                onClick={() => setIsUserMenuOpen(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 10px',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '12px',
-                  color: 'var(--primary)',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                }}
-                className="dropdown-item"
-              >
-                <ArrowLeft size={14} style={{ color: 'var(--primary)' }} />
-                <span>Về Cổng Học Viên</span>
-              </Link>
+              <PortalSwitcher
+                variant="menu"
+                onPortalChange={() => setIsUserMenuOpen(false)}
+              />
 
               <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
 

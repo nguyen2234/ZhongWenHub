@@ -41,3 +41,4 @@ Observed lesson counts across HSK 2–6 on `ZhongWenHub_Ephemeral_QA` confirmed 
 
 ## 5. Applying to `ZhongWenHub_Test` / `ZhongWenHub_Dev` After Approval
 Once `USER_APPROVAL_TOKEN.signed` is explicitly issued by the project owner, the exact `427`-statement bundle can be applied safely to the target database via `scripts/hsk20/prepare_hsk1_remediation_patch.py --apply --target <DB_NAME>`, followed by EF migration `20261111060000_AddExamRepositoryTables` and two-person CMS `PENDING_REVIEW` -> Admin `PUBLISHED` workflow.
+

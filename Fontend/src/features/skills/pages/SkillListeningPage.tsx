@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Headphones,
   Volume2,
@@ -9,17 +9,110 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { MOCK_LISTENING_EXERCISES } from '../mock/mockSkillData';
+import type { ListeningExercise } from '../types/skill.types';
+import { httpClient } from '../../../core/api/client/http-client';
+
+function isIsolatedTestRuntime(): boolean {
+  const mode = (import.meta as any)?.env?.MODE;
+  const g = globalThis as any;
+  const nodeEnv = g?.process?.env?.NODE_ENV;
+  const isBun = typeof g?.Bun !== 'undefined';
+  return mode === 'test' || nodeEnv === 'test' || isBun;
+}
+
+interface LiveListeningItem extends ListeningExercise {
+  audioUrl?: string;
+}
+
+function parseHskLevelFromCourseTitle(title?: string | null): number {
+  const match = String(title || '').match(/HSK\s*(\d+)/i);
+  return match ? Number(match[1]) : 1;
+}
+
+function extractListeningItemsFromLessons(lessons: any[]): LiveListeningItem[] {
+  const items: LiveListeningItem[] = [];
+  for (const les of lessons) {
+    if (!les?.listeningJson) continue;
+    try {
+      const parsed = typeof les.listeningJson === 'string' ? JSON.parse(les.listeningJson) : les.listeningJson;
+      const hskLevel = parseHskLevelFromCourseTitle(les.courseTitle);
+      const scriptHanzi = String(parsed?.scriptHanzi || '').trim();
+      const scriptPinyin = String(parsed?.scriptPinyin || '').trim();
+      const scriptVietnamese = String(parsed?.scriptVietnamese || '').trim();
+      const audioUrl = parsed?.audioUrl ? String(parsed.audioUrl) : undefined;
+      const questions = Array.isArray(parsed?.questions) ? parsed.questions : [];
+      questions.forEach((q: any, qIdx: number) => {
+        if (!q || !Array.isArray(q.options) || q.options.length === 0) return;
+        items.push({
+          id: `${les.id}-listen-${qIdx}`,
+          title: `Bài ${les.lessonNumber}: ${les.titleVi || les.titleZh || ''}`.trim(),
+          hskLevel,
+          audioText: scriptHanzi || String(q.question || ''),
+          audioUrl,
+          transcriptPinyin: scriptPinyin,
+          transcriptVietnamese: scriptVietnamese,
+          question: String(q.question || 'Nghe đoạn hội thoại và chọn đáp án đúng'),
+          options: q.options.map(String),
+          correctOptionIndex: typeof q.correctOptionIndex === 'number' ? q.correctOptionIndex : 0,
+          explanation: String(q.explanation || 'Đối chiếu lại nội dung lời thoại bên dưới.'),
+        });
+      });
+    } catch {
+      // Skip malformed JSON
+    }
+  }
+  return items;
+}
 
 export const SkillListeningPage: React.FC = () => {
+  const [exercises, setExercises] = useState<LiveListeningItem[]>(() =>
+    isIsolatedTestRuntime() ? MOCK_LISTENING_EXERCISES : []
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(() => !isIsolatedTestRuntime());
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const currentEx = MOCK_LISTENING_EXERCISES[currentIndex];
+  useEffect(() => {
+    if (isIsolatedTestRuntime()) return;
+    let active = true;
+    setIsLoading(true);
+    setLoadError(null);
+    httpClient
+      .get<any>('/content/lessons', { params: { page: 1, pageSize: 100 } })
+      .then((res) => {
+        if (!active) return;
+        const rows = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        setExercises(extractListeningItemsFromLessons(rows));
+        setCurrentIndex(0);
+      })
+      .catch((err: any) => {
+        if (!active) return;
+        setLoadError(err?.message || 'Không thể tải danh sách bài luyện nghe từ máy chủ.');
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
-  const handlePlayAudio = () => {
+  const currentEx = exercises[currentIndex];
+
+  const playSpeechFallback = () => {
+    if (!currentEx) return;
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(currentEx.audioText);
@@ -30,6 +123,28 @@ export const SkillListeningPage: React.FC = () => {
       utterance.onerror = () => setIsPlaying(false);
       window.speechSynthesis.speak(utterance);
     }
+  };
+
+  const handlePlayAudio = () => {
+    if (!currentEx) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (currentEx.audioUrl) {
+      const base = (import.meta.env?.BASE_URL || '/').replace(/\/$/, '');
+      const resolvedUrl = currentEx.audioUrl.startsWith('http')
+        ? currentEx.audioUrl
+        : `${base}/${currentEx.audioUrl.replace(/^\//, '')}`;
+      const audio = new Audio(resolvedUrl);
+      audioRef.current = audio;
+      setIsPlaying(true);
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => playSpeechFallback();
+      audio.play().catch(() => playSpeechFallback());
+      return;
+    }
+    playSpeechFallback();
   };
 
   const handleSelectOption = (idx: number) => {
@@ -44,11 +159,36 @@ export const SkillListeningPage: React.FC = () => {
   };
 
   const handleNext = () => {
+    if (exercises.length === 0) return;
     setSelectedOption(null);
     setIsAnswerSubmitted(false);
     setShowTranscript(false);
-    setCurrentIndex((prev) => (prev + 1) % MOCK_LISTENING_EXERCISES.length);
+    setCurrentIndex((prev) => (prev + 1) % exercises.length);
   };
+
+  if (isLoading) {
+    return (
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 24px', textAlign: 'center', color: '#475569' }}>
+        Đang tải bài luyện nghe từ hệ thống...
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 24px', color: '#b91c1c' }}>
+        {loadError}
+      </div>
+    );
+  }
+
+  if (!currentEx) {
+    return (
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '48px 24px', color: '#92400e' }}>
+        Hiện chưa có bài luyện nghe nào được xuất bản.
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
@@ -81,7 +221,7 @@ export const SkillListeningPage: React.FC = () => {
         </div>
 
         <div style={{ padding: '8px 16px', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.15)', fontSize: '13px', fontWeight: 700 }}>
-          Bài {currentIndex + 1} / {MOCK_LISTENING_EXERCISES.length}
+          Bài {currentIndex + 1} / {exercises.length}
         </div>
       </div>
 

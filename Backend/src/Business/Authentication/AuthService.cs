@@ -99,13 +99,27 @@ public class AuthService : IAuthService
 
         try
         {
-            await _userManager.ResetAccessFailedCountAsync(user);
+            if (user.AccessFailedCount > 0)
+            {
+                var resetResult = await _userManager.ResetAccessFailedCountAsync(user);
+                if (!resetResult.Succeeded)
+                {
+                    await _dbContext.Entry(user).ReloadAsync(cancellationToken);
+                }
+            }
+
             user.LastLoginAt = DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                // Concurrent login from multiple clients for the same user account; reload to clear stale modified state
+                await _dbContext.Entry(user).ReloadAsync(cancellationToken);
+            }
         }
         catch (DbUpdateConcurrencyException)
         {
-            // Concurrent login from multiple clients for the same user account; non-critical metadata update
+            // Concurrent login from multiple clients for the same user account; reload to clear stale modified state
+            await _dbContext.Entry(user).ReloadAsync(cancellationToken);
         }
 
         var userDto = MapToUserDto(user, userRoles);

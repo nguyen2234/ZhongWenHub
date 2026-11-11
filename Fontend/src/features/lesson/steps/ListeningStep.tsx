@@ -79,12 +79,14 @@ export const ListeningStep: React.FC<ListeningStepProps> = ({ listening, onAnswe
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
           <AudioPlayerButton
             textToSpeak={listening.audioHanzi}
+            audioUrl={listening.audioUrl}
             variant="primary"
             size="lg"
             label="Phát đoạn ghi âm"
           />
           <AudioPlayerButton
             textToSpeak={listening.audioHanzi}
+            audioUrl={listening.audioUrl}
             isSlow
             variant="outline"
             size="lg"

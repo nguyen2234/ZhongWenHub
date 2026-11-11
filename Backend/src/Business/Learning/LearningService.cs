@@ -39,7 +39,52 @@ public class LearningService : ILearningService
         if (string.IsNullOrWhiteSpace(lessonId)) return false;
         var trimmed = lessonId.Trim();
         return string.Equals(trimmed, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(trimmed, Lesson1Guid, StringComparison.OrdinalIgnoreCase);
+               string.Equals(trimmed, Lesson1Guid, StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(trimmed, "les-hsk1-1", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool TryParseLessonSlug(string? input, out int hskLevel, out int lessonNumber)
+    {
+        hskLevel = 1;
+        lessonNumber = 0;
+        if (string.IsNullOrWhiteSpace(input)) return false;
+
+        var trimmed = input.Trim();
+        if (!trimmed.StartsWith("les-", StringComparison.OrdinalIgnoreCase) &&
+            !trimmed.StartsWith("les_", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var remainder = trimmed.Substring(4);
+        if (int.TryParse(remainder, out var directNum) && directNum > 0)
+        {
+            hskLevel = 1;
+            lessonNumber = directNum;
+            return true;
+        }
+
+        if (remainder.StartsWith("hsk", StringComparison.OrdinalIgnoreCase))
+        {
+            var hskPart = remainder.Substring(3);
+            var sepIdx = hskPart.IndexOfAny(new[] { '-', '_' });
+            if (sepIdx > 0 &&
+                int.TryParse(hskPart.Substring(0, sepIdx), out var parsedLevel) && parsedLevel > 0 &&
+                int.TryParse(hskPart.Substring(sepIdx + 1), out var parsedLessonNum) && parsedLessonNum > 0)
+            {
+                hskLevel = parsedLevel;
+                lessonNumber = parsedLessonNum;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static int CalculateCompletionPercent(int completedLessons, int totalLessons)
+    {
+        if (totalLessons <= 0 || completedLessons <= 0) return 0;
+        return Math.Clamp((int)Math.Round(completedLessons * 100.0 / totalLessons, MidpointRounding.AwayFromZero), 0, 100);
     }
 
     private static string GetLocalDateString(DateTime? utc = null)
@@ -324,8 +369,115 @@ public class LearningService : ILearningService
 
         // Calculate Weak Knowledge
         state.WeakKnowledgePoints = CalculateWeakKnowledge(attempts);
+        state.HskProgress = await ComputeHskProgressAsync(lessons, cancellationToken);
 
         return state;
+    }
+
+    public async Task<List<HskCourseProgressDto>> GetHskProgressAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var progresses = await _context.StudentLessonProgresses
+            .AsNoTracking()
+            .Where(l => l.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        return await ComputeHskProgressAsync(progresses, cancellationToken);
+    }
+
+    private async Task<List<HskCourseProgressDto>> ComputeHskProgressAsync(
+        IReadOnlyCollection<StudentLessonProgress> userProgresses,
+        CancellationToken cancellationToken)
+    {
+        var courses = await _context.Courses
+            .AsNoTracking()
+            .Where(c => c.HskLevel >= 1 && c.HskLevel <= 6 && (c.Status == null || c.Status != "ARCHIVED"))
+            .OrderBy(c => c.HskLevel)
+            .Select(c => new { c.Id, c.HskLevel, c.Title })
+            .ToListAsync(cancellationToken);
+
+        var dbLessons = await _context.Lessons
+            .AsNoTracking()
+            .Include(l => l.Course)
+            .Where(l => l.Course != null && l.Course.HskLevel >= 1 && l.Course.HskLevel <= 6 && (l.Status == null || l.Status != "ARCHIVED"))
+            .Select(l => new
+            {
+                l.Id,
+                HskLevel = l.Course!.HskLevel,
+                l.LessonNumber,
+                l.OrderIndex,
+                l.Status
+            })
+            .ToListAsync(cancellationToken);
+
+        // Map canonical GUIDs and legacy/hsk slugs -> canonical lowercase lesson GUID so each real DB lesson is counted once.
+        var slugToGuid = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var l in dbLessons)
+        {
+            var canonical = l.Id.ToString().ToLowerInvariant();
+            slugToGuid[canonical] = canonical;
+            var num = l.LessonNumber > 0 ? l.LessonNumber : l.OrderIndex;
+            if (num > 0)
+            {
+                slugToGuid[$"les-hsk{l.HskLevel}-{num}"] = canonical;
+                if (l.HskLevel == 1)
+                {
+                    slugToGuid[$"les-{num}"] = canonical;
+                }
+            }
+        }
+
+        var completedCanonicalIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var inProgressCanonicalIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in userProgresses)
+        {
+            var normalized = NormalizeLessonId(p.LessonId);
+            if (!slugToGuid.TryGetValue(normalized, out var canonical) &&
+                !slugToGuid.TryGetValue(p.LessonId ?? string.Empty, out canonical))
+            {
+                continue;
+            }
+
+            if (string.Equals(p.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+            {
+                completedCanonicalIds.Add(canonical);
+            }
+            else if (string.Equals(p.Status, "IN_PROGRESS", StringComparison.OrdinalIgnoreCase))
+            {
+                inProgressCanonicalIds.Add(canonical);
+            }
+        }
+
+        var lessonsByLevel = dbLessons.GroupBy(l => l.HskLevel).ToDictionary(g => g.Key, g => g.ToList());
+        var courseByLevel = courses.GroupBy(c => c.HskLevel).ToDictionary(g => g.Key, g => g.First());
+
+        var result = new List<HskCourseProgressDto>(6);
+        for (int level = 1; level <= 6; level++)
+        {
+            courseByLevel.TryGetValue(level, out var course);
+            lessonsByLevel.TryGetValue(level, out var levelLessons);
+            levelLessons ??= new();
+
+            var publishedCount = levelLessons.Count(l => string.Equals(l.Status, "PUBLISHED", StringComparison.OrdinalIgnoreCase));
+            var totalLessons = levelLessons.Count;
+            var completedCount = levelLessons.Count(l => completedCanonicalIds.Contains(l.Id.ToString().ToLowerInvariant()));
+            var inProgressCount = levelLessons.Count(l => !completedCanonicalIds.Contains(l.Id.ToString().ToLowerInvariant())
+                                                        && inProgressCanonicalIds.Contains(l.Id.ToString().ToLowerInvariant()));
+
+            result.Add(new HskCourseProgressDto
+            {
+                HskLevel = level,
+                CourseId = course?.Id.ToString().ToLowerInvariant() ?? string.Empty,
+                Title = course?.Title ?? $"HSK {level}",
+                TotalLessons = totalLessons,
+                PublishedLessons = publishedCount,
+                CompletedLessons = completedCount,
+                InProgressLessons = inProgressCount,
+                Percent = CalculateCompletionPercent(completedCount, totalLessons),
+                IsComingSoon = totalLessons == 0 || (level >= 5 && publishedCount == 0)
+            });
+        }
+
+        return result;
     }
 
     private static List<WeakKnowledgeDto> CalculateWeakKnowledge(List<StudentPracticeAttempt> attempts)
@@ -457,26 +609,23 @@ public class LearningService : ILearningService
 
         var trimmed = lessonId.Trim();
 
-        // 1. Check if it's a legacy slug like 'les-1', 'les-2', ...
-        if (trimmed.StartsWith("les-", StringComparison.OrdinalIgnoreCase) || trimmed.StartsWith("les_", StringComparison.OrdinalIgnoreCase))
+        // 1. Check if it's a legacy or HSK-prefixed slug like 'les-1' or 'les-hsk1-2'
+        if (TryParseLessonSlug(trimmed, out int hskLevel, out int lessonNum))
         {
-            var slugNumStr = trimmed.Substring(4);
-            if (int.TryParse(slugNumStr, out int lessonNum))
+            var matched = await _context.Lessons.AsNoTracking()
+                .Include(l => l.Course)
+                .Where(l => ((l.Course != null && l.Course.HskLevel == hskLevel) || (hskLevel == 1 && l.Course == null))
+                            && (l.Status == null || l.Status != "ARCHIVED")
+                            && (l.LessonNumber == lessonNum || l.OrderIndex == lessonNum))
+                .Select(l => new { l.Id, l.Status, l.XpReward })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (matched != null)
             {
-                var matched = await _context.Lessons.AsNoTracking()
-                    .Include(l => l.Course)
-                    .Where(l => (l.Course == null || l.Course.HskLevel == 1) && (l.LessonNumber == lessonNum || l.OrderIndex == lessonNum))
-                    .Select(l => new { l.Id, l.Status, l.XpReward })
-                    .FirstOrDefaultAsync(cancellationToken);
-
-                if (matched != null)
-                {
-                    EnsureLessonPublishedOrThrow(matched.Status, lessonId);
-                    return (matched.Id.ToString().ToLowerInvariant(), ResolveServerLessonXp(matched.XpReward));
-                }
-
-                throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
+                EnsureLessonPublishedOrThrow(matched.Status, lessonId);
+                return (matched.Id.ToString().ToLowerInvariant(), ResolveServerLessonXp(matched.XpReward));
             }
+
             throw new KeyNotFoundException($"Không tìm thấy bài học với mã '{lessonId}'.");
         }
 
@@ -514,6 +663,9 @@ public class LearningService : ILearningService
             ?? await _context.StudentLessonProgresses
                 .FirstOrDefaultAsync(l => l.UserId == userId && (l.LessonId == normalizedId || (isLesson1 && l.LessonId == LegacyLesson1Id)), cancellationToken);
 
+        var safeStep = Math.Max(0, dto.CurrentStepIndex);
+        var safeMax = Math.Max(safeStep, dto.MaxUnlockedStepIndex ?? safeStep);
+
         if (lesson == null)
         {
             lesson = new StudentLessonProgress
@@ -521,8 +673,8 @@ public class LearningService : ILearningService
                 UserId = userId,
                 LessonId = normalizedId,
                 Status = "IN_PROGRESS",
-                CurrentStepIndex = dto.CurrentStepIndex,
-                MaxUnlockedStepIndex = Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex)
+                CurrentStepIndex = safeStep,
+                MaxUnlockedStepIndex = safeMax
             };
             _context.StudentLessonProgresses.Add(lesson);
         }
@@ -533,9 +685,8 @@ public class LearningService : ILearningService
                 lesson.LessonId = Lesson1Guid;
             }
             if (lesson.Status == "NOT_STARTED") lesson.Status = "IN_PROGRESS";
-            lesson.CurrentStepIndex = dto.CurrentStepIndex;
-            lesson.MaxUnlockedStepIndex = Math.Max(lesson.MaxUnlockedStepIndex,
-                Math.Max(dto.CurrentStepIndex, dto.MaxUnlockedStepIndex ?? dto.CurrentStepIndex));
+            lesson.CurrentStepIndex = safeStep;
+            lesson.MaxUnlockedStepIndex = Math.Max(lesson.MaxUnlockedStepIndex, safeMax);
         }
 
         profile.CurrentLessonId = normalizedId;
@@ -689,9 +840,9 @@ public class LearningService : ILearningService
             QuestionId = dto.QuestionId,
             KnowledgePointId = dto.KnowledgePointId,
             TopicTitle = dto.TopicTitle,
-            Category = dto.Category,
-            HskLevel = dto.HskLevel,
-            UserAnswer = dto.UserAnswer,
+            Category = string.IsNullOrWhiteSpace(dto.Category) ? "grammar" : dto.Category.Trim(),
+            HskLevel = Math.Clamp(dto.HskLevel, 1, 9),
+            UserAnswer = dto.UserAnswer ?? string.Empty,
             IsCorrect = dto.IsCorrect,
             AttemptedAt = DateTime.UtcNow
         };
@@ -709,20 +860,28 @@ public class LearningService : ILearningService
 
     public async Task<StudentLearningStateDto> RecordPracticeSessionAsync(Guid userId, PracticeSessionResultDto dto, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(dto.SessionId))
+        {
+            throw new ArgumentException("SessionId không được để trống.");
+        }
+
         var profile = await GetOrCreateProfileAsync(userId, cancellationToken);
         var todayStr = GetLocalDateString();
         var yesterdayStr = GetYesterdayDateString();
 
-        var eventId = $"practice_session_{dto.SessionId}";
+        var safeSessionId = dto.SessionId.Trim();
+        var eventId = $"practice_session_{safeSessionId}";
         var xpAmount = ResolvePracticeSessionXp(dto.CorrectQuestions, dto.TotalQuestions);
 
-        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "PRACTICE_SESSION", $"Luyện tập {dto.SessionId}", todayStr, cancellationToken);
+        await AwardIdempotentXpAsync(profile, eventId, xpAmount, "PRACTICE_SESSION", $"Luyện tập {safeSessionId}", todayStr, cancellationToken);
 
         UpdateStreak(profile, todayStr, yesterdayStr);
 
+        var clampedSeconds = Math.Clamp(dto.TimeSpentSeconds, 0, 7200);
+        var clampedQuestions = Math.Clamp(dto.TotalQuestions, 1, 200);
         var daily = await GetOrCreateDailyActivityAsync(userId, todayStr, cancellationToken);
-        daily.ExercisesCompleted += dto.TotalQuestions;
-        daily.Minutes += Math.Max(2, (int)Math.Round((double)dto.TimeSpentSeconds / 60));
+        daily.ExercisesCompleted += clampedQuestions;
+        daily.Minutes += Math.Max(2, (int)Math.Round((double)clampedSeconds / 60));
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -9,6 +9,7 @@ namespace ZhongWenHub.Business.Learning;
 public interface ILearningService
 {
     Task<StudentLearningStateDto> GetStudentLearningStateAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<List<HskCourseProgressDto>> GetHskProgressAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<StudentLearningStateDto> UpdatePreferencesAsync(Guid userId, UpdateLearningPreferencesDto dto, CancellationToken cancellationToken = default);
     Task<List<LessonProgressDto>> GetLessonProgressesAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<LessonProgressDto> UpdateLessonStepAsync(Guid userId, string lessonId, UpdateLessonStepDto dto, CancellationToken cancellationToken = default);

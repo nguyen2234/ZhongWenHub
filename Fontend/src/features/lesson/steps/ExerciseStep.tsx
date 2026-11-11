@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import type { ExerciseItem } from '../types';
-import { ExerciseRenderer } from '../../exercise-engine';
+import { ExerciseRenderer, gradeExerciseSubmission } from '../../exercise-engine';
 
 interface ExerciseStepProps {
   exercises: ExerciseItem[];
@@ -16,6 +16,7 @@ export const ExerciseStep: React.FC<ExerciseStepProps> = ({
 
   // States for multiple-choice / fill-blank / translation
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [textAnswer, setTextAnswer] = useState('');
 
   // State for sentence-order
   const [orderedTokens, setOrderedTokens] = useState<string[]>([]);
@@ -35,26 +36,43 @@ export const ExerciseStep: React.FC<ExerciseStepProps> = ({
   // Initialize state when switching exercises
   const initExercise = (index: number) => {
     const ex = exercises[index];
+    if (!ex) return;
     setSelectedOption(null);
+    setTextAnswer('');
     setHasChecked(false);
     setIsCurrentCorrect(false);
 
-    if (ex.type === 'sentence-order' && ex.sentenceTokens) {
+    if (ex.type === 'sentence-order' && ex.sentenceTokens && (!ex.options || ex.options.length === 0)) {
       setAvailableTokens([...ex.sentenceTokens]);
       setOrderedTokens([]);
-    } else if (ex.type === 'matching' && ex.matchingPairs) {
+    } else {
+      setAvailableTokens([]);
+      setOrderedTokens([]);
+    }
+
+    if (ex.type === 'matching' && ex.matchingPairs) {
       setMatchedPairs([]);
       setSelectedLeft(null);
       setSelectedRight(null);
     }
   };
 
+  useEffect(() => {
+    setCurrentExIndex(0);
+  }, [exercises]);
+
+  useEffect(() => {
+    initExercise(currentExIndex);
+  }, [currentExIndex, exercises]);
+
+  if (!currentExercise) {
+    return null;
+  }
+
   // Switch exercise
   const handleNextExercise = () => {
     if (currentExIndex < exercises.length - 1) {
-      const nextIdx = currentExIndex + 1;
-      setCurrentExIndex(nextIdx);
-      initExercise(nextIdx);
+      setCurrentExIndex(currentExIndex + 1);
     } else {
       onCompleteAllExercises?.();
     }
@@ -100,6 +118,9 @@ export const ExerciseStep: React.FC<ExerciseStepProps> = ({
       if (updated.length === (currentExercise.matchingPairs?.length || 0)) {
         setIsCurrentCorrect(true);
         setHasChecked(true);
+        if (currentExIndex >= exercises.length - 1) {
+          onCompleteAllExercises?.();
+        }
       }
     } else {
       setTimeout(() => {
@@ -111,24 +132,34 @@ export const ExerciseStep: React.FC<ExerciseStepProps> = ({
 
   // General Check Answer
   const handleCheck = () => {
-    if (currentExercise.type === 'sentence-order') {
-      const assembled = orderedTokens.join('');
-      const isRight = assembled === currentExercise.correctSentence;
-      setIsCurrentCorrect(isRight);
-      setHasChecked(true);
-    } else {
-      const isRight = selectedOption === currentExercise.correctOptionIndex;
-      setIsCurrentCorrect(isRight);
-      setHasChecked(true);
+    const { isCorrect } = gradeExerciseSubmission(currentExercise, {
+      selectedOption,
+      orderedTokens,
+      matchedPairs,
+      textAnswer,
+    });
+    setIsCurrentCorrect(isCorrect);
+    setHasChecked(true);
+    if (currentExIndex >= exercises.length - 1) {
+      onCompleteAllExercises?.();
     }
   };
 
-  const canCheck =
-    currentExercise.type === 'sentence-order'
-      ? orderedTokens.length > 0 && availableTokens.length === 0
-      : currentExercise.type === 'matching'
-      ? matchedPairs.length === (currentExercise.matchingPairs?.length || 0)
-      : selectedOption !== null;
+  const usesTokenBuilder =
+    currentExercise.type === 'sentence-order' &&
+    Array.isArray(currentExercise.sentenceTokens) &&
+    currentExercise.sentenceTokens.length > 0 &&
+    (!currentExercise.options || currentExercise.options.length === 0);
+
+  const hasOptions = Array.isArray(currentExercise.options) && currentExercise.options.length > 0;
+
+  const canCheck = usesTokenBuilder
+    ? orderedTokens.length > 0 && availableTokens.length === 0
+    : currentExercise.type === 'matching'
+    ? matchedPairs.length === (currentExercise.matchingPairs?.length || 0)
+    : hasOptions
+    ? selectedOption !== null
+    : textAnswer.trim().length > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', alignItems: 'center' }}>
@@ -177,6 +208,8 @@ export const ExerciseStep: React.FC<ExerciseStepProps> = ({
           exercise={currentExercise}
           hasChecked={hasChecked}
           isCorrect={isCurrentCorrect}
+          textAnswer={textAnswer}
+          onTextAnswerChange={setTextAnswer}
           selectedOption={selectedOption}
           onSelectOption={setSelectedOption}
           orderedTokens={orderedTokens}

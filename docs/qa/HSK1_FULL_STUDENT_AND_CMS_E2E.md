@@ -25,3 +25,4 @@ Latest clean execution against `ZhongWenHub_Ephemeral_QA`: **3 passed (44.5s), 0
    - Student API & Learning Path confirm **15 published HSK 1 lessons** live (`Tổng bài: 15`), while HSK 5/6 stay `Sắp ra mắt` / Coming Soon.
    - Opens Lesson 4 (`他是我的汉语老师`) and Lesson 8 (`我想喝茶`), confirming live SQL Server content, `reading-passage-card`, and absence of `(Bản thảo)` / template placeholders.
    - Walks through Practice Modal, completes Lesson 4 via `/api/v1/learning/me/lessons/{id}/complete`, verifies zero duplicate XP on repeat completion, and verifies `#complete` shows `"Bạn đã hoàn thành bài học này!"` across `page.reload()`.
+

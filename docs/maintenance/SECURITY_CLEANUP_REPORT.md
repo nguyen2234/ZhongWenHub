@@ -53,3 +53,4 @@
 | `Fontend/e2e/content-manager-ui-and-export.spec.ts` | `loginViaUi` default uses `contentmanager@zhongwenhub.edu.vn` / `Content***` test seed account | Test Fixture Spec | Migrate into `testCredentials` or environment variables. |
 | `Fontend/e2e/admin-user-organization-crud.spec.ts` | Local helper default uses `admin@gmail.com` + ephemeral `StudentPassword123!` | Test Fixture Spec | Route admin credentials through `testCredentials.admin`. |
 | **Git Commit History** | Earlier commits contained plaintext `Demo@***` test credentials | Historical Exposure | **Rotate all demo/test account passwords** across any staging or deployed databases (do NOT rewrite shared branch history). |
+

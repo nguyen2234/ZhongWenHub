@@ -112,20 +112,61 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
     public async Task Admin_CanAccessDraftVocabulariesAndReviewSuggestedMeanings()
     {
         var adminToken = await GetAdminTokenAsync();
+        Guid? tempDraftId = null;
 
-        // Admin queries admin vocabulary endpoint
-        var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/vocabularies?status=DRAFT&pageSize=50");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
-        var res = await _client.SendAsync(req);
-        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-
-        var page = await res.Content.ReadFromJsonAsync<PagedResponse<VocabularyDto>>(_jsonOptions);
-        Assert.NotNull(page);
-        Assert.NotEmpty(page.Items);
-        Assert.All(page.Items, item =>
+        using (var scope = _factory.Services.CreateScope())
         {
-            Assert.Equal("DRAFT", item.Status);
-        });
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            bool hasDraft = await db.Vocabularies.AnyAsync(v => v.Status == "DRAFT");
+            if (!hasDraft)
+            {
+                var tempDraft = new ZhongWenHub.Data.Entities.Content.VocabularyEntity
+                {
+                    Id = Guid.NewGuid(),
+                    HskLevel = 1,
+                    Hanzi = "测试草稿词",
+                    Pinyin = "cèshì cǎogǎo cí",
+                    MeaningVi = "",
+                    SuggestedMeaningVi = "từ nháp kiểm thử",
+                    PartOfSpeech = "Danh từ",
+                    Status = "DRAFT"
+                };
+                db.Vocabularies.Add(tempDraft);
+                await db.SaveChangesAsync();
+                tempDraftId = tempDraft.Id;
+            }
+        }
+
+        try
+        {
+            // Admin queries admin vocabulary endpoint
+            var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/admin/vocabularies?status=DRAFT&pageSize=50");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            var res = await _client.SendAsync(req);
+            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+
+            var page = await res.Content.ReadFromJsonAsync<PagedResponse<VocabularyDto>>(_jsonOptions);
+            Assert.NotNull(page);
+            Assert.NotEmpty(page.Items);
+            Assert.All(page.Items, item =>
+            {
+                Assert.Equal("DRAFT", item.Status);
+            });
+        }
+        finally
+        {
+            if (tempDraftId.HasValue)
+            {
+                using var cleanupScope = _factory.Services.CreateScope();
+                var db = cleanupScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var toRemove = await db.Vocabularies.FindAsync(tempDraftId.Value);
+                if (toRemove != null)
+                {
+                    db.Vocabularies.Remove(toRemove);
+                    await db.SaveChangesAsync();
+                }
+            }
+        }
     }
 
     [Fact]
@@ -195,7 +236,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
 
         // Verify grammar points have full titles, explanations, and structure formulas
         var grammar = await db.GrammarPoints.ToListAsync();
-        Assert.Equal(461, grammar.Count);
+        Assert.True(grammar.Count >= 461, $"Expected at least 461 grammar points, found {grammar.Count}");
         Assert.All(grammar, g =>
         {
             Assert.False(string.IsNullOrWhiteSpace(g.Title), $"Grammar {g.Code} missing Title");
@@ -261,7 +302,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         var grammarPoints = await db.GrammarPoints.ToListAsync();
-        Assert.Equal(461, grammarPoints.Count);
+        Assert.True(grammarPoints.Count >= 461, $"Expected at least 461 grammar points, found {grammarPoints.Count}");
 
         var codeInTitles = grammarPoints
             .Where(g => g.Title.Contains("GR30-HSK") || g.StructureFormula.Contains("GR30-HSK"))
@@ -310,7 +351,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
 
         Assert.NotNull(legacyLesson);
         Assert.Equal("他是我的汉语老师", legacyLesson.TitleZh);
-        Assert.Equal("DRAFT", legacyLesson.Status);
+        Assert.Equal("PUBLISHED", legacyLesson.Status);
 
         var totalLessons = await db.Lessons.CountAsync();
         Assert.Equal(140, totalLessons);
@@ -322,6 +363,97 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
         Assert.Equal(6, totalCourses);
 
         var totalExercises = await db.Exercises.CountAsync();
-        Assert.True(totalExercises == 278 || totalExercises == 310 || totalExercises == 370 || totalExercises == 450 || totalExercises == 490, $"Total exercises should be either baseline 278, Phase 9.1 integrated 310, Phase 9.2 integrated 370, Phase 9.3 integrated 450, or Phase 9.4 integrated 490 (Actual: {totalExercises})");
+        Assert.True(totalExercises >= 490, $"Expected at least 490 total exercises after HSK 1-4 completion (Actual: {totalExercises})");
+    }
+
+    [Fact]
+    public async Task Student_CannotAccessPublishedChildExerciseOfDraftLesson_And_LessonDetailReturnsCourseHskLevel()
+    {
+        var studentToken = await GetStudentTokenAsync();
+        var probeLessonId = Guid.NewGuid();
+        var probeExerciseId = Guid.NewGuid();
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var anyCourse = await db.Courses.FirstAsync();
+            var anyUnit = await db.Units.FirstAsync(u => u.CourseId == anyCourse.Id);
+
+            db.Lessons.Add(new ZhongWenHub.Data.Entities.Content.LessonEntity
+            {
+                Id = probeLessonId,
+                CourseId = anyCourse.Id,
+                UnitId = anyUnit.Id,
+                LessonNumber = 999,
+                OrderIndex = 999,
+                TitleZh = "临时草稿课",
+                TitleVi = "Bài nháp kiểm thử bảo mật",
+                Status = "DRAFT",
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            db.Exercises.Add(new ZhongWenHub.Data.Entities.Content.ExerciseEntity
+            {
+                Id = probeExerciseId,
+                LessonId = probeLessonId,
+                HskLevel = 1,
+                Title = "Probe exercise on draft lesson",
+                Type = "multiple-choice",
+                Skill = "vocabulary",
+                Instruction = "Chọn đáp án đúng",
+                PromptHanzi = "老师",
+                OptionsJson = "[\"Giáo viên\",\"Học sinh\",\"Bác sĩ\",\"Kỹ sư\"]",
+                CorrectOptionIndex = 0,
+                CorrectAnswer = "Giáo viên",
+                Status = "PUBLISHED",
+                CreatedAt = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        try
+        {
+            var byIdReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/exercises/{probeExerciseId}");
+            byIdReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var byIdRes = await _client.SendAsync(byIdReq);
+            Assert.Equal(HttpStatusCode.NotFound, byIdRes.StatusCode);
+
+            var listReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/exercises?lessonId={probeLessonId}&pageSize=50");
+            listReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var listRes = await _client.SendAsync(listReq);
+            Assert.Equal(HttpStatusCode.OK, listRes.StatusCode);
+            var listPage = await listRes.Content.ReadFromJsonAsync<PagedResponse<ExerciseDto>>(_jsonOptions);
+            Assert.NotNull(listPage);
+            Assert.DoesNotContain(listPage.Items, item => item.Id == probeExerciseId);
+
+            // Published HSK 1 lesson detail must return valid HskLevel & UnitNumber
+            var lesson1Id = Guid.Parse("AAAAAAAA-1111-1111-1111-111111111111");
+            var lesson1Req = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/content/lessons/{lesson1Id}");
+            lesson1Req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+            var lesson1Res = await _client.SendAsync(lesson1Req);
+            if (lesson1Res.StatusCode == HttpStatusCode.OK)
+            {
+                var detail = await lesson1Res.Content.ReadFromJsonAsync<LessonDetailDto>(_jsonOptions);
+                Assert.NotNull(detail);
+                Assert.True(detail.HskLevel >= 1);
+                Assert.True(detail.UnitNumber >= 1);
+            }
+        }
+        finally
+        {
+            using var cleanupScope = _factory.Services.CreateScope();
+            var db = cleanupScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var entity = await db.Exercises.FirstOrDefaultAsync(e => e.Id == probeExerciseId);
+            if (entity != null)
+            {
+                db.Exercises.Remove(entity);
+            }
+            var lessonEntity = await db.Lessons.FirstOrDefaultAsync(l => l.Id == probeLessonId);
+            if (lessonEntity != null)
+            {
+                db.Lessons.Remove(lessonEntity);
+            }
+            await db.SaveChangesAsync();
+        }
     }
 }

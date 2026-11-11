@@ -29,3 +29,4 @@
   - Nút **Sửa** trong `Fontend/src/management/admin/content/components/CurriculumUnitCard.tsx` điều hướng trực tiếp tới `/management/content-manager/curriculum/lessons/:lessonId/edit` qua callback `onEditLesson` từ `AdminCurriculumPage.tsx`.
   - Nút xem nhanh (biểu tượng con mắt) vẫn mở `LessonDetailDrawer.tsx` kèm nút **"Mở trình soạn bài"** trỏ đúng vào cùng đường dẫn trên.
 - Đồng bộ tiêu đề trang trong `AdminCurriculumPage.tsx` (`Giáo trình`), breadcrumb trong `ManagementHeader.tsx` (`Giáo trình` và `Giáo trình / Biên tập bài học`, cùng `Kho đề thi`), và kiểm thử trong `Fontend/src/tests/fe-12-content-manager-workspace-separation.test.ts` + E2E specs (`fe-12-content-manager.spec.ts`, `real-content-manager.spec.ts`).
+

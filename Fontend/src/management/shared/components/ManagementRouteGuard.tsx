@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import type { UserRole } from '../../../types/roles';
 // ROLE_DEFAULT_PATHS
@@ -23,6 +23,37 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
   useEffect(() => {
     return managementAuthService.subscribe((updated) => setSession(updated));
   }, []);
+
+  // Extract authoritative roles strictly from AuthContext JWT user
+  const userRoles = new Set<string>();
+  if (user?.role) userRoles.add(user.role);
+  if (Array.isArray(user?.roles)) {
+    user.roles.forEach((r) => userRoles.add(r));
+  }
+  const isSuperOrAdmin = userRoles.has('ADMIN');
+
+  // Synchronize active management portal view in an effect (never during render)
+  useEffect(() => {
+    if (isLoading || !isAuthenticated || !user || !session) return;
+    const path = location.pathname;
+    let targetPortalRole: UserRole | undefined;
+    if (path.startsWith('/management/teacher') && (userRoles.has('TEACHER') || isSuperOrAdmin)) {
+      targetPortalRole = 'TEACHER';
+    } else if (path.startsWith('/management/content-manager') && (userRoles.has('CONTENT_MANAGER') || isSuperOrAdmin)) {
+      targetPortalRole = 'CONTENT_MANAGER';
+    } else if (path.startsWith('/management/support') && (userRoles.has('SUPPORT') || isSuperOrAdmin)) {
+      targetPortalRole = 'SUPPORT';
+    } else if (path.startsWith('/management/admin') && isSuperOrAdmin) {
+      targetPortalRole = 'ADMIN';
+    }
+
+    if (targetPortalRole && session.role !== targetPortalRole) {
+      managementAuthService.setSession({
+        ...session,
+        role: targetPortalRole,
+      });
+    }
+  }, [isLoading, isAuthenticated, user, session, location.pathname, isSuperOrAdmin]);
 
   // 1. Wait until initial session restoration finishes
   if (isLoading) {
@@ -49,16 +80,7 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Multi-role validation & active session synchronization
-  const userRoles = new Set<string>();
-  if (user.role) userRoles.add(user.role);
-  if (Array.isArray(user.roles)) {
-    user.roles.forEach((r) => userRoles.add(r));
-  }
-  if (session?.role) userRoles.add(session.role);
-
-  const isSuperOrAdmin = userRoles.has('ADMIN');
-
+  // 3. Strict RBAC validation
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     const isRoleAllowed =
@@ -67,25 +89,6 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
 
     if (!isRoleAllowed) {
       return <Navigate to="/dashboard" replace />;
-    }
-
-    // When navigating to a specific management portal (e.g. TEACHER or CONTENT_MANAGER),
-    // ensure session.role matches that portal view so navigation menus render correctly
-    const path = location.pathname;
-    let targetPortalRole: UserRole | undefined;
-    if (path.startsWith('/management/teacher') && (userRoles.has('TEACHER') || isSuperOrAdmin)) {
-      targetPortalRole = 'TEACHER';
-    } else if (path.startsWith('/management/content-manager') && (userRoles.has('CONTENT_MANAGER') || isSuperOrAdmin)) {
-      targetPortalRole = 'CONTENT_MANAGER';
-    } else if (path.startsWith('/management/admin') && isSuperOrAdmin) {
-      targetPortalRole = 'ADMIN';
-    }
-
-    if (targetPortalRole && session.role !== targetPortalRole) {
-      managementAuthService.setSession({
-        ...session,
-        role: targetPortalRole,
-      });
     }
   }
 

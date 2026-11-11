@@ -119,6 +119,7 @@ class HskTextbookService {
         exampleHanzi: item.exampleHanzi,
         examplePinyin: item.examplePinyin,
         exampleMeaning: item.exampleMeaning,
+        audioUrl: item.audioUrl,
       }));
     } else if (detailDto.vocabularies && detailDto.vocabularies.length > 0) {
       vocabularies = detailDto.vocabularies.map((v, idx) => ({
@@ -132,6 +133,7 @@ class HskTextbookService {
         exampleHanzi: v.customExampleZh || '',
         examplePinyin: v.customExamplePinyin || '',
         exampleMeaning: v.customExampleVi || '',
+        audioUrl: v.audioUrl,
       }));
     }
 

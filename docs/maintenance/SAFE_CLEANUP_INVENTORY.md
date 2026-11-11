@@ -51,3 +51,4 @@ Following static + dynamic dependency analysis across all 543 TS/TSX files in `F
   - Referenced directly by `Backend/tests/ZhongWenHub.IntegrationTests/Hsk1ImportIntegrationTests.cs` and `Fontend/src/tests/portal-switcher-and-excel-import.test.ts`. Classified **`TEST_ONLY`**.
 - **Backend EF Core Design-Time Factory (`Backend/src/Data/Persistence/ApplicationDbContextFactory.cs`):**
   - Discovered via reflection by `dotnet ef`. Classified **`ACTIVE`**.
+

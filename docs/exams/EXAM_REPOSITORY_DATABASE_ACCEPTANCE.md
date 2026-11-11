@@ -29,3 +29,4 @@ Implemented across [`ExamsController.cs`](file:///D:/ZhongWenHub/Backend/src/Api
 
 ## 3. Protected Environment Note
 `ZhongWenHub_Test` and `ZhongWenHub_Dev` remain untouched (`ExamTables=0`) because `USER_APPROVAL_TOKEN.signed` was not present; migration `20261111060000_AddExamRepositoryTables` has not yet been applied to those protected instances.
+

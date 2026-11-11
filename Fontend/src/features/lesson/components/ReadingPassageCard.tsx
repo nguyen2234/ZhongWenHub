@@ -1,37 +1,79 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BookOpen, Eye, EyeOff, Volume2, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
 
 interface ReadingPassageCardProps {
   passage: LessonReadingPassageDTO;
+  audioUrl?: string;
   className?: string;
 }
 
-export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage, className = '' }) => {
+export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage, audioUrl, className = '' }) => {
   const [showPinyin, setShowPinyin] = useState<boolean>(true);
   const [showMeaning, setShowMeaning] = useState<boolean>(true);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    setSelectedAnswers({});
+    setSubmittedAnswers({});
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [passage.lessonNumber, passage.passageZh]);
 
   const handlePlayAudio = (isSlow = false) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
 
     if (isPlaying) {
       setIsPlaying(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(passage.passageZh);
-    utterance.lang = 'zh-CN';
-    utterance.rate = isSlow ? 0.75 : 0.95;
+    const playTtsFallback = () => {
+      if (!('speechSynthesis' in window)) {
+        setIsPlaying(false);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(passage.passageZh);
+      utterance.lang = 'zh-CN';
+      utterance.rate = isSlow ? 0.75 : 0.95;
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+      window.speechSynthesis.speak(utterance);
+    };
 
-    utterance.onstart = () => setIsPlaying(true);
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
+    if (audioUrl) {
+      const base = (import.meta.env?.BASE_URL || '/').replace(/\/$/, '');
+      const resolvedUrl = audioUrl.startsWith('http')
+        ? audioUrl
+        : `${base}/${audioUrl.replace(/^\//, '')}`;
+      const audio = new Audio(resolvedUrl);
+      audio.playbackRate = isSlow ? 0.75 : 1;
+      audioRef.current = audio;
+      setIsPlaying(true);
+      audio.onended = () => setIsPlaying(false);
+      audio.onerror = () => playTtsFallback();
+      audio.play().catch(() => playTtsFallback());
+      return;
+    }
 
-    window.speechSynthesis.speak(utterance);
+    playTtsFallback();
   };
 
   const handleSelectOption = (qIdx: number, optIdx: number) => {

@@ -12,3 +12,4 @@ public class ExamQuestionEntity : BaseEntity
     public int OrderIndex { get; set; } = 1;
     public int Points { get; set; } = 10;
 }
+

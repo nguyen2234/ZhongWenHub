@@ -27,3 +27,4 @@ Strict HSK 1 quality gates and Segregation of Duties (SoD) rules in [`ContentSer
 
 ## 4. Protected Database Status
 - `ZhongWenHub_Test` and `ZhongWenHub_Dev` remain unmodified (`HSK1 PublishedLessons=3`, `ExamTables=0` verified read-only). Ready for controlled rollout once `USER_APPROVAL_TOKEN.signed` is provided.
+

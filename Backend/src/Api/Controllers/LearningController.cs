@@ -39,6 +39,19 @@ public class LearningController : BaseApiController
         return Ok(state);
     }
 
+    [HttpGet("me/hsk-progress")]
+    public async Task<ActionResult<List<HskCourseProgressDto>>> GetMyHskProgress(CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+        {
+            return Unauthorized(new { message = "Người dùng chưa xác thực." });
+        }
+
+        var progress = await _learningService.GetHskProgressAsync(userId.Value, cancellationToken);
+        return Ok(progress);
+    }
+
     [HttpPut("me/preferences")]
     public async Task<ActionResult<StudentLearningStateDto>> UpdateMyPreferences(
         [FromBody] UpdateLearningPreferencesDto dto,

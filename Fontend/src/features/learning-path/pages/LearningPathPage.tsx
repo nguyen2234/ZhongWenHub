@@ -15,7 +15,12 @@ export interface LearningPathProps {
 export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: customOpenLesson }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const currentMode = searchParams.get('mode') === 'hsk' ? 'hsk' : 'beginner';
+  const hasExplicitLevel = searchParams.has('level');
+  const currentMode =
+    searchParams.get('mode') === 'hsk' ||
+    (hasExplicitLevel && searchParams.get('mode') !== 'beginner')
+      ? 'hsk'
+      : 'beginner';
   const { startLesson } = useLearningState();
 
   const handleLessonAction = (lessonId: string) => {

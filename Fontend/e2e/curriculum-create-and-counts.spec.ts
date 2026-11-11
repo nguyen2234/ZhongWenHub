@@ -289,3 +289,4 @@ test.describe('Phase D: Curriculum Create Lesson, Live SQL Counts & Readiness 40
     await expect(page.getByTestId('curriculum-live-stats')).toContainText('HSK 1–4 thực tế: 70/70');
   });
 });
+

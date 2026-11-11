@@ -139,25 +139,59 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     });
   }, [learningState.dailyActivityHistory]);
 
-  // Real HSK progress computed from curriculum and lessonProgress
+  // Real HSK progress computed from live SQL hskProgress (or curriculum/lessonProgress fallback)
   const hskProgressMap = useMemo(() => {
-    const map: Record<number, { completedCount: number; totalCount: number; percent: number }> = {};
+    const map: Record<number, { completedCount: number; totalCount: number; percent: number; isComingSoon?: boolean }> = {};
+    const serverByLevel = new Map<number, (typeof learningState.hskProgress extends Array<infer T> | undefined ? T : never)>();
+    if (Array.isArray(learningState.hskProgress)) {
+      learningState.hskProgress.forEach((item) => {
+        if (item && typeof item.hskLevel === 'number') {
+          serverByLevel.set(item.hskLevel, item);
+        }
+      });
+    }
+
+    const completedSet = new Set(
+      (learningState.completedLessonIds || []).map((id) => id.toLowerCase())
+    );
+    Object.entries(learningState.lessonProgress || {}).forEach(([k, v]) => {
+      if (v?.status === 'COMPLETED') {
+        completedSet.add(k.toLowerCase());
+      }
+    });
+
     [1, 2, 3, 4, 5, 6].forEach((lvl) => {
+      const serverEntry = serverByLevel.get(lvl);
       const curLevel = HSK_CURRICULUM[lvl];
+
+      if (serverEntry && serverEntry.totalLessons > 0) {
+        map[lvl] = {
+          completedCount: serverEntry.completedLessons,
+          totalCount: serverEntry.totalLessons,
+          percent: serverEntry.percent,
+          isComingSoon: serverEntry.isComingSoon,
+        };
+        return;
+      }
+
       if (!curLevel) {
         map[lvl] = { completedCount: 0, totalCount: 0, percent: 0 };
         return;
       }
       const lessons = curLevel.units.flatMap((u) => u.lessons);
-      const completedCount = lessons.filter(
-        (l) => learningState.lessonProgress[l.id]?.status === 'COMPLETED'
-      ).length;
+      const completedCount = lessons.filter((l) => {
+        if (completedSet.has(l.id.toLowerCase())) return true;
+        if (lvl === 1 && l.lessonNumber === 1) {
+          return completedSet.has('aaaaaaaa-1111-1111-1111-111111111111') || completedSet.has('les-1');
+        }
+        return false;
+      }).length;
       const totalCount = curLevel.totalLessons || lessons.length;
-      const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-      map[lvl] = { completedCount, totalCount, percent };
+      const percent = totalCount > 0 ? Math.min(100, Math.round((completedCount / totalCount) * 100)) : 0;
+      map[lvl] = { completedCount, totalCount, percent, isComingSoon: curLevel.isComingSoon };
     });
     return map;
-  }, [learningState.lessonProgress]);
+  }, [learningState.hskProgress, learningState.lessonProgress, learningState.completedLessonIds]);
 
   // Featured word for today
   const todayVocab = {
@@ -206,7 +240,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
               <button
                 type="button"
-                onClick={() => navigate('/learning-path')}
+                onClick={() => navigate('/learning-path?mode=hsk')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -365,7 +399,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => navigate('/learning-path')}
+              onClick={() => navigate('/learning-path?mode=hsk')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -386,22 +420,19 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           <div className="courses-grid">
             {[1, 2, 3, 4, 5, 6].map((lvl) => {
               const curLevel = HSK_CURRICULUM[lvl];
-              const isComingSoon = curLevel?.isComingSoon || lvl >= 5;
-              const isCurrent = lvl === currentHskLevel && !isComingSoon;
               const lvlProgress = hskProgressMap[lvl] || { completedCount: 0, totalCount: 0, percent: 0 };
+              const isComingSoon = lvlProgress.isComingSoon ?? (curLevel?.isComingSoon || lvl >= 5);
+              const isCurrent = lvl === currentHskLevel && !isComingSoon;
               const progressLabel = isComingSoon
-                ? 'Chưa có bài giảng'
-                : lvlProgress.completedCount > 0
-                ? `Tiến độ: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`
-                : isCurrent
-                ? `Đang học • 0/${lvlProgress.totalCount} bài`
-                : `Chưa học • 0/${lvlProgress.totalCount} bài`;
+                ? `${lvlProgress.percent}% • Sắp ra mắt`
+                : `Hoàn thành: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`;
 
               return (
                 <div
                   key={lvl}
                   className="course-card"
-                  onClick={() => navigate(`/learning-path?level=${lvl}`)}
+                  data-testid={`dashboard-hsk-card-${lvl}`}
+                  onClick={() => navigate(`/learning-path?mode=hsk&level=${lvl}`)}
                   style={{
                     borderColor: isCurrent ? '#fed7da' : '#e2e8f0',
                     boxShadow: isCurrent ? '0 4px 12px rgba(230, 0, 18, 0.08)' : undefined,
@@ -412,7 +443,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      navigate(`/learning-path?level=${lvl}`);
+                      navigate(`/learning-path?mode=hsk&level=${lvl}`);
                     }
                   }}
                 >
@@ -432,33 +463,65 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                         >
                           Sắp ra mắt
                         </span>
-                      ) : isCurrent ? (
+                      ) : (
                         <span
+                          data-testid={`dashboard-hsk-percent-${lvl}`}
                           style={{
                             fontSize: '11px',
                             fontWeight: 800,
                             padding: '2px 8px',
                             borderRadius: '9999px',
-                            backgroundColor: 'var(--primary-light, #FFF0F1)',
-                            color: 'var(--primary, #E60012)',
+                            backgroundColor:
+                              lvlProgress.percent >= 100
+                                ? '#ECFDF5'
+                                : lvlProgress.percent > 0
+                                  ? 'var(--primary-light, #FFF0F1)'
+                                  : '#F1F5F9',
+                            color:
+                              lvlProgress.percent >= 100
+                                ? '#047857'
+                                : lvlProgress.percent > 0
+                                  ? 'var(--primary, #E60012)'
+                                  : '#64748B',
                           }}
                         >
-                          Đang học
+                          {lvlProgress.percent}%
                         </span>
-                      ) : null}
+                      )}
                     </div>
 
                     <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
                       {curLevel ? curLevel.vietnameseName : `HSK ${lvl}`}
                     </h3>
 
-                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>
                       {isComingSoon
                         ? 'Chưa có bài giảng • Đang phát triển'
-                        : curLevel
-                        ? `${curLevel.totalLessons} bài học • ${curLevel.totalWords} từ vựng then chốt`
-                        : 'Đang tải thông tin...'}
+                        : `${lvlProgress.totalCount || curLevel?.totalLessons || 0} bài học • ${curLevel?.totalWords || 0} từ vựng then chốt`}
                     </p>
+
+                    {!isComingSoon && (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '5px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#f1f5f9',
+                          overflow: 'hidden',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${lvlProgress.percent}%`,
+                            height: '100%',
+                            borderRadius: '9999px',
+                            backgroundColor: lvlProgress.percent >= 100 ? '#10b981' : 'var(--primary, #E60012)',
+                            transition: 'width 0.3s ease',
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>

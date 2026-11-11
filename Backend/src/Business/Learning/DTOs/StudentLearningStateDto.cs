@@ -8,6 +8,19 @@ public class DailyGoalDto
     public int TargetXp { get; set; } = 50;
 }
 
+public class HskCourseProgressDto
+{
+    public int HskLevel { get; set; }
+    public string CourseId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public int TotalLessons { get; set; }
+    public int PublishedLessons { get; set; }
+    public int CompletedLessons { get; set; }
+    public int InProgressLessons { get; set; }
+    public int Percent { get; set; }
+    public bool IsComingSoon { get; set; }
+}
+
 public class StudentLearningStateDto
 {
     public int SchemaVersion { get; set; } = 1;
@@ -26,4 +39,5 @@ public class StudentLearningStateDto
     public string LastActivityDate { get; set; } = string.Empty;
     public DailyGoalDto DailyGoal { get; set; } = new();
     public Dictionary<string, DailyActivityDto> DailyActivityHistory { get; set; } = new();
+    public List<HskCourseProgressDto> HskProgress { get; set; } = new();
 }

@@ -55,3 +55,4 @@ None of the items below were auto-deleted because they carry **MEDIUM** or **HIG
 
 - Rotate demo passwords in any shared/staging/production databases because `Demo@***` appeared in historical Git commits and remains as dev fallback in `DbInitializer.cs` and `LearningIntegrationTests.cs`.
 - Migrate `Fontend/e2e/content-manager-ui-and-export.spec.ts` (`Content***`), `admin-user-organization-crud.spec.ts`, and `LearningIntegrationTests.cs:321` to centralized environment config in a dedicated test cleanup PR.
+

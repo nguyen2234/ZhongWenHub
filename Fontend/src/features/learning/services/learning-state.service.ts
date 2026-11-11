@@ -100,7 +100,7 @@ export class LearningStateService {
     }
     try {
       const serverState = await learningApiService.fetchLearningState();
-      if (serverState && serverState.studentId === this.activeState.studentId) {
+      if (serverState && serverState.studentId?.toLowerCase() === this.activeState.studentId?.toLowerCase()) {
         this.activeState = {
           ...this.activeState,
           ...serverState,
@@ -312,6 +312,7 @@ export class LearningStateService {
             streakDays: serverState.streakDays,
             completedLessonIds: serverState.completedLessonIds,
             rewardedEventIds: serverState.rewardedEventIds,
+            hskProgress: serverState.hskProgress ?? this.activeState.hskProgress,
             lessonProgress: {
               ...this.activeState.lessonProgress,
               ...serverState.lessonProgress,
@@ -436,7 +437,22 @@ export class LearningStateService {
 
     this.commitState(updated);
     if (learningApiService.isRealUser(this.activeState.studentId)) {
-      learningApiService.recordPracticeSession(result);
+      learningApiService.recordPracticeSession(result).then((serverState) => {
+        if (serverState) {
+          this.activeState = {
+            ...this.activeState,
+            xpTotal: serverState.xpTotal,
+            streakDays: serverState.streakDays,
+            rewardedEventIds: serverState.rewardedEventIds,
+            dailyActivityHistory: {
+              ...this.activeState.dailyActivityHistory,
+              ...serverState.dailyActivityHistory,
+            },
+          };
+          learningStorageService.saveLearningState(this.activeState);
+          this.notifyListeners();
+        }
+      });
     }
     return updated;
   }

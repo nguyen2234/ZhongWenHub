@@ -29,3 +29,4 @@ public interface IExamService
 
     Task<bool> DeleteExamAsync(Guid id, CancellationToken cancellationToken = default);
 }
+

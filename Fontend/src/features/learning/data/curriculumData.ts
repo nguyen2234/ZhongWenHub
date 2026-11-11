@@ -979,7 +979,7 @@ export const HSK_CURRICULUM: Record<number, CurriculumHskLevel> = {
     name: 'HSK 4',
     code: 'HSK4',
     vietnameseName: 'Trung cấp 2',
-    totalLessons: 30,
+    totalLessons: 20,
     totalWords: 1200,
     color: 'var(--hsk4, #6366f1)',
     units: [

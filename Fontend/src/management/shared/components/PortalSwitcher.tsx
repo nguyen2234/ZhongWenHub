@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   GraduationCap,
@@ -15,7 +15,7 @@ import { useAuthContext } from '../../../features/auth/context/AuthContext';
 import { managementAuthService } from '../services/management-auth.service';
 import { adminRolePermissionService } from '../../admin/roles/services/role-permission.service';
 
-export type PortalType = 'STUDENT' | 'TEACHER' | 'CONTENT_MANAGER' | 'ADMIN';
+export type PortalType = 'STUDENT' | 'TEACHER' | 'CONTENT_MANAGER' | 'ADMIN' | 'SUPPORT';
 
 export interface PortalDef {
   id: PortalType;
@@ -28,6 +28,14 @@ export interface PortalDef {
   bgColor: string;
   allowedRoles: UserRole[];
 }
+
+export const getActivePortalLabel = (pathname: string): string => {
+  if (pathname.startsWith('/management/teacher')) return 'Cổng Giáo Viên';
+  if (pathname.startsWith('/management/content-manager')) return 'Cổng Quản Lý Học Liệu';
+  if (pathname.startsWith('/management/support')) return 'Cổng Hỗ Trợ';
+  if (pathname.startsWith('/management/admin')) return 'Cổng Quản Trị Hệ Thống';
+  return 'Cổng Học Viên';
+};
 
 export const PORTAL_DEFINITIONS: PortalDef[] = [
   {
@@ -77,7 +85,7 @@ export const PORTAL_DEFINITIONS: PortalDef[] = [
 ];
 
 export interface PortalSwitcherProps {
-  variant?: 'header' | 'compact' | 'drawer';
+  variant?: 'header' | 'compact' | 'drawer' | 'menu';
   className?: string;
   onPortalChange?: (portal: PortalDef) => void;
 }
@@ -149,6 +157,19 @@ export const PortalSwitcher: React.FC<PortalSwitcherProps> = ({
     if (path.startsWith('/management/admin')) {
       return PORTAL_DEFINITIONS.find((p) => p.id === 'ADMIN')!;
     }
+    if (path.startsWith('/management/support')) {
+      return {
+        id: 'SUPPORT',
+        name: 'Cổng Hỗ Trợ',
+        shortName: 'Hỗ trợ',
+        description: 'Tiếp nhận & xử lý yêu cầu hỗ trợ',
+        path: '/management/support/dashboard',
+        icon: Users,
+        accentColor: '#0284c7',
+        bgColor: '#f0f9ff',
+        allowedRoles: ['SUPPORT'],
+      };
+    }
     return PORTAL_DEFINITIONS.find((p) => p.id === 'STUDENT')!;
   }, [location.pathname]);
 
@@ -184,7 +205,149 @@ export const PortalSwitcher: React.FC<PortalSwitcherProps> = ({
     return null;
   }
 
-  // Drawer variant (for mobile sidebars)
+  // Embedded dropdown section variant (inside top-right user profile menu)
+  if (variant === 'menu') {
+    const allMenuPortals: PortalDef[] = userRoles.has('SUPPORT') && !permittedPortals.some((p) => p.id === 'SUPPORT')
+      ? [
+          ...permittedPortals,
+          {
+            id: 'SUPPORT',
+            name: 'Cổng Hỗ Trợ',
+            shortName: 'Hỗ trợ',
+            description: 'Tiếp nhận & xử lý yêu cầu hỗ trợ',
+            path: '/management/support/dashboard',
+            icon: Users,
+            accentColor: '#0284c7',
+            bgColor: '#f0f9ff',
+            allowedRoles: ['SUPPORT'],
+          },
+        ]
+      : permittedPortals;
+
+    if (allMenuPortals.length <= 1) {
+      return null;
+    }
+
+    return (
+      <div className={`portal-switcher-menu ${className}`} data-testid="profile-portal-switcher">
+        <div
+          style={{
+            height: '1px',
+            backgroundColor: '#f1f5f9',
+            margin: '4px 0',
+          }}
+        />
+        <div
+          style={{
+            fontSize: '10px',
+            fontWeight: 800,
+            color: '#64748b',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            padding: '6px 10px 4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <span>Chuyển cổng làm việc</span>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              color: currentPortal.accentColor,
+              backgroundColor: currentPortal.bgColor,
+              padding: '1px 6px',
+              borderRadius: '999px',
+            }}
+          >
+            {allMenuPortals.length} cổng
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {allMenuPortals.map((p) => {
+            const Icon = p.icon;
+            const isActive = p.id === currentPortal.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handleSelectPortal(p)}
+                data-portal-id={p.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  width: '100%',
+                  padding: '7px 10px',
+                  borderRadius: '8px',
+                  border: isActive ? `1px solid ${p.accentColor}30` : '1px solid transparent',
+                  backgroundColor: isActive ? p.bgColor : 'transparent',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'background-color 0.12s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = '#f8fafc';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <div
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '7px',
+                    backgroundColor: isActive ? p.accentColor : '#f1f5f9',
+                    color: isActive ? '#ffffff' : p.accentColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon size={14} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: isActive ? 700 : 600,
+                      color: isActive ? p.accentColor : '#334155',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {p.name}
+                  </div>
+                </div>
+                {isActive && (
+                  <span
+                    style={{
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      color: p.accentColor,
+                      backgroundColor: '#ffffff',
+                      border: `1px solid ${p.accentColor}33`,
+                      padding: '1px 6px',
+                      borderRadius: '999px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Đang dùng
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Drawer variant (legacy/optional)
   if (variant === 'drawer') {
     return (
       <div className={`portal-switcher-drawer ${className}`} style={{ padding: '8px 0' }}>

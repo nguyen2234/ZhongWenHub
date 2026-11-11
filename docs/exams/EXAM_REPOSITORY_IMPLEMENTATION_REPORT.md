@@ -38,3 +38,4 @@
   - `ExamQuestionsModal.tsx`: thêm/xóa/sắp xếp thứ tự câu hỏi liên kết trực tiếp Ngân hàng câu hỏi (`adminExerciseService.getAllAsync`), chỉnh phần thi và điểm từng câu.
   - `ExamPreviewModal.tsx`: xem trước cấu trúc đề thi và câu hỏi trước khi xuất bản.
 - Frontend service & types: `exam-repository.service.ts`, `exam-repository.types.ts`.
+

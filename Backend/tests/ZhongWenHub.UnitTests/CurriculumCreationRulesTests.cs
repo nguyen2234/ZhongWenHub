@@ -50,3 +50,4 @@ public class CurriculumCreationRulesTests
         Assert.Equal("DRAFT", allowed);
     }
 }
+

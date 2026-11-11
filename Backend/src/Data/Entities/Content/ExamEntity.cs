@@ -22,3 +22,4 @@ public class ExamEntity : BaseEntity
 
     public ICollection<ExamQuestionEntity> Questions { get; set; } = new List<ExamQuestionEntity>();
 }
+

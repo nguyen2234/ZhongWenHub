@@ -49,7 +49,6 @@ D:\ZhongWenHub
 │   │   ├── Business/        # Tầng Nghiệp vụ (Services, DTOs, Business Rules)
 │   │   └── Data/            # Tầng Dữ liệu & EF Core (Entities, DbContext, Migrations)
 │   ├── tests/               # Unit Tests & Integration Tests
-│   ├── run.bat / run.ps1    # Script khởi chạy nhanh Backend
 │   └── ZhongWenHub.sln      # Solution file mở bằng Visual Studio
 ├── Fontend/                 # Mã nguồn Frontend (React 19 + TypeScript + Vite)
 │   ├── docs/                # Tài liệu giao diện, checklist tính năng
@@ -411,7 +410,6 @@ Bảng này giúp bạn tra cứu siêu tốc: Khi giảng viên chỉ vào bấ
    ```powershell
    dotnet run --project src/Api/ZhongWenHub.Api.csproj --launch-profile http
    ```
-   *(Hoặc click đúp chạy trực tiếp file script có sẵn: `D:\ZhongWenHub\Backend\run.bat`)*
 3. **Kết quả:**
    - Server API chạy tại địa chỉ: `http://127.0.0.1:5000` (hoặc `http://localhost:5000`).
    - Mở trình duyệt vào trang tài liệu API tương tác: **`http://localhost:5000/swagger`** để thử nghiệm gọi các API trực tiếp.

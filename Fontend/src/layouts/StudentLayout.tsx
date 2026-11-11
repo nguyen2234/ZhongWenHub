@@ -1,11 +1,10 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Flame,
   Search,
   Menu,
   X,
-  ShieldCheck,
   Languages,
   PanelLeftClose,
   PanelLeftOpen,
@@ -19,7 +18,7 @@ import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
 import { useAuthContext } from '../features/auth/context/AuthContext';
-import { PortalSwitcher } from '../management/shared/components/PortalSwitcher';
+import { PortalSwitcher, getActivePortalLabel } from '../management/shared/components/PortalSwitcher';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -475,19 +474,20 @@ export const StudentLayout: React.FC = () => {
                   onClick={() => setIsAccountMenuOpen((prev) => !prev)}
                   aria-expanded={isAccountMenuOpen}
                   aria-haspopup="true"
-                  aria-label={`Tài khoản ${displayName}`}
+                  aria-label={`Tài khoản ${displayName} - ${getActivePortalLabel(pathname)}`}
+                  data-testid="profile-menu-trigger"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '2px 6px 2px 2px',
+                    padding: '2px 8px 2px 2px',
                     borderRadius: '9999px',
                     border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
                     backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
-                  title="Menu tài khoản (Hồ sơ, Cài đặt)"
+                  title="Tài khoản, Hồ sơ & Chuyển cổng"
                 >
                   {user?.avatarUrl ? (
                     <img
@@ -498,6 +498,7 @@ export const StudentLayout: React.FC = () => {
                         height: '30px',
                         borderRadius: '50%',
                         objectFit: 'cover',
+                        flexShrink: 0,
                       }}
                     />
                   ) : (
@@ -513,17 +514,33 @@ export const StudentLayout: React.FC = () => {
                         justifyContent: 'center',
                         fontSize: '11px',
                         fontWeight: 800,
+                        flexShrink: 0,
                       }}
                     >
                       {displayInitials}
                     </div>
                   )}
+                  <span
+                    className="header-profile-name"
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {displayName}
+                  </span>
                   <ChevronDown
                     size={14}
                     style={{
                       color: '#64748b',
                       transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
                       transition: 'transform 0.15s ease',
+                      flexShrink: 0,
                     }}
                   />
                 </button>
@@ -531,16 +548,20 @@ export const StudentLayout: React.FC = () => {
                 {/* Account Popover Menu */}
                 {isAccountMenuOpen && (
                   <div
+                    role="menu"
+                    data-testid="profile-menu-dropdown"
                     style={{
                       position: 'absolute',
                       right: 0,
                       top: 'calc(100% + 8px)',
-                      width: '240px',
+                      width: 'min(276px, calc(100vw - 24px))',
+                      maxHeight: 'calc(100dvh - 80px)',
+                      overflowY: 'auto',
                       backgroundColor: '#ffffff',
                       borderRadius: '14px',
                       border: '1px solid #e2e8f0',
                       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                      zIndex: 50,
+                      zIndex: 70,
                       padding: '6px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -550,20 +571,38 @@ export const StudentLayout: React.FC = () => {
                     {/* User Identity Header */}
                     <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{displayName}</div>
-                      {displayEmail && <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{displayEmail}</div>}
-                      <div
-                        style={{
-                          display: 'inline-block',
-                          marginTop: '6px',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          backgroundColor: isAdmin ? '#fef2f2' : '#e0e7ff',
-                          color: isAdmin ? '#dc2626' : '#4338ca',
-                          fontSize: '10px',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {displayRoleLabel}
+                      {displayEmail && (
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {displayEmail}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: isAdmin ? '#fef2f2' : '#e0e7ff',
+                            color: isAdmin ? '#dc2626' : '#4338ca',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {displayRoleLabel}
+                        </span>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#ecfdf5',
+                            color: '#047857',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {getActivePortalLabel(pathname)}
+                        </span>
                       </div>
                     </div>
 
@@ -603,39 +642,11 @@ export const StudentLayout: React.FC = () => {
                       );
                     })}
 
-                    {/* Management Portal Shortcut (ONLY for Admin / SuperAdmin) */}
-                    {isAdmin && (
-                      <>
-                        <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate('/management/admin/dashboard');
-                            setIsAccountMenuOpen(false);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            width: '100%',
-                            padding: '8px 10px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            backgroundColor: 'transparent',
-                            color: '#4338ca',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          <ShieldCheck size={16} style={{ color: '#4338ca' }} />
-                          <span>Cổng Quản trị hệ thống</span>
-                        </button>
-                      </>
-                    )}
+                    {/* RBAC Portal Switcher integrated inside Profile Menu */}
+                    <PortalSwitcher
+                      variant="menu"
+                      onPortalChange={() => setIsAccountMenuOpen(false)}
+                    />
 
                     <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
 
@@ -673,9 +684,6 @@ export const StudentLayout: React.FC = () => {
               </div>
             </>
           )}
-
-          {/* Portal Switcher (RBAC Controlled: Student, Teacher, Content Manager, Admin) */}
-          <PortalSwitcher variant="header" />
         </div>
       </header>
 
@@ -699,9 +707,6 @@ export const StudentLayout: React.FC = () => {
             overflow: 'hidden',
           }}
         >
-                <div style={{ padding: '4px 12px 8px 12px', borderBottom: '1px solid #f1f5f9' }}>
-                  <PortalSwitcher variant="drawer" onPortalChange={() => setIsMobileDrawerOpen(false)} />
-                </div>
           <StudentSidebar
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebarCollapse}
@@ -900,6 +905,9 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .header-hsk-badge {
+            display: none !important;
+          }
+          .header-profile-name {
             display: none !important;
           }
           .header-right-actions {

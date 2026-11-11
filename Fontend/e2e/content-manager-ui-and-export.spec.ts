@@ -60,9 +60,14 @@ test.describe('ZhongWenHub — Tinh chỉnh Giao diện Content Manager & Export
     // Cổng Học Viên vẫn tồn tại
     await expect(page.getByRole('link', { name: /Cổng Học Viên/i })).toBeVisible();
 
-    // Portal Switcher trên header vẫn hoạt động đúng
-    const portalSwitcher = page.getByRole('button', { name: /Chuyển cổng/i });
-    await expect(portalSwitcher).toBeVisible();
+    // Không còn khối "Chuyển cổng" nằm ngoài sidebar hay trên thanh header
+    await expect(page.locator('text=Chuyển cổng (')).toHaveCount(0);
+
+    // Chuyển cổng nằm gọn trong menu dropdown của profile góc phải trên
+    const profileTrigger = page.getByTestId('profile-menu-trigger');
+    await expect(profileTrigger).toBeVisible();
+    await profileTrigger.click();
+    await expect(page.getByTestId('profile-portal-switcher')).toBeVisible();
   });
 
   test('4. Kiểm tra nút nổi "Hỏi AI": Ẩn trên cổng quản lý (/management/*), hiện trên cổng học viên', async ({ page }) => {

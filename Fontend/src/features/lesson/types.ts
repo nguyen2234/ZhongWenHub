@@ -20,6 +20,7 @@ export interface VocabularyItem {
   hanzi: string;
   pinyin: string;
   meaning: string;
+  audioUrl?: string;
   audioPrompt?: string;
   exampleHanzi: string;
   examplePinyin: string;
@@ -74,6 +75,7 @@ export interface DialogueLine {
 }
 
 export interface ListeningData {
+  audioUrl?: string;
   audioHanzi: string;
   audioPinyin: string;
   audioMeaning: string;
@@ -91,6 +93,7 @@ export type ExerciseType =
   | 'fill-blank'
   | 'sentence-order'
   | 'matching'
+  | 'listen-choice'
   | 'chinese-to-vietnamese'
   | 'vietnamese-to-chinese';
 
@@ -108,6 +111,7 @@ export interface ExerciseItem {
   promptHanzi?: string;
   promptPinyin?: string;
   promptVietnamese?: string;
+  audioUrl?: string;
   options?: string[];
   correctOptionIndex?: number;
   matchingPairs?: MatchingPair[];

@@ -165,6 +165,8 @@ public class ReadingPassageDto
 
 public class LessonDetailDto : LessonDto
 {
+    public int HskLevel { get; set; } = 1;
+    public int UnitNumber { get; set; } = 1;
     public List<VocabularyDto> Vocabularies { get; set; } = new();
     public List<GrammarPointDto> GrammarPoints { get; set; } = new();
     public List<ExerciseDto> Exercises { get; set; } = new();

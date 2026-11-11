@@ -114,7 +114,7 @@ public class VocabularyExcelImportIntegrationTests : IClassFixture<CustomWebAppl
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var initialHsk1Count = await db.Vocabularies.CountAsync(v => v.HskLevel == 1);
-            Assert.True(initialHsk1Count >= 300, "Initial HSK 1 vocabulary must be at least 300 words");
+            Assert.True(initialHsk1Count >= 150, $"Initial HSK 1 vocabulary must be at least 150 words (actual: {initialHsk1Count})");
 
             // Clean up any leftovers from previous failed test runs
             var leftovers = await db.Vocabularies

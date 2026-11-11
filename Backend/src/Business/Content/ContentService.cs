@@ -469,6 +469,7 @@ public class ContentService : IContentService
     {
         var lesson = await _dbContext.Lessons.AsNoTracking()
             .Include(l => l.Course)
+            .Include(l => l.Unit)
             .Include(l => l.Vocabularies)
             .Include(l => l.GrammarPoints)
             .Include(l => l.Exercises)
@@ -572,6 +573,8 @@ public class ContentService : IContentService
             CourseId = lesson.CourseId,
             UnitId = lesson.UnitId,
             CourseTitle = lesson.Course?.Title ?? string.Empty,
+            HskLevel = lesson.Course?.HskLevel ?? 1,
+            UnitNumber = lesson.Unit?.UnitNumber ?? 1,
             LessonNumber = lesson.LessonNumber,
             TitleZh = lesson.TitleZh,
             TitleVi = lesson.TitleVi,
@@ -1329,7 +1332,7 @@ public class ContentService : IContentService
 
         if (publishedOnly)
         {
-            query = query.Where(v => v.Status == "PUBLISHED");
+            query = query.Where(v => v.Status == "PUBLISHED" && (v.LessonId == null || (v.Lesson != null && v.Lesson.Status == "PUBLISHED")));
             if (!string.IsNullOrWhiteSpace(status) && status != "ALL" && status != "PUBLISHED")
             {
                 query = query.Where(v => false);
@@ -2784,7 +2787,7 @@ public class ContentService : IContentService
 
         if (publishedOnly)
         {
-            query = query.Where(g => g.Status == "PUBLISHED");
+            query = query.Where(g => g.Status == "PUBLISHED" && (g.LessonId == null || (g.Lesson != null && g.Lesson.Status == "PUBLISHED")));
             if (!string.IsNullOrWhiteSpace(status) && status != "ALL" && status != "PUBLISHED")
             {
                 query = query.Where(g => false);
@@ -3345,7 +3348,7 @@ public class ContentService : IContentService
 
         if (publishedOnly)
         {
-            query = query.Where(e => e.Status == "PUBLISHED");
+            query = query.Where(e => e.Status == "PUBLISHED" && (e.LessonId == null || (e.Lesson != null && e.Lesson.Status == "PUBLISHED")));
         }
         else if (!string.IsNullOrWhiteSpace(status) && status != "ALL")
         {
@@ -3417,8 +3420,10 @@ public class ContentService : IContentService
 
     public async Task<ExerciseDto?> GetExerciseByIdAsync(Guid id, bool publishedOnly = false, CancellationToken cancellationToken = default)
     {
-        var e = await _dbContext.Exercises.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if (e == null || (publishedOnly && e.Status != "PUBLISHED")) return null;
+        var e = await _dbContext.Exercises.AsNoTracking()
+            .Include(x => x.Lesson)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (e == null || (publishedOnly && (e.Status != "PUBLISHED" || (e.Lesson != null && e.Lesson.Status != "PUBLISHED")))) return null;
 
         return new ExerciseDto
         {

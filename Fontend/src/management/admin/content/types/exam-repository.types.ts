@@ -97,3 +97,4 @@ export interface ExamFilters {
   examType: ExamType | 'ALL';
   status: ContentStatus | 'ALL';
 }
+

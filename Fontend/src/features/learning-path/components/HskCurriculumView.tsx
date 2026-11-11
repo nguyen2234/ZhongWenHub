@@ -110,12 +110,37 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
+    state: learningState,
     currentHskLevel,
     selectHskLevel,
     completedLessonIds,
     currentLessonId,
     startLesson,
   } = useLearningState();
+
+  const completedSet = useMemo(() => {
+    const set = new Set<string>(completedLessonIds.map((id) => id.toLowerCase()));
+    Object.entries(learningState.lessonProgress || {}).forEach(([k, v]) => {
+      if (v?.status === 'COMPLETED') {
+        set.add(k.toLowerCase());
+      }
+    });
+    return set;
+  }, [completedLessonIds, learningState.lessonProgress]);
+
+  const isLessonCompleted = (lesson: { id: string; dbId?: string; lessonNumber?: number; hskLevel?: number }) => {
+    if (completedSet.has(lesson.id.toLowerCase())) return true;
+    if (lesson.dbId && completedSet.has(lesson.dbId.toLowerCase())) return true;
+    if ((lesson.hskLevel ?? selectedLevel) === 1 && lesson.lessonNumber === 1) {
+      return completedSet.has('aaaaaaaa-1111-1111-1111-111111111111') || completedSet.has('les-1');
+    }
+    return false;
+  };
+
+  const isLessonCurrent = (lesson: { id: string; dbId?: string }) => {
+    const cur = (currentLessonId || '').toLowerCase();
+    return Boolean(cur && (lesson.id.toLowerCase() === cur || lesson.dbId?.toLowerCase() === cur));
+  };
 
   // Selected HSK level from search param or learning state
   const paramLevel = Number(searchParams.get('level'));
@@ -256,7 +281,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
   useEffect(() => {
     if (topics.length > 0) {
       const topicWithActiveLesson = topics.find((t) =>
-        t.lessons.some((l) => l.id === currentLessonId)
+        t.lessons.some((l) => isLessonCurrent(l))
       );
       if (topicWithActiveLesson) {
         setSelectedTopicId(topicWithActiveLesson.id);
@@ -287,19 +312,27 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
   }, [topics]);
 
   const totalLessonsInLevel = allLessonsInLevel.length;
+  const serverLevelProgress = useMemo(
+    () => (learningState.hskProgress || []).find((p) => p.hskLevel === selectedLevel),
+    [learningState.hskProgress, selectedLevel]
+  );
   const completedInLevel = useMemo(() => {
-    return allLessonsInLevel.filter((l) => completedLessonIds.includes(l.id)).length;
-  }, [allLessonsInLevel, completedLessonIds]);
+    const localCompleted = allLessonsInLevel.filter((l) => isLessonCompleted(l)).length;
+    if (serverLevelProgress && serverLevelProgress.totalLessons === totalLessonsInLevel) {
+      return Math.max(localCompleted, serverLevelProgress.completedLessons);
+    }
+    return localCompleted;
+  }, [allLessonsInLevel, completedSet, serverLevelProgress, totalLessonsInLevel]);
 
   const courseProgressPercent = totalLessonsInLevel > 0
     ? Math.min(100, Math.round((completedInLevel / totalLessonsInLevel) * 100))
-    : 0;
+    : (serverLevelProgress?.percent ?? 0);
 
   // Active / next lesson to resume
   const heroLesson: CurriculumLesson | null = useMemo(() => {
-    const uncompleted = allLessonsInLevel.find((l) => !completedLessonIds.includes(l.id));
+    const uncompleted = allLessonsInLevel.find((l) => !isLessonCompleted(l));
     return uncompleted || allLessonsInLevel[0] || null;
-  }, [allLessonsInLevel, completedLessonIds]);
+  }, [allLessonsInLevel, completedSet]);
 
   const handleLessonAction = (lessonId: string) => {
     startLesson(lessonId);
@@ -500,7 +533,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             {heroLesson && (
               <button
                 type="button"
-                onClick={() => handleLessonAction(heroLesson.id)}
+                onClick={() => handleLessonAction(heroLesson.dbId || heroLesson.id)}
                 style={{
                   width: '100%',
                   padding: '9px 14px',
@@ -671,7 +704,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
             const isTopicSelected = activeTopic?.id === topic.id;
             const TopicIcon = topic.icon;
             const topicCompletedCount = topic.lessons.filter((l) =>
-              completedLessonIds.includes(l.id)
+              isLessonCompleted(l)
             ).length;
             const topicTotalCount = topic.lessons.length;
             const topicPercent = topicTotalCount > 0
@@ -837,7 +870,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
                   <span>{activeTopic.lessons.length} bài học</span>
                   <span>•</span>
                   <span style={{ color: 'var(--primary, #E60012)' }}>
-                    {activeTopic.lessons.filter((l) => completedLessonIds.includes(l.id)).length} đã xong
+                    {activeTopic.lessons.filter((l) => isLessonCompleted(l)).length} đã xong
                   </span>
                 </div>
               </div>
@@ -845,20 +878,20 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
               {/* Các bài học xếp dọc trong cùng container, ngăn cách bởi divider mảnh */}
               <div className="hsk-lessons-list">
                 {activeTopic.lessons.map((lesson) => {
-                  const isCompleted = completedLessonIds.includes(lesson.id);
-                  const isCurrent = lesson.id === currentLessonId && !isCompleted;
+                  const isCompleted = isLessonCompleted(lesson);
+                  const isCurrent = isLessonCurrent(lesson) && !isCompleted;
 
                   return (
                     <div
                       key={lesson.id}
                       className={`hsk-lesson-row ${isCompleted ? 'completed' : isCurrent ? 'in-progress' : ''}`}
-                      onClick={() => handleLessonAction(lesson.id)}
+                      onClick={() => handleLessonAction(lesson.dbId || lesson.id)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
-                          handleLessonAction(lesson.id);
+                          handleLessonAction(lesson.dbId || lesson.id);
                         }
                       }}
                       aria-label={`Bài ${lesson.lessonNumber}: ${lesson.hanzi}. ${lesson.meaning}. Trạng thái: ${isCompleted ? 'Đã hoàn thành' : isCurrent ? 'Đang học' : 'Chưa học'}`}
@@ -944,7 +977,7 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
           const isExpanded = expandedTopicIds[topic.id] ?? (topic.id === selectedTopicId);
           const TopicIcon = topic.icon;
           const topicCompletedCount = topic.lessons.filter((l) =>
-            completedLessonIds.includes(l.id)
+            isLessonCompleted(l)
           ).length;
           const topicTotalCount = topic.lessons.length;
           const topicPercent = topicTotalCount > 0
@@ -995,20 +1028,20 @@ export const HskCurriculumView: React.FC<HskCurriculumViewProps> = ({
               {isExpanded && (
                 <div className="hsk-lessons-list">
                   {topic.lessons.map((lesson) => {
-                    const isCompleted = completedLessonIds.includes(lesson.id);
-                    const isCurrent = lesson.id === currentLessonId && !isCompleted;
+                    const isCompleted = isLessonCompleted(lesson);
+                    const isCurrent = isLessonCurrent(lesson) && !isCompleted;
 
                     return (
                       <div
                         key={lesson.id}
                         className={`hsk-lesson-row ${isCompleted ? 'completed' : isCurrent ? 'in-progress' : ''}`}
-                        onClick={() => handleLessonAction(lesson.id)}
+                        onClick={() => handleLessonAction(lesson.dbId || lesson.id)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            handleLessonAction(lesson.id);
+                            handleLessonAction(lesson.dbId || lesson.id);
                           }
                         }}
                         aria-label={`Bài ${lesson.lessonNumber}: ${lesson.hanzi}. ${lesson.meaning}. Trạng thái: ${isCompleted ? 'Đã hoàn thành' : isCurrent ? 'Đang học' : 'Chưa học'}`}

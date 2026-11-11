@@ -18,3 +18,4 @@ public class StudentExamAttempt : BaseEntity
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime? SubmittedAt { get; set; }
 }
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowRight, Zap } from 'lucide-react';
 import type { SharedExerciseItem } from '../exercise-engine';
-import { ExerciseRenderer } from '../exercise-engine';
+import { ExerciseRenderer, gradeExerciseSubmission } from '../exercise-engine';
 import type { PracticeSessionResult, PracticeMode } from './types';
 import { PracticeResult } from './components/PracticeResult';
 import { useAITutor, ContextBuilder } from '../ai-tutor';
@@ -34,6 +34,7 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
 
   // Exercise interaction states
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [textAnswer, setTextAnswer] = useState('');
   const [orderedTokens, setOrderedTokens] = useState<string[]>([]);
   const [availableTokens, setAvailableTokens] = useState<string[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
@@ -58,13 +59,19 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     const ex = exercises[index];
     if (!ex) return;
     setSelectedOption(null);
+    setTextAnswer('');
     setHasChecked(false);
     setIsCurrentCorrect(false);
 
-    if (ex.type === 'sentence-order' && ex.sentenceTokens) {
+    if (ex.type === 'sentence-order' && ex.sentenceTokens && (!ex.options || ex.options.length === 0)) {
       setAvailableTokens([...ex.sentenceTokens]);
       setOrderedTokens([]);
-    } else if (ex.type === 'matching' && ex.matchingPairs) {
+    } else {
+      setAvailableTokens([]);
+      setOrderedTokens([]);
+    }
+
+    if (ex.type === 'matching' && ex.matchingPairs) {
       setMatchedPairs([]);
       setSelectedLeft(null);
       setSelectedRight(null);
@@ -73,7 +80,7 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
 
   useEffect(() => {
     initExercise(currentIndex);
-  }, [currentIndex]);
+  }, [currentIndex, exercises]);
 
   // Token handlers
   const handleSelectToken = (token: string, tokenIdx: number) => {
@@ -116,6 +123,18 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
         setIsCurrentCorrect(true);
         setHasChecked(true);
         setCorrectCount((prev) => prev + 1);
+        recordPracticeAttempt({
+          id: `att-${Date.now()}-${currentExercise.id}`,
+          studentId: learningState.studentId,
+          exerciseId: String(currentExercise.id),
+          knowledgePointId: currentExercise.grammarPoint || currentExercise.title || `ex-${currentExercise.id}`,
+          topicTitle: currentExercise.grammarPoint || currentExercise.title,
+          category: (currentExercise.skill as any) || 'vocabulary',
+          hskLevel: currentExercise.hskLevel || hskLevel,
+          userAnswer: 'matched pairs',
+          isCorrect: true,
+          attemptedAt: new Date().toISOString(),
+        });
       }
     } else {
       setTimeout(() => {
@@ -129,20 +148,12 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   const handleCheck = () => {
     if (!currentExercise || hasChecked) return;
 
-    let right = false;
-    let givenAnswer = '';
-
-    if (currentExercise.type === 'sentence-order') {
-      const assembled = orderedTokens.join('');
-      right = assembled === currentExercise.correctSentence;
-      givenAnswer = assembled;
-    } else if (currentExercise.type === 'matching') {
-      right = matchedPairs.length === (currentExercise.matchingPairs?.length || 0);
-      givenAnswer = 'matched pairs';
-    } else {
-      right = selectedOption === currentExercise.correctOptionIndex;
-      givenAnswer = (selectedOption !== null && currentExercise.options?.[selectedOption]) || '';
-    }
+    const { isCorrect: right, givenAnswer } = gradeExerciseSubmission(currentExercise, {
+      selectedOption,
+      orderedTokens,
+      matchedPairs,
+      textAnswer,
+    });
 
     setIsCurrentCorrect(right);
     setHasChecked(true);
@@ -173,10 +184,10 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     if (currentIndex < exercises.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Calculate results
+      // Calculate results synchronized with server ResolvePracticeSessionXp
       const totalTimeSec = Math.max(5, Math.round((Date.now() - startTime) / 1000));
       const accuracyPct = Math.round((correctCount / exercises.length) * 100);
-      const earnedXp = correctCount * 3 + 10;
+      const earnedXp = Math.min(100, Math.max(5, correctCount * 5));
 
       // Group weak points
       const weakPointsMap: Record<string, number> = {};
@@ -210,13 +221,22 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     }
   };
 
+  const usesTokenBuilder =
+    currentExercise?.type === 'sentence-order' &&
+    Array.isArray(currentExercise.sentenceTokens) &&
+    currentExercise.sentenceTokens.length > 0 &&
+    (!currentExercise.options || currentExercise.options.length === 0);
+
+  const hasOptions = Array.isArray(currentExercise?.options) && (currentExercise?.options.length ?? 0) > 0;
+
   // Can check state
-  const canCheck =
-    currentExercise.type === 'sentence-order'
-      ? orderedTokens.length > 0 && availableTokens.length === 0
-      : currentExercise.type === 'matching'
-      ? matchedPairs.length === (currentExercise.matchingPairs?.length || 0)
-      : selectedOption !== null;
+  const canCheck = usesTokenBuilder
+    ? orderedTokens.length > 0 && availableTokens.length === 0
+    : currentExercise?.type === 'matching'
+    ? matchedPairs.length === (currentExercise.matchingPairs?.length || 0)
+    : hasOptions
+    ? selectedOption !== null
+    : textAnswer.trim().length > 0;
 
   // Render Completed Result Screen
   if (sessionCompleted && completedResult) {
@@ -370,6 +390,8 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
             exercise={currentExercise}
             hasChecked={hasChecked}
             isCorrect={isCurrentCorrect}
+            textAnswer={textAnswer}
+            onTextAnswerChange={setTextAnswer}
             selectedOption={selectedOption}
             onSelectOption={setSelectedOption}
             orderedTokens={orderedTokens}

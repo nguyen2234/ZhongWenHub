@@ -103,4 +103,35 @@ public class StudentProgressSafetyTests
     {
         Assert.Equal(expected, LearningService.ResolveSrsSessionXp(reviewedCount));
     }
+
+    [Theory]
+    [InlineData("les-1", true, 1, 1)]
+    [InlineData("LES_15", true, 1, 15)]
+    [InlineData("les-hsk1-2", true, 1, 2)]
+    [InlineData("les-hsk3-10", true, 3, 10)]
+    [InlineData("les-hsk1-0", false, 1, 0)]
+    [InlineData("aaaaaaaa-1111-1111-1111-111111111111", false, 1, 0)]
+    [InlineData("", false, 1, 0)]
+    public void TryParseLessonSlug_HandlesLegacyAndHskSlugs(string input, bool expectedOk, int expectedHsk, int expectedLesson)
+    {
+        var ok = LearningService.TryParseLessonSlug(input, out var hsk, out var lesson);
+        Assert.Equal(expectedOk, ok);
+        if (expectedOk)
+        {
+            Assert.Equal(expectedHsk, hsk);
+            Assert.Equal(expectedLesson, lesson);
+        }
+    }
+
+    [Theory]
+    [InlineData(0, 15, 0)]
+    [InlineData(3, 15, 20)]
+    [InlineData(15, 15, 100)]
+    [InlineData(0, 0, 0)]
+    [InlineData(20, 15, 100)]
+    [InlineData(-2, 15, 0)]
+    public void CalculateCompletionPercent_ComputesAccurateBoundedPercentages(int completed, int total, int expected)
+    {
+        Assert.Equal(expected, LearningService.CalculateCompletionPercent(completed, total));
+    }
 }

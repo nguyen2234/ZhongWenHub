@@ -87,8 +87,17 @@ test.describe('Student Learning Journey End-to-End Acceptance (Live SQL Server &
     await page.goto('/ZhongWenHub/lesson/aaaaaaaa-1111-1111-1111-111111111111/focus');
     await page.waitForLoadState('networkidle');
 
-    // 4.3 Verify Step 1 (Giới thiệu)
-    await expect(page.getByText('Giới thiệu').first()).toBeVisible({ timeout: 10000 });
+    // 4.3 Verify Step 1 (if prior persisted progress resumed at a later step, jump back to Step 1 deterministically)
+    const step1Indicator = page.locator('button[title^="1. Giới thiệu"]').first();
+    await expect(step1Indicator).toBeVisible({ timeout: 10000 });
+    if (!(await page.getByText('MỤC TIÊU BÀI HỌC HSK 1').isVisible())) {
+      await step1Indicator.click();
+    }
+    await expect(page.getByText('MỤC TIÊU BÀI HỌC HSK 1')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('1 / 7').first()).toBeVisible({ timeout: 10000 });
+    if ((page.viewportSize()?.width ?? 1440) >= 640) {
+      await expect(page.getByText('Giới thiệu').first()).toBeVisible({ timeout: 10000 });
+    }
     await page.screenshot({ path: 'e2e/screenshots/04-lesson1-focus-step1.png' });
 
     // 4.4 Advance to Step 2 (Từ vựng)
