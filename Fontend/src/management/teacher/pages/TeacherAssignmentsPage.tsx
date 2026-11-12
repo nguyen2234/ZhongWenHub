@@ -280,7 +280,7 @@ export const TeacherAssignmentsPage: React.FC = () => {
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button
               type="button"
-              className="tp-btn tp-btn--secondary"
+              className="ds-btn ds-btn-secondary"
               onClick={loadAssignments}
               title="Tải lại danh sách"
             >
@@ -289,7 +289,7 @@ export const TeacherAssignmentsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              className="tp-btn tp-btn--primary"
+              className="ds-btn ds-btn-primary"
               onClick={handleCreate}
             >
               <Plus size={15} />

@@ -18,6 +18,8 @@ export class ContextBuilder {
     if (data.lessonId) baseContext.lessonId = data.lessonId;
     if (data.lessonTitle) baseContext.lessonTitle = data.lessonTitle;
     if (data.currentStep) baseContext.currentStep = data.currentStep;
+    if (data.grammarPointId) baseContext.grammarPointId = data.grammarPointId;
+    if (data.learningGoal) baseContext.learningGoal = data.learningGoal;
     if (data.grammarPoints && data.grammarPoints.length > 0) {
       baseContext.grammarPoints = data.grammarPoints.slice(0, 3);
     }

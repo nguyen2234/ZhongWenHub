@@ -37,6 +37,44 @@ export function createInitialStudentLearningState(studentId: string = 'usr-st-01
   const todayStr = getLocalDateString();
   const yesterdayStr = getYesterdayDateString();
 
+  const isRealBackendUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
+
+  if (isRealBackendUser) {
+    return {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      studentId,
+      selectedHskLevel: 1,
+      currentLessonId: 'les-1',
+      completedLessonIds: [],
+      lessonProgress: {
+        'les-1': {
+          lessonId: 'les-1',
+          userId: studentId,
+          status: 'NOT_STARTED',
+          currentStepIndex: 0,
+          maxUnlockedStepIndex: 0,
+          quizScore: 0,
+          totalQuizQuestions: 5,
+          xpEarned: 0,
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      exerciseAttempts: [],
+      userVocabStates: {},
+      userSrsStates: {},
+      weakKnowledgePoints: [],
+      xpTotal: 0,
+      rewardedEventIds: [],
+      streakDays: 0,
+      lastActivityDate: todayStr,
+      dailyGoal: {
+        targetMinutes: 30,
+        targetXp: 50,
+      },
+      dailyActivityHistory: {},
+    };
+  }
+
   // Initial 7-day demo study history
   const initialHistory: Record<string, DailyActivityRecord> = {
     [todayStr]: {

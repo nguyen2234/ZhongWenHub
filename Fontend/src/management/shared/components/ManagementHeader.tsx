@@ -8,13 +8,14 @@ import {
   User,
   Settings,
   LogOut,
-  ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Info,
   CheckCheck,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
+import { authService } from '../../../features/auth/services/authService';
+import { useAuthContext } from '../../../features/auth/context/AuthContext';
+import { PortalSwitcher, getActivePortalLabel } from './PortalSwitcher';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -35,8 +36,20 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+
+  const userInitials = (userName || 'U')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(-2)
+    .join('')
+    .toUpperCase();
+  const canAccessAdminSettings =
+    user?.role === 'ADMIN' || Boolean(user?.roles?.includes('ADMIN'));
+  const activePortalLabel = getActivePortalLabel(location.pathname);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifyRef = useRef<HTMLDivElement>(null);
@@ -61,11 +74,12 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     // Content Manager routes
     if (path.includes('/content-manager/dashboard')) return { group: 'Tổng quan', title: 'Dashboard Học liệu', link: '/management/content-manager/dashboard' };
     if (path.includes('/content-manager/hsk-repository')) return { group: 'Học liệu & Biên tập', title: 'Kho HSK', link: '/management/content-manager/hsk-repository' };
-    if (path.includes('/content-manager/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
-    if (path.includes('/content-manager/lesson-editor')) return { group: 'Học liệu & Biên tập', title: 'Trình biên tập bài học', link: path };
-    if (path.includes('/content-manager/curriculum')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình & Bài học', link: '/management/content-manager/curriculum' };
+    if (path.includes('/content-manager/curriculum/lessons/') && path.includes('/edit')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình / Biên tập bài học', link: path };
+    if (path.includes('/content-manager/lesson-editor')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình / Biên tập bài học', link: path };
+    if (path.includes('/content-manager/curriculum')) return { group: 'Học liệu & Biên tập', title: 'Giáo trình', link: '/management/content-manager/curriculum' };
     if (path.includes('/content-manager/grammar')) return { group: 'Học liệu & Biên tập', title: 'Ngữ pháp', link: '/management/content-manager/grammar' };
     if (path.includes('/content-manager/question-bank') || path.includes('/content-manager/exercises')) return { group: 'Học liệu & Biên tập', title: 'Ngân hàng câu hỏi', link: '/management/content-manager/question-bank' };
+    if (path.includes('/content-manager/exams')) return { group: 'Học liệu & Biên tập', title: 'Kho đề thi', link: '/management/content-manager/exams' };
     if (path.includes('/content-manager/videos')) return { group: 'Học liệu & Biên tập', title: 'Học liệu video', link: '/management/content-manager/videos' };
     if (path.includes('/content-manager/moderation')) return { group: 'Kiểm duyệt & Vận hành', title: 'Kiểm duyệt & Xuất bản', link: '/management/content-manager/moderation' };
     if (path.includes('/content-manager/issues')) return { group: 'Kiểm duyệt & Vận hành', title: 'Báo cáo lỗi học liệu', link: '/management/content-manager/issues' };
@@ -73,7 +87,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
     if (path.includes('/content-manager/quality-metrics')) return { group: 'Kiểm duyệt & Vận hành', title: 'Thống kê chất lượng', link: '/management/content-manager/quality-metrics' };
 
     // Group: Người dùng & Tổ chức (Admin)
-    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Học viên & Người dùng', link: '/management/admin/users' };
+    if (path.includes('/users')) return { group: 'Người dùng & Tổ chức', title: 'Quản lý người dùng', link: '/management/admin/users' };
     if (path.includes('/teachers')) return { group: 'Người dùng & Tổ chức', title: 'Đội ngũ Giáo viên', link: '/management/admin/teachers' };
     if (path.includes('/support-staff')) return { group: 'Người dùng & Tổ chức', title: 'Nhân viên hỗ trợ', link: '/management/admin/support-staff' };
     if (path.includes('/roles')) return { group: 'Người dùng & Tổ chức', title: 'Vai trò & Phân quyền', link: '/management/admin/roles' };
@@ -215,26 +229,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           RIGHT: ENVIRONMENT BADGE, SEARCH, NOTIFICATIONS, USER MENU
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        {/* Environment / Demo Indicator Tag */}
-        <div
-          className="env-indicator-pill"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            padding: '3px 9px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--primary-light)',
-            border: '1px solid rgba(230, 0, 18, 0.2)',
-            color: 'var(--primary)',
-            fontSize: '11px',
-            fontWeight: 600,
-          }}
-          title="Dữ liệu hiển thị ở chế độ mô phỏng vận hành"
-        >
-          <Info size={12} />
-          <span>Mô phỏng Demo</span>
-        </div>
 
         {/* Search Shortcut */}
         <div
@@ -438,7 +432,8 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsUserMenuOpen((prev) => !prev)}
-            aria-label="Menu tài khoản quản trị"
+            aria-label={`Tài khoản ${userName} - ${activePortalLabel}`}
+            data-testid="profile-menu-trigger"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -468,7 +463,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 flexShrink: 0,
               }}
             >
-              MA
+              {userInitials}
             </div>
 
             <div
@@ -484,7 +479,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 {userName}
               </span>
               <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 500 }}>
-                {currentRole}
+                {activePortalLabel}
               </span>
             </div>
 
@@ -494,17 +489,21 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           {/* User Dropdown */}
           {isUserMenuOpen && (
             <div
+              role="menu"
+              data-testid="profile-menu-dropdown"
               style={{
                 position: 'absolute',
                 right: 0,
                 top: '46px',
-                width: '240px',
+                width: 'min(276px, calc(100vw - 24px))',
+                maxHeight: 'calc(100dvh - 80px)',
+                overflowY: 'auto',
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border-strong)',
                 borderRadius: 'var(--radius-xl)',
                 boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
                 padding: 'var(--space-2)',
-                zIndex: 60,
+                zIndex: 70,
               }}
             >
               {/* Account Meta */}
@@ -528,7 +527,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 >
                   {userEmail}
                 </div>
-                <div style={{ marginTop: '5px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                   <span
                     style={{
                       fontSize: '9.5px',
@@ -539,7 +538,6 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                       color: 'var(--primary)',
                     }}
                   >
-                    VAI TRÒ:{' '}
                     {currentRole === 'CONTENT_MANAGER'
                       ? 'QUẢN LÝ HỌC LIỆU'
                       : currentRole === 'TEACHER'
@@ -547,6 +545,18 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                         : currentRole === 'SUPPORT'
                           ? 'NHÂN VIÊN HỖ TRỢ'
                           : 'QUẢN TRỊ VIÊN'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '9.5px',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: 'var(--radius-full)',
+                      backgroundColor: '#ecfdf5',
+                      color: '#047857',
+                    }}
+                  >
+                    {activePortalLabel}
                   </span>
                 </div>
               </div>
@@ -556,7 +566,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 type="button"
                 onClick={() => {
                   setIsUserMenuOpen(false);
-                  alert('Chức năng: Xem thông tin cá nhân quản trị');
+                  navigate('/profile');
                 }}
                 style={{
                   display: 'flex',
@@ -579,7 +589,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
               </button>
 
               <Link
-                to="/management/admin/settings"
+                to={canAccessAdminSettings ? '/management/admin/settings' : '/settings'}
                 onClick={() => setIsUserMenuOpen(false)}
                 style={{
                   display: 'flex',
@@ -598,39 +608,21 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
                 className="dropdown-item"
               >
                 <Settings size={14} style={{ color: 'var(--muted)' }} />
-                <span>Cài đặt hệ thống</span>
+                <span>{canAccessAdminSettings ? 'Cài đặt hệ thống' : 'Cài đặt tài khoản'}</span>
               </Link>
 
-              <Link
-                to="/dashboard"
-                onClick={() => setIsUserMenuOpen(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  padding: '8px 10px',
-                  background: 'none',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '12px',
-                  color: 'var(--primary)',
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                }}
-                className="dropdown-item"
-              >
-                <ArrowLeft size={14} style={{ color: 'var(--primary)' }} />
-                <span>Về Cổng Học Viên</span>
-              </Link>
+              <PortalSwitcher
+                variant="menu"
+                onPortalChange={() => setIsUserMenuOpen(false)}
+              />
 
               <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '4px 0' }} />
 
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   setIsUserMenuOpen(false);
+                  await authService.logout();
                   navigate('/login');
                 }}
                 style={{

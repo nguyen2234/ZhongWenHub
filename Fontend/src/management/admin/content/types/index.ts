@@ -5,3 +5,4 @@ export * from './character.types';
 export * from './grammar.types';
 export * from './curriculum.types';
 export * from './lesson-editor.types';
+export * from './exam-repository.types';

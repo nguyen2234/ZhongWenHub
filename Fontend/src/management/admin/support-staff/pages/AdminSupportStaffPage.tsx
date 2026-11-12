@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { PageHeader, Pagination, ConfirmDialog, EmptyState } from '../../../shared/components';
+import { PageHeader, Pagination, ConfirmDialog, EmptyState, ToastNotification, type ToastMessage } from '../../../shared/components';
 import type {
   CreateSupportStaffDTO,
   SupportStaffDetail,
@@ -73,10 +73,39 @@ export const AdminSupportStaffPage: React.FC = () => {
     SupportStaffListItem | SupportStaffDetail | null
   >(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
+  const [targetDeleteStaff, setTargetDeleteStaff] = useState<
+    SupportStaffListItem | SupportStaffDetail | null
+  >(null);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
 
   const triggerRefresh = useCallback(() => {
-    setDataVersion((v) => v + 1);
+    setIsSyncing(true);
+    setSyncError(null);
+    adminSupportStaffService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải danh sách nhân viên hỗ trợ từ máy chủ.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setDataVersion((v) => v + 1);
+      });
   }, []);
+
+  useEffect(() => {
+    triggerRefresh();
+  }, [triggerRefresh]);
 
   // Handle Toolbar filters change
   const handleFilterChange = (newFilters: SupportStaffFilters) => {
@@ -143,10 +172,21 @@ export const AdminSupportStaffPage: React.FC = () => {
     setIsDrawerOpen(false);
   };
 
-  const handleSaveEdit = (id: string, dto: UpdateSupportStaffDTO) => {
-    const updated = adminSupportStaffService.updateStaff(id, dto);
-    setSelectedStaff(updated);
-    triggerRefresh();
+  const handleSaveEdit = async (id: string, dto: UpdateSupportStaffDTO) => {
+    try {
+      const updated = await adminSupportStaffService.updateStaff(id, dto);
+      setSelectedStaff(updated);
+      setToast({
+        type: 'success',
+        message: `Đã cập nhật thông tin nhân viên ${updated.name} thành công!`,
+      });
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể cập nhật nhân viên.',
+      });
+    }
   };
 
   // Dedicated Work Status Modal Interaction
@@ -165,6 +205,10 @@ export const AdminSupportStaffPage: React.FC = () => {
     if (selectedStaff?.id === staffId) {
       setSelectedStaff(updated);
     }
+    setToast({
+      type: 'success',
+      message: 'Đã cập nhật trạng thái ca trực thành công.',
+    });
     triggerRefresh();
   };
 
@@ -176,35 +220,91 @@ export const AdminSupportStaffPage: React.FC = () => {
     setIsConfirmLockOpen(true);
   };
 
-  const handleConfirmLockToggle = () => {
+  const handleConfirmLockToggle = async () => {
     if (!lockTargetStaff) return;
 
-    if (lockTargetStaff.accountStatus === 'LOCKED') {
-      const updated = adminSupportStaffService.unlockAccount(lockTargetStaff.id);
-      if (selectedStaff?.id === lockTargetStaff.id) {
-        setSelectedStaff(updated);
+    try {
+      if (lockTargetStaff.accountStatus === 'LOCKED') {
+        const updated = await adminSupportStaffService.unlockAccount(lockTargetStaff.id);
+        if (selectedStaff?.id === lockTargetStaff.id) {
+          setSelectedStaff(updated);
+        }
+        setToast({
+          type: 'success',
+          message: `Đã mở khóa tài khoản ${lockTargetStaff.name}.`,
+        });
+      } else {
+        const updated = await adminSupportStaffService.lockAccount(
+          lockTargetStaff.id,
+          'Tài khoản bị khóa bởi quản trị viên hệ thống.'
+        );
+        if (selectedStaff?.id === lockTargetStaff.id) {
+          setSelectedStaff(updated);
+        }
+        setToast({
+          type: 'success',
+          message: `Đã khóa tài khoản ${lockTargetStaff.name}.`,
+        });
       }
-    } else {
-      const updated = adminSupportStaffService.lockAccount(
-        lockTargetStaff.id,
-        'Tài khoản bị khóa bởi quản trị viên hệ thống.'
-      );
-      if (selectedStaff?.id === lockTargetStaff.id) {
-        setSelectedStaff(updated);
-      }
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể khóa/mở khóa tài khoản.',
+      });
+    } finally {
+      setIsConfirmLockOpen(false);
+      setLockTargetStaff(null);
     }
-    triggerRefresh();
-    setIsConfirmLockOpen(false);
-    setLockTargetStaff(null);
+  };
+
+  // Soft-delete Confirmation
+  const handleOpenDeleteConfirmation = (staff: SupportStaffListItem | SupportStaffDetail) => {
+    setTargetDeleteStaff(staff);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleExecuteDeleteStaff = async () => {
+    if (!targetDeleteStaff) return;
+    try {
+      await adminSupportStaffService.deleteStaff(targetDeleteStaff.id);
+      setToast({
+        type: 'success',
+        message: `Đã vô hiệu hóa tài khoản ${targetDeleteStaff.name} thành công.`,
+      });
+      setIsConfirmDeleteOpen(false);
+      setTargetDeleteStaff(null);
+      if (selectedStaff?.id === targetDeleteStaff.id) {
+        setIsDrawerOpen(false);
+        setSelectedStaff(null);
+      }
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể xóa tài khoản.',
+      });
+    }
   };
 
   // Create Support Staff
-  const handleCreateStaff = (dto: CreateSupportStaffDTO) => {
-    const created = adminSupportStaffService.createStaff(dto);
-    triggerRefresh();
-    // Open drawer to review newly created staff
-    setSelectedStaff(created);
-    setIsDrawerOpen(true);
+  const handleCreateStaff = async (dto: CreateSupportStaffDTO) => {
+    try {
+      const created = await adminSupportStaffService.createStaff(dto);
+      setToast({
+        type: 'success',
+        message: `Đã tạo nhân viên ${created.name} (${created.email}) thành công!`,
+      });
+      triggerRefresh();
+      setSelectedStaff(created);
+      setIsDrawerOpen(true);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể tạo nhân viên.',
+      });
+      throw err;
+    }
   };
 
   return (
@@ -235,6 +335,44 @@ export const AdminSupportStaffPage: React.FC = () => {
         onResetFilters={handleResetFilters}
       />
 
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-md)',
+            color: '#991b1b',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isSyncing ? 'Đang thử lại...' : 'Thử lại'}
+          </button>
+        </div>
+      )}
+
       {/* 4. Table / Mobile Card List Content */}
       {paginatedData.totalItems === 0 ? (
         <EmptyState
@@ -263,6 +401,7 @@ export const AdminSupportStaffPage: React.FC = () => {
             onEditStaff={handleEditStaff}
             onChangeWorkStatus={handleOpenWorkStatusModal}
             onToggleLockAccount={handleToggleLockAccount}
+            onDeleteStaff={handleOpenDeleteConfirmation}
             sort={sort}
             onSortChange={handleSortChange}
           />
@@ -298,7 +437,26 @@ export const AdminSupportStaffPage: React.FC = () => {
         onSaveEdit={handleSaveEdit}
         onChangeWorkStatus={handleOpenWorkStatusModal}
         onToggleLockAccount={handleToggleLockAccount}
+        onDelete={handleOpenDeleteConfirmation}
       />
+
+      {/* Soft-delete confirmation */}
+      <ConfirmDialog
+        isOpen={isConfirmDeleteOpen}
+        title={`Vô hiệu hóa tài khoản ${targetDeleteStaff?.name || ''}?`}
+        message="Tài khoản nhân viên sẽ bị vô hiệu hóa và chuyển sang trạng thái ngưng hoạt động. Lịch sử hỗ trợ ticket được bảo lưu."
+        confirmLabel="Vô hiệu hóa tài khoản"
+        cancelLabel="Hủy bỏ"
+        isDestructive={true}
+        onConfirm={handleExecuteDeleteStaff}
+        onCancel={() => {
+          setIsConfirmDeleteOpen(false);
+          setTargetDeleteStaff(null);
+        }}
+      />
+
+      {/* Toast Notification */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
 
       {/* 6. Create Support Staff Modal */}
       <CreateSupportStaffModal

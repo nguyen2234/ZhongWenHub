@@ -6,6 +6,7 @@
 
 import { VoiceSessionController } from '../features/ai-tutor/services/voice/VoiceSessionController';
 import { AITutorService } from '../features/ai-tutor/services/AITutorService';
+import { authTokenService } from '../core/api/client/auth-token.service';
 import { hskLevelIdToNumber, hskNumberToLevelId } from '../utils/hsk.utils';
 
 let passed = 0;
@@ -82,39 +83,84 @@ async function runTests() {
   assert(review.grammarPointsObserved.length > 0, 'TEST 23: Review captures grammar points observed');
   assert(review.turnCount === 3, 'TEST 24: Turn count matches recorded turns');
 
-  // TEST 25: AITutorService Chat Generation for practice errors
-  const errResponse = await AITutorService.sendChatMessage({
-    conversationId: 'test-conv-1',
-    message: 'Tại sao câu của tôi sai?',
-    mode: 'EXPLAIN',
-    context: {
-      source: 'practice',
-      hskLevel: 2,
-      exerciseContext: {
-        exerciseId: 'ex-101',
-        question: 'Điền từ thích hợp vào chỗ trống',
-        userAnswer: 'shì',
-        correctAnswer: '想 (xiǎng)',
-        promptHanzi: '我 ___ 喝茶。',
-      },
-    },
-  });
-  assert(errResponse.type === 'structured', 'TEST 25: AITutorService returns structured response');
-  assert(errResponse.blocks.length > 0, 'TEST 26: Response contains structured learning blocks');
-  assert(errResponse.suggestedActions.length > 0, 'TEST 27: Response provides suggested prompt actions');
+  // TEST 25: AITutorService normalizes structured responses from backend cleanly
+  const originalFetch = globalThis.fetch;
+  try {
+    authTokenService.setSession({ accessToken: 'test-jwt-token' });
+    globalThis.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          type: 'structured',
+          summary: 'Giải thích lỗi sai',
+          blocks: [
+            {
+              type: 'explanation',
+              title: 'PHÂN TÍCH',
+              content: 'Dùng 想 (xiǎng) trước động từ 喝 (hē).',
+            },
+          ],
+          suggestedActions: ['Phân biệt 想 và 要'],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )) as unknown as typeof fetch;
 
-  // TEST 28: AITutorService Sentence Correction
-  const corrResponse = await AITutorService.sendChatMessage({
-    conversationId: 'test-conv-2',
-    message: 'Sửa giúp tôi câu này: 我想喝咖啡了',
-    mode: 'CORRECT',
-    context: {
-      source: 'dashboard',
-      hskLevel: 2,
-    },
-  });
-  const hasCorrection = corrResponse.blocks.some((b) => b.type === 'correction');
-  assert(hasCorrection, 'TEST 28: AITutorService returns correction block for sentence review');
+    const errResponse = await AITutorService.sendChatMessage({
+      conversationId: 'test-conv-1',
+      message: 'Tại sao câu của tôi sai?',
+      mode: 'EXPLAIN',
+      context: {
+        source: 'practice',
+        hskLevel: 2,
+        exerciseContext: {
+          exerciseId: 'ex-101',
+          question: 'Điền từ thích hợp vào chỗ trống',
+          userAnswer: 'shì',
+          correctAnswer: '想 (xiǎng)',
+          promptHanzi: '我 ___ 喝茶。',
+        },
+      },
+    });
+    assert(errResponse.type === 'structured', 'TEST 25: AITutorService returns structured response');
+    assert(errResponse.blocks.length > 0, 'TEST 26: Response contains structured learning blocks');
+    assert(errResponse.suggestedActions.length > 0, 'TEST 27: Response provides suggested prompt actions');
+
+    // TEST 28: AITutorService Sentence Correction block normalization
+    globalThis.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          type: 'structured',
+          summary: 'Sửa câu',
+          blocks: [
+            {
+              type: 'correction',
+              originalSentence: '我想喝咖啡了',
+              correctedSentence: '我想喝咖啡。',
+              pinyin: 'Wǒ xiǎng hē kāfēi.',
+              vietnamese: 'Tôi muốn uống cà phê.',
+              explanation: 'Không cần 了 trong câu biểu thị nguyện vọng hiện tại.',
+              diffItems: [{ type: 'same', text: '我想喝咖啡' }],
+            },
+          ],
+          suggestedActions: [],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )) as unknown as typeof fetch;
+
+    const corrResponse = await AITutorService.sendChatMessage({
+      conversationId: 'test-conv-2',
+      message: 'Sửa giúp tôi câu này: 我想喝咖啡了',
+      mode: 'CORRECT',
+      context: {
+        source: 'dashboard',
+        hskLevel: 2,
+      },
+    });
+    const hasCorrection = corrResponse.blocks.some((b) => b.type === 'correction');
+    assert(hasCorrection, 'TEST 28: AITutorService returns correction block for sentence review');
+  } finally {
+    globalThis.fetch = originalFetch;
+    authTokenService.clearTokens();
+  }
 
   // TEST 29: HSK 7-9 Level Support
   assert(hskLevelIdToNumber('level-hsk-79') === 7, 'TEST 29: level-hsk-79 resolves to level 7');

@@ -12,6 +12,36 @@ export interface UserCardListProps {
   onResetFilters?: () => void;
 }
 
+const getRoleBadgeInfo = (roles?: string[]) => {
+  const primaryRole = roles && roles.length > 0 ? roles[0].toUpperCase() : 'STUDENT';
+  switch (primaryRole) {
+    case 'ADMIN':
+      return { label: 'Quản trị viên', bg: 'rgba(239, 68, 68, 0.1)', color: '#dc2626' };
+    case 'TEACHER':
+      return { label: 'Giáo viên', bg: 'rgba(59, 130, 246, 0.1)', color: '#2563eb' };
+    case 'CONTENT_MANAGER':
+      return { label: 'Quản lý ND', bg: 'rgba(245, 158, 11, 0.1)', color: '#d97706' };
+    case 'SUPPORT':
+      return { label: 'Hỗ trợ viên', bg: 'rgba(13, 148, 136, 0.1)', color: '#0d9488' };
+    case 'STUDENT':
+    default:
+      return { label: 'Học viên', bg: 'rgba(100, 116, 139, 0.1)', color: '#475569' };
+  }
+};
+
+const isWalletAndPlanEligible = (user: UserListItem) => {
+  const primaryRole = (user.roles?.[0] || user.role || 'STUDENT').toUpperCase();
+  return primaryRole === 'STUDENT' || primaryRole === 'TEACHER';
+};
+
+const isSoleAdmin = (user: UserListItem) => {
+  return (
+    user.email.toLowerCase() === 'admin@gmail.com' ||
+    user.roles?.includes('ADMIN') ||
+    user.role === 'ADMIN'
+  );
+};
+
 export const UserCardList: React.FC<UserCardListProps> = ({
   users,
   selectedUserId,
@@ -49,7 +79,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
       <div className="user-cards-mobile" style={{ padding: '16px 0' }}>
         <EmptyState
           title="Không tìm thấy người dùng"
-          description="Không có học viên phù hợp với bộ lọc hiện tại."
+          description="Không có tài khoản phù hợp với bộ lọc hiện tại."
           action={
             onResetFilters && (
               <button
@@ -71,7 +101,11 @@ export const UserCardList: React.FC<UserCardListProps> = ({
       {users.map((user) => {
         const isSelected = selectedUserId === user.id;
         const statusInfo = getStatusVariant(user.status);
+        const roleInfo = getRoleBadgeInfo(user.roles || (user.role ? [user.role] : undefined));
         const isMenuOpen = activeMenuId === user.id;
+        const eligible = isWalletAndPlanEligible(user);
+        const adminUser = isSoleAdmin(user);
+        const isDeactivated = user.status === 'LOCKED' || user.status === 'INACTIVE';
 
         return (
           <div
@@ -103,7 +137,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                 </button>
 
                 {isMenuOpen && (
-                  <div className="action-dropdown-popover" style={{ top: '100%', right: 0 }}>
+                  <div className="action-dropdown-popover" style={{ top: '100%', right: 0, zIndex: 10 }}>
                     <button
                       type="button"
                       className="action-menu-item"
@@ -113,7 +147,7 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                       }}
                     >
                       <Eye size={13} style={{ color: 'var(--muted)' }} />
-                      Chi tiết
+                      Xem
                     </button>
                     <button
                       type="button"
@@ -124,35 +158,51 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                       }}
                     >
                       <Edit3 size={13} style={{ color: 'var(--muted)' }} />
-                      Chỉnh sửa
+                      Sửa
                     </button>
-                    <div className="action-menu-separator" />
-                    <button
-                      type="button"
-                      className={`action-menu-item ${user.status === 'LOCKED' ? '' : 'danger'}`}
-                      onClick={() => {
-                        setActiveMenuId(null);
-                        onLockUnlockUser(user);
-                      }}
-                    >
-                      {user.status === 'LOCKED' ? (
-                        <>
-                          <ShieldCheck size={13} style={{ color: '#16a34a' }} />
-                          Mở khóa
-                        </>
-                      ) : (
-                        <>
-                          <ShieldAlert size={13} />
-                          Khóa tài khoản
-                        </>
-                      )}
-                    </button>
+                    {!adminUser && (
+                      <>
+                        <div className="action-menu-separator" />
+                        <button
+                          type="button"
+                          className={`action-menu-item ${isDeactivated ? '' : 'danger'}`}
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            onLockUnlockUser(user);
+                          }}
+                        >
+                          {isDeactivated ? (
+                            <>
+                              <ShieldCheck size={13} style={{ color: '#16a34a' }} />
+                              Kích hoạt lại
+                            </>
+                          ) : (
+                            <>
+                              <ShieldAlert size={13} style={{ color: '#dc2626' }} />
+                              Vô hiệu hóa
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  backgroundColor: roleInfo.bg,
+                  color: roleInfo.color,
+                }}
+              >
+                {roleInfo.label}
+              </span>
               <span
                 style={{
                   fontWeight: 700,
@@ -167,17 +217,38 @@ export const UserCardList: React.FC<UserCardListProps> = ({
                 {user.hskLevel}
               </span>
               <StatusBadge label={statusInfo.label} variant={statusInfo.variant} size="sm" />
-              <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: 'auto' }}>
-                Tiến độ: <strong>{user.progressPercentage}%</strong>
-              </span>
             </div>
 
-            {/* Mini Progress Track */}
-            <div className="table-progress-bar" style={{ height: '4px' }}>
-              <div
-                className="table-progress-fill"
-                style={{ width: `${user.progressPercentage}%` }}
-              />
+            {/* Wallet & Plan row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--surface-hover)',
+                fontSize: '11px',
+              }}
+            >
+              <div>
+                <span style={{ color: 'var(--muted)' }}>Số dư: </span>
+                {eligible ? (
+                  <strong style={{ color: (user.walletBalance ?? 0) > 0 ? '#16a34a' : 'inherit' }}>
+                    {(user.walletBalance ?? 0).toLocaleString('vi-VN')} ₫
+                  </strong>
+                ) : (
+                  <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>Không áp dụng</span>
+                )}
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)' }}>Gói: </span>
+                {eligible ? (
+                  <strong style={{ color: '#2563eb' }}>{user.plan || 'Free'}</strong>
+                ) : (
+                  <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>Không áp dụng</span>
+                )}
+              </div>
             </div>
 
             <div className="user-mobile-meta-grid">

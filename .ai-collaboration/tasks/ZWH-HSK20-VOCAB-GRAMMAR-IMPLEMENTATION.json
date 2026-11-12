@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK20-VOCAB-GRAMMAR-IMPLEMENTATION",
+  "title": "HSK 2.0 Vocabulary & Grammar Implementation, Multi-Source Normalization & Curriculum Mapping",
+  "description": "Establish standardized HSK 2.0 vocabulary (1,200 words) and grammar (311 points) datasets for HSK 1–4, verify multi-source provenance (Hanban 2012, DrKameleon, BLCUP Standard Course, AllSet Grammar Wiki), map against 70 existing curriculum lessons, provide dry-run importer and pre-import diff analysis, and halt at approval gate prior to database writes.",
+  "project": "ZhongWenHub",
+  "phase": "Curriculum Implementation",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 19,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "f34f3ff44e8d7daedf32435be97e881d80364da9",
+  "input_files": [
+    "scripts/hsk_sources/hsk_source_manifest.json",
+    "docs/hsk20/HSK30_TO_HSK20_MIGRATION_PLAN.md"
+  ],
+  "expected_outputs": [
+    "data/hsk20/staging/hsk20_vocabulary_standard.json",
+    "data/hsk20/staging/hsk20_grammar_standard.json",
+    "data/hsk20/staging/hsk20_curriculum_mapping_70_lessons.json",
+    "docs/hsk20/HSK20_VOCAB_SOURCE_AUDIT.md",
+    "docs/hsk20/HSK20_GRAMMAR_SOURCE_AUDIT.md",
+    "docs/hsk20/HSK20_VOCAB_GRAMMAR_DIFF_REPORT.md",
+    "docs/hsk20/HSK20_IMPORT_PLAN.md",
+    "docs/hsk20/HSK20_VOCAB_GRAMMAR_QA_REPORT.md",
+    ".ai-collaboration/results/ZWH-HSK20-VOCAB-GRAMMAR-IMPLEMENTATION_result.json"
+  ],
+  "acceptance_criteria": [
+    "Confirm cumulative vocabulary milestones: HSK 1 = 150, HSK 2 = 150 (cum 300), HSK 3 = 300 (cum 600), HSK 4 = 600 (cum 1,200)",
+    "Verify multi-source provenance: Hanban 2012 syllabus, DrKameleon CJKVI, BLCUP Standard Course textbooks, AllSet Chinese Grammar Wiki",
+    "Resolve and document homographs and polyphones (得, 还, 长, 只, 等, 对, 过)",
+    "Standardize 311 grammar points with formulas, Vietnamese explanations, and contextual examples",
+    "Map 70 lessons against HSK 2.0 Standard Course curriculum chapters",
+    "Implement dry-run importer with database lock and rollback snapshot utility",
+    "Zero database writes to ZhongWenHub_Dev (read-only) and ZhongWenHub_Test (gated)",
+    "Pass 8/8 automated data QA test suites and backend/frontend unit tests",
+    "Compile 5 comprehensive markdown reports in docs/hsk20/"
+  ],
+  "safety_constraints": [
+    "Zero database writes (Dev strictly read-only, Test gated pending explicit user approval)",
+    "No copyrighted books or audio files committed to Git repository",
+    "Do not auto-publish content or alter student XP/progress",
+    "Keep PR #16 Open/Draft; do not merge or force push"
+  ],
+  "created_at": "2026-11-11T01:30:00Z",
+  "updated_at": "2026-11-11T01:42:00Z"
+}

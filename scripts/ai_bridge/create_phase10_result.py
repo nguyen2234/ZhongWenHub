@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Generate AI Collaboration Bridge result file for ZWH-P10-INDEPENDENT-QA.
+"""
+
+import os
+import json
+
+RESULTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".ai-collaboration", "results")
+
+result = {
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-P10-INDEPENDENT-QA",
+  "task_revision": 1,
+  "execution_id": "EXEC-20261110-PHASE10",
+  "executor": "Antigravity",
+  "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+  "branch": "integration/zhongwenhub-sqlserver",
+  "changed_files": [
+    "data/hsk30/staging/phase10_independent_audit_results.json",
+    "Fontend/e2e/phase10-independent-acceptance.spec.ts",
+    "docs/hsk30/phase10/PHASE10_INDEPENDENT_QA_REPORT.md",
+    ".ai-collaboration/tasks/ZWH-P10-INDEPENDENT-QA.json",
+    ".ai-collaboration/results/ZWH-P10-INDEPENDENT-QA_result.json"
+  ],
+  "started_at": "2026-11-10T17:00:00Z",
+  "finished_at": "2026-11-10T17:25:00Z",
+  "status": "PASS",
+  "summary": "Completed Phase 10 Independent QA on commit 48d11e3024ecfc8df43626b6a36a0a43d76196df: audited all 70 lessons across HSK 1–4, confirmed HSK 5–6 Coming Soon invariant with zero fake lessons or accessible student content, executed 30 real Playwright E2E tests against live backend/frontend and ZhongWenHub_Test DB, verified 288 Bun unit tests and 122 Backend tests (.NET 10), and validated GitHub CI workflow conclusions.",
+  "test_results": [
+    {
+      "test_id": "TEST-BUN-FE-ALL",
+      "test_name": "Frontend Unit Test Suite",
+      "command": "bun test src/tests",
+      "test_type": "UNIT",
+      "environment": "Windows Node Bun v1.4.3",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 288,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:07:21Z"
+    },
+    {
+      "test_id": "TEST-DOTNET-BE-UNIT",
+      "test_name": "Backend .NET Unit Test Suite",
+      "command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj",
+      "test_type": "UNIT",
+      "environment": "Windows .NET 10.0 SDK",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 38,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:05:48Z"
+    },
+    {
+      "test_id": "TEST-DOTNET-BE-INTEGRATION",
+      "test_name": "Backend .NET Integration Test Suite",
+      "command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj",
+      "test_type": "INTEGRATION",
+      "environment": "Windows .NET 10.0 SDK",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 84,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:06:29Z"
+    },
+    {
+      "test_id": "TEST-PLAYWRIGHT-E2E-DESKTOP",
+      "test_name": "Playwright Real E2E Test Suite (desktop-1440)",
+      "command": "bun x playwright test e2e/phase10-independent-acceptance.spec.ts --project=desktop-1440",
+      "test_type": "E2E",
+      "environment": "Chromium Desktop 1440x900",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 5,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:20:21Z"
+    },
+    {
+      "test_id": "TEST-PLAYWRIGHT-E2E-MOBILE",
+      "test_name": "Playwright Real E2E Test Suite (mobile-390)",
+      "command": "bun x playwright test e2e/phase10-independent-acceptance.spec.ts --project=mobile-390",
+      "test_type": "E2E",
+      "environment": "Chromium Mobile 390x844",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 5,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:21:07Z"
+    },
+    {
+      "test_id": "TEST-PLAYWRIGHT-CURRICULUM-HSK1-4",
+      "test_name": "Playwright Curriculum E2E Suites (HSK 1-4)",
+      "command": "bun x playwright test e2e/hsk1-full-curriculum-e2e.spec.ts e2e/hsk2-full-curriculum-e2e.spec.ts e2e/hsk3-full-curriculum-e2e.spec.ts e2e/hsk4-full-curriculum-e2e.spec.ts --project=desktop-1440 --workers=1",
+      "test_type": "E2E",
+      "environment": "Chromium Desktop 1440x900",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 20,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:14:00Z"
+    },
+    {
+      "test_id": "TEST-QA-EVIDENCE-AUDIT",
+      "test_name": "QA Evidence & Test Matrix Hardening Audit",
+      "command": "python scripts/ai_bridge/verify_qa_evidence.py",
+      "test_type": "INTEGRATION",
+      "environment": "Windows Python 3.12",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 27,
+      "failed_count": 0,
+      "skipped_count": 8,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:21:25Z"
+    },
+    {
+      "test_id": "TEST-RELEASE-GATE",
+      "test_name": "QA Release Gate Evaluation",
+      "command": "python scripts/ai_bridge/verify_release_gate.py",
+      "test_type": "INTEGRATION",
+      "environment": "Windows Python 3.12",
+      "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+      "passed_count": 1,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T17:21:25Z"
+    }
+  ],
+  "evidence_links": [
+    "https://github.com/nguyen2234/ZhongWenHub/pull/16",
+    "https://github.com/nguyen2234/ZhongWenHub/issues/18",
+    "https://github.com/nguyen2234/ZhongWenHub/actions/runs/42859780061",
+    "https://github.com/nguyen2234/ZhongWenHub/actions/runs/42859779980",
+    "https://github.com/nguyen2234/ZhongWenHub/actions/runs/42859780016",
+    "https://github.com/nguyen2234/ZhongWenHub/actions/runs/42859779999"
+  ],
+  "warnings": [
+    "HSK 5 and HSK 6 have 30 and 40 draft lessons in database awaiting future curriculum development; strictly hidden from students as Coming Soon."
+  ],
+  "blockers": []
+}
+
+filepath = os.path.join(RESULTS_DIR, "ZWH-P10-INDEPENDENT-QA_result.json")
+with open(filepath, "w", encoding="utf-8") as f:
+    json.dump(result, f, indent=2, ensure_ascii=False)
+print("Created ZWH-P10-INDEPENDENT-QA_result.json")

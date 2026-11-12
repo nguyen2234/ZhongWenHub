@@ -19,11 +19,20 @@ const HSK_OPTIONS: HskLevelCode[] = [
 ];
 
 const STATUS_OPTIONS: Array<{ value: 'ALL' | UserStatus; label: string }> = [
-  { value: 'ALL', label: 'Tất cả' },
+  { value: 'ALL', label: 'Tất cả trạng thái' },
   { value: 'ACTIVE', label: 'Hoạt động' },
   { value: 'INACTIVE', label: 'Ngưng hoạt động' },
   { value: 'PENDING', label: 'Chờ duyệt' },
   { value: 'LOCKED', label: 'Bị khóa' },
+];
+
+const ROLE_FILTER_OPTIONS: Array<{ value: 'ALL' | string; label: string }> = [
+  { value: 'ALL', label: 'Tất cả vai trò' },
+  { value: 'STUDENT', label: 'Học viên' },
+  { value: 'TEACHER', label: 'Giáo viên' },
+  { value: 'CONTENT_MANAGER', label: 'Quản lý nội dung' },
+  { value: 'SUPPORT', label: 'Hỗ trợ viên' },
+  { value: 'ADMIN', label: 'Quản trị viên' },
 ];
 
 export const UserToolbar: React.FC<UserToolbarProps> = ({
@@ -31,10 +40,26 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
   onFilterChange,
   onResetFilters,
 }) => {
+  const [internalSearch, setInternalSearch] = React.useState(filters.search);
+
+  React.useEffect(() => {
+    setInternalSearch(filters.search);
+  }, [filters.search]);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      if (internalSearch !== filters.search) {
+        onFilterChange({ ...filters, search: internalSearch });
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [internalSearch, filters, onFilterChange]);
+
   const isFiltered =
     filters.search.trim() !== '' ||
     filters.status !== 'ALL' ||
-    filters.hskLevel !== 'ALL';
+    filters.hskLevel !== 'ALL' ||
+    (filters.role && filters.role !== 'ALL');
 
   return (
     <div className="user-toolbar-container">
@@ -46,11 +71,27 @@ export const UserToolbar: React.FC<UserToolbarProps> = ({
             type="text"
             className="user-search-input"
             placeholder="Tìm theo tên hoặc email..."
-            value={filters.search}
-            onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+            value={internalSearch}
+            onChange={(e) => setInternalSearch(e.target.value)}
             aria-label="Tìm theo tên hoặc email"
           />
         </div>
+
+        {/* Role Filter */}
+        <select
+          className="user-filter-select"
+          value={filters.role || 'ALL'}
+          onChange={(e) =>
+            onFilterChange({ ...filters, role: e.target.value })
+          }
+          aria-label="Lọc theo vai trò người dùng"
+        >
+          {ROLE_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
 
         {/* Status Filter */}
         <select

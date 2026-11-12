@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MOCK_STUDENTS_STORE, type MockStudentUser } from '../../../management/teacher/data/mockTeacherPortalData';
 import { teacherPortalService } from '../../../management/teacher/services/teacher-portal.service';
+import { managementAuthService } from '../../../management/shared/services/management-auth.service';
 
 /**
  * ============================================================================
@@ -32,13 +33,50 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
   activeClassIds: string[];
   fullName: string;
 } {
+  try {
+    const session = managementAuthService.getSession();
+    if (session && session.id) {
+      const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.id);
+      if (isRealUser) {
+        return {
+          id: session.id,
+          name: session.name || 'Học viên',
+          email: session.email || '',
+          avatarUrl: session.avatarUrl,
+          fullName: session.name || 'Học viên',
+          enrolledClassIds: [],
+          activeClassIds: [],
+        };
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   let activeId = inMemoryActiveStudentId;
 
   if (typeof window !== 'undefined' && window.localStorage) {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && MOCK_STUDENTS_STORE.some((s) => s.id === saved)) {
-      activeId = saved;
+    if (saved) {
+      const isRealSaved = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saved);
+      if (isRealSaved || MOCK_STUDENTS_STORE.some((s) => s.id === saved)) {
+        activeId = saved;
+      }
     }
+  }
+
+  const isRealActive = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(activeId);
+  if (isRealActive) {
+    const session = managementAuthService.getSession();
+    return {
+      id: activeId,
+      name: session?.name || 'Học viên',
+      email: session?.email || '',
+      avatarUrl: session?.avatarUrl,
+      fullName: session?.name || 'Học viên',
+      enrolledClassIds: [],
+      activeClassIds: [],
+    };
   }
 
   const student = MOCK_STUDENTS_STORE.find((s) => s.id === activeId) || MOCK_STUDENTS_STORE[0];
@@ -57,8 +95,9 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
  * Dispatches an event so all listening components update synchronously.
  */
 export function setDevStudentIdentity(studentId: string): void {
+  const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
   const found = MOCK_STUDENTS_STORE.find((s) => s.id === studentId);
-  if (!found) {
+  if (!found && !isRealUser) {
     console.warn(`[StudentIdentityAdapter] Student ID "${studentId}" not found in mock store.`);
     return;
   }

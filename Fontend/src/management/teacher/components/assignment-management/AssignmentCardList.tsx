@@ -198,7 +198,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
             <div className="tp-assign-card-actions">
               <button
                 type="button"
-                className="tp-btn tp-btn--secondary"
+                className="ds-btn ds-btn-secondary"
                 style={{ padding: '6px 10px', fontSize: '12px' }}
                 onClick={() => onView(asgn)}
               >
@@ -209,7 +209,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
               {asgn.status === 'DRAFT' && (
                 <button
                   type="button"
-                  className="tp-btn tp-btn--secondary"
+                  className="ds-btn ds-btn-secondary"
                   style={{ padding: '6px 10px', fontSize: '12px' }}
                   onClick={() => onEdit(asgn)}
                 >
@@ -220,7 +220,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
 
               <button
                 type="button"
-                className="tp-btn tp-btn--ghost"
+                className="ds-btn ds-btn-ghost"
                 style={{ padding: '6px' }}
                 onClick={() => onDuplicate(asgn)}
                 title="Nhân bản"
@@ -231,7 +231,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
               {asgn.status === 'DRAFT' && (
                 <button
                   type="button"
-                  className="tp-btn tp-btn--primary"
+                  className="ds-btn ds-btn-primary"
                   style={{ padding: '6px 10px', fontSize: '12px' }}
                   onClick={() => onPublish(asgn)}
                 >
@@ -243,7 +243,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
               {asgn.status === 'PUBLISHED' && (
                 <button
                   type="button"
-                  className="tp-btn tp-btn--danger"
+                  className="ds-btn ds-btn-danger"
                   style={{ padding: '6px 10px', fontSize: '12px' }}
                   onClick={() => onClose(asgn)}
                 >
@@ -255,7 +255,7 @@ export const AssignmentCardList: React.FC<AssignmentCardListProps> = ({
               {(asgn.status === 'CLOSED' || asgn.status === 'DRAFT') && (
                 <button
                   type="button"
-                  className="tp-btn tp-btn--ghost"
+                  className="ds-btn ds-btn-ghost"
                   style={{ padding: '6px' }}
                   onClick={() => onArchive(asgn)}
                   title="Lưu trữ"

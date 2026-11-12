@@ -87,9 +87,11 @@ test.describe('FE-8.1 Mobile QA & E2E Real Interaction Suite', () => {
     await page.goto('/ZhongWenHub/lesson/les-hsk1-1');
     await page.waitForLoadState('domcontentloaded');
 
-    const isMobile = (page.viewportSize()?.width ?? 1440) < 1024;
+    const width = page.viewportSize()?.width ?? 1440;
+    const isPhone = width < 768;
+    const isTablet = width >= 768 && width < 1024;
 
-    if (isMobile) {
+    if (isPhone) {
       // Check mobile TOC trigger button
       const tocTrigger = page.locator('#btn-mobile-toc-trigger');
       await expect(tocTrigger).toBeVisible();
@@ -112,6 +114,10 @@ test.describe('FE-8.1 Mobile QA & E2E Real Interaction Suite', () => {
       await expect(sheet).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(sheet).toBeHidden();
+    } else if (isTablet) {
+      // Tablet horizontal TOC bar should be visible
+      const tabletBar = page.locator('.lesson-toc-tablet-bar');
+      await expect(tabletBar).toBeVisible();
     } else {
       // Desktop sticky TOC card should be visible
       const desktopToc = page.locator('.lesson-toc-desktop-card');

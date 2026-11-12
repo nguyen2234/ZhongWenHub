@@ -12,7 +12,15 @@ export const VocabularyStep: React.FC<VocabularyStepProps> = ({ vocabulary, onWo
   const [currentIndex, setCurrentIndex] = useState(0);
   const [savedWords, setSavedWords] = useState<Record<number, boolean>>({});
 
-  const currentWord = vocabulary[currentIndex];
+  const currentWord = vocabulary?.[currentIndex];
+
+  if (!vocabulary || vocabulary.length === 0 || !currentWord) {
+    return (
+      <div style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+        <p style={{ color: 'var(--muted)' }}>Chưa có dữ liệu từ vựng cho bài học này.</p>
+      </div>
+    );
+  }
 
   const toggleSaveWord = (id: number) => {
     setSavedWords((prev) => ({ ...prev, [id]: !prev[id] }));

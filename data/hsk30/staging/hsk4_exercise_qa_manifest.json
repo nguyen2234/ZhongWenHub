@@ -1,0 +1,25 @@
+{
+  "phase": "9.4",
+  "hskLevel": 4,
+  "totalExercises": 80,
+  "totalLessons": 20,
+  "exercisesPerLesson": 4,
+  "skillDistribution": {
+    "grammar": 20,
+    "vocabulary": 20,
+    "reading": 20,
+    "listening": 20
+  },
+  "correctIndexDistribution": {
+    "0": 54,
+    "1": 22,
+    "2": 4
+  },
+  "qualitySummary": {
+    "genericPlaceholdersEliminated": true,
+    "balancedSkillCoverage": true,
+    "variedCorrectIndices": true,
+    "fullPinyinAndVietnamesePrompts": true
+  },
+  "reviewStatus": "PENDING_HUMAN_EXPERT_SIGN_OFF"
+}

@@ -13,7 +13,7 @@ import {
   StudentAssignmentRunnerPage,
   StudentHomeworkResultPage,
 } from '../../features/homework';
-import { StudentAIWorkspacePage } from '../../features/ai';
+import { StudentAIWorkspacePage, AIExerciseGeneratorPage } from '../../features/ai';
 import { AITutorWorkspacePage } from '../../features/ai-tutor';
 import { GrammarPage } from '../../features/grammar';
 import {
@@ -154,7 +154,7 @@ export const studentRoutes: RouteObject[] = [
         element: <LearningResultsPage />,
       },
 
-      // E. TRỢ LÝ AI
+      // E. LUYỆN TẬP & TRỢ LÝ AI
       {
         path: 'ai-tutor',
         element: <AITutorWorkspacePage />,
@@ -164,7 +164,15 @@ export const studentRoutes: RouteObject[] = [
         element: <AILivePage />,
       },
       {
+        path: 'conversation',
+        element: <AILivePage />,
+      },
+      {
         path: 'ai-grading',
+        element: <AIGradingPage />,
+      },
+      {
+        path: 'letter-writing',
         element: <AIGradingPage />,
       },
       {
@@ -174,6 +182,10 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'ai-learning',
         element: <StudentAIWorkspacePage />,
+      },
+      {
+        path: 'ai-exercises',
+        element: <AIExerciseGeneratorPage />,
       },
 
       // F. THÀNH TÍCH

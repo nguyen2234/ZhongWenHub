@@ -437,7 +437,7 @@ describe('Phase FE-3: Connected Learning Experience', () => {
   // 9. Curriculum Data & Prerequisite Navigation
   // -------------------------------------------------------------
   describe('9. Curriculum Data & Prerequisite Navigation', () => {
-    it('finds lesson metadata across HSK 1 to HSK 7-9', () => {
+    it('finds lesson metadata across HSK 1 to HSK 4 and confirms HSK 5-7 coming soon', () => {
       const hsk1Lesson = findLessonMetadata('les-hsk1-1');
       expect(hsk1Lesson).toBeDefined();
       expect(hsk1Lesson?.hskLevel).toBe(1);
@@ -446,15 +446,23 @@ describe('Phase FE-3: Connected Learning Experience', () => {
       expect(hsk2Lesson).toBeDefined();
       expect(hsk2Lesson?.hskLevel).toBe(2);
 
+      const hsk3Lesson = findLessonMetadata('les-hsk3-1');
+      expect(hsk3Lesson).toBeDefined();
+      expect(hsk3Lesson?.hskLevel).toBe(3);
+
+      const hsk4Lesson = findLessonMetadata('les-hsk4-1');
+      expect(hsk4Lesson).toBeDefined();
+      expect(hsk4Lesson?.hskLevel).toBe(4);
+
+      // Levels 5–7 have zero fake lessons (Coming Soon)
       const hsk7Lesson = findLessonMetadata('les-hsk7-1');
-      expect(hsk7Lesson).toBeDefined();
-      expect(hsk7Lesson?.hskLevel).toBe(7);
+      expect(hsk7Lesson).toBeUndefined();
     });
 
     it('identifies sequential next lesson id', () => {
       expect(findNextLessonId('les-1')).toBe('les-2');
       expect(findNextLessonId('les-7')).toBe('les-8');
-      expect(findNextLessonId('les-14')).toBe('les-hsk3-1');
+      expect(findNextLessonId('les-15')).toBe('les-hsk3-1');
     });
   });
 });

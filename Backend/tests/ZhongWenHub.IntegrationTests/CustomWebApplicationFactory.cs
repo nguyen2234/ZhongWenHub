@@ -1,0 +1,57 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using ZhongWenHub.Data.Persistence;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
+namespace ZhongWenHub.IntegrationTests;
+
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+{
+    public const string TestConnectionString =
+        "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["JwtSettings:Secret"] = "ZhongWenHub_IntegrationTest_Super_Secret_Key_32_Bytes_Long_2026!",
+                ["RateLimiting:LoginPermitLimit"] = "1000"
+            });
+        });
+
+        builder.ConfigureServices(services =>
+        {
+            // Remove existing ApplicationDbContext descriptor
+            var dbContextDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            if (dbContextDescriptor != null)
+            {
+                services.Remove(dbContextDescriptor);
+            }
+
+            // Register SQL Server with test database
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlServer(TestConnectionString);
+            });
+        });
+    }
+
+    public HttpClient CreateNoCookieClient()
+    {
+        return CreateClient(new WebApplicationFactoryClientOptions
+        {
+            HandleCookies = false
+        });
+    }
+}

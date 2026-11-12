@@ -76,34 +76,47 @@ describe('FE-12: Complete Separation of Admin & Content Manager Workspaces', () 
       expect(groupTitles).toContain('KIỂM DUYỆT & VẬN HÀNH');
     });
 
-    it('provides all 10 academic content features in CONTENT_MANAGER_NAV_GROUPS', () => {
+    it('provides all 10 academic content features with consolidated curriculum navigation', () => {
       const items = CONTENT_MANAGER_NAV_GROUPS.flatMap((g) => g.items);
       const itemMap = new Map(items.map((i) => [i.id, i]));
+      const repoGroup = CONTENT_MANAGER_NAV_GROUPS.find((g) => g.id === 'cm-repository');
+      expect(repoGroup).toBeDefined();
+      expect(repoGroup!.items.map((i) => i.label)).toEqual([
+        'Kho HSK',
+        'Giáo trình',
+        'Ngữ pháp',
+        'Ngân hàng câu hỏi',
+        'Kho đề thi',
+        'Học liệu video',
+      ]);
 
       // 1. Kho HSK
       expect(itemMap.has('cm-hsk-repository')).toBe(true);
       expect(itemMap.get('cm-hsk-repository')?.path).toBe('/management/content-manager/hsk-repository');
       expect(itemMap.get('cm-hsk-repository')?.label).toContain('Kho HSK');
 
-      // 2. Giáo trình & Bài học
+      // 2. Giáo trình (consolidated entry for lesson editing)
       expect(itemMap.has('cm-curriculum')).toBe(true);
       expect(itemMap.get('cm-curriculum')?.path).toBe('/management/content-manager/curriculum');
-      expect(itemMap.get('cm-curriculum')?.label).toContain('Giáo trình & Bài học');
+      expect(itemMap.get('cm-curriculum')?.label).toBe('Giáo trình');
 
-      // 3. Trình biên tập bài học
-      expect(itemMap.has('cm-lesson-editor')).toBe(true);
-      expect(itemMap.get('cm-lesson-editor')?.path).toContain('/management/content-manager/curriculum/lessons/');
-      expect(itemMap.get('cm-lesson-editor')?.label).toContain('Trình biên tập bài học');
+      // Separate Trình biên tập bài học sidebar entry removed cleanly
+      expect(itemMap.has('cm-lesson-editor')).toBe(false);
 
-      // 4. Ngữ pháp
+      // 3. Ngữ pháp
       expect(itemMap.has('cm-grammar')).toBe(true);
       expect(itemMap.get('cm-grammar')?.path).toBe('/management/content-manager/grammar');
       expect(itemMap.get('cm-grammar')?.label).toContain('Ngữ pháp');
 
-      // 5. Ngân hàng câu hỏi
+      // 4. Ngân hàng câu hỏi
       expect(itemMap.has('cm-questions')).toBe(true);
       expect(itemMap.get('cm-questions')?.path).toBe('/management/content-manager/question-bank');
       expect(itemMap.get('cm-questions')?.label).toContain('Ngân hàng câu hỏi');
+
+      // 5. Kho đề thi
+      expect(itemMap.has('cm-exams')).toBe(true);
+      expect(itemMap.get('cm-exams')?.path).toBe('/management/content-manager/exams');
+      expect(itemMap.get('cm-exams')?.label).toBe('Kho đề thi');
 
       // 6. Học liệu video
       expect(itemMap.has('cm-videos')).toBe(true);
@@ -152,6 +165,7 @@ describe('FE-12: Complete Separation of Admin & Content Manager Workspaces', () 
       expect(registeredPaths).toContain('lesson-editor');
       expect(registeredPaths).toContain('grammar');
       expect(registeredPaths).toContain('question-bank');
+      expect(registeredPaths).toContain('exams');
       expect(registeredPaths).toContain('videos');
       expect(registeredPaths).toContain('moderation');
       expect(registeredPaths).toContain('issues');

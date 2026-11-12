@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, Edit3, ExternalLink } from 'lucide-react';
+import { Search, Eye, Edit3, ExternalLink, CheckCircle, CheckSquare, Square } from 'lucide-react';
 import { ContentStatusBadge } from './ContentStatusBadge';
 import type { ContentStatus, GrammarPoint, HskLevel } from '../types';
 
@@ -9,6 +9,8 @@ export interface GrammarTabProps {
   levels: HskLevel[];
   selectedLevelId: string;
   onSelectGrammar: (grammar: GrammarPoint) => void;
+  onBatchPublish?: (ids: string[]) => Promise<void>;
+  onBatchReview?: (ids: string[], status: ContentStatus, notes?: string) => Promise<void>;
 }
 
 export const GrammarTab: React.FC<GrammarTabProps> = ({
@@ -16,10 +18,14 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
   levels,
   selectedLevelId,
   onSelectGrammar,
+  onBatchPublish,
+  onBatchReview,
 }) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | ContentStatus>('ALL');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const filteredList = useMemo(() => {
     let result = grammarPoints;
@@ -51,6 +57,56 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
     levels.forEach((lvl) => map.set(lvl.id, lvl.name));
     return map;
   }, [levels]);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredList.length && filteredList.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredList.map((g) => g.id)));
+    }
+  };
+
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = new Set(selectedIds);
+    if (updated.has(id)) {
+      updated.delete(id);
+    } else {
+      updated.add(id);
+    }
+    setSelectedIds(updated);
+  };
+
+  const handleBatchPublishClick = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Bạn có chắc muốn phê duyệt & xuất bản ${selectedIds.size} điểm ngữ pháp đã chọn?`)) return;
+
+    if (onBatchPublish) {
+      try {
+        setIsBatchProcessing(true);
+        await onBatchPublish(Array.from(selectedIds));
+        setSelectedIds(new Set());
+      } finally {
+        setIsBatchProcessing(false);
+      }
+    }
+  };
+
+  const handleBatchReviewClick = async (targetStatus: ContentStatus) => {
+    if (selectedIds.size === 0) return;
+    const actionLabel = targetStatus === 'PENDING_REVIEW' ? 'Chờ duyệt' : 'Bản nháp (DRAFT)';
+    const notes = window.prompt(`Nhập ghi chú kiểm duyệt cho ${selectedIds.size} điểm ngữ pháp chuyển sang ${actionLabel}:`, '') || undefined;
+
+    if (onBatchReview) {
+      try {
+        setIsBatchProcessing(true);
+        await onBatchReview(Array.from(selectedIds), targetStatus, notes);
+        setSelectedIds(new Set());
+      } finally {
+        setIsBatchProcessing(false);
+      }
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -84,8 +140,10 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
             onChange={(e) => setStatusFilter(e.target.value as 'ALL' | ContentStatus)}
           >
             <option value="ALL">Tất cả trạng thái</option>
-            <option value="PUBLISHED">Đã xuất bản</option>
-            <option value="DRAFT">Bản nháp</option>
+            <option value="PENDING_REVIEW">Chờ duyệt (PENDING_REVIEW)</option>
+            <option value="PUBLISHED">Đã xuất bản (PUBLISHED)</option>
+            <option value="DRAFT">Bản nháp (DRAFT)</option>
+            <option value="ARCHIVED">Lưu trữ (ARCHIVED)</option>
           </select>
         </div>
 
@@ -111,6 +169,88 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
         </button>
       </div>
 
+      {/* Batch Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 16px',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '8px',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#166534' }}>
+              Đã chọn {selectedIds.size} điểm ngữ pháp
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm"
+              disabled={isBatchProcessing}
+              style={{
+                backgroundColor: '#16a34a',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                cursor: 'pointer',
+              }}
+              onClick={handleBatchPublishClick}
+            >
+              <CheckCircle size={14} />
+              <span>Phê duyệt & Xuất bản ({selectedIds.size})</span>
+            </button>
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm"
+              disabled={isBatchProcessing}
+              style={{
+                backgroundColor: '#d97706',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                cursor: 'pointer',
+              }}
+              onClick={() => handleBatchReviewClick('PENDING_REVIEW')}
+            >
+              <span>Chuyển Chờ duyệt ({selectedIds.size})</span>
+            </button>
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-sm ds-btn-outline"
+              disabled={isBatchProcessing}
+              style={{ color: '#dc2626', borderColor: '#fca5a5' }}
+              onClick={() => handleBatchReviewClick('DRAFT')}
+            >
+              <span>Trả về Nháp ({selectedIds.size})</span>
+            </button>
+
+            <button
+              type="button"
+              className="ds-btn ds-btn-outline ds-btn-sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Hủy chọn
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
         Hiển thị <strong>{filteredList.length}</strong> điểm ngữ pháp chuẩn
       </div>
@@ -120,6 +260,19 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
         <table className="lcm-table">
           <thead>
             <tr>
+              <th style={{ width: '40px', textAlign: 'center' }}>
+                <span
+                  onClick={toggleSelectAll}
+                  style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  title="Chọn tất cả"
+                >
+                  {selectedIds.size > 0 && selectedIds.size === filteredList.length ? (
+                    <CheckSquare size={16} color="var(--primary)" />
+                  ) : (
+                    <Square size={16} color="var(--muted)" />
+                  )}
+                </span>
+              </th>
               <th>Mã</th>
               <th>Tiêu đề ngữ pháp</th>
               <th>Công thức cấu trúc</th>
@@ -131,7 +284,7 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
           <tbody>
             {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--muted)' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--muted)' }}>
                   Không tìm thấy điểm ngữ pháp nào phù hợp với bộ lọc.
                 </td>
               </tr>
@@ -141,13 +294,30 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
                   key={g.id}
                   className="lcm-row-clickable"
                   onClick={() => onSelectGrammar(g)}
+                  style={{ backgroundColor: selectedIds.has(g.id) ? '#f8fafc' : undefined }}
                 >
+                  <td style={{ textAlign: 'center' }} onClick={(e) => toggleSelect(g.id, e)}>
+                    {selectedIds.has(g.id) ? (
+                      <CheckSquare size={16} color="var(--primary)" />
+                    ) : (
+                      <Square size={16} color="var(--muted)" />
+                    )}
+                  </td>
                   <td>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '12px' }}>
                       {g.code}
                     </span>
                   </td>
-                  <td><strong>{g.title}</strong></td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <strong>{g.title}</strong>
+                      {g.reviewedAt && (
+                        <span style={{ fontSize: '11px', color: '#16a34a' }}>
+                          ✓ Đã duyệt: {new Date(g.reviewedAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <code style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--primary)', backgroundColor: 'var(--background)', padding: '2px 6px', borderRadius: '4px' }}>
                       {g.structureFormula}
@@ -169,7 +339,7 @@ export const GrammarTab: React.FC<GrammarTabProps> = ({
                         e.stopPropagation();
                         onSelectGrammar(g);
                       }}
-                      title="Xem chi tiết"
+                      title="Xem chi tiết & Kiểm duyệt"
                     >
                       <Eye size={14} />
                     </button>

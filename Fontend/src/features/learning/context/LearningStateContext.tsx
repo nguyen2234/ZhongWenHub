@@ -52,6 +52,7 @@ export interface LearningStateContextType {
   isVocabularySaved: (vocabularyIdOrHanzi: string) => boolean;
   resetDemoProgress: () => void;
   switchStudent: (studentId: string) => void;
+  syncWithServer?: () => Promise<StudentLearningState>;
 }
 
 const LearningStateContext = createContext<LearningStateContextType | null>(null);
@@ -69,8 +70,19 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       setState(updated);
     });
 
+    const handleAuthSessionReady = () => {
+      void learningStateService.syncWithServer();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zwh_auth_session_ready', handleAuthSessionReady);
+    }
+
     return () => {
       unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('zwh_auth_session_ready', handleAuthSessionReady);
+      }
     };
   }, [studentId]);
 
@@ -129,6 +141,10 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const switchStudent = useCallback((newStudentId: string) => {
     learningStateService.switchStudent(newStudentId);
+  }, []);
+
+  const syncWithServer = useCallback(() => {
+    return learningStateService.syncWithServer();
   }, []);
 
   // Computed values
@@ -215,6 +231,7 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       isVocabularySaved,
       resetDemoProgress,
       switchStudent,
+      syncWithServer,
     }),
     [
       state,
@@ -238,6 +255,7 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
       isVocabularySaved,
       resetDemoProgress,
       switchStudent,
+      syncWithServer,
     ]
   );
 

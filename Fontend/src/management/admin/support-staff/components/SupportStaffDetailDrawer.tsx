@@ -38,6 +38,7 @@ export interface SupportStaffDetailDrawerProps {
   onSaveEdit: (id: string, dto: UpdateSupportStaffDTO) => void;
   onChangeWorkStatus: (staff: SupportStaffDetail) => void;
   onToggleLockAccount: (staff: SupportStaffDetail) => void;
+  onDelete?: (staff: SupportStaffDetail) => void;
 }
 
 export const SupportStaffDetailDrawer: React.FC<SupportStaffDetailDrawerProps> = ({
@@ -47,6 +48,7 @@ export const SupportStaffDetailDrawer: React.FC<SupportStaffDetailDrawerProps> =
   onSaveEdit,
   onChangeWorkStatus,
   onToggleLockAccount,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -588,7 +590,18 @@ export const SupportStaffDetailDrawer: React.FC<SupportStaffDetailDrawerProps> =
             </>
           ) : (
             <>
-              <div className="drawer-footer-left">
+              <div className="drawer-footer-left" style={{ display: 'flex', gap: '8px' }}>
+                {onDelete && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => onDelete(staff)}
+                    style={{ color: 'var(--danger)' }}
+                    title="Vô hiệu hóa tài khoản nhân viên"
+                  >
+                    Vô hiệu hóa
+                  </button>
+                )}
                 {staff.accountStatus === 'LOCKED' ? (
                   <button
                     type="button"

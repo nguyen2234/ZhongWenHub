@@ -10,10 +10,12 @@ import {
   Trash2,
   RotateCcw,
   Menu,
+  Sparkles,
 } from 'lucide-react';
 import { Button, HSKLevel, StickerIllustration } from '../../../../design-system';
 import { AITutorService } from '../../services/AITutorService';
 import { AIBlockRenderer } from '../blocks/AIBlockRenderer';
+import { AI_TUTOR_WELCOME_MESSAGE } from '../AITutorDrawer';
 import type { AITutorContext, AITutorMessage } from '../../types';
 import '../../ai-tutor-workspace.css';
 
@@ -68,11 +70,24 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [lastFailedQuery, setLastFailedQuery] = useState<string | null>(null);
   const [showPinyin, setShowPinyin] = useState<boolean>(true);
   const [showTranslation, setShowTranslation] = useState<boolean>(true);
   const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState<boolean>(false);
 
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const forceScrollRef = useRef(false);
+  const isSendingRef = useRef(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
+
+  const handleThreadScroll = () => {
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isNearBottomRef.current = distance < 80;
+  };
 
   // Close mobile sidebar drawer on Escape key
   useEffect(() => {
@@ -86,45 +101,44 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSidebarOpenMobile]);
 
-  // Initialize messages for active conversation
+  // Initialize messages for active conversation once per switch
   useEffect(() => {
-    if (activeConvId === 'conv-1') {
-      setMessages([
-        {
-          id: 'm1',
-          conversationId: 'conv-1',
-          role: 'assistant',
-          content:
-            'Ni hao Minh Anh! Mình là Trợ giảng AI ZhongWenHub. Mình thấy bạn đang học Bài 8 "你想喝什么？" (Bạn muốn uống gì?). Bạn có thắc mắc gì về mẫu câu hay chữ Hán trong bài không?',
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    } else {
-      setMessages([
-        {
-          id: 'm-init',
-          conversationId: activeConvId,
-          role: 'assistant',
-          content: 'Chào bạn! Mình có thể giúp bạn giải đáp ngữ pháp, tra nghĩa từ vựng hoặc sửa lỗi câu tiếng Trung ngay bây giờ.',
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    }
+    setMessages([
+      {
+        id: `m-init-${activeConvId}`,
+        conversationId: activeConvId,
+        role: 'assistant',
+        content: AI_TUTOR_WELCOME_MESSAGE,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    forceScrollRef.current = true;
   }, [activeConvId]);
 
-  // Auto scroll
+  // Smart Auto scroll: only when near bottom or user just sent a message
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (forceScrollRef.current || isNearBottomRef.current) {
+      messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      forceScrollRef.current = false;
+    }
   }, [messages, isLoading]);
 
   const handleSendMessage = async (textToSend?: string) => {
-    const query = (textToSend || inputText).trim();
-    if (!query || isLoading) return;
+    const query = (textToSend ?? inputText).trim();
+    if (!query || isLoading || isSendingRef.current) return;
 
-    setInputText('');
+    isSendingRef.current = true;
+    forceScrollRef.current = true;
+    setSendError(null);
+    setLastFailedQuery(null);
+    const draftBeforeSend = inputText;
+    if (!textToSend) {
+      setInputText('');
+    }
 
+    const userMsgId = `msg-u-${Date.now()}`;
     const userMsg: AITutorMessage = {
-      id: 'msg-u-' + Date.now(),
+      id: userMsgId,
       conversationId: activeConvId,
       role: 'user',
       content: query,
@@ -135,18 +149,23 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     setIsLoading(true);
 
     try {
+      const history = AITutorService.buildHistoryFromMessages(messages);
       const resp = await AITutorService.sendChatMessage({
         conversationId: activeConvId,
         message: query,
         mode: 'ASK',
         context: initialContext || { source: 'dashboard', hskLevel: 2 },
+        history,
       });
 
       const aiMsg: AITutorMessage = {
-        id: 'msg-ai-' + Date.now(),
+        id: `msg-ai-${Date.now()}`,
         conversationId: activeConvId,
         role: 'assistant',
-        content: resp.summary || 'Đây là giải đáp chi tiết từ Trợ giảng AI:',
+        content:
+          resp.type === 'markdown'
+            ? resp.markdownFallback || resp.summary || 'Phản hồi từ Trợ giảng AI:'
+            : resp.summary || 'Đây là giải đáp chi tiết từ Trợ giảng AI:',
         structuredResponse: resp,
         createdAt: new Date().toISOString(),
       };
@@ -159,16 +178,18 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
           c.id === activeConvId ? { ...c, lastMessage: query, updatedAt: 'Vừa xong' } : c
         )
       );
-    } catch {
-      const errMsg: AITutorMessage = {
-        id: 'msg-err-' + Date.now(),
-        conversationId: activeConvId,
-        role: 'assistant',
-        content: 'Xin lỗi bạn, trợ giảng AI tạm thời gặp gián đoạn mô phỏng. Vui lòng thử lại sau giây lát!',
-        createdAt: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errMsg]);
+    } catch (err) {
+      // Preserve draft & remove failed optimistic user message so user can retry cleanly
+      setMessages((prev) => prev.filter((m) => m.id !== userMsgId));
+      setLastFailedQuery(query);
+      setSendError(AITutorService.getErrorMessage(err));
+      if (!textToSend && draftBeforeSend) {
+        setInputText(draftBeforeSend);
+      } else {
+        setInputText(query);
+      }
     } finally {
+      isSendingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -496,7 +517,11 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
         </div>
 
         {/* Message Thread Area */}
-        <div className="ai-chat-messages-container">
+        <div
+          ref={messagesScrollRef}
+          onScroll={handleThreadScroll}
+          className="ai-chat-messages-container"
+        >
           {messages.map((msg) => {
             const isAi = msg.role === 'assistant';
             return (
@@ -512,13 +537,13 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
                     style={{
                       width: '32px',
                       height: '32px',
-                      borderRadius: 'var(--radius-full)',
-                      backgroundColor: 'var(--ai-light, #eff6ff)',
+                      borderRadius: '10px',
+                      backgroundColor: '#f1f5f9',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      border: '1px solid var(--ai-border, #bfdbfe)',
+                      border: '1px solid #e2e8f0',
                     }}
                   >
                     <StickerIllustration name="aiTutor" size="xs" decorative />
@@ -529,10 +554,9 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
                   <div
                     className="ai-message-bubble"
                     style={{
-                      backgroundColor: isAi ? 'var(--surface)' : 'var(--primary)',
-                      color: isAi ? 'var(--foreground)' : '#ffffff',
-                      border: isAi ? '1px solid var(--border)' : 'none',
-                      boxShadow: isAi ? '0 1px 4px rgba(0,0,0,0.04)' : '0 2px 8px rgba(67, 56, 202, 0.25)',
+                      backgroundColor: isAi ? '#f1f5f9' : '#e0ecff',
+                      color: '#0f172a',
+                      border: isAi ? '1px solid #e2e8f0' : '1px solid #c7dafa',
                     }}
                   >
                     {msg.content}
@@ -547,27 +571,27 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
                     )}
                   </div>
 
-                  {/* Suggested actions chips under AI responses */}
+                  {/* Suggested actions chips under AI responses (max 3) */}
                   {isAi && msg.structuredResponse?.suggestedActions && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '2px' }}>
-                      {msg.structuredResponse.suggestedActions.map((action: string, idx: number) => (
+                      {msg.structuredResponse.suggestedActions.slice(0, 3).map((action: string, idx: number) => (
                         <button
                           key={idx}
                           type="button"
                           onClick={() => handleSendMessage(action)}
                           style={{
-                            padding: '4px 10px',
+                            padding: '5px 10px',
                             borderRadius: 'var(--radius-full)',
-                            border: '1px solid var(--ai-border)',
-                            backgroundColor: 'var(--ai-bg)',
-                            color: 'var(--ai)',
+                            border: '1px solid #e2e8f0',
+                            backgroundColor: '#ffffff',
+                            color: '#334155',
                             fontSize: '11px',
                             fontWeight: 600,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          💡 {action}
+                          {action}
                         </button>
                       ))}
                     </div>
@@ -577,11 +601,81 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
             );
           })}
 
+          {/* Max 3 contextual quick suggestions shown ONLY before first user message */}
+          {!messages.some((m) => m.role === 'user') && !isLoading && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingLeft: '44px' }}>
+              {[
+                'Giải thích ngữ pháp cấu trúc 想',
+                'Sửa lỗi câu: 我想喝咖啡了',
+                'Phân biệt 想 và 要',
+              ].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => handleSendMessage(suggestion)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '9999px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    color: '#334155',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Loading Indicator */}
           {isLoading && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--muted)', fontSize: 'var(--text-xs)', padding: 'var(--space-2)' }}>
               <RotateCcw size={14} className="animate-spin" />
-              <span>Trợ giảng AI đang suy nghĩ và tổng hợp kiến thức...</span>
+              <span>Trợ giảng đang phản hồi...</span>
+            </div>
+          )}
+
+          {/* Error Notice & Retry */}
+          {sendError && (
+            <div
+              role="alert"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#b91c1c',
+                fontSize: 'var(--text-xs)',
+              }}
+            >
+              <span>{sendError}</span>
+              {lastFailedQuery && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => void handleSendMessage(lastFailedQuery)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '4px 10px',
+                    borderRadius: '9999px',
+                    border: '1px solid #fca5a5',
+                    backgroundColor: '#ffffff',
+                    color: '#b91c1c',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Thử lại
+                </button>
+              )}
             </div>
           )}
 
@@ -590,86 +684,46 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
 
         {/* Message Composer */}
         <div className="ai-composer-container">
-          {/* Quick prompt chips */}
-          <div style={{ display: 'flex', gap: 'var(--space-2)', overflowX: 'auto', paddingBottom: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-            <span style={{ fontSize: '11px', color: 'var(--muted)', alignSelf: 'center', whiteSpace: 'nowrap' }}>
-              Gợi ý nhanh:
-            </span>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Giải thích ngữ pháp cấu trúc 想 trong Bài 8')}
-              style={{
-                padding: '4px 8px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-strong)',
-                backgroundColor: 'var(--background)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              📖 Ngữ pháp 想
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Sửa lỗi câu: 我想喝咖啡了')}
-              style={{
-                padding: '4px 8px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-strong)',
-                backgroundColor: 'var(--background)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              ✍️ Sửa câu 我想喝咖啡了
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSendMessage('Hỏi giá tiền với từ 多少 và 杯')}
-              style={{
-                padding: '4px 8px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-strong)',
-                backgroundColor: 'var(--background)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              ☕ Hỏi giá với 多少
-            </button>
-          </div>
-
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'flex-end' }}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: '8px',
+              backgroundColor: '#f8fafc',
+              borderRadius: '22px',
+              border: '1.5px solid #e2e8f0',
+              padding: '6px 8px 6px 14px',
+            }}
           >
+            <Sparkles size={16} style={{ color: '#94a3b8', flexShrink: 0, marginBottom: '8px' }} />
             <textarea
-              placeholder="Nhập thắc mắc về chữ Hán, ngữ pháp hoặc câu cần sửa... (Shift + Enter xuống dòng)"
+              placeholder="Hỏi bất kỳ điều gì về bài học hoặc chữ Hán..."
               value={inputText}
-              rows={2}
+              rows={1}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   handleSendMessage();
                 }
               }}
               style={{
                 flex: 1,
-                padding: 'var(--space-2) var(--space-3)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1.5px solid var(--border-strong)',
+                minHeight: '32px',
+                maxHeight: '110px',
+                padding: '6px 0',
+                border: 'none',
+                backgroundColor: 'transparent',
                 fontSize: 'var(--text-sm)',
                 fontFamily: 'inherit',
                 outline: 'none',
                 resize: 'none',
-                lineHeight: 1.4,
+                lineHeight: 1.45,
+                color: '#0f172a',
               }}
             />
 
@@ -678,7 +732,7 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
               variant="primary"
               disabled={!inputText.trim() || isLoading}
               icon={<Send size={15} />}
-              style={{ height: '48px', minWidth: '48px', padding: 0 }}
+              style={{ height: '36px', minWidth: '36px', padding: 0, borderRadius: '9999px' }}
               aria-label="Gửi tin nhắn"
             />
           </form>

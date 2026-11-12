@@ -20,6 +20,21 @@ export const TeacherToolbar: React.FC<TeacherToolbarProps> = ({
   onFilterChange,
   onResetFilters,
 }) => {
+  const [internalSearch, setInternalSearch] = React.useState(filters.search);
+
+  React.useEffect(() => {
+    setInternalSearch(filters.search);
+  }, [filters.search]);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      if (internalSearch !== filters.search) {
+        onFilterChange({ ...filters, search: internalSearch });
+      }
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [internalSearch, filters, onFilterChange]);
+
   const isFiltered =
     Boolean(filters.search.trim()) ||
     filters.accountStatus !== 'ALL' ||
@@ -37,8 +52,8 @@ export const TeacherToolbar: React.FC<TeacherToolbarProps> = ({
             type="text"
             className="teacher-search-input"
             placeholder="Tìm theo tên hoặc email..."
-            value={filters.search}
-            onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+            value={internalSearch}
+            onChange={(e) => setInternalSearch(e.target.value)}
             aria-label="Tìm kiếm theo tên hoặc email"
           />
         </div>

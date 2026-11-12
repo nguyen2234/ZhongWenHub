@@ -9,7 +9,6 @@ export * from './ListeningSectionEditor';
 export * from './ExerciseEditorModal';
 export * from './PracticeSectionEditor';
 export * from './QuizSectionEditor';
-export * from './LessonPlayerAdapter';
 export * from './LessonPreviewCanvas';
 export * from './ValidationModal';
 export * from './ConfirmLeaveDialog';

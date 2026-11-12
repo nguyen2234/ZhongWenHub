@@ -8,6 +8,9 @@ export interface ModalProps {
   title: string;
   children: React.ReactNode;
   actions?: React.ReactNode;
+  maxWidth?: string | number;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -16,6 +19,9 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   actions,
+  maxWidth,
+  className,
+  style,
 }) => {
   if (!isOpen) return null;
 
@@ -28,7 +34,11 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="ds-modal"
+        className={`ds-modal ${className || ''}`.trim()}
+        style={{
+          ...(maxWidth ? { maxWidth } : {}),
+          ...style,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="ds-modal-header">

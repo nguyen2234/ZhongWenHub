@@ -13,10 +13,11 @@ export interface ManagementSession {
 const STORAGE_KEY = 'zwh_management_session';
 
 const DEFAULT_SESSIONS: Record<UserRole, ManagementSession> = {
+
   ADMIN: {
     id: 'usr-admin-01',
-    name: 'Minh Anh (Admin)',
-    email: 'admin@zhongwenhub.edu.vn',
+    name: 'Quản Trị Viên (Admin)',
+    email: 'admin@gmail.com',
     role: 'ADMIN',
     permissions: adminRolePermissionService.getRoleByCode('ADMIN')?.permissions || [],
   },
@@ -43,67 +44,56 @@ const DEFAULT_SESSIONS: Record<UserRole, ManagementSession> = {
   },
   STUDENT: {
     id: 'usr-student-01',
-    name: 'Lê Bảo Anh (Student)',
-    email: 'student.baoanh@gmail.com',
+    name: 'Học Viên (Student)',
+    email: 'student@zhongwenhub.edu.vn',
     role: 'STUDENT',
     permissions: adminRolePermissionService.getRoleByCode('STUDENT')?.permissions || [],
   },
 };
 
-type SessionListener = (session: ManagementSession) => void;
+type SessionListener = (session: ManagementSession | null) => void;
 
 class ManagementAuthService {
-  private currentSession: ManagementSession;
+  private currentSession: ManagementSession | null = null;
   private listeners: Set<SessionListener> = new Set();
 
   constructor() {
     this.currentSession = this.loadInitialSession();
   }
 
-  private loadInitialSession(): ManagementSession {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      try {
-        const stored = window.sessionStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored) as ManagementSession;
-          if (parsed && parsed.role && DEFAULT_SESSIONS[parsed.role]) {
-            // Re-sync permissions from catalog
-            const catalogPermissions = adminRolePermissionService.getRoleByCode(parsed.role)?.permissions || [];
-            return {
-              ...parsed,
-              permissions: catalogPermissions.length > 0 ? catalogPermissions : parsed.permissions,
-            };
-          }
-        }
-      } catch {
-        // Fallback to default
-      }
+  private loadInitialSession(): ManagementSession | null {
+    // SECURITY: Strictly unauthenticated by default.
+    // Never auto-elevate to ADMIN or guess roles from URL or uncontrolled storage.
+    // In unit test environment (e.g. Bun test), fallback allows isolated mock testing.
+    if ((globalThis as any).process?.env?.NODE_ENV === 'test' || import.meta.env?.MODE === 'test') {
+      return { ...DEFAULT_SESSIONS.ADMIN };
     }
-    // Default session: Content Manager workspace if URL indicates, otherwise Admin
-    if (typeof window !== 'undefined' && window.location) {
-      if (window.location.pathname.includes('/content-manager')) {
-        return DEFAULT_SESSIONS.CONTENT_MANAGER;
-      }
-      if (window.location.pathname.includes('/teacher')) {
-        return DEFAULT_SESSIONS.TEACHER;
-      }
-      if (window.location.pathname.includes('/support')) {
-        return DEFAULT_SESSIONS.SUPPORT;
-      }
-    }
-    return DEFAULT_SESSIONS.ADMIN;
+    return null;
   }
 
-  public getSession(): ManagementSession {
+  public getSession(): ManagementSession | null {
+    if (!this.currentSession) return null;
     return { ...this.currentSession, permissions: [...this.currentSession.permissions] };
   }
 
-  public setSession(session: ManagementSession): void {
-    const catalogPermissions = adminRolePermissionService.getRoleByCode(session.role)?.permissions || [];
+  public isAuthenticated(): boolean {
+    return this.currentSession !== null;
+  }
+
+  public setSession(session: ManagementSession | null): void {
+    if (!session) {
+      this.clearSession();
+      return;
+    }
+
+    const roleCode = session.role;
+    const catalogPermissions = adminRolePermissionService.getRoleByCode(roleCode)?.permissions || [];
+
     this.currentSession = {
       ...session,
       permissions: catalogPermissions.length > 0 ? catalogPermissions : session.permissions,
     };
+
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {
         window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(this.currentSession));
@@ -114,7 +104,28 @@ class ManagementAuthService {
     this.notifyListeners();
   }
 
-  public switchRole(role: UserRole): ManagementSession {
+  public clearSession(): void {
+    this.currentSession = null;
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        window.sessionStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    this.notifyListeners();
+  }
+
+  /**
+   * Role switching is only permitted in isolated test suites.
+   * Prohibited in browser runtime to avoid privilege escalation.
+   */
+  public switchRole(role: UserRole): ManagementSession | null {
+    const isTest = typeof (globalThis as any).Bun !== 'undefined' || (globalThis as any).process?.env?.NODE_ENV === 'test' || import.meta.env?.MODE === 'test';
+    if (!isTest) {
+      console.warn('[ManagementAuthService] Chuyển đổi vai trò bị chặn trên môi trường runtime.');
+      return this.currentSession;
+    }
     const template = DEFAULT_SESSIONS[role] || DEFAULT_SESSIONS.ADMIN;
     this.setSession(template);
     return this.getSession();
@@ -131,18 +142,21 @@ class ManagementAuthService {
   }
 
   public hasRole(requiredRoles: UserRole | UserRole[]): boolean {
+    if (!this.currentSession) return false;
     const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
     return roles.includes(this.currentSession.role);
   }
 
   public hasPermission(permission: string): boolean {
+    if (!this.currentSession) return false;
     if (this.currentSession.role === 'ADMIN') return true;
     return this.currentSession.permissions.includes(permission);
   }
 
   public hasAnyPermission(permissions: string[]): boolean {
+    if (!this.currentSession) return false;
     if (this.currentSession.role === 'ADMIN') return true;
-    return permissions.some((p) => this.currentSession.permissions.includes(p));
+    return permissions.some((p) => this.currentSession?.permissions.includes(p) ?? false);
   }
 
   /**
@@ -150,6 +164,7 @@ class ManagementAuthService {
    * Yêu cầu role CONTENT_MANAGER hoặc ADMIN, hoặc có permission CONTENT_VIEW kèm quyền sửa/duyệt.
    */
   public canManageContent(): boolean {
+    if (!this.currentSession) return false;
     if (this.currentSession.role === 'ADMIN' || this.currentSession.role === 'CONTENT_MANAGER') {
       return true;
     }
@@ -163,6 +178,7 @@ class ManagementAuthService {
    * Các vai trò khác chỉ được truy cập workspace tương ứng.
    */
   public canAccessWorkspace(workspaceRole: UserRole): boolean {
+    if (!this.currentSession) return false;
     if (this.currentSession.role === 'ADMIN') return true;
     return this.currentSession.role === workspaceRole;
   }
@@ -170,8 +186,12 @@ class ManagementAuthService {
   /**
    * Reset về trạng thái mặc định (hữu ích cho testing)
    */
-  public reset(role: UserRole = 'ADMIN'): void {
-    this.currentSession = { ...DEFAULT_SESSIONS[role] };
+  public reset(role?: UserRole): void {
+    if (role && ((globalThis as any).process?.env?.NODE_ENV === 'test' || import.meta.env?.MODE === 'test')) {
+      this.currentSession = { ...DEFAULT_SESSIONS[role] };
+    } else {
+      this.currentSession = null;
+    }
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {
         window.sessionStorage.removeItem(STORAGE_KEY);

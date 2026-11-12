@@ -4,8 +4,6 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLearningState } from '../../learning';
-import { StudentSecondaryNav } from '../../../layouts/components/StudentSecondaryNav';
-import { STUDENT_MAIN_NAV_ITEMS } from '../../../config/student-navigation.config';
 import { BeginnerRoadmap } from '../components/BeginnerRoadmap';
 import { BeginnerGuidanceSection } from '../components/BeginnerGuidanceSection';
 import { HskCurriculumView } from '../components/HskCurriculumView';
@@ -17,7 +15,12 @@ export interface LearningPathProps {
 export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: customOpenLesson }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const currentMode = searchParams.get('mode') === 'hsk' ? 'hsk' : 'beginner';
+  const hasExplicitLevel = searchParams.has('level');
+  const currentMode =
+    searchParams.get('mode') === 'hsk' ||
+    (hasExplicitLevel && searchParams.get('mode') !== 'beginner')
+      ? 'hsk'
+      : 'beginner';
   const { startLesson } = useLearningState();
 
   const handleLessonAction = (lessonId: string) => {
@@ -31,12 +34,6 @@ export const LearningPathPage: React.FC<LearningPathProps> = ({ onOpenLesson: cu
 
   return (
     <div className="student-content-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Secondary Sub-navigation for Học HSK */}
-      <StudentSecondaryNav
-        title="Học HSK"
-        items={STUDENT_MAIN_NAV_ITEMS.find((i) => i.id === 'learning-path')?.secondaryFeatures || []}
-      />
-
       {/*
         NO MODE SWITCHER TAB HERE!
         As per FE-5.4 specs, the tab bar ("Người mới bắt đầu" / "Lộ trình HSK") has been removed completely.

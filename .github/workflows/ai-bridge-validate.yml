@@ -1,0 +1,62 @@
+name: AI Collaboration Bridge Validation
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'integration/**'
+    paths:
+      - '.ai-collaboration/**'
+      - 'scripts/ai_bridge/**'
+      - '.github/workflows/ai-bridge-validate.yml'
+      - 'requirements.txt'
+  pull_request:
+    paths:
+      - '.ai-collaboration/**'
+      - 'scripts/ai_bridge/**'
+      - '.github/workflows/ai-bridge-validate.yml'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-bridge:
+    name: Validate Bridge Protocol, Evidence & Self-Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate all protocol schemas and state files
+        run: |
+          python scripts/ai_bridge/validate_protocol.py all
+
+      - name: Verify QA Evidence Cross-Reference
+        run: |
+          python scripts/ai_bridge/verify_qa_evidence.py
+
+      - name: Run Bridge Acceptance & Evidence Regression Test Suite
+        run: |
+          python -m unittest discover -s scripts/ai_bridge/tests -p "test_*.py"
+
+      - name: Run Bridge CLI Status Check
+        run: |
+          python scripts/ai_bridge/bridge.py status

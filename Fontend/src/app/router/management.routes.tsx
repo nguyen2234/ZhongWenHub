@@ -2,7 +2,7 @@ import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { ManagementLayout } from '../../layouts/ManagementLayout';
 import { AdminDashboardPage } from '../../management/admin/pages/AdminDashboardPage';
-import { AdminModulePlannedPage } from '../../management/admin/pages/AdminModulePlannedPage';
+import { AdminOperationsPage } from '../../management/admin/pages/AdminOperationsPage';
 import {
   TeacherDashboardPage,
   TeacherClassesPage,
@@ -12,7 +12,11 @@ import {
 import { TeacherAIWorkspacePage } from '../../features/ai';
 import { SupportDashboardPage } from '../../management/support/pages/SupportDashboardPage';
 
-import { AdminUsersPage } from '../../management/admin/users/pages/AdminUsersPage';
+import {
+  AdminUsersPage,
+  AdminUserDetailPage,
+  AdminUserEditPage,
+} from '../../management/admin/users';
 import { AdminTeachersPage } from '../../management/admin/teachers/pages/AdminTeachersPage';
 import { AdminSupportStaffPage } from '../../management/admin/support-staff/pages/AdminSupportStaffPage';
 import { AdminRolesPage } from '../../management/admin/roles/pages/AdminRolesPage';
@@ -21,11 +25,13 @@ import { AdminCurriculumPage } from '../../management/admin/content/pages/AdminC
 import { AdminLessonEditorPage } from '../../management/admin/content/pages/AdminLessonEditorPage';
 import { AdminGrammarManagementPage } from '../../management/admin/content/pages/AdminGrammarManagementPage';
 import { AdminExerciseBankPage } from '../../management/admin/content/pages/AdminExerciseBankPage';
+import { AdminExamRepositoryPage } from '../../management/admin/content/pages/AdminExamRepositoryPage';
 import { ContentManagerDashboardPage } from '../../management/content-manager/pages/ContentManagerDashboardPage';
 import { ContentModerationPage } from '../../management/content-manager/pages/ContentModerationPage';
 import { ContentIssuesPage } from '../../management/content-manager/pages/ContentIssuesPage';
 import { ContentAuditHistoryPage } from '../../management/content-manager/pages/ContentAuditHistoryPage';
 import { ContentQualityMetricsPage } from '../../management/content-manager/pages/ContentQualityMetricsPage';
+import { VideoManagementPage } from '../../management/content-manager/pages/VideoManagementPage';
 import {
   ManagementRouteGuard,
   AdminLegacyContentRedirect,
@@ -35,7 +41,11 @@ import {
 export const managementRoutes: RouteObject[] = [
   {
     path: '/management',
-    element: <ManagementLayout />,
+    element: (
+      <ManagementRouteGuard requiredRole={['ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT']}>
+        <ManagementLayout />
+      </ManagementRouteGuard>
+    ),
     children: [
       {
         index: true,
@@ -62,6 +72,22 @@ export const managementRoutes: RouteObject[] = [
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
                 <AdminUsersPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'users/:id',
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminUserDetailPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'users/:id/edit',
+            element: (
+              <ManagementRouteGuard requiredRole="ADMIN">
+                <AdminUserEditPage />
               </ManagementRouteGuard>
             ),
           },
@@ -95,9 +121,13 @@ export const managementRoutes: RouteObject[] = [
             path: 'ai-management',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="ai-management" />
+                <AdminOperationsPage kind="ai-management" />
               </ManagementRouteGuard>
             ),
+          },
+          {
+            path: 'ai',
+            element: <Navigate to="/management/admin/ai-management" replace />,
           },
 
           // 3. Vận hành & Hệ thống
@@ -105,7 +135,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'analytics',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="analytics" />
+                <AdminOperationsPage kind="analytics" />
               </ManagementRouteGuard>
             ),
           },
@@ -113,7 +143,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'support-requests',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="support-requests" />
+                <AdminOperationsPage kind="support-requests" />
               </ManagementRouteGuard>
             ),
           },
@@ -121,9 +151,13 @@ export const managementRoutes: RouteObject[] = [
             path: 'settings',
             element: (
               <ManagementRouteGuard requiredRole="ADMIN">
-                <AdminModulePlannedPage moduleKey="settings" />
+                <AdminOperationsPage kind="settings" />
               </ManagementRouteGuard>
             ),
+          },
+          {
+            path: 'system',
+            element: <Navigate to="/management/admin/settings" replace />,
           },
 
           // 4. Safe Redirects for Legacy Content Routes (FE-12 Strict Separation)
@@ -148,6 +182,10 @@ export const managementRoutes: RouteObject[] = [
           {
             path: 'exercises',
             element: <AdminLegacyContentRedirect targetPath="/management/content-manager/question-bank" />,
+          },
+          {
+            path: 'exams',
+            element: <AdminLegacyContentRedirect targetPath="/management/content-manager/exams" />,
           },
           {
             path: 'videos',
@@ -259,7 +297,7 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'lesson-editor',
-            element: <Navigate to="/management/content-manager/curriculum/lessons/les-8/edit" replace />,
+            element: <Navigate to="/management/content-manager/curriculum" replace />,
           },
           {
             path: 'grammar',
@@ -278,6 +316,14 @@ export const managementRoutes: RouteObject[] = [
             ),
           },
           {
+            path: 'exams',
+            element: (
+              <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
+                <AdminExamRepositoryPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
             path: 'exercises',
             element: <Navigate to="/management/content-manager/question-bank" replace />,
           },
@@ -285,7 +331,7 @@ export const managementRoutes: RouteObject[] = [
             path: 'videos',
             element: (
               <ManagementRouteGuard requiredRole={['CONTENT_MANAGER', 'ADMIN']}>
-                <AdminModulePlannedPage moduleKey="videos" />
+                <VideoManagementPage />
               </ManagementRouteGuard>
             ),
           },
@@ -336,6 +382,14 @@ export const managementRoutes: RouteObject[] = [
           },
           {
             path: 'dashboard',
+            element: (
+              <ManagementRouteGuard requiredRole={['SUPPORT', 'ADMIN']}>
+                <SupportDashboardPage />
+              </ManagementRouteGuard>
+            ),
+          },
+          {
+            path: 'tickets',
             element: (
               <ManagementRouteGuard requiredRole={['SUPPORT', 'ADMIN']}>
                 <SupportDashboardPage />

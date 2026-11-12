@@ -64,9 +64,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
   const showCheckedFeedback = !isExam && Boolean(hasChecked);
   const capability = isExerciseTypeSupported(exercise.type);
 
-  const handlePlayAudio = () => {
-    setIsPlayingAudio(true);
-    // Simulating speech synthesis
+  const playSpeechSynthesisFallback = () => {
     if ('speechSynthesis' in window && exercise.promptHanzi) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(exercise.promptHanzi);
@@ -78,6 +76,22 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
     } else {
       setTimeout(() => setIsPlayingAudio(false), 1200);
     }
+  };
+
+  const handlePlayAudio = () => {
+    setIsPlayingAudio(true);
+    if (exercise.audioUrl) {
+      const base = (import.meta.env?.BASE_URL || '/').replace(/\/$/, '');
+      const resolvedUrl = exercise.audioUrl.startsWith('http')
+        ? exercise.audioUrl
+        : `${base}/${exercise.audioUrl.replace(/^\//, '')}`;
+      const audio = new Audio(resolvedUrl);
+      audio.onended = () => setIsPlayingAudio(false);
+      audio.onerror = () => playSpeechSynthesisFallback();
+      audio.play().catch(() => playSpeechSynthesisFallback());
+      return;
+    }
+    playSpeechSynthesisFallback();
   };
 
   // Prepare AI Context (practice mode only)
@@ -106,11 +120,19 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
     lessonId: exercise.lessonId,
   };
 
+  const useTokenBuilder =
+    exercise.type === 'sentence-order' &&
+    Array.isArray(exercise.sentenceTokens) &&
+    exercise.sentenceTokens.length > 0 &&
+    (!exercise.options || exercise.options.length === 0);
+
   const isFreeTextType =
     (!exercise.options || exercise.options.length === 0) &&
+    !useTokenBuilder &&
     (exercise.type === 'fill-blank' ||
       exercise.type === 'chinese-to-vietnamese' ||
-      exercise.type === 'vietnamese-to-chinese');
+      exercise.type === 'vietnamese-to-chinese' ||
+      exercise.type === 'sentence-order');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%' }}>
@@ -388,7 +410,7 @@ export const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({
       )}
 
       {/* 4. Sentence Order Tokens Builder */}
-      {exercise.type === 'sentence-order' && (
+      {useTokenBuilder && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {/* Assembled sentence drop area */}
           <div

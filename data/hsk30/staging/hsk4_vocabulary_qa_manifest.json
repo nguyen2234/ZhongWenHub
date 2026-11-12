@@ -1,0 +1,138 @@
+{
+  "curriculumLevel": "HSK 4",
+  "totalWords": 1000,
+  "totalLessons": 20,
+  "wordsPerLesson": 50,
+  "coverageRate": 1.0,
+  "humanReviewStatus": "PENDING_HUMAN_EXPERT_SIGN_OFF",
+  "linguisticAuditPassed": true,
+  "dictionaryTrapsFixed": [
+    {
+      "word": "汗",
+      "lesson": 13,
+      "trap": "definition trap 'xem 可汗' -> 'mồ hôi'",
+      "status": "FIXED"
+    },
+    {
+      "word": "满",
+      "lesson": 14,
+      "trap": "definition trap 'dân tộc Mãn Châu' -> 'đầy, tràn đầy, đủ'",
+      "status": "FIXED"
+    },
+    {
+      "word": "趟",
+      "lesson": 14,
+      "trap": "definition trap 'lội; giẫm; đảo đất' -> 'chuyến, lượt (lượng từ)'",
+      "status": "FIXED"
+    },
+    {
+      "word": "高考",
+      "lesson": 14,
+      "trap": "definition trap 'kỳ thi công chức Đài Loan' -> 'kỳ thi đại học toàn quốc'",
+      "status": "FIXED"
+    },
+    {
+      "word": "重",
+      "lesson": 15,
+      "trap": "polyphone trap 'lặp lại' -> 'nặng, quan trọng, coi trọng' (zhòng)",
+      "status": "FIXED"
+    },
+    {
+      "word": "数",
+      "lesson": 15,
+      "trap": "polyphone trap 'đếm (shǔ)' -> 'con số, số lượng (shù)'",
+      "status": "FIXED"
+    },
+    {
+      "word": "汤",
+      "lesson": 16,
+      "trap": "definition trap 'dòng nước cuồn cuộn' -> 'canh, súp, nước dùng'",
+      "status": "FIXED"
+    },
+    {
+      "word": "重",
+      "lesson": 16,
+      "trap": "polyphone correctly distinguished as chóng ('lại, làm lại lần nữa')",
+      "status": "FIXED"
+    },
+    {
+      "word": "生意",
+      "lesson": 17,
+      "trap": "definition trap 'sinh lực; sức sống' -> 'kinh doanh, buôn bán, làm ăn'",
+      "status": "FIXED"
+    },
+    {
+      "word": "证",
+      "lesson": 17,
+      "trap": "definition trap 'khiển trách' -> 'chứng minh thư, giấy chứng nhận, bằng chứng'",
+      "status": "FIXED"
+    },
+    {
+      "word": "顿",
+      "lesson": 17,
+      "trap": "definition trap 'dừng; tạm dừng' -> 'bữa, trận, chầu (lượng từ)'",
+      "status": "FIXED"
+    },
+    {
+      "word": "重点",
+      "lesson": 18,
+      "trap": "definition trap 'kể lại kết quả bầu cử' -> 'trọng điểm, điểm mấu chốt, cốt lõi'",
+      "status": "FIXED"
+    },
+    {
+      "word": "凉",
+      "lesson": 19,
+      "trap": "definition trap 'năm nước Lương thời Thập lục quốc' -> 'mát mẻ, mát lạnh; nguội'",
+      "status": "FIXED"
+    },
+    {
+      "word": "底",
+      "lesson": 19,
+      "trap": "definition trap 'tương đương với 的' -> 'đáy, phần dưới; cuối (tháng/năm)'",
+      "status": "FIXED"
+    },
+    {
+      "word": "树林",
+      "lesson": 20,
+      "trap": "definition trap 'Thụ Lâm Đài Loan' -> 'rừng cây, lùm cây, khu rừng'",
+      "status": "FIXED"
+    },
+    {
+      "word": "帅",
+      "lesson": 20,
+      "trap": "definition trap 'tổng tư lệnh' -> 'đẹp trai, bảnh bao, tuấn tú'",
+      "status": "FIXED"
+    }
+  ],
+  "validationSummary": {
+    "pinyinTonesVerified": true,
+    "toneSandhiCompliant": true,
+    "sentenceLengthMin": 15,
+    "sentenceLengthMax": 65,
+    "vietnameseTranslationNatural": true,
+    "zeroEmptyExamples": true,
+    "uniqueDevIdsCount": 1000,
+    "allLessonsCovered": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  }
+}

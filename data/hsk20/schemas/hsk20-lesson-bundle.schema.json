@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhongwenhub.local/schemas/hsk20-lesson-bundle.schema.json",
+  "title": "ZhongWenHub HSK 2.0 Lesson Data Standard",
+  "description": "Backward-compatible canonical JSON Schema for HSK 1-4 (HSK 2.0) curriculum entities and embedded JSON payloads.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "curriculumStandard",
+    "course",
+    "lesson",
+    "vocabularies",
+    "grammars",
+    "dialogue",
+    "exercises",
+    "sourceMetadata"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "curriculumStandard": {
+      "type": "string",
+      "const": "HSK_2_0"
+    },
+    "course": { "$ref": "#/$defs/Course" },
+    "lesson": { "$ref": "#/$defs/Lesson" },
+    "vocabularies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Vocabulary" }
+    },
+    "grammars": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Grammar" }
+    },
+    "dialogue": { "$ref": "#/$defs/Dialogue" },
+    "readingPassage": {
+      "oneOf": [
+        { "$ref": "#/$defs/ReadingPassage" },
+        { "type": "null" }
+      ]
+    },
+    "listening": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Listening" }
+    },
+    "exercises": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Exercise" }
+    },
+    "quizzes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Quiz" }
+    },
+    "sourceMetadata": { "$ref": "#/$defs/SourceMetadata" }
+  },
+  "$defs": {
+    "ReviewStatus": {
+      "type": "string",
+      "enum": [
+        "VERIFIED_PUBLISHED",
+        "VERIFIED",
+        "EDITORIAL_VERIFIED",
+        "AI_GENERATED_NEEDS_ACADEMIC_REVIEW",
+        "AI_ASSISTED_UNVERIFIED",
+        "PENDING_EDITORIAL_REVIEW",
+        "UNVERIFIED_SOURCE",
+        "DRAFT"
+      ]
+    },
+    "SourceMetadata": {
+      "type": "object",
+      "required": [
+        "sourceId",
+        "sourceVersion",
+        "curriculumStandard",
+        "reviewStatus",
+        "academicApproved"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1 },
+        "sourceVersion": { "type": "string", "minLength": 1 },
+        "curriculumStandard": { "type": "string", "const": "HSK_2_0" },
+        "reviewStatus": { "$ref": "#/$defs/ReviewStatus" },
+        "academicApproved": { "type": "boolean" },
+        "sourceDataset": { "type": ["string", "null"] },
+        "notes": { "type": ["string", "null"] }
+      }
+    },
+    "Course": {
+      "type": "object",
+      "required": ["id", "code", "title", "hskLevel", "status", "orderIndex"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "code": { "type": "string", "enum": ["HSK1", "HSK2", "HSK3", "HSK4"] },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": ["string", "null"] },
+        "hskLevel": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "status": { "type": "string", "enum": ["PUBLISHED", "DRAFT", "ARCHIVED"] },
+        "orderIndex": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Lesson": {
+      "type": "object",
+      "required": ["id", "courseId", "lessonNumber", "titleZh", "titleVi", "status", "orderIndex"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "courseId": { "type": "string", "minLength": 1 },
+        "unitId": { "type": ["string", "null"] },
+        "lessonNumber": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "titleZh": { "type": "string", "minLength": 1 },
+        "titleVi": { "type": "string", "minLength": 1 },
+        "pinyin": { "type": ["string", "null"] },
+        "summary": { "type": ["string", "null"] },
+        "status": { "type": "string", "enum": ["PUBLISHED", "DRAFT", "PENDING_REVIEW", "ARCHIVED"] },
+        "orderIndex": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Vocabulary": {
+      "type": "object",
+      "required": ["id", "hanzi", "pinyin", "meaningVi", "hskLevel", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": ["string", "null"] },
+        "hanzi": { "type": "string", "minLength": 1 },
+        "pinyin": { "type": "string", "minLength": 1 },
+        "meaningVi": { "type": "string", "minLength": 1 },
+        "hskLevel": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "status": { "type": "string", "minLength": 1 },
+        "sourceDataset": { "type": ["string", "null"] },
+        "sourceEntryId": { "type": ["string", "null"] }
+      }
+    },
+    "Grammar": {
+      "type": "object",
+      "required": ["id", "lessonId", "title", "structure", "explanation", "hskLevel", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "structure": { "type": "string", "minLength": 1 },
+        "explanation": { "type": "string", "minLength": 1 },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["zh", "pinyin", "vi"],
+            "properties": {
+              "zh": { "type": "string", "minLength": 1 },
+              "pinyin": { "type": "string", "minLength": 1 },
+              "vi": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "hskLevel": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "status": { "type": "string", "minLength": 1 }
+      }
+    },
+    "DialogueLine": {
+      "type": "object",
+      "required": ["id", "speakerName", "zh", "pinyin", "meaningVi", "displayOrder"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "speakerName": { "type": "string", "minLength": 1 },
+        "speakerRole": { "type": ["string", "null"] },
+        "zh": { "type": "string", "minLength": 1 },
+        "pinyin": { "type": "string", "minLength": 1 },
+        "meaningVi": { "type": "string", "minLength": 1 },
+        "audioUrl": { "type": ["string", "null"] },
+        "displayOrder": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Dialogue": {
+      "type": "object",
+      "required": ["id", "lessonId", "title", "lines"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "topic": { "type": ["string", "null"] },
+        "audioUrl": { "type": ["string", "null"] },
+        "editorialReviewStatus": { "$ref": "#/$defs/ReviewStatus" },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/DialogueLine" }
+        }
+      }
+    },
+    "ReadingSentence": {
+      "type": "object",
+      "required": ["zh", "pinyin", "vi"],
+      "additionalProperties": false,
+      "properties": {
+        "zh": { "type": "string", "minLength": 1 },
+        "pinyin": { "type": "string", "minLength": 1 },
+        "vi": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ReadingQuestion": {
+      "type": "object",
+      "required": ["questionZh", "questionVi", "options", "correctIndex", "explanation"],
+      "additionalProperties": true,
+      "properties": {
+        "questionZh": { "type": "string", "minLength": 1 },
+        "questionPinyin": { "type": ["string", "null"] },
+        "questionVi": { "type": "string", "minLength": 1 },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "optionsPinyin": {
+          "type": ["array", "null"],
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "optionsVi": {
+          "type": ["array", "null"],
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "correctIndex": { "type": "integer", "minimum": 0 },
+        "explanation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ReadingPassage": {
+      "type": "object",
+      "required": [
+        "unitNumber",
+        "lessonNumber",
+        "titleZh",
+        "titleVi",
+        "passageZh",
+        "passagePinyin",
+        "passageVi",
+        "comprehensionQuestions"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "unitNumber": { "type": "integer", "minimum": 1 },
+        "lessonNumber": { "type": "integer", "minimum": 1 },
+        "titleZh": { "type": "string", "minLength": 1 },
+        "titleVi": { "type": "string", "minLength": 1 },
+        "passageZh": { "type": "string", "minLength": 1 },
+        "passagePinyin": { "type": "string", "minLength": 1 },
+        "passageVi": { "type": "string", "minLength": 1 },
+        "sentences": {
+          "type": ["array", "null"],
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ReadingSentence" }
+        },
+        "targetWords": { "type": "array", "items": { "type": "string" } },
+        "targetGrammar": { "type": "array", "items": { "type": "string" } },
+        "comprehensionQuestions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ReadingQuestion" }
+        }
+      }
+    },
+    "ListeningOption": {
+      "type": "object",
+      "required": ["id", "text", "isCorrect"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string", "minLength": 1 },
+        "isCorrect": { "type": "boolean" }
+      }
+    },
+    "Listening": {
+      "type": "object",
+      "required": [
+        "id",
+        "lessonId",
+        "title",
+        "transcriptZh",
+        "transcriptPinyin",
+        "transcriptVi",
+        "prompt",
+        "options",
+        "explanation"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "questionType": { "type": ["string", "null"] },
+        "audioUrl": { "type": ["string", "null"] },
+        "editorialReviewStatus": { "$ref": "#/$defs/ReviewStatus" },
+        "transcriptZh": { "type": "string", "minLength": 1 },
+        "transcriptPinyin": { "type": "string", "minLength": 1 },
+        "transcriptVi": { "type": "string", "minLength": 1 },
+        "prompt": { "type": "string", "minLength": 1 },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/ListeningOption" }
+        },
+        "explanation": { "type": "string", "minLength": 1 },
+        "displayOrder": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "Exercise": {
+      "type": "object",
+      "required": ["id", "lessonId", "type", "skill", "hskLevel", "status"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "skill": { "type": "string", "minLength": 1 },
+        "hskLevel": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "promptHanzi": { "type": ["string", "null"] },
+        "promptPinyin": { "type": ["string", "null"] },
+        "promptVietnamese": { "type": ["string", "null"] },
+        "options": { "type": ["array", "null"], "items": { "type": "string" } },
+        "correctOptionIndex": { "type": ["integer", "null"], "minimum": 0 },
+        "correctAnswer": { "type": ["string", "null"] },
+        "explanation": { "type": ["string", "null"] },
+        "status": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Quiz": {
+      "type": "object",
+      "required": ["id", "title", "hskLevel", "questions"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lessonId": { "type": ["string", "null"] },
+        "title": { "type": "string", "minLength": 1 },
+        "hskLevel": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/Exercise" }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,140 @@
+{
+  "1": {
+    "lessonNumber": 1,
+    "id": "AAAAAAAA-1111-1111-1111-111111111111",
+    "titleZh": "你好",
+    "titleVi": "Chào bạn",
+    "listeningJsonBefore": [
+      {
+        "id": "list-AAAAAAAA-1111-1111-1111-111111111111-1",
+        "lessonId": "AAAAAAAA-1111-1111-1111-111111111111",
+        "title": "Luyện nghe hiểu bài 1 - Nghe chọn phản hồi phù hợp",
+        "questionType": "RESPONSE",
+        "questionTypeName": "Nghe chọn phản hồi phù hợp",
+        "audioUrl": "/audio/hsk1/les1_listening.mp3",
+        "audioStatus": "GENERATED",
+        "editorialReviewStatus": "VERIFIED_PUBLISHED",
+        "transcriptZh": "你好！ 你好！很高兴认识你。 你是老师吗？ 我不是老师，我是学生。",
+        "transcriptPinyin": "Nǐ hǎo! Nǐ hǎo! Hěn gāoxìng rènshi nǐ. Nǐ shì lǎoshī ma? Wǒ bú shì lǎoshī, wǒ shì xuésheng.",
+        "transcriptVi": "Chào bạn! Chào bạn! Rất vui được quen biết bạn. Bạn có phải là giáo viên không? Tôi không phải là giáo viên, tôi là học sinh.",
+        "prompt": "在听完第一位说话人的阐述后，第二位说话人做出的最得体回应是什么？ (Sau khi nghe phần trình bày, phản hồi thỏa đáng nhất của người nói thứ hai là gì?)",
+        "options": [
+          {
+            "id": 0,
+            "text": "肯定对方的看法，并结合实际提出支持性建议 (Khẳng định quan điểm của đối phương và đưa ra đề xuất mang tính hỗ trợ)",
+            "isCorrect": true
+          },
+          {
+            "id": 1,
+            "text": "直接打断对方并要求立刻更换谈话主题 (Trực tiếp ngắt lời đối phương và yêu cầu đổi chủ đề ngay lập tức)",
+            "isCorrect": false
+          },
+          {
+            "id": 2,
+            "text": "对所有内容保持沉默不予任何回应 (Giữ im lặng hoàn toàn không đưa ra phản hồi nào)",
+            "isCorrect": false
+          },
+          {
+            "id": 3,
+            "text": "指责对方提出的方案缺乏现实可行性 (Chỉ trích phương án của đối phương thiếu tính khả thi thực tế)",
+            "isCorrect": false
+          }
+        ],
+        "explanation": "Người nói thứ hai lắng nghe và phản hồi tích cực bằng cách bổ sung chi tiết hợp lý cho đề xuất 'Chào bạn'. Phương án A là đáp án chính xác.",
+        "displayOrder": 1
+      }
+    ]
+  },
+  "2": {
+    "lessonNumber": 2,
+    "id": "AAAAAAAA-2222-2222-2222-222222222222",
+    "titleZh": "谢谢你",
+    "titleVi": "Cảm ơn bạn",
+    "listeningJsonBefore": [
+      {
+        "id": "list-AAAAAAAA-2222-2222-2222-222222222222-1",
+        "lessonId": "AAAAAAAA-2222-2222-2222-222222222222",
+        "title": "Luyện nghe hiểu bài 2 - Nghe xác định trình tự sự kiện",
+        "questionType": "SEQUENCE",
+        "questionTypeName": "Nghe xác định trình tự sự kiện",
+        "audioUrl": "/audio/hsk1/les2_listening.mp3",
+        "audioStatus": "GENERATED",
+        "editorialReviewStatus": "VERIFIED_PUBLISHED",
+        "transcriptZh": "谢谢你帮我借书！ 不客气，这是我应该做的。 明天下午你来我家喝茶吗？ 太好了，明天见！再见！",
+        "transcriptPinyin": "Xièxie nǐ bāng wǒ jiè shū! Bú kèqi, zhè shì wǒ yīnggāi zuò de. Míngtiān xiàwǔ nǐ lái wǒ jiā hē chá ma? Tài hǎo le, míngtiān jiàn! Zàijiàn!",
+        "transcriptVi": "Cảm ơn bạn đã giúp tôi mượn sách! Đừng khách sáo, đây là việc tôi nên làm mà. Chiều mai bạn đến nhà tôi uống trà nhé? Tuyệt quá, ngày mai gặp nhé! Tạm biệt!",
+        "prompt": "根据对话内容，说话人接下来首先要做的事情是什么？ (Theo nội dung hội thoại, việc đầu tiên người nói sẽ làm tiếp theo là gì?)",
+        "options": [
+          {
+            "id": 0,
+            "text": "按照商定的时间和方案推进'谢谢你'的相关准备 (Tiến hành khâu chuẩn bị liên quan đến 'Cảm ơn bạn' theo thời gian đã thống nhất)",
+            "isCorrect": true
+          },
+          {
+            "id": 1,
+            "text": "立刻离开现场去处理私人的紧急事务 (Rời khỏi hiện trường ngay để giải quyết việc riêng khẩn cấp)",
+            "isCorrect": false
+          },
+          {
+            "id": 2,
+            "text": "重新起草一份完全不同的替代方案 (Dự thảo lại một phương án thay thế hoàn toàn khác)",
+            "isCorrect": false
+          },
+          {
+            "id": 3,
+            "text": "等待上级领导的进一步指示再做决定 (Chờ chỉ thị tiếp theo của cấp trên mới đưa ra quyết định)",
+            "isCorrect": false
+          }
+        ],
+        "explanation": "Ở lượt lời cuối cùng, hai nhân vật đã chốt thời gian và bước chuẩn bị cụ thể cho 'Cảm ơn bạn'. Phương án A phản ánh đúng trình tự sự kiện.",
+        "displayOrder": 1
+      }
+    ]
+  },
+  "3": {
+    "lessonNumber": 3,
+    "id": "AAAAAAAA-3333-3333-3333-333333333333",
+    "titleZh": "你叫什么名字",
+    "titleVi": "Bạn tên là gì",
+    "listeningJsonBefore": [
+      {
+        "id": "list-AAAAAAAA-3333-3333-3333-333333333333-1",
+        "lessonId": "AAAAAAAA-3333-3333-3333-333333333333",
+        "title": "Luyện nghe hiểu bài 3 - Nghe tìm thông tin chi tiết",
+        "questionType": "DETAIL",
+        "questionTypeName": "Nghe tìm thông tin chi tiết",
+        "audioUrl": "/audio/hsk1/les3_listening.mp3",
+        "audioStatus": "GENERATED",
+        "editorialReviewStatus": "VERIFIED_PUBLISHED",
+        "transcriptZh": "你好，请问你叫什么名字？ 我叫玛丽。你也是留学生吗？ 是的，我叫大卫，来自美国。 很高兴认识你，大卫！",
+        "transcriptPinyin": "Nǐ hǎo, qǐngwèn nǐ jiào shénme míngzi? Wǒ jiào Mǎlì. Nǐ yě shì liúxuéshēng ma? Shì de, wǒ jiào Dàwèi, láizì Měiguó. Hěn gāoxìng rènshi nǐ, Dàwèi!",
+        "transcriptVi": "Xin chào, cho hỏi bạn tên là gì? Tôi tên là Mary. Bạn cũng là lưu học sinh à? Đúng vậy, tôi tên David, đến từ Mỹ. Rất vui được làm quen với bạn, David!",
+        "prompt": "根据听到的内容，关于“你叫什么名字”，说话人提到的具体安排或关键信息是什么？ (Theo nội dung nghe được, thông tin chi tiết được người nói nhắc tới là gì?)",
+        "options": [
+          {
+            "id": 0,
+            "text": "双方就'你叫什么名字'达成了明确的共识并确定了下一步行动 (Hai bên đạt được đồng thuận rõ ràng về 'Bạn tên là gì')",
+            "isCorrect": true
+          },
+          {
+            "id": 1,
+            "text": "双方因意见分歧而取消了关于'你叫什么名字'的原定计划 (Hai bên hủy bỏ kế hoạch do bất đồng ý kiến)",
+            "isCorrect": false
+          },
+          {
+            "id": 2,
+            "text": "第一位说话人完全不了解关于'你叫什么名字'的相关背景 (Người nói thứ nhất hoàn toàn không biết thông tin)",
+            "isCorrect": false
+          },
+          {
+            "id": 3,
+            "text": "谈话双方正在讨论与'你叫什么名字'完全相反的其他事件 (Hai bên đang thảo luận sự việc hoàn toàn trái ngược)",
+            "isCorrect": false
+          }
+        ],
+        "explanation": "Căn cứ chi tiết trong đoạn thoại, hai nhân vật trao đổi cụ thể về kế hoạch 'Bạn tên là gì' và xác nhận hành động tiếp theo. Phương án A là đáp án chính xác nhất.",
+        "displayOrder": 1
+      }
+    ]
+  }
+}

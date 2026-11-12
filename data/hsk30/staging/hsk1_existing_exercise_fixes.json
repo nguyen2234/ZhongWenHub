@@ -1,0 +1,368 @@
+{
+  "version": "1.0",
+  "phase": "9.1D",
+  "description": "Comprehensive pedagogical fixes for 14 placeholder exercises",
+  "totalFixes": 14,
+  "payloadSha256": "0a61599da5c86126c20dc7b35d067a799786f1cbcd6d1da407fbf9f8bbff8184",
+  "fixes": [
+    {
+      "exerciseId": "DF94D5E6-83B4-4C62-9E15-8F2D171D4F4A",
+      "lessonNumber": 2,
+      "lessonTitle": "谢谢你",
+      "title": "Luyện tập từ vựng: 谢谢你",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho cụm từ \"谢谢你\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Cảm ơn bạn",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Cảm ơn bạn",
+        "Xin lỗi bạn",
+        "Tạm biệt bạn",
+        "Không có chi"
+      ],
+      "originalCorrectAnswer": "Cảm ơn bạn",
+      "proposedCorrectAnswer": "Cảm ơn bạn",
+      "correctOptionIndex": 0,
+      "explanation": "谢谢 (xièxie) nghĩa là 'cảm ơn', '谢谢你' là 'cảm ơn bạn'.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "24381C58-31D5-4CB4-8F97-720872CA9534",
+      "lessonNumber": 3,
+      "lessonTitle": "你叫什么名字",
+      "title": "Điền từ hỏi tên: 你叫______名字？",
+      "instruction": "Chọn đại từ nghi vấn thích hợp điền vào chỗ trống",
+      "type": "multiple-choice",
+      "originalOptions": null,
+      "proposedOptions": [
+        "什么 (shénme)",
+        "谁 (shéi)",
+        "哪儿 (nǎr)",
+        "几 (jǐ)"
+      ],
+      "originalCorrectAnswer": "什么",
+      "proposedCorrectAnswer": "什么 (shénme)",
+      "correctOptionIndex": 0,
+      "explanation": "Trong tiếng Trung, mẫu câu hỏi tên chuẩn là '你叫什么名字？' (Bạn tên là gì?). '什么' (shénme) có nghĩa là 'cái gì / gì'.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "3950EA47-3472-4AFB-84BA-D2A820B0F58C",
+      "lessonNumber": 4,
+      "lessonTitle": "他是我的汉语老师",
+      "title": "Luyện tập từ vựng: 他是我的汉语老师",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"他是我的汉语老师\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Thầy ấy là giáo viên tiếng Trung của tôi",
+        "Thầy ấy là bạn cùng lớp của tôi",
+        "Tôi là giáo viên tiếng Trung của thầy ấy",
+        "Thầy ấy không phải là người Trung Quốc"
+      ],
+      "originalCorrectAnswer": "Thầy ấy là giáo viên tiếng Trung của tôi (Bản thảo)",
+      "proposedCorrectAnswer": "Thầy ấy là giáo viên tiếng Trung của tôi",
+      "correctOptionIndex": 0,
+      "explanation": "'他是' (thầy ấy là) + '我的汉语老师' (giáo viên tiếng Trung của tôi).",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "6BD31A3F-2393-412B-9156-099020667D27",
+      "lessonNumber": 5,
+      "lessonTitle": "我想喝茶",
+      "title": "Luyện tập từ vựng: 我想喝茶",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"我想喝茶\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Tôi muốn uống trà",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Tôi muốn uống trà",
+        "Tôi muốn ăn cơm",
+        "Tôi muốn uống nước",
+        "Tôi không thích uống trà"
+      ],
+      "originalCorrectAnswer": "Tôi muốn uống trà",
+      "proposedCorrectAnswer": "Tôi muốn uống trà",
+      "correctOptionIndex": 0,
+      "explanation": "'想' (xiǎng) là muốn, '喝' (hē) là uống, '茶' (chá) là trà -> '我想喝茶' là 'Tôi muốn uống trà'.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "749CD1AA-8B88-4B27-8510-9E947B8EB0A3",
+      "lessonNumber": 6,
+      "lessonTitle": "你在做什么呢",
+      "title": "Luyện tập từ vựng: 你在做什么呢",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"你在做什么呢\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Bạn đang làm gì thế",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Bạn đang làm gì thế",
+        "Bạn đang đi đâu thế",
+        "Bạn đã làm xong chưa",
+        "Bạn có biết làm không"
+      ],
+      "originalCorrectAnswer": "Bạn đang làm gì thế",
+      "proposedCorrectAnswer": "Bạn đang làm gì thế",
+      "correctOptionIndex": 0,
+      "explanation": "Phó từ '在' kết hợp với trợ từ ngữ khí '呢' biểu thị hành động đang diễn ra -> '你在做什么呢' là 'Bạn đang làm gì thế'.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "96A6C109-08B6-4846-84D3-BD61BDCD7F36",
+      "lessonNumber": 7,
+      "lessonTitle": "今天星期几",
+      "title": "Luyện tập từ vựng: 今天星期几",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"今天星期几\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Hôm nay là thứ mấy",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Hôm nay là thứ mấy",
+        "Hôm nay là ngày mấy",
+        "Hôm nay là tháng mấy",
+        "Bây giờ là mấy giờ"
+      ],
+      "originalCorrectAnswer": "Hôm nay là thứ mấy",
+      "proposedCorrectAnswer": "Hôm nay là thứ mấy",
+      "correctOptionIndex": 0,
+      "explanation": "'今天' (hôm nay) + '星期几' (thứ mấy) dùng để hỏi các thứ trong tuần.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "B710E9A8-AACF-4659-95BA-8212635EE9E2",
+      "lessonNumber": 8,
+      "lessonTitle": "明天天气怎么样",
+      "title": "Luyện tập từ vựng: 明天天气怎么样",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"明天天气怎么样\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Thời tiết ngày mai thế nào",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Thời tiết ngày mai thế nào",
+        "Hôm nay trời có mưa không",
+        "Ngày mai bạn có đi không",
+        "Thời tiết hôm nay rất lạnh"
+      ],
+      "originalCorrectAnswer": "Thời tiết ngày mai thế nào",
+      "proposedCorrectAnswer": "Thời tiết ngày mai thế nào",
+      "correctOptionIndex": 0,
+      "explanation": "'明天' (ngày mai) + '天气' (thời tiết) + '怎么样' (thế nào) dùng để hỏi tình hình thời tiết.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "033B5803-1CD4-42B8-A60F-7CD91DB484E4",
+      "lessonNumber": 9,
+      "lessonTitle": "现在几点",
+      "title": "Luyện tập từ vựng: 现在几点",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"现在几点\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Bây giờ là mấy giờ",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Bây giờ là mấy giờ",
+        "Hôm nay là thứ mấy",
+        "Bao giờ bạn đi",
+        "Bạn mấy tuổi rồi"
+      ],
+      "originalCorrectAnswer": "Bây giờ là mấy giờ",
+      "proposedCorrectAnswer": "Bây giờ là mấy giờ",
+      "correctOptionIndex": 0,
+      "explanation": "'现在' (bây giờ) + '几点' (mấy giờ) là câu hỏi giờ thông dụng nhất trong tiếng Trung.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "F8C1BC55-E4C7-4705-A04D-C5453F4F60AB",
+      "lessonNumber": 10,
+      "lessonTitle": "我星期一去北京",
+      "title": "Luyện tập từ vựng: 我星期一去北京",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"我星期一去北京\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Thứ hai tôi đi Bắc Kinh",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Thứ hai tôi đi Bắc Kinh",
+        "Chủ nhật tôi về nhà",
+        "Thứ hai bạn có đi Bắc Kinh không",
+        "Tôi đi Bắc Kinh cùng bạn bè"
+      ],
+      "originalCorrectAnswer": "Thứ hai tôi đi Bắc Kinh",
+      "proposedCorrectAnswer": "Thứ hai tôi đi Bắc Kinh",
+      "correctOptionIndex": 0,
+      "explanation": "'我' (tôi) + '星期一' (thứ hai) + '去北京' (đi Bắc Kinh).",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "F58912DB-CB4F-437B-B9E3-EF5AAEC86927",
+      "lessonNumber": 11,
+      "lessonTitle": "这个苹果多少钱",
+      "title": "Luyện tập từ vựng: 这个苹果多少钱",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"这个苹果多少钱\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Quả táo này bao nhiêu tiền",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Quả táo này bao nhiêu tiền",
+        "Quả táo này rất ngon",
+        "Bạn muốn mua bao nhiêu táo",
+        "Quả dưa hấu này bao nhiêu tiền"
+      ],
+      "originalCorrectAnswer": "Quả táo này bao nhiêu tiền",
+      "proposedCorrectAnswer": "Quả táo này bao nhiêu tiền",
+      "correctOptionIndex": 0,
+      "explanation": "'这个苹果' (quả táo này) + '多少钱' (bao nhiêu tiền) dùng để hỏi giá cả khi mua sắm.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "B6225DA8-993B-4313-8846-E315F41B6A69",
+      "lessonNumber": 12,
+      "lessonTitle": "你去哪儿买东西",
+      "title": "Luyện tập từ vựng: 你去哪儿买东西",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"你去哪儿买东西\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Bạn đi đâu mua đồ",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Bạn đi đâu mua đồ",
+        "Bạn muốn mua cái gì",
+        "Cửa hàng ở đâu",
+        "Bạn mua bao nhiêu đồ"
+      ],
+      "originalCorrectAnswer": "Bạn đi đâu mua đồ",
+      "proposedCorrectAnswer": "Bạn đi đâu mua đồ",
+      "correctOptionIndex": 0,
+      "explanation": "'你去哪儿' (bạn đi đâu) + '买东西' (mua sắm đồ đạc).",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "162DE195-6EF9-4679-8CA8-9397204F770E",
+      "lessonNumber": 13,
+      "lessonTitle": "他在学校前面",
+      "title": "Luyện tập từ vựng: 他在学校前面",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"他在学校前面\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Anh ấy ở phía trước trường học",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Anh ấy ở phía trước trường học",
+        "Anh ấy ở phía sau trường học",
+        "Anh ấy đang ở trong trường học",
+        "Trường học ở phía trước anh ấy"
+      ],
+      "originalCorrectAnswer": "Anh ấy ở phía trước trường học",
+      "proposedCorrectAnswer": "Anh ấy ở phía trước trường học",
+      "correctOptionIndex": 0,
+      "explanation": "'在' + địa điểm + phương vị từ: '学校前面' là phía trước trường học.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "99EB3A74-3148-4CC0-9126-5CCC24F5D7FB",
+      "lessonNumber": 14,
+      "lessonTitle": "你会开车吗",
+      "title": "Luyện tập từ vựng: 你会开车吗",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"你会开车吗\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Bạn biết lái xe không",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Bạn biết lái xe không",
+        "Bạn có xe ô tô không",
+        "Bạn biết nói tiếng Trung không",
+        "Bạn đang lái xe à"
+      ],
+      "originalCorrectAnswer": "Bạn biết lái xe không",
+      "proposedCorrectAnswer": "Bạn biết lái xe không",
+      "correctOptionIndex": 0,
+      "explanation": "'会' biểu thị năng lực đạt được qua học tập, '开车' là lái xe ô tô, '吗' là từ để hỏi Có... không.",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    },
+    {
+      "exerciseId": "B8FB3363-6C7B-4DCC-B887-1B3528E1E0F9",
+      "lessonNumber": 15,
+      "lessonTitle": "我是坐飞机来的",
+      "title": "Luyện tập từ vựng: 我是坐飞机来的",
+      "instruction": "Chọn nghĩa tiếng Việt đúng cho câu \"我是坐飞机来的\"",
+      "type": "multiple-choice",
+      "originalOptions": [
+        "Tôi đến bằng máy bay",
+        "Nghĩa khác A",
+        "Nghĩa khác B",
+        "Nghĩa khác C"
+      ],
+      "proposedOptions": [
+        "Tôi đến bằng máy bay",
+        "Tôi muốn đi máy bay",
+        "Tôi đến bằng tàu hỏa",
+        "Khi nào máy bay cất cánh"
+      ],
+      "originalCorrectAnswer": "Tôi đến bằng máy bay",
+      "proposedCorrectAnswer": "Tôi đến bằng máy bay",
+      "correctOptionIndex": 0,
+      "explanation": "Cấu trúc '是……的' dùng để nhấn mạnh phương thức di chuyển đã diễn ra: '坐飞机' (bằng máy bay).",
+      "qaStatus": "VALID_PRODUCTION_READY",
+      "humanReviewStatus": "PENDING_FORMAL_SIGN_OFF"
+    }
+  ]
+}

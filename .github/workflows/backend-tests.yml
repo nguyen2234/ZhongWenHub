@@ -1,0 +1,52 @@
+name: Backend CI & Automated Tests
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'integration/**'
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    paths:
+      - 'Backend/**'
+      - '.github/workflows/backend-tests.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-test:
+    name: .NET 10 Build & Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Backend/ZhongWenHub.sln
+
+      - name: Build solution (Release mode)
+        run: dotnet build Backend/ZhongWenHub.sln --configuration Release --no-restore
+
+      - name: Run Backend Unit Tests
+        run: dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=unit_tests.trx"
+
+      - name: Upload Test Results Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: '**/TestResults/*.trx'
+          retention-days: 14
+

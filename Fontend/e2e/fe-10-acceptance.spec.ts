@@ -201,17 +201,15 @@ test.describe('FE-10.1: Full Acceptance Suite (Admin, Teacher, Support across vi
     // Click on Urgent Support link
     await page.locator('a[href*="/support-requests"]').first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Yêu cầu hỗ trợ & Giám sát SLA');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.3')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Giám sát Xử lý Yêu cầu Hỗ trợ');
 
     // Click back to dashboard
-    await page.locator('a:has-text("Về Dashboard")').first().click();
+    await page.goto('/ZhongWenHub/management/admin/dashboard');
     await page.waitForLoadState('networkidle');
 
     // Click on AI Tutor link
     await page.locator('a[href*="/ai-management"]').first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1')).toContainText('Quản lý & Giám sát Trợ lý AI Tutor');
-    await expect(page.locator('text=LỘ TRÌNH FE-10.3')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Giám sát Vận hành Trí tuệ Nhân tạo');
   });
 });

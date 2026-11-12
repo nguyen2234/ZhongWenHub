@@ -87,4 +87,16 @@ describe('FE-6 & FE-6.1: HSK Digital Textbook & Sticky Scroll-Spy', () => {
     const prev1 = hskTextbookService.getPrevLessonId('les-hsk1-1');
     expect(prev1).toBeNull();
   });
+
+  it('aligns HSK 1 L01-L15 curriculum metadata with canonical HSK 2.0 lessons and DB GUIDs', async () => {
+    const l5 = await hskTextbookService.getTextbookLesson('les-hsk1-5');
+    expect(l5.titleZh).toContain('我想喝茶');
+    expect(l5.playerLessonData).toBeDefined();
+
+    const l8 = await hskTextbookService.getTextbookLesson('les-hsk1-8');
+    expect(l8.titleZh).toContain('明天天气怎么样');
+
+    const l15 = await hskTextbookService.getTextbookLesson('les-hsk1-15');
+    expect(l15.titleZh).toContain('我是坐飞机来的');
+  });
 });

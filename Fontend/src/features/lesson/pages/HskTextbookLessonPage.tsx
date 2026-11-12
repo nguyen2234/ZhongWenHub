@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import {
+  BookOpen,
   Languages,
   BookText,
   MessageSquare,
@@ -20,7 +21,6 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Maximize2,
 } from 'lucide-react';
 import {
   hskTextbookService,
@@ -29,15 +29,19 @@ import {
 } from '../services/hsk-textbook.service';
 import { LessonTableOfContents } from '../components/LessonTableOfContents';
 import { LessonPracticeModal } from '../components/LessonPracticeModal';
+import { ReadingPassageCard } from '../components/ReadingPassageCard';
 import { useLearningState } from '../../learning';
 import { findNextLessonId } from '../../learning/data/curriculumData';
 import { Button, StickerIllustration } from '../../../design-system';
 import './HskTextbookLessonPage.css';
 
-// Text-to-Speech Audio Helper
+// Text-to-Speech Audio Helper with Vite Base Path Resolution
 const playChineseTTS = (text: string, audioUrl?: string) => {
   if (audioUrl) {
-    const audio = new Audio(audioUrl);
+    const resolvedUrl = audioUrl.startsWith('http')
+      ? audioUrl
+      : `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${audioUrl.replace(/^\//, '')}`;
+    const audio = new Audio(resolvedUrl);
     audio.play().catch(() => playSpeechFallback(text));
     return;
   }
@@ -105,10 +109,10 @@ export const HskTextbookLessonPage: React.FC = () => {
           initLearningLesson(activeLessonId);
           setIsLoading(false);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!isCancelled) {
           console.error('[HskTextbookLessonPage] Error fetching lesson:', err);
-          setErrorMessage('Không thể tải bài học. Vui lòng thử lại sau.');
+          setErrorMessage(err?.message || 'Không thể tải bài học. Vui lòng thử lại sau.');
           setIsLoading(false);
         }
       }
@@ -415,13 +419,13 @@ export const HskTextbookLessonPage: React.FC = () => {
 
               {/* Objectives List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--lesson-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Mục tiêu học tập:
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {textbookData.objectives.map((obj, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13.5px', color: '#334155' }}>
-                      <CheckCircle2 size={16} color="var(--primary, #E60012)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13.5px', color: 'var(--lesson-text-primary, #0F172A)' }}>
+                      <CheckCircle2 size={16} color="var(--lesson-support, #0D9488)" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span>{obj}</span>
                     </div>
                   ))}
@@ -431,45 +435,25 @@ export const HskTextbookLessonPage: React.FC = () => {
               {/* Meta Stats Chips */}
               <div className="hsk-meta-chips-row">
                 <span className="hsk-meta-chip">
-                  <Languages size={14} color="#64748b" />
+                  <Languages size={14} color="var(--lesson-study, #2563EB)" />
                   {textbookData.vocabularies.length} từ vựng
                 </span>
                 <span className="hsk-meta-chip">
-                  <BookText size={14} color="#64748b" />
+                  <BookText size={14} color="var(--lesson-grammar, #D97706)" />
                   {textbookData.grammars.length} điểm ngữ pháp
                 </span>
                 <span className="hsk-meta-chip">
-                  <MessageSquare size={14} color="#64748b" />
+                  <MessageSquare size={14} color="var(--lesson-support, #0D9488)" />
                   {textbookData.dialogue.lines.length} câu hội thoại
                 </span>
                 <span className="hsk-meta-chip">
-                  <Clock size={14} color="#64748b" />
+                  <Clock size={14} color="var(--lesson-text-secondary, #64748B)" />
                   ~{textbookData.durationMinutes} phút
                 </span>
-                <span className="hsk-meta-chip" style={{ color: 'var(--primary, #E60012)', fontWeight: 700, backgroundColor: '#FFF0F1', borderColor: '#fed7da' }}>
+                <span className="hsk-meta-chip hsk-meta-chip-xp">
                   <Award size={14} />
                   +{textbookData.xpReward} XP
                 </span>
-              </div>
-
-              {/* Quick Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '4px' }}>
-                <Button variant="primary" onClick={() => handleScrollToSection('practice')}>
-                  <Dumbbell size={16} />
-                  Luyện tập củng cố ngay
-                </Button>
-                <Button variant="outline" onClick={() => handleScrollToSection('vocabulary')}>
-                  <Languages size={16} />
-                  Đọc từ vựng ({textbookData.vocabularies.length})
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/lesson?id=${activeLessonId}`)}
-                  title="Mở giao diện tập trung từng bước (Focus Mode)"
-                >
-                  <Maximize2 size={15} />
-                  Chế độ tập trung
-                </Button>
               </div>
             </div>
           </section>
@@ -478,7 +462,7 @@ export const HskTextbookLessonPage: React.FC = () => {
           <section id="vocabulary" className="hsk-textbook-section" aria-label="Từ vựng bài học">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-vocab">
                   <Languages size={18} />
                 </div>
                 <div>
@@ -488,22 +472,29 @@ export const HskTextbookLessonPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  textbookData.vocabularies.forEach((v) => handleToggleSrs(v));
-                  triggerToast('Đã lưu tất cả từ vựng của bài vào kho Spaced Repetition (SRS)!');
-                }}
-                className="ds-btn ds-btn-outline"
-                style={{ fontSize: '12.5px', height: '34px', gap: '6px' }}
-              >
-                <BookmarkCheck size={15} color="var(--primary, #E60012)" />
-                Lưu toàn bộ vào SRS
-              </button>
             </div>
 
             {/* 2-Column Responsive Vocabulary Cards Grid */}
+            {textbookData.vocabularies.length === 0 ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1',
+                  margin: '8px 0',
+                }}
+              >
+                <Languages size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                  Chưa có từ vựng được liên kết cho bài học này
+                </p>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Nội dung từ vựng đang được biên soạn trong hệ thống quản trị.
+                </p>
+              </div>
+            ) : (
             <div className="hsk-vocab-grid">
               {textbookData.vocabularies.map((vocab) => {
                 const vocabKey = String(vocab.id);
@@ -596,13 +587,14 @@ export const HskTextbookLessonPage: React.FC = () => {
                 );
               })}
             </div>
+            )}
           </section>
 
           {/* SECTION 3: NGỮ PHÁP (#grammar) */}
           <section id="grammar" className="hsk-textbook-section" aria-label="Ngữ pháp bài học">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-grammar">
                   <BookText size={18} />
                 </div>
                 <div>
@@ -614,6 +606,26 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
             </div>
 
+            {textbookData.grammars.length === 0 ? (
+              <div
+                style={{
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1',
+                  margin: '8px 0',
+                }}
+              >
+                <BookText size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                  Chưa có điểm ngữ pháp được liên kết cho bài học này
+                </p>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                  Nội dung ngữ pháp đang được biên soạn trong hệ thống quản trị.
+                </p>
+              </div>
+            ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {textbookData.grammars.map((grammar) => (
                 <div key={grammar.id} className="hsk-grammar-card">
@@ -684,13 +696,14 @@ export const HskTextbookLessonPage: React.FC = () => {
                 </div>
               ))}
             </div>
+            )}
           </section>
 
           {/* SECTION 4: HỘI THOẠI (#dialogue) */}
           <section id="dialogue" className="hsk-textbook-section" aria-label="Hội thoại thực tế">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-dialogue">
                   <MessageSquare size={18} />
                 </div>
                 <div>
@@ -738,52 +751,80 @@ export const HskTextbookLessonPage: React.FC = () => {
               </div>
 
               {/* Chat Feed Interface (Alternating left/right speech bubbles) */}
-              <div className="hsk-dialogue-chat-feed">
-                {textbookData.dialogue.lines.map((line) => {
-                  const isSpeakerA = line.speaker === 'A';
+              {textbookData.dialogue.lines.length === 0 ? (
+                <div
+                  style={{
+                    padding: '32px 16px',
+                    textAlign: 'center',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    border: '1px dashed #cbd5e1',
+                    margin: '16px',
+                  }}
+                >
+                  <MessageSquare size={28} style={{ color: '#94a3b8', margin: '0 auto 8px' }} />
+                  <p style={{ fontWeight: 600, color: '#475569', margin: '0 0 4px', fontSize: '14px' }}>
+                    Chưa có đoạn hội thoại cho bài học này
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                    Nội dung hội thoại giao tiếp đang được cập nhật.
+                  </p>
+                </div>
+              ) : (
+                <div className="hsk-dialogue-chat-feed">
+                  {textbookData.dialogue.lines.map((line) => {
+                    const isSpeakerA = line.speaker === 'A';
 
-                  return (
-                    <div
-                      key={line.id}
-                      className={`hsk-chat-row ${isSpeakerA ? 'speaker-a' : 'speaker-b'}`}
-                    >
-                      <div className="hsk-chat-avatar" title={line.speakerName}>
-                        {isSpeakerA ? 'A' : 'B'}
+                    return (
+                      <div
+                        key={line.id}
+                        className={`hsk-chat-row ${isSpeakerA ? 'speaker-a' : 'speaker-b'}`}
+                      >
+                        <div className="hsk-chat-avatar" title={line.speakerName}>
+                          {isSpeakerA ? 'A' : 'B'}
+                        </div>
+
+                        <div className="hsk-chat-bubble">
+                          <span className="hsk-chat-speaker-name">{line.speakerName}</span>
+                          <span className="hsk-chat-hanzi">{line.hanzi}</span>
+
+                          {showPinyin && (
+                            <span className="hsk-chat-pinyin">{line.pinyin}</span>
+                          )}
+
+                          {showTranslation && (
+                            <span className="hsk-chat-vi">{line.meaning}</span>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => playChineseTTS(line.hanzi)}
+                            className="hsk-chat-audio-btn"
+                          >
+                            <Volume2 size={13} />
+                            Nghe câu này
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="hsk-chat-bubble">
-                        <span className="hsk-chat-speaker-name">{line.speakerName}</span>
-                        <span className="hsk-chat-hanzi">{line.hanzi}</span>
-
-                        {showPinyin && (
-                          <span className="hsk-chat-pinyin">{line.pinyin}</span>
-                        )}
-
-                        {showTranslation && (
-                          <span className="hsk-chat-vi">{line.meaning}</span>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => playChineseTTS(line.hanzi)}
-                          className="hsk-chat-audio-btn"
-                        >
-                          <Volume2 size={13} />
-                          Nghe câu này
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </section>
+
+          {/* SECTION: BÀI ĐỌC HIỂU TẬP TRUNG (#reading) */}
+          {textbookData.readingPassage && (
+            <section id="reading" className="hsk-textbook-section" aria-label="Bài đọc hiểu bổ trợ">
+              <ReadingPassageCard passage={textbookData.readingPassage} />
+            </section>
+          )}
 
           {/* SECTION 5: LUYỆN TẬP CỦNG CỐ (#practice) — EMBEDDED LESSONEXPERIENCE */}
           <section id="practice" className="hsk-textbook-section" aria-label="Luyện tập củng cố kiến thức">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-practice">
                   <Dumbbell size={18} />
                 </div>
                 <div>
@@ -947,6 +988,19 @@ export const HskTextbookLessonPage: React.FC = () => {
         <LessonTableOfContents
           activeSectionId={activeSection}
           readingProgress={readingProgress}
+          sections={
+            textbookData.readingPassage
+              ? [
+                  { id: 'overview', label: 'Tổng quan', icon: BookOpen },
+                  { id: 'vocabulary', label: 'Từ vựng', icon: Languages },
+                  { id: 'grammar', label: 'Ngữ pháp', icon: BookText },
+                  { id: 'dialogue', label: 'Hội thoại', icon: MessageSquare },
+                  { id: 'reading', label: 'Đọc hiểu', icon: BookOpen },
+                  { id: 'practice', label: 'Luyện tập củng cố', icon: Dumbbell },
+                  { id: 'complete', label: 'Kết quả', icon: CheckCircle2 },
+                ]
+              : undefined
+          }
           vocabCount={textbookData.vocabularies.length}
           grammarCount={textbookData.grammars.length}
           dialogueCount={1}

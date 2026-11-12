@@ -115,6 +115,8 @@ export interface SupportStaffDetail {
   lastActiveAt: string;
   lastActiveDateRaw: string;
   notes?: string;
+  lockReason?: string;
+  lockedAt?: string;
   performance: SupportPerformanceKPIs;
   recentActivities: SupportStaffActivity[];
 }

@@ -46,6 +46,8 @@ export interface SharedExerciseItem {
   // Options & Tokens
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
+  acceptableAnswers?: string[];
   matchingPairs?: MatchingPair[];
   sentenceTokens?: string[];
   correctSentence?: string;

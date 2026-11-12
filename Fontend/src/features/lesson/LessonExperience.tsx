@@ -64,21 +64,22 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
 
   // Quiz Score tracking
   const [quizScore, setQuizScore] = useState(
-    initialProgress?.quizScore ?? 4
+    initialProgress?.quizScore ?? 0
   );
   const totalQuizQuestions = lessonData.quiz.length;
 
   // Global user learning state (streakDays separated from lesson progress)
-  const streakDays = learningSummary?.streakDays ?? lessonData.streakDays ?? 8;
+  const streakDays = learningSummary?.streakDays ?? lessonData.streakDays ?? 0;
 
   const { setContext } = useAITutor();
   const [currentVocabHanzi, setCurrentVocabHanzi] = useState<string>(
-    lessonData.vocabulary[0]?.hanzi || '喝'
+    lessonData.vocabulary[0]?.hanzi || ''
   );
 
   // Update contextual AI state whenever current step changes
   useEffect(() => {
     const currentStep = STEP_METADATA_LIST[currentStepIndex];
+    const matchedVocab = lessonData.vocabulary.find((v) => v.hanzi === currentVocabHanzi);
     const ctx = ContextBuilder.build('lesson', {
       hskLevel: lessonData.hskLevel,
       lessonId: lessonData.id,
@@ -86,8 +87,8 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
       currentStep: currentStep.label,
       grammarPoints: [lessonData.grammar.patternFormula],
       vocabularyWord:
-        currentStepIndex === 1
-          ? { hanzi: currentVocabHanzi, pinyin: 'hē', meaning: 'uống' }
+        currentStepIndex === 1 && matchedVocab
+          ? { hanzi: matchedVocab.hanzi, pinyin: matchedVocab.pinyin, meaning: matchedVocab.meaning }
           : undefined,
     });
     setContext(ctx);
@@ -377,7 +378,7 @@ export const LessonExperience: React.FC<LessonExperienceProps> = ({
                 />
               )}
               {currentStepIndex === 2 && <GrammarStep grammar={lessonData.grammar} />}
-              {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} />}
+              {currentStepIndex === 3 && <DialogueStep dialogue={lessonData.dialogue} readingPassage={(lessonData as any).readingPassage} />}
               {currentStepIndex === 4 && <ListeningStep listening={lessonData.listening} />}
               {currentStepIndex === 5 && (
                 <ExerciseStep

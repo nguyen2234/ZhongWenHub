@@ -495,7 +495,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
           </div>
           <button
             type="button"
-            className="tp-btn tp-btn--ghost"
+            className="ds-btn ds-btn-ghost"
             onClick={onClose}
             aria-label="Đóng"
           >
@@ -683,7 +683,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                     {!isLocked && (
                       <button
                         type="button"
-                        className="tp-btn tp-btn--primary"
+                        className="ds-btn ds-btn-primary"
                         onClick={() => setIsPickerOpen(true)}
                       >
                         <Plus size={15} />
@@ -765,7 +765,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                 <>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px' }}
                                     disabled={idx === 0}
                                     onClick={() => moveQuestion(idx, 'up')}
@@ -775,7 +775,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                   </button>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px' }}
                                     disabled={idx === selectedQuestions.length - 1}
                                     onClick={() => moveQuestion(idx, 'down')}
@@ -785,7 +785,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                   </button>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px', color: 'var(--danger)' }}
                                     onClick={() => handleRemoveQuestion(idx)}
                                     title="Xóa câu hỏi"
@@ -1245,7 +1245,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button
               type="button"
-              className="tp-btn tp-btn--secondary"
+              className="ds-btn ds-btn-secondary"
               onClick={onClose}
               disabled={saving}
             >
@@ -1256,7 +1256,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
               <>
                 <button
                   type="button"
-                  className="tp-btn tp-btn--secondary"
+                  className="ds-btn ds-btn-secondary"
                   disabled={saving}
                   onClick={() => handleSubmit(false)}
                 >
@@ -1266,7 +1266,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
 
                 <button
                   type="button"
-                  className="tp-btn tp-btn--primary"
+                  className="ds-btn ds-btn-primary"
                   disabled={
                     saving ||
                     selectedQuestions.length === 0 ||

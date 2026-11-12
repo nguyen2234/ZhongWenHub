@@ -41,6 +41,9 @@ export interface AdminGrammarPoint {
   practice?: GrammarPracticeExercise;
   linkedLessonIds: string[];
   linkedExerciseIds: string[];
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
   createdAt: string;
   updatedAt: string;
   [key: string]: unknown;
@@ -71,9 +74,28 @@ export interface CreateAdminGrammarDTO {
   };
   practice?: GrammarPracticeExercise;
   linkedLessonIds?: string[];
+  reviewedByUserId?: string | null;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
 }
 
 export interface UpdateAdminGrammarDTO extends Partial<CreateAdminGrammarDTO> {}
+
+export type QuestionReviewStatus =
+  | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'VALIDATED'
+  | 'NEEDS_ACADEMIC_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED';
+
+export type AdministrativeApprovalStatus = 'NONE' | 'APPROVED' | 'REVOKED';
+
+export type HumanAcademicReviewStatus =
+  | 'NOT_REVIEWED'
+  | 'PENDING_HUMAN_REVIEW'
+  | 'APPROVED_BASELINE'
+  | 'REJECTED';
 
 export interface AdminExerciseItem {
   id: string;
@@ -83,6 +105,21 @@ export interface AdminExerciseItem {
   hskLevelId: string;
   difficulty: 'easy' | 'medium' | 'hard';
   status: ContentStatus;
+  reviewStatus?: QuestionReviewStatus;
+  administrativeApprovalStatus?: AdministrativeApprovalStatus;
+  administrativeApprovalScope?: string;
+  administrativeApprovalSource?: string;
+  administrativeApprovalNotes?: string;
+  administrativeApprovedAt?: string;
+  humanAcademicReviewStatus?: HumanAcademicReviewStatus;
+  tags?: string;
+  sourceId?: string;
+  sourceLicense?: string;
+  qualityScore?: number;
+  hasSubstantiveExplanation?: boolean;
+  isReported?: boolean;
+  contentHash?: string;
+  reviewNotes?: string;
   title: string;
   instruction: string;
   promptHanzi?: string;
@@ -96,7 +133,11 @@ export interface AdminExerciseItem {
   correctSentence?: string;
   explanation: string;
   grammarPointId?: string;
+  grammarTitle?: string;
   lessonId?: string;
+  lessonTitle?: string;
+  vocabularyId?: string;
+  vocabularyHanzi?: string;
   xpReward: number;
   createdAt: string;
   updatedAt: string;
@@ -110,6 +151,9 @@ export interface AdminExerciseFilters {
   type: ExerciseType | 'ALL';
   difficulty: 'easy' | 'medium' | 'hard' | 'ALL';
   status: ContentStatus | 'ALL';
+  reviewStatus?: QuestionReviewStatus | 'ALL';
+  administrativeApprovalStatus?: AdministrativeApprovalStatus | 'ALL';
+  tag?: string;
   grammarPointId?: string;
   lessonId?: string;
 }
@@ -120,6 +164,9 @@ export interface CreateAdminExerciseDTO {
   hskLevel: number;
   difficulty: 'easy' | 'medium' | 'hard';
   status: ContentStatus;
+  tags?: string;
+  sourceId?: string;
+  sourceLicense?: string;
   title: string;
   instruction: string;
   promptHanzi?: string;
@@ -134,6 +181,7 @@ export interface CreateAdminExerciseDTO {
   explanation: string;
   grammarPointId?: string;
   lessonId?: string;
+  vocabularyId?: string;
   xpReward: number;
 }
 

@@ -1,3 +1,4 @@
+import { useAuthContext } from '../context/AuthContext';
 import { useState, useCallback } from 'react';
 import { authService } from '../services/authService';
 import type { LoginRequest, RegisterRequest, AuthUser } from '../types/auth.types';
@@ -6,6 +7,7 @@ export function useAuth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
+  const authContext = useAuthContext();
 
   const clearMessages = useCallback(() => {
     setApiError(null);
@@ -19,7 +21,7 @@ export function useAuth() {
       setApiSuccess(null);
 
       try {
-        const response = await authService.login(request);
+        const response = await authContext.login(request);
         if (response.success && response.user) {
           setApiSuccess(response.message || 'Đăng nhập thành công!');
           setTimeout(() => {

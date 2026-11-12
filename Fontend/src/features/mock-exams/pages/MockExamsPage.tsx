@@ -9,8 +9,94 @@ import {
 } from 'lucide-react';
 import { MOCK_HSK_EXAMS } from '../mock/mockExamData';
 import type { HSKExam, ExamQuestion } from '../types/exam.types';
+import { httpClient } from '../../../core/api/client/http-client';
+
+function isIsolatedTestRuntime(): boolean {
+  const mode = (import.meta as any)?.env?.MODE;
+  const g = globalThis as any;
+  const nodeEnv = g?.process?.env?.NODE_ENV;
+  const isBun = typeof g?.Bun !== 'undefined';
+  return mode === 'test' || nodeEnv === 'test' || isBun;
+}
+
+function normalizeSectionName(raw?: string | null): 'Nghe hiểu' | 'Đọc hiểu' | 'Viết' {
+  const val = String(raw || '').toLowerCase();
+  if (val.includes('nghe') || val.includes('listen')) return 'Nghe hiểu';
+  if (val.includes('viết') || val.includes('writ') || val.includes('sắp')) return 'Viết';
+  return 'Đọc hiểu';
+}
+
+function mapExamSummaryToHSKExam(dto: any): HSKExam {
+  const totalQ = Number(dto.questionCount || 0);
+  return {
+    id: String(dto.id),
+    title: String(dto.title || ''),
+    hskLevel: Number(dto.hskLevel || 1),
+    durationMinutes: Number(dto.durationMinutes || 30),
+    totalQuestions: totalQ,
+    passingScore: Number(dto.passingScore || 120),
+    sections: [{ name: 'Đọc hiểu', questionCount: totalQ, durationMinutes: Number(dto.durationMinutes || 30) }],
+    questions: [],
+  };
+}
+
+function mapExamDetailToHSKExam(dto: any): HSKExam {
+  const rawQuestions = Array.isArray(dto.questions) ? dto.questions : [];
+  const sectionCounts: Record<'Nghe hiểu' | 'Đọc hiểu' | 'Viết', number> = {
+    'Nghe hiểu': 0,
+    'Đọc hiểu': 0,
+    'Viết': 0,
+  };
+  const questions: ExamQuestion[] = rawQuestions.map((q: any, idx: number) => {
+    const section = normalizeSectionName(q.sectionName);
+    sectionCounts[section] += 1;
+    let options: string[] = [];
+    if (typeof q.optionsJson === 'string' && q.optionsJson.trim()) {
+      try {
+        const parsed = JSON.parse(q.optionsJson);
+        if (Array.isArray(parsed)) options = parsed.map(String);
+      } catch {
+        // Ignore malformed optionsJson
+      }
+    }
+    return {
+      id: String(q.id || `q-${idx + 1}`),
+      section,
+      questionNumber: Number(q.orderIndex || idx + 1),
+      prompt: String(q.promptVietnamese || q.promptHanzi || q.exerciseTitle || ''),
+      pinyin: q.promptPinyin ? String(q.promptPinyin) : undefined,
+      audioText: section === 'Nghe hiểu' && q.promptHanzi ? String(q.promptHanzi) : undefined,
+      options,
+      correctOptionIndex: typeof q.correctOptionIndex === 'number' ? q.correctOptionIndex : 0,
+    };
+  });
+
+  const sections = (Object.entries(sectionCounts) as Array<['Nghe hiểu' | 'Đọc hiểu' | 'Viết', number]>)
+    .filter(([, count]) => count > 0)
+    .map(([name, count]) => ({
+      name,
+      questionCount: count,
+      durationMinutes: Math.max(5, Math.round((Number(dto.durationMinutes || 30) * count) / Math.max(1, questions.length))),
+    }));
+
+  return {
+    id: String(dto.id),
+    title: String(dto.title || ''),
+    hskLevel: Number(dto.hskLevel || 1),
+    durationMinutes: Number(dto.durationMinutes || 30),
+    totalQuestions: questions.length || Number(dto.questionCount || 0),
+    passingScore: Number(dto.passingScore || 120),
+    sections: sections.length > 0 ? sections : [{ name: 'Đọc hiểu', questionCount: questions.length, durationMinutes: Number(dto.durationMinutes || 30) }],
+    questions,
+  };
+}
 
 export const MockExamsPage: React.FC = () => {
+  const [exams, setExams] = useState<HSKExam[]>(() =>
+    isIsolatedTestRuntime() ? MOCK_HSK_EXAMS : []
+  );
+  const [isLoadingExams, setIsLoadingExams] = useState<boolean>(() => !isIsolatedTestRuntime());
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedHsk, setSelectedHsk] = useState<number | null>(null);
   const [activeExam, setActiveExam] = useState<HSKExam | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -18,10 +104,33 @@ export const MockExamsPage: React.FC = () => {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(0);
   const [isExamCompleted, setIsExamCompleted] = useState(false);
 
+  useEffect(() => {
+    if (isIsolatedTestRuntime()) return;
+    let active = true;
+    setIsLoadingExams(true);
+    setLoadError(null);
+    httpClient
+      .get<any>('/exams', { params: { page: 1, pageSize: 50 } })
+      .then((res) => {
+        if (!active) return;
+        const rows = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        setExams(rows.map(mapExamSummaryToHSKExam));
+      })
+      .catch((err: any) => {
+        if (active) setLoadError(err?.message || 'Không thể tải danh sách đề thi từ máy chủ.');
+      })
+      .finally(() => {
+        if (active) setIsLoadingExams(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Filter exams by HSK level
   const filteredExams = selectedHsk
-    ? MOCK_HSK_EXAMS.filter((e) => e.hskLevel === selectedHsk)
-    : MOCK_HSK_EXAMS;
+    ? exams.filter((e) => (selectedHsk === 4 ? e.hskLevel >= 4 : e.hskLevel === selectedHsk))
+    : exams;
 
   // Countdown timer when exam is running
   useEffect(() => {
@@ -41,11 +150,25 @@ export const MockExamsPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [activeExam, isExamCompleted]);
 
-  const handleStartExam = (exam: HSKExam) => {
-    setActiveExam(exam);
+  const handleStartExam = async (exam: HSKExam) => {
+    let loadedExam = exam;
+    if (!isIsolatedTestRuntime() && exam.questions.length === 0) {
+      try {
+        const detail = await httpClient.get<any>(`/exams/${exam.id}`);
+        loadedExam = mapExamDetailToHSKExam(detail);
+      } catch (err: any) {
+        setLoadError(err?.message || 'Không thể tải chi tiết câu hỏi của đề thi.');
+        return;
+      }
+    }
+    if (loadedExam.questions.length === 0) {
+      setLoadError('Đề thi này chưa có câu hỏi nào.');
+      return;
+    }
+    setActiveExam(loadedExam);
     setCurrentQuestionIndex(0);
     setUserAnswers({});
-    setTimeLeftSeconds(exam.durationMinutes * 60);
+    setTimeLeftSeconds(loadedExam.durationMinutes * 60);
     setIsExamCompleted(false);
   };
 
@@ -186,6 +309,25 @@ export const MockExamsPage: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/* Loading / Error / Empty states */}
+          {isLoadingExams && (
+            <div style={{ padding: '20px', borderRadius: '14px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', marginBottom: '20px' }}>
+              Đang tải danh sách đề thi thử từ máy chủ...
+            </div>
+          )}
+
+          {loadError && (
+            <div style={{ padding: '16px 20px', borderRadius: '14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', marginBottom: '20px' }}>
+              {loadError}
+            </div>
+          )}
+
+          {!isLoadingExams && !loadError && filteredExams.length === 0 && (
+            <div style={{ padding: '20px', borderRadius: '14px', backgroundColor: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', marginBottom: '20px' }}>
+              Chưa có đề thi thử nào được xuất bản ở cấp độ này.
+            </div>
+          )}
 
           {/* Exam Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>

@@ -25,12 +25,24 @@ export interface Vocabulary {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
   examples: VocabularyExample[];
   status: ContentStatus;
   source: string; // e.g. 'HSK 3.0 Standard Vocabulary List'
+  sourceDataset?: string;
+  sourceEntryId?: string;
+  sourceId?: string;
+  entry?: string;
+  homograph?: string;
+  levelLabel?: string;
+  sourcePdfPage?: number;
+  updatedByUserId?: string;
+  reviewedByUserId?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +52,8 @@ export interface VocabularyFilters {
   hskLevelId: string; // 'ALL' or specific levelId
   partOfSpeech: string;
   status: 'ALL' | ContentStatus;
+  missingMeaningVi?: boolean;
+  auditRisk?: 'ALL' | 'NEEDS_REVIEW' | 'HOMOGRAPH_DUOYINZI' | 'MISSING_MEANING';
 }
 
 export interface CreateVocabularyDTO {
@@ -48,11 +62,20 @@ export interface CreateVocabularyDTO {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
   examples: Omit<VocabularyExample, 'id'>[];
   status: ContentStatus;
+  reviewNotes?: string;
+  sourceDataset?: string;
+  sourceEntryId?: string;
+  sourceId?: string;
+  entry?: string;
+  homograph?: string;
+  levelLabel?: string;
+  sourcePdfPage?: number;
 }
 
 export interface UpdateVocabularyDTO {
@@ -61,9 +84,110 @@ export interface UpdateVocabularyDTO {
   traditional: string;
   pinyin: string;
   meaningVi: string;
+  suggestedMeaningVi?: string;
   meaningEn: string;
   partOfSpeech: string;
   audioUrl?: string;
   examples: VocabularyExample[];
   status: ContentStatus;
+  reviewNotes?: string;
+  sourceDataset?: string;
+  sourceEntryId?: string;
+  sourceId?: string;
+  entry?: string;
+  homograph?: string;
+  levelLabel?: string;
+  sourcePdfPage?: number;
+}
+
+export interface VocabularyImportRowError {
+  rowNumber: number;
+  columnName?: string;
+  sourceDataset?: string;
+  sourceEntryId?: string;
+  sourceId?: string;
+  hanzi?: string;
+  errorMessage: string;
+}
+
+export interface VocabularyImportPreviewItem {
+  id: string;
+  sourceDataset?: string;
+  sourceEntryId?: string;
+  level: string;
+  hskLevel: number;
+  hanzi: string;
+  pinyin: string;
+  meaningVi?: string;
+  meaningEn?: string;
+  partOfSpeech?: string;
+  exampleHanzi?: string;
+  examplePinyin?: string;
+  exampleMeaningVi?: string;
+  entry?: string;
+  homograph?: string;
+  levelLabel?: string;
+  sourcePdfPage?: number;
+  isExisting: boolean;
+  status: string;
+}
+
+export interface VocabularyImportResultDto {
+  totalRows: number;
+  importedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  isDryRun: boolean;
+  errors: VocabularyImportRowError[];
+  previewSample: VocabularyImportPreviewItem[];
+}
+
+export interface BatchPublishResultDto {
+  publishedCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
+}
+
+export interface BatchUpdateMeaningItemDTO {
+  id: string;
+  hanzi?: string;
+  pinyin?: string;
+  meaningVi: string;
+  partOfSpeech?: string;
+  status?: string;
+}
+
+export interface BatchUpdateMeaningsRequestDTO {
+  items: BatchUpdateMeaningItemDTO[];
+}
+
+export interface BatchUpdateMeaningErrorItemDTO {
+  id?: string;
+  hanzi?: string;
+  pinyin?: string;
+  reason: string;
+}
+
+export interface BatchUpdateMeaningsResultDTO {
+  totalRequested: number;
+  updatedCount: number;
+  errorCount: number;
+  errors: BatchUpdateMeaningErrorItemDTO[];
+}
+
+export interface ReviewContentDTO {
+  status: ContentStatus;
+  reviewNotes?: string;
+}
+
+export interface BatchReviewContentDTO {
+  ids: string[];
+  status: ContentStatus;
+  reviewNotes?: string;
+}
+
+export interface BatchReviewResultDto {
+  processedCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
 }

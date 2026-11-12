@@ -1,4 +1,4 @@
-export type UserRole = 'STUDENT' | 'ADMIN' | 'TEACHER' | 'SUPPORT' | 'CONTENT_MANAGER';
+export type UserRole = 'ADMIN' | 'CONTENT_MANAGER' | 'TEACHER' | 'SUPPORT' | 'STUDENT';
 
 export interface RouteRoleConfig {
   role: UserRole;
@@ -6,9 +6,9 @@ export interface RouteRoleConfig {
 }
 
 export const ROLE_DEFAULT_PATHS: Record<UserRole, string> = {
-  STUDENT: '/dashboard',
   ADMIN: '/management/admin/dashboard',
+  CONTENT_MANAGER: '/management/content-manager/dashboard',
   TEACHER: '/management/teacher/dashboard',
   SUPPORT: '/management/support/dashboard',
-  CONTENT_MANAGER: '/management/content-manager/dashboard',
+  STUDENT: '/dashboard',
 };

@@ -26,6 +26,7 @@ import { useLearningState, HSK_CURRICULUM } from '../../learning';
 import { HSKLevel, ProgressBar, StickerIllustration } from '../../../design-system';
 import { DEMO_VIDEOS } from '../../videos';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import { useAuthContext } from '../../auth/context/AuthContext';
 import '../dashboard.css';
 
 export interface DashboardProps {
@@ -42,7 +43,8 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 }) => {
   const navigate = useNavigate();
   const currentStudent = useCurrentStudent();
-  const studentName = currentStudent?.studentName || currentStudent?.student?.fullName || 'Học viên';
+  const { user, isAuthenticated } = useAuthContext();
+  const studentName = (isAuthenticated && user?.fullName) || currentStudent?.studentName || currentStudent?.student?.fullName || 'Học viên';
 
   const {
     currentHskLevel,
@@ -137,25 +139,59 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     });
   }, [learningState.dailyActivityHistory]);
 
-  // Real HSK progress computed from curriculum and lessonProgress
+  // Real HSK progress computed from live SQL hskProgress (or curriculum/lessonProgress fallback)
   const hskProgressMap = useMemo(() => {
-    const map: Record<number, { completedCount: number; totalCount: number; percent: number }> = {};
+    const map: Record<number, { completedCount: number; totalCount: number; percent: number; isComingSoon?: boolean }> = {};
+    const serverByLevel = new Map<number, (typeof learningState.hskProgress extends Array<infer T> | undefined ? T : never)>();
+    if (Array.isArray(learningState.hskProgress)) {
+      learningState.hskProgress.forEach((item) => {
+        if (item && typeof item.hskLevel === 'number') {
+          serverByLevel.set(item.hskLevel, item);
+        }
+      });
+    }
+
+    const completedSet = new Set(
+      (learningState.completedLessonIds || []).map((id) => id.toLowerCase())
+    );
+    Object.entries(learningState.lessonProgress || {}).forEach(([k, v]) => {
+      if (v?.status === 'COMPLETED') {
+        completedSet.add(k.toLowerCase());
+      }
+    });
+
     [1, 2, 3, 4, 5, 6].forEach((lvl) => {
+      const serverEntry = serverByLevel.get(lvl);
       const curLevel = HSK_CURRICULUM[lvl];
+
+      if (serverEntry && serverEntry.totalLessons > 0) {
+        map[lvl] = {
+          completedCount: serverEntry.completedLessons,
+          totalCount: serverEntry.totalLessons,
+          percent: serverEntry.percent,
+          isComingSoon: serverEntry.isComingSoon,
+        };
+        return;
+      }
+
       if (!curLevel) {
         map[lvl] = { completedCount: 0, totalCount: 0, percent: 0 };
         return;
       }
       const lessons = curLevel.units.flatMap((u) => u.lessons);
-      const completedCount = lessons.filter(
-        (l) => learningState.lessonProgress[l.id]?.status === 'COMPLETED'
-      ).length;
+      const completedCount = lessons.filter((l) => {
+        if (completedSet.has(l.id.toLowerCase())) return true;
+        if (lvl === 1 && l.lessonNumber === 1) {
+          return completedSet.has('aaaaaaaa-1111-1111-1111-111111111111') || completedSet.has('les-1');
+        }
+        return false;
+      }).length;
       const totalCount = curLevel.totalLessons || lessons.length;
-      const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-      map[lvl] = { completedCount, totalCount, percent };
+      const percent = totalCount > 0 ? Math.min(100, Math.round((completedCount / totalCount) * 100)) : 0;
+      map[lvl] = { completedCount, totalCount, percent, isComingSoon: curLevel.isComingSoon };
     });
     return map;
-  }, [learningState.lessonProgress]);
+  }, [learningState.hskProgress, learningState.lessonProgress, learningState.completedLessonIds]);
 
   // Featured word for today
   const todayVocab = {
@@ -204,7 +240,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
               <button
                 type="button"
-                onClick={() => navigate('/learning-path')}
+                onClick={() => navigate('/learning-path?mode=hsk')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -363,7 +399,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => navigate('/learning-path')}
+              onClick={() => navigate('/learning-path?mode=hsk')}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -384,48 +420,72 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           <div className="courses-grid">
             {[1, 2, 3, 4, 5, 6].map((lvl) => {
               const curLevel = HSK_CURRICULUM[lvl];
-              const isCurrent = lvl === currentHskLevel;
               const lvlProgress = hskProgressMap[lvl] || { completedCount: 0, totalCount: 0, percent: 0 };
-              const progressLabel =
-                lvlProgress.completedCount > 0
-                  ? `Tiến độ: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`
-                  : isCurrent
-                  ? `Đang học • 0/${lvlProgress.totalCount} bài`
-                  : `Chưa học • 0/${lvlProgress.totalCount} bài`;
+              const isComingSoon = lvlProgress.isComingSoon ?? (curLevel?.isComingSoon || lvl >= 5);
+              const isCurrent = lvl === currentHskLevel && !isComingSoon;
+              const progressLabel = isComingSoon
+                ? `${lvlProgress.percent}% • Sắp ra mắt`
+                : `Hoàn thành: ${lvlProgress.percent}% (${lvlProgress.completedCount}/${lvlProgress.totalCount} bài)`;
 
               return (
                 <div
                   key={lvl}
                   className="course-card"
-                  onClick={() => navigate(`/learning-path?level=${lvl}`)}
+                  data-testid={`dashboard-hsk-card-${lvl}`}
+                  onClick={() => navigate(`/learning-path?mode=hsk&level=${lvl}`)}
                   style={{
                     borderColor: isCurrent ? '#fed7da' : '#e2e8f0',
                     boxShadow: isCurrent ? '0 4px 12px rgba(230, 0, 18, 0.08)' : undefined,
+                    opacity: isComingSoon ? 0.85 : 1,
                   }}
                   tabIndex={0}
                   role="button"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      navigate(`/learning-path?level=${lvl}`);
+                      navigate(`/learning-path?mode=hsk&level=${lvl}`);
                     }
                   }}
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <HSKLevel level={lvl as 1 | 2 | 3 | 4 | 5 | 6} />
-                      {isCurrent && (
+                      {isComingSoon ? (
                         <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#FEF3C7',
+                            color: '#D97706',
+                          }}
+                        >
+                          Sắp ra mắt
+                        </span>
+                      ) : (
+                        <span
+                          data-testid={`dashboard-hsk-percent-${lvl}`}
                           style={{
                             fontSize: '11px',
                             fontWeight: 800,
                             padding: '2px 8px',
                             borderRadius: '9999px',
-                            backgroundColor: 'var(--primary-light, #FFF0F1)',
-                            color: 'var(--primary, #E60012)',
+                            backgroundColor:
+                              lvlProgress.percent >= 100
+                                ? '#ECFDF5'
+                                : lvlProgress.percent > 0
+                                  ? 'var(--primary-light, #FFF0F1)'
+                                  : '#F1F5F9',
+                            color:
+                              lvlProgress.percent >= 100
+                                ? '#047857'
+                                : lvlProgress.percent > 0
+                                  ? 'var(--primary, #E60012)'
+                                  : '#64748B',
                           }}
                         >
-                          Đang học
+                          {lvlProgress.percent}%
                         </span>
                       )}
                     </div>
@@ -434,13 +494,38 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       {curLevel ? curLevel.vietnameseName : `HSK ${lvl}`}
                     </h3>
 
-                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.4 }}>
-                      {curLevel ? `${curLevel.totalLessons} bài học • ${curLevel.totalWords} từ vựng then chốt` : 'Đang tải thông tin...'}
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                      {isComingSoon
+                        ? 'Chưa có bài giảng • Đang phát triển'
+                        : `${lvlProgress.totalCount || curLevel?.totalLessons || 0} bài học • ${curLevel?.totalWords || 0} từ vựng then chốt`}
                     </p>
+
+                    {!isComingSoon && (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '5px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#f1f5f9',
+                          overflow: 'hidden',
+                          marginBottom: '12px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${lvlProgress.percent}%`,
+                            height: '100%',
+                            borderRadius: '9999px',
+                            backgroundColor: lvlProgress.percent >= 100 ? '#10b981' : 'var(--primary, #E60012)',
+                            transition: 'width 0.3s ease',
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: isComingSoon ? '#b45309' : '#64748b' }}>
                       {progressLabel}
                     </span>
                     <span
@@ -450,10 +535,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                         gap: '2px',
                         fontSize: '12px',
                         fontWeight: 700,
-                        color: 'var(--primary, #E60012)',
+                        color: isComingSoon ? '#64748b' : 'var(--primary, #E60012)',
                       }}
                     >
-                      <span>Vào học</span>
+                      <span>{isComingSoon ? 'Xem thông tin' : 'Vào học'}</span>
                       <ChevronRight size={14} />
                     </span>
                   </div>
@@ -1167,7 +1252,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </button>
         </div>
 
-        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN (Clearly Badged as Demo) */}
+        {/* WIDGET 4: BẢNG XẾP HẠNG TUẦN */}
         <div className="dashboard-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1179,95 +1264,49 @@ export const DashboardPage: React.FC<DashboardProps> = ({
             <span
               style={{
                 fontSize: '10px',
-                fontWeight: 800,
+                fontWeight: 700,
                 padding: '2px 6px',
                 borderRadius: '4px',
-                backgroundColor: 'var(--primary-light, #FFF0F1)',
-                color: 'var(--primary, #E60012)',
+                backgroundColor: '#f1f5f9',
+                color: '#64748b',
               }}
             >
-              MÔ PHỎNG (DEMO)
+              SẮP RA MẮT
             </span>
           </div>
 
-          <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#94a3b8' }}>
-            Dữ liệu mô phỏng trước khi mở tính năng kết nối mạng xã hội
+          <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#94a3b8' }}>
+            Tính năng bảng xếp hạng toàn hệ thống đang được phát triển.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {/* Rank 1: Current Real User */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 10px',
+                padding: '10px 12px',
                 borderRadius: '8px',
                 backgroundColor: 'var(--primary-light, #FFF0F1)',
                 border: '1px solid #fed7da',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary, #E60012)', width: '16px' }}>
-                  1
+                <span style={{ fontSize: '12px', fontWeight: 900, color: 'var(--primary, #E60012)' }}>
+                  ★
                 </span>
                 <span style={{ fontSize: '12px', fontWeight: 800, color: '#172033' }}>
                   {studentName} (Bạn)
                 </span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
-                {xpTotal} XP
-              </span>
-            </div>
-
-            {/* Rank 2 (Demo) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #f1f5f9',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
-                  2
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary, #E60012)' }}>
+                  {xpTotal} XP
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                  Trần Hoàng Nam
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#f59e0b' }}>
+                  🔥 {streakDays} ngày
                 </span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
-                1,420 XP
-              </span>
-            </div>
-
-            {/* Rank 3 (Demo) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                border: '1px solid #f1f5f9',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', width: '16px' }}>
-                  3
-                </span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-                  Lê Phương Linh
-                </span>
-              </div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
-                1,180 XP
-              </span>
             </div>
           </div>
         </div>

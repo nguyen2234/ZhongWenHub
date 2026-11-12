@@ -1,0 +1,52 @@
+# Database dumps & backups
+*.sql
+*.bak
+*.dump
+zhongwenhub_dev_postgres_backup.sql
+backups/
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+*.local.json
+appsettings.*.local.json
+
+# Dependencies & Build outputs
+node_modules/
+dist/
+build/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Pp]ublish/
+publish/
+
+# IDE & OS
+.vs/
+.vscode/
+.idea/
+*.user
+.DS_Store
+Thumbs.db
+
+# Test outputs & temporary scratch artifacts
+test-results/
+playwright-report/
+Fontend/scratch/
+Fontend/screenshots/*.png
+
+# Python
+__pycache__/
+*.pyc
+
+# Copyrighted source materials & textbooks (Do NOT commit to git)
+resources/
+*.pdf
+*.zip
+*.rar
+*.7z
+
+# Downloaded third-party raw dumps (re-fetchable via scripts/question_bank_pipeline.py)
+data/question-bank/inanskr_raw/

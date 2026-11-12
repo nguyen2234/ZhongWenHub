@@ -14,7 +14,6 @@ import {
   PenTool,
   Film,
   Award,
-  Volume2,
   User,
   Settings,
   Users,
@@ -25,6 +24,8 @@ import {
   BrainCircuit,
   ClipboardList,
   Gamepad2,
+  MessageSquare,
+  Mail,
 } from 'lucide-react';
 
 export interface SecondaryFeatureItem {
@@ -66,11 +67,12 @@ export interface StudentNavCollapsibleGroup {
 }
 
 /**
- * 4 Collapsible Navigation Groups (Phase FE-5 HanbeeGo Dashboard Alignment)
- * A. Nhóm Tổng quan
- * B. Nhóm Khóa học
- * C. Nhóm Kỹ năng
- * D. Nhóm Cá nhân hóa
+ * 5 Collapsible Navigation Groups (Aligned with Student Portal Redesign)
+ * 1. Nhóm Tổng quan
+ * 2. Nhóm Khóa học
+ * 3. Nhóm Kho kiến thức (Từ vựng & Ngữ pháp HSK 1–6)
+ * 4. Nhóm Luyện tập
+ * 5. Nhóm Cá nhân hóa
  */
 export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
   // 1. Nhóm Tổng quan
@@ -111,27 +113,22 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         matchPrefixes: ['/lesson'],
       },
       {
-        id: 'practice',
-        path: '/practice',
-        label: 'Bài tập',
-        icon: Dumbbell,
-        matchPrefixes: ['/practice', '/homework'],
+        id: 'vocabulary',
+        path: '/vocabulary',
+        label: 'Từ vựng HSK 1–6',
+        icon: Languages,
+        badge: 'SRS',
+        badgeType: 'streak',
+        matchPrefixes: ['/vocabulary', '/srs-review'],
       },
       {
         id: 'grammar',
         path: '/grammar',
-        label: 'Ngữ pháp',
+        label: 'Ngữ pháp HSK 1–6',
         icon: BookText,
+        badge: 'HSK 1-6',
+        badgeType: 'primary',
         matchPrefixes: ['/grammar'],
-      },
-      {
-        id: 'mock-exams',
-        path: '/mock-exams',
-        label: 'Luyện thi HSK',
-        icon: Award,
-        badge: 'Thi thử',
-        badgeType: 'streak',
-        matchPrefixes: ['/mock-exams'],
       },
       {
         id: 'videos',
@@ -142,10 +139,17 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         badgeType: 'ai',
         matchPrefixes: ['/videos'],
       },
+      {
+        id: 'practice',
+        path: '/practice',
+        label: 'Bài tập',
+        icon: Dumbbell,
+        matchPrefixes: ['/practice', '/homework'],
+      },
     ],
   },
 
-  // 3. Nhóm Kỹ năng
+  // 3. Nhóm Kỹ năng (đổi tên từ Luyện tập)
   {
     id: 'skills',
     groupTitle: 'KỸ NĂNG',
@@ -179,29 +183,28 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: PenTool,
         matchPrefixes: ['/skills/writing'],
       },
-      {
-        id: 'pronunciation',
-        path: '/skills/speaking?tab=pinyin',
-        label: 'Phát âm',
-        icon: Volume2,
-      },
     ],
   },
 
-  // 4. Nhóm Cá nhân hóa
+  // 4. Nhóm Luyện tập (tạo mới bên dưới Kỹ năng)
   {
-    id: 'personal',
-    groupTitle: 'CÁ NHÂN HÓA',
+    id: 'practice-zone',
+    groupTitle: 'LUYỆN TẬP',
     defaultOpen: true,
     items: [
       {
-        id: 'vocabulary',
-        path: '/vocabulary',
-        label: 'Từ vựng',
-        icon: Languages,
-        badge: 'SRS',
-        badgeType: 'streak',
-        matchPrefixes: ['/vocabulary', '/srs-review'],
+        id: 'conversation',
+        path: '/ai-live',
+        label: 'Hội thoại',
+        icon: MessageSquare,
+        matchPrefixes: ['/ai-live', '/conversation'],
+      },
+      {
+        id: 'letter-writing',
+        path: '/ai-grading',
+        label: 'Viết thư',
+        icon: Mail,
+        matchPrefixes: ['/ai-grading', '/letter-writing'],
       },
       {
         id: 'ai-tutor',
@@ -210,14 +213,7 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
         icon: Sparkles,
         badge: 'AI',
         badgeType: 'ai',
-        matchPrefixes: ['/ai-tutor', '/ai-live', '/ai-grading', '/ai-analytics'],
-      },
-      {
-        id: 'progress',
-        path: '/progress',
-        label: 'Tiến độ học tập',
-        icon: TrendingUp,
-        matchPrefixes: ['/progress', '/learning-results', '/achievements', '/leaderboard'],
+        matchPrefixes: ['/ai-tutor', '/ai-analytics', '/ai-learning'],
       },
     ],
   },
