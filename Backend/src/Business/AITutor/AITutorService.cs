@@ -53,6 +53,7 @@ public sealed class AITutorService : IAITutorService
             : "ASK";
 
         var verifiedContext = await _contextVerifier.VerifyAndNormalizeAsync(userId, request.Context, cancellationToken);
+        var sanitizedHistory = BuildSanitizedHistory(request.History);
         var systemInstruction = BuildSystemInstruction(normalizedMode, verifiedContext);
         var userPrompt = BuildUserPrompt(trimmedMessage, normalizedMode, verifiedContext);
 
@@ -61,6 +62,7 @@ public sealed class AITutorService : IAITutorService
             {
                 SystemInstruction = systemInstruction,
                 UserPrompt = userPrompt,
+                History = sanitizedHistory,
                 ExpectJson = true,
                 Temperature = normalizedMode == "CONVERSATION" ? 0.6 : 0.35,
                 MaxOutputTokens = Math.Clamp(_options.MaxOutputTokens, 256, 4096)
@@ -86,7 +88,7 @@ public sealed class AITutorService : IAITutorService
 {
   "type": "structured",
   "summary": "Tóm tắt ngắn 1 câu bằng tiếng Việt",
-  "markdownFallback": "Bản giải thích đầy đủ dạng markdown tiếng Việt kèm Hanzi và Pinyin phòng hờ",
+  "markdownFallback": "Bản tóm tắt ngắn gọn (2-4 câu) bằng tiếng Việt kèm Hanzi và Pinyin phòng hờ",
   "blocks": [
     {
       "type": "explanation",
@@ -137,11 +139,20 @@ public sealed class AITutorService : IAITutorService
             sb.AppendLine($"- Điểm ngữ pháp liên quan: {string.Join(", ", context.GrammarPoints)}");
         }
 
+        if (context.LessonVocabularyPreview.Count > 0)
+        {
+            sb.AppendLine($"- Từ vựng tiêu biểu trong bài: {string.Join("; ", context.LessonVocabularyPreview)}");
+        }
+
         if (context.VerifiedVocabulary is not null)
         {
             var v = context.VerifiedVocabulary;
             var tag = v.IsDatabaseVerified ? " (đã xác minh từ kho từ vựng)" : string.Empty;
             sb.AppendLine($"- Từ vựng trọng tâm{tag}: Hanzi=\"{v.Hanzi}\", Pinyin=\"{v.Pinyin}\", Nghĩa=\"{v.Meaning}\", HSK={v.HskLevel}");
+            if (v.Examples.Count > 0)
+            {
+                sb.AppendLine($"  + Ví dụ chuẩn trong bài/kho từ: {string.Join(" | ", v.Examples)}");
+            }
         }
 
         if (context.VerifiedExercise is not null)
@@ -166,6 +177,74 @@ public sealed class AITutorService : IAITutorService
         sb.AppendLine(message);
 
         return sb.ToString();
+    }
+
+    public static IReadOnlyList<AIProviderTurn> BuildSanitizedHistory(IReadOnlyList<AITutorHistoryTurnDto>? history)
+    {
+        if (history is null || history.Count == 0)
+        {
+            return Array.Empty<AIProviderTurn>();
+        }
+
+        const int maxTurns = 8;
+        const int maxTurnChars = 800;
+        const int maxTotalChars = 4000;
+
+        var filtered = new List<AIProviderTurn>();
+        foreach (var turn in history)
+        {
+            if (turn is null || string.IsNullOrWhiteSpace(turn.Content))
+            {
+                continue;
+            }
+
+            var role = turn.Role?.Trim().ToLowerInvariant();
+            var normalizedRole = role switch
+            {
+                "user" => "user",
+                "assistant" or "model" => "model",
+                _ => null
+            };
+
+            if (normalizedRole is null)
+            {
+                continue;
+            }
+
+            var content = turn.Content.Trim();
+            if (content.Length > maxTurnChars)
+            {
+                content = content[..maxTurnChars];
+            }
+
+            filtered.Add(new AIProviderTurn
+            {
+                Role = normalizedRole,
+                Content = content
+            });
+        }
+
+        if (filtered.Count == 0)
+        {
+            return Array.Empty<AIProviderTurn>();
+        }
+
+        var selected = new List<AIProviderTurn>();
+        var totalChars = 0;
+        for (var i = filtered.Count - 1; i >= 0 && selected.Count < maxTurns; i--)
+        {
+            var item = filtered[i];
+            if (totalChars + item.Content.Length > maxTotalChars)
+            {
+                break;
+            }
+
+            selected.Add(item);
+            totalChars += item.Content.Length;
+        }
+
+        selected.Reverse();
+        return selected;
     }
 
     public static AITutorChatResponseDto ParseProviderResponse(string rawText, ILogger? logger = null)
@@ -219,6 +298,18 @@ public sealed class AITutorService : IAITutorService
         catch (JsonException ex)
         {
             logger?.LogInformation(ex, "Gemini returned non-JSON output; safely falling back to markdown response.");
+            if (candidateJson.TrimStart().StartsWith('{'))
+            {
+                var recovered = TryExtractPartialJsonField(candidateJson, "markdownFallback")
+                    ?? TryExtractPartialJsonField(candidateJson, "summary");
+                if (!string.IsNullOrWhiteSpace(recovered))
+                {
+                    return BuildMarkdownFallback(recovered);
+                }
+
+                return BuildMarkdownFallback("Trợ giảng AI phản hồi chưa đầy đủ. Vui lòng thử đặt câu hỏi ngắn hơn hoặc thử lại.");
+            }
+
             return BuildMarkdownFallback(trimmed);
         }
     }
@@ -234,6 +325,57 @@ public sealed class AITutorService : IAITutorService
             Blocks = new List<JsonElement>(),
             SuggestedActions = new List<string>()
         };
+    }
+
+    private static string? TryExtractPartialJsonField(string json, string fieldName)
+    {
+        var token = $"\"{fieldName}\"";
+        var keyIdx = json.IndexOf(token, StringComparison.Ordinal);
+        if (keyIdx < 0) return null;
+
+        var colonIdx = json.IndexOf(':', keyIdx + token.Length);
+        if (colonIdx < 0) return null;
+
+        var startQuote = json.IndexOf('"', colonIdx + 1);
+        if (startQuote < 0) return null;
+
+        var sb = new StringBuilder();
+        var escaped = false;
+        for (var i = startQuote + 1; i < json.Length; i++)
+        {
+            var ch = json[i];
+            if (escaped)
+            {
+                sb.Append(ch switch
+                {
+                    'n' => '\n',
+                    'r' => '\r',
+                    't' => '\t',
+                    '"' => '"',
+                    '\\' => '\\',
+                    '/' => '/',
+                    _ => ch
+                });
+                escaped = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (ch == '"')
+            {
+                break;
+            }
+
+            sb.Append(ch);
+        }
+
+        var result = sb.ToString().Trim();
+        return string.IsNullOrWhiteSpace(result) ? null : result;
     }
 
     private static string StripMarkdownCodeFence(string input)
@@ -381,3 +523,4 @@ public sealed class AITutorService : IAITutorService
         return val.Length <= maxLength ? val : val[..maxLength];
     }
 }
+

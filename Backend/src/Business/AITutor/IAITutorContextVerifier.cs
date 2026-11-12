@@ -10,6 +10,7 @@ public sealed class VerifiedAITutorContext
     public string? VerifiedLessonTitle { get; init; }
     public string? CurrentStep { get; init; }
     public List<string> GrammarPoints { get; init; } = new();
+    public List<string> LessonVocabularyPreview { get; init; } = new();
     public VerifiedVocabularyInfo? VerifiedVocabulary { get; init; }
     public VerifiedExerciseInfo? VerifiedExercise { get; init; }
     public List<string> Weaknesses { get; init; } = new();
@@ -21,6 +22,7 @@ public sealed class VerifiedVocabularyInfo
     public string Pinyin { get; init; } = string.Empty;
     public string Meaning { get; init; } = string.Empty;
     public int HskLevel { get; init; }
+    public List<string> Examples { get; init; } = new();
     public bool IsDatabaseVerified { get; init; }
 }
 

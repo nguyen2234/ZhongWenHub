@@ -36,7 +36,7 @@ public sealed class GeminiProvider : IAIProvider
             throw AITutorException.MissingConfiguration();
         }
 
-        var model = string.IsNullOrWhiteSpace(_options.Model) ? "gemini-2.5-flash" : _options.Model.Trim();
+        var model = string.IsNullOrWhiteSpace(_options.Model) ? "gemini-3-flash-preview" : _options.Model.Trim();
         var baseUrl = string.IsNullOrWhiteSpace(_options.BaseUrl)
             ? "https://generativelanguage.googleapis.com/v1beta"
             : _options.BaseUrl.TrimEnd('/');
@@ -134,6 +134,35 @@ public sealed class GeminiProvider : IAIProvider
             generationConfig["responseMimeType"] = "application/json";
         }
 
+        var contents = new List<object>();
+        if (request.History is { Count: > 0 })
+        {
+            foreach (var turn in request.History)
+            {
+                if (string.IsNullOrWhiteSpace(turn.Content)) continue;
+                var normalizedRole = string.Equals(turn.Role, "model", StringComparison.OrdinalIgnoreCase)
+                    ? "model"
+                    : "user";
+                contents.Add(new
+                {
+                    role = normalizedRole,
+                    parts = new[]
+                    {
+                        new { text = turn.Content }
+                    }
+                });
+            }
+        }
+
+        contents.Add(new
+        {
+            role = "user",
+            parts = new[]
+            {
+                new { text = request.UserPrompt }
+            }
+        });
+
         return new Dictionary<string, object>
         {
             ["systemInstruction"] = new
@@ -143,17 +172,7 @@ public sealed class GeminiProvider : IAIProvider
                     new { text = request.SystemInstruction }
                 }
             },
-            ["contents"] = new[]
-            {
-                new
-                {
-                    role = "user",
-                    parts = new[]
-                    {
-                        new { text = request.UserPrompt }
-                    }
-                }
-            },
+            ["contents"] = contents,
             ["generationConfig"] = generationConfig
         };
     }
@@ -201,6 +220,11 @@ public sealed class GeminiProvider : IAIProvider
             var sb = new StringBuilder();
             foreach (var part in parts.EnumerateArray())
             {
+                if (part.TryGetProperty("thought", out var thoughtProp) && thoughtProp.ValueKind == JsonValueKind.True)
+                {
+                    continue;
+                }
+
                 if (part.TryGetProperty("text", out var textProp) && textProp.ValueKind == JsonValueKind.String)
                 {
                     var fragment = textProp.GetString();

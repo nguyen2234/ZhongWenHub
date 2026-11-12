@@ -111,11 +111,13 @@ export const AITutorDrawer: React.FC<AITutorDrawerProps> = ({
 
       try {
         const safeContext = context || ContextBuilder.build('general');
+        const history = AITutorService.buildHistoryFromMessages(messages);
         const response = await AITutorService.sendChatMessage({
           conversationId: 'conv-main',
           message: trimmed,
           mode: 'ASK',
           context: safeContext,
+          history,
         });
 
         const aiMsg: AITutorMessage = {

@@ -2,6 +2,8 @@ import { httpClient } from '../../../core/api/client/http-client';
 import { ApiClientError } from '../../../core/api/client/api-error';
 import type {
   AITutorContext,
+  AITutorHistoryTurn,
+  AITutorMessage,
   AITutorMode,
   AIResponseBlock,
   StructuredAIResponse,
@@ -12,6 +14,7 @@ export interface ChatRequest {
   message: string;
   mode: AITutorMode;
   context: AITutorContext;
+  history?: AITutorHistoryTurn[];
 }
 
 export interface ChatStreamChunk {
@@ -80,6 +83,7 @@ export class AITutorService {
         message: request.message,
         mode: request.mode,
         context: request.context,
+        history: request.history && request.history.length > 0 ? request.history : undefined,
       },
       {
         timeoutMs: 35000,
@@ -154,6 +158,48 @@ export class AITutorService {
       blocks: [],
       suggestedActions,
     };
+  }
+
+  static buildHistoryFromMessages(messages: AITutorMessage[], maxTurns = 8): AITutorHistoryTurn[] {
+    const turns: AITutorHistoryTurn[] = [];
+    for (const msg of messages) {
+      if (msg.id.startsWith('m-init-') || msg.id === 'msg-welcome') {
+        continue;
+      }
+
+      if (msg.role !== 'user' && msg.role !== 'assistant') {
+        continue;
+      }
+
+      let text = (msg.content || '').trim();
+      if (!text && msg.structuredResponse) {
+        const sr = msg.structuredResponse;
+        const parts: string[] = [];
+        if (sr.summary) parts.push(sr.summary.trim());
+        for (const block of sr.blocks || []) {
+          if (block.type === 'explanation' && block.content) {
+            parts.push(block.content.trim());
+          } else if (block.type === 'chinese_example' && block.hanzi) {
+            parts.push(`${block.hanzi} (${block.pinyin}) - ${block.vietnamese}`);
+          } else if (block.type === 'correction' && block.correctedSentence) {
+            parts.push(`Sửa: ${block.correctedSentence} (${block.explanation})`);
+          }
+        }
+        if (parts.length === 0 && sr.markdownFallback) {
+          parts.push(sr.markdownFallback.trim());
+        }
+        text = parts.join('\n').trim();
+      }
+
+      if (!text) continue;
+
+      turns.push({
+        role: msg.role,
+        content: text.length > 800 ? text.slice(0, 800) : text,
+      });
+    }
+
+    return turns.slice(-Math.max(1, maxTurns));
   }
 
   static getErrorMessage(error: unknown): string {

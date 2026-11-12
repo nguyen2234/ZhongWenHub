@@ -272,6 +272,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
             onClick={() => {
               const ctx = ContextBuilder.build('vocabulary', {
                 hskLevel: vocabulary.hskLevel,
+                vocabularyIds: vocabulary.id ? [vocabulary.id] : undefined,
                 vocabularyWord: {
                   hanzi: vocabulary.hanzi,
                   pinyin: vocabulary.pinyin,

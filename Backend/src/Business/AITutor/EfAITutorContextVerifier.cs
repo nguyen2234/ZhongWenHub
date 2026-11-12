@@ -55,11 +55,41 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             ? "English"
             : "Vietnamese";
 
-        var verifiedLessonTitle = await ResolveVerifiedLessonTitleAsync(requestedContext, effectiveHskLevel, cancellationToken);
+        var (verifiedLessonId, verifiedLessonTitle) = await ResolveVerifiedLessonAsync(requestedContext, effectiveHskLevel, cancellationToken);
         var verifiedVocabulary = await ResolveVerifiedVocabularyAsync(requestedContext, effectiveHskLevel, cancellationToken);
         var verifiedExercise = await ResolveVerifiedExerciseAsync(requestedContext?.ExerciseContext, cancellationToken);
 
         var grammarPoints = SanitizeList(requestedContext?.GrammarPoints, maxItems: 3, maxLength: 80);
+        var lessonVocabularyPreview = new List<string>();
+        if (verifiedLessonId.HasValue)
+        {
+            if (grammarPoints.Count == 0)
+            {
+                grammarPoints = await _dbContext.GrammarPoints
+                    .AsNoTracking()
+                    .Where(g => g.LessonId == verifiedLessonId.Value && g.Status == "PUBLISHED")
+                    .OrderBy(g => g.Title)
+                    .Select(g => g.Title)
+                    .Take(3)
+                    .ToListAsync(cancellationToken);
+            }
+
+            var lessonVocabs = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.Status == "PUBLISHED" &&
+                            (v.LessonId == verifiedLessonId.Value ||
+                             v.LessonVocabularies.Any(lv => lv.LessonId == verifiedLessonId.Value)))
+                .OrderBy(v => v.HskLevel)
+                .ThenBy(v => v.Hanzi)
+                .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi })
+                .Take(5)
+                .ToListAsync(cancellationToken);
+
+            lessonVocabularyPreview = lessonVocabs
+                .Select(v => $"{v.Hanzi} ({v.Pinyin}): {Truncate(v.MeaningVi, 60)}")
+                .ToList();
+        }
+
         var weaknesses = SanitizeList(requestedContext?.Weaknesses, maxItems: 3, maxLength: 80);
 
         return new VerifiedAITutorContext
@@ -70,13 +100,14 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             VerifiedLessonTitle = verifiedLessonTitle,
             CurrentStep = Truncate(requestedContext?.CurrentStep, 60),
             GrammarPoints = grammarPoints,
+            LessonVocabularyPreview = lessonVocabularyPreview,
             VerifiedVocabulary = verifiedVocabulary,
             VerifiedExercise = verifiedExercise,
             Weaknesses = weaknesses
         };
     }
 
-    private async Task<string?> ResolveVerifiedLessonTitleAsync(
+    private async Task<(Guid? LessonId, string? Title)> ResolveVerifiedLessonAsync(
         AITutorContextDto? ctx,
         int hskLevel,
         CancellationToken cancellationToken)
@@ -89,12 +120,12 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
                     .AsNoTracking()
                     .Include(l => l.Course)
                     .Where(l => l.Id == lessonGuid && l.Status == "PUBLISHED")
-                    .Select(l => new { l.LessonNumber, l.TitleZh, l.TitleVi, CourseHsk = l.Course != null ? l.Course.HskLevel : hskLevel })
+                    .Select(l => new { l.Id, l.LessonNumber, l.TitleZh, l.TitleVi, CourseHsk = l.Course != null ? l.Course.HskLevel : hskLevel })
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (dbLesson is not null)
                 {
-                    return $"HSK {dbLesson.CourseHsk} - Bài {dbLesson.LessonNumber}: {dbLesson.TitleZh} ({dbLesson.TitleVi})";
+                    return (dbLesson.Id, $"HSK {dbLesson.CourseHsk} - Bài {dbLesson.LessonNumber}: {dbLesson.TitleZh} ({dbLesson.TitleVi})");
                 }
             }
             else if (TryExtractInt(lessonIdEl, out var lessonNumber) && lessonNumber > 0)
@@ -103,17 +134,17 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
                     .AsNoTracking()
                     .Include(l => l.Course)
                     .Where(l => l.LessonNumber == lessonNumber && l.Status == "PUBLISHED" && (l.Course == null || l.Course.HskLevel == hskLevel))
-                    .Select(l => new { l.LessonNumber, l.TitleZh, l.TitleVi, CourseHsk = l.Course != null ? l.Course.HskLevel : hskLevel })
+                    .Select(l => new { l.Id, l.LessonNumber, l.TitleZh, l.TitleVi, CourseHsk = l.Course != null ? l.Course.HskLevel : hskLevel })
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (dbLesson is not null)
                 {
-                    return $"HSK {dbLesson.CourseHsk} - Bài {dbLesson.LessonNumber}: {dbLesson.TitleZh} ({dbLesson.TitleVi})";
+                    return (dbLesson.Id, $"HSK {dbLesson.CourseHsk} - Bài {dbLesson.LessonNumber}: {dbLesson.TitleZh} ({dbLesson.TitleVi})");
                 }
             }
         }
 
-        return Truncate(ctx?.LessonTitle, 120);
+        return (null, Truncate(ctx?.LessonTitle, 120));
     }
 
     private async Task<VerifiedVocabularyInfo?> ResolveVerifiedVocabularyAsync(
@@ -131,7 +162,7 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
                     var dbVocab = await _dbContext.Vocabularies
                         .AsNoTracking()
                         .Where(v => v.Id == vocabId && v.Status == "PUBLISHED")
-                        .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi, v.HskLevel })
+                        .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi, v.HskLevel, v.ExamplesJson })
                         .FirstOrDefaultAsync(cancellationToken);
 
                     if (dbVocab is not null)
@@ -142,6 +173,7 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
                             Pinyin = dbVocab.Pinyin,
                             Meaning = dbVocab.MeaningVi,
                             HskLevel = dbVocab.HskLevel,
+                            Examples = ExtractVocabularyExamples(dbVocab.ExamplesJson),
                             IsDatabaseVerified = true
                         };
                     }
@@ -159,7 +191,7 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             .AsNoTracking()
             .Where(v => v.Status == "PUBLISHED" && v.Hanzi == hanziInput)
             .OrderBy(v => v.HskLevel)
-            .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi, v.HskLevel })
+            .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi, v.HskLevel, v.ExamplesJson })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (dbWord is not null)
@@ -170,6 +202,7 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
                 Pinyin = dbWord.Pinyin,
                 Meaning = dbWord.MeaningVi,
                 HskLevel = dbWord.HskLevel,
+                Examples = ExtractVocabularyExamples(dbWord.ExamplesJson),
                 IsDatabaseVerified = true
             };
         }
@@ -271,6 +304,64 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             .Select(s => s!)
             .Take(maxItems)
             .ToList();
+    }
+
+    private static List<string> ExtractVocabularyExamples(string? examplesJson)
+    {
+        var results = new List<string>();
+        if (string.IsNullOrWhiteSpace(examplesJson))
+        {
+            return results;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(examplesJson);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return results;
+            }
+
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                if (results.Count >= 2) break;
+
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    var text = Truncate(item.GetString(), 140);
+                    if (!string.IsNullOrWhiteSpace(text)) results.Add(text);
+                    continue;
+                }
+
+                if (item.ValueKind != JsonValueKind.Object) continue;
+
+                var zh = TryGetStringProp(item, "hanzi") ?? TryGetStringProp(item, "chinese") ?? TryGetStringProp(item, "zh");
+                var py = TryGetStringProp(item, "pinyin");
+                var vi = TryGetStringProp(item, "vietnamese") ?? TryGetStringProp(item, "meaning") ?? TryGetStringProp(item, "vi");
+
+                if (!string.IsNullOrWhiteSpace(zh))
+                {
+                    var formatted = string.IsNullOrWhiteSpace(py)
+                        ? $"{zh} — {vi}"
+                        : $"{zh} ({py}) — {vi}";
+                    var bounded = Truncate(formatted, 180);
+                    if (!string.IsNullOrWhiteSpace(bounded)) results.Add(bounded);
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Ignore malformed ExamplesJson in content rows
+        }
+
+        return results;
+    }
+
+    private static string? TryGetStringProp(JsonElement obj, string name)
+    {
+        return obj.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()?.Trim()
+            : null;
     }
 
     private static string? Truncate(string? value, int maxLength)

@@ -8,6 +8,13 @@ public sealed class AITutorChatRequestDto
     public string Message { get; set; } = string.Empty;
     public string? Mode { get; set; } = "ASK";
     public AITutorContextDto? Context { get; set; }
+    public List<AITutorHistoryTurnDto>? History { get; set; }
+}
+
+public sealed class AITutorHistoryTurnDto
+{
+    public string Role { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
 }
 
 public sealed class AITutorContextDto
@@ -52,3 +59,4 @@ public sealed class AITutorChatResponseDto
     public List<JsonElement> Blocks { get; set; } = new();
     public List<string> SuggestedActions { get; set; } = new();
 }
+

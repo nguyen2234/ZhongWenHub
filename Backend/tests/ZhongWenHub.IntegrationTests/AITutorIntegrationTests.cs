@@ -122,6 +122,62 @@ public class AITutorIntegrationTests : IClassFixture<CustomWebApplicationFactory
         Assert.NotEmpty(payload.Blocks);
     }
 
+    [Fact]
+    public async Task Chat_WithMultiTurnHistory_ForwardsHistoryToProvider()
+    {
+        var capturingProvider = new CapturingStubAIProvider();
+        using var customizedFactory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<IAIProvider>();
+                services.AddSingleton<IAIProvider>(capturingProvider);
+            });
+        });
+
+        var client = customizedFactory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        {
+            HandleCookies = false
+        });
+
+        var token = await LoginAsStudentAsync(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.PostAsJsonAsync("/api/v1/ai-tutor/chat", new AITutorChatRequestDto
+        {
+            ConversationId = "conv-multi-turn",
+            Message = "Cho tôi thêm ví dụ",
+            Mode = "ASK",
+            History = new List<AITutorHistoryTurnDto>
+            {
+                new() { Role = "user", Content = "Từ 学习 nghĩa là gì?" },
+                new() { Role = "assistant", Content = "学习 (xuéxí) nghĩa là học tập." }
+            },
+            Context = new AITutorContextDto
+            {
+                Source = "vocabulary",
+                HskLevel = 1
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(capturingProvider.LastRequest);
+        Assert.Equal(2, capturingProvider.LastRequest!.History.Count);
+        Assert.Equal("user", capturingProvider.LastRequest.History[0].Role);
+        Assert.Equal("model", capturingProvider.LastRequest.History[1].Role);
+    }
+
+    private sealed class CapturingStubAIProvider : IAIProvider
+    {
+        public AIProviderRequest? LastRequest { get; private set; }
+
+        public Task<AIProviderResponse> GenerateContentAsync(AIProviderRequest request, CancellationToken cancellationToken = default)
+        {
+            LastRequest = request;
+            return new TestStubAIProvider().GenerateContentAsync(request, cancellationToken);
+        }
+    }
+
     private sealed class TestStubAIProvider : IAIProvider
     {
         public Task<AIProviderResponse> GenerateContentAsync(AIProviderRequest request, CancellationToken cancellationToken = default)
@@ -153,3 +209,4 @@ public class AITutorIntegrationTests : IClassFixture<CustomWebApplicationFactory
         }
     }
 }
+

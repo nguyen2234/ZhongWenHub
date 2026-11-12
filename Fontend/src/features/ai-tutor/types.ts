@@ -128,6 +128,11 @@ export interface AITutorMessage {
   feedback?: 'like' | 'dislike';
 }
 
+export interface AITutorHistoryTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface AITutorConversation {
   id: string;
   userId: string;

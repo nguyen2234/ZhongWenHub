@@ -149,11 +149,13 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     setIsLoading(true);
 
     try {
+      const history = AITutorService.buildHistoryFromMessages(messages);
       const resp = await AITutorService.sendChatMessage({
         conversationId: activeConvId,
         message: query,
         mode: 'ASK',
         context: initialContext || { source: 'dashboard', hskLevel: 2 },
+        history,
       });
 
       const aiMsg: AITutorMessage = {
