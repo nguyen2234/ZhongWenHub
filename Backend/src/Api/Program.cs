@@ -16,6 +16,15 @@ using ZhongWenHub.Data.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ensure local runs invoked directly via `dotnet ZhongWenHub.Api.dll` (where ASPNETCORE_ENVIRONMENT is unset)
+// still load developer User Secrets while keeping explicit Production/Staging environments isolated.
+if (builder.Environment.IsProduction() &&
+    string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")) &&
+    string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")))
+{
+    builder.Configuration.AddUserSecrets<Program>(optional: true);
+}
+
 // Add Data (SQL Server DbContext, Identity) and Business Services (JWT, Policies, Services)
 builder.Services.AddData(builder.Configuration);
 builder.Services.AddBusiness(builder.Configuration);
