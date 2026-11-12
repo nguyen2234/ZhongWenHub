@@ -244,5 +244,57 @@ class ValidateHsk20DataTests(unittest.TestCase):
             self.assertEqual(statuses[3], QUALITY_MISSING_CONTENT)
 
 
+class PinyinValidatorMultiSyllableTests(unittest.TestCase):
+    def test_valid_compound_and_special_pinyin_pass(self) -> None:
+        from pinyin_validator import (
+            check_pinyin_matches_hanzi,
+            segment_pinyin_token,
+            validate_pinyin_string,
+        )
+
+        valid_cases = [
+            "lǎoshī",
+            "gāoxìng",
+            "zǎoshang",
+            "zhōngwǔ",
+            "xuéxiào",
+            "jīntiān",
+            "péngyou",
+            "duìbuqǐ",
+            "méiguānxi",
+            "yìdiǎnr",
+            "nǚ'ér",
+            "Xī'ān",
+            "lǜsè",
+            "Wáng lǎoshī",
+        ]
+        for py in valid_cases:
+            ok, msg = validate_pinyin_string(py)
+            self.assertTrue(ok, f"Expected valid for {py!r}, got: {msg}")
+
+        syls, _ = segment_pinyin_token("lǎoshī")
+        self.assertEqual(syls, ["lǎo", "shī"])
+
+        matched, match_msg = check_pinyin_matches_hanzi("老师", "lǎoshī")
+        self.assertTrue(matched, match_msg)
+
+    def test_invalid_compound_and_malformed_pinyin_fail(self) -> None:
+        from pinyin_validator import validate_pinyin_string
+
+        invalid_cases = [
+            "lǎoshīx",      # trailing invalid consonant
+            "nǐhǎoo",       # dangling single-letter 'o' mid/end-word without apostrophe
+            "zhōōng",       # double tone mark in single syllable
+            "gūai",         # tone mark on wrong vowel (should be on 'a', not 'u')
+            "haǒ",          # tone mark on wrong vowel (should be on 'a', not 'o')
+            "asdfghjk",     # gibberish
+            "píng guǒ 123", # digits inside pinyin
+        ]
+        for py in invalid_cases:
+            ok, _ = validate_pinyin_string(py)
+            self.assertFalse(ok, f"Expected invalid for {py!r}")
+
+
 if __name__ == "__main__":
     unittest.main()
+

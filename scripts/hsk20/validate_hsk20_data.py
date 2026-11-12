@@ -44,7 +44,7 @@ def check_pinyin(text: str | None, label: str, errors: list[str], warnings: list
     if not text or not text.strip():
         errors.append(f"Missing Pinyin for {label}")
         return
-    cleaned = re.sub(r'[,.!?;:"\'“”‘’()（）—\-…]+', " ", text)
+    cleaned = re.sub(r'[,.!?;:"\'“”‘’()（）—\-…，。！？：；、《》「」『』]+', " ", text)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     if not cleaned:
         errors.append(f"Missing Pinyin tokens for {label}")

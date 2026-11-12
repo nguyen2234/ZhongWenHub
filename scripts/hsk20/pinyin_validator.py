@@ -152,25 +152,98 @@ def validate_single_pinyin_syllable(syllable):
 
     return True, "Valid"
 
+
+def segment_pinyin_token(token):
+    """
+    Segments a contiguous Pinyin word (possibly multi-syllable without spaces,
+    e.g. 'lǎoshī', 'zǎoshang', 'gāoxìng', 'yìdiǎnr') into valid Mandarin syllables.
+    Returns (syllables_list, reason). If invalid, returns (None, reason).
+    """
+    s = unicodedata.normalize("NFC", token.strip().lower())
+    if not s:
+        return None, "Empty token"
+
+    if re.search(r"[^a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]", s):
+        return None, f"Illegal characters in token: '{s}'"
+
+    # Fast path: valid single syllable
+    single_ok, single_reason = validate_single_pinyin_syllable(s)
+    if single_ok:
+        return [s], "Valid"
+
+    n = len(s)
+    memo = {}
+
+    def solve(start):
+        if start == n:
+            return []
+        if start in memo:
+            return memo[start]
+
+        # Try longest valid syllable first (up to max Mandarin syllable length 7, e.g. 'zhuāng' + 'r')
+        max_end = min(n, start + 7)
+        for end in range(max_end, start, -1):
+            cand = s[start:end]
+            # Per Hanyu Pinyin Orthography, syllables starting with a/o/e mid-word require an apostrophe ('),
+            # and bare 'r' is only valid as erhua suffix handled inside validate_single_pinyin_syllable.
+            if start > 0 and (cand[0] in "aāáǎàoōóǒòeēéěè" or cand == "r"):
+                continue
+            ok, _ = validate_single_pinyin_syllable(cand)
+            if ok:
+                rest = solve(end)
+                if rest is not None:
+                    memo[start] = [cand] + rest
+                    return memo[start]
+
+        memo[start] = None
+        return None
+
+    segmented = solve(0)
+    if segmented is not None:
+        return segmented, "Valid"
+
+    return None, single_reason
+
+
+def tokenize_pinyin_phrase(phrase):
+    """
+    Splits a Pinyin phrase by whitespace, apostrophe ('), and hyphen (-),
+    then segments each contiguous word into valid Mandarin syllables.
+    Returns (syllables_list, error_reason).
+    """
+    p = unicodedata.normalize("NFC", phrase.strip())
+    if not p:
+        return None, "Empty pinyin phrase"
+
+    raw_tokens = [t for t in re.split(r"[\s'\-]+", p) if t]
+    if not raw_tokens:
+        return None, "Empty pinyin tokens"
+
+    all_syllables = []
+    for tok in raw_tokens:
+        syls, reason = segment_pinyin_token(tok)
+        if syls is None:
+            return None, reason
+        all_syllables.extend(syls)
+
+    return all_syllables, "Valid"
+
+
 def validate_pinyin_string(pinyin_str):
-    """Validates a full pinyin string for a word (e.g. 'nǐ hǎo', 'érzi', 'xiàwǔ')."""
+    """Validates a full pinyin string (single word or multi-syllable/phrase, e.g. 'nǐ hǎo', 'lǎoshī', 'nǚ'ér')."""
     if not pinyin_str or not isinstance(pinyin_str, str):
         return False, "Pinyin is empty or not string"
-    
+
     p = unicodedata.normalize("NFC", pinyin_str.strip())
     alternatives = [a.strip() for a in p.split('/') if a.strip()]
     if not alternatives:
         return False, "Empty pinyin alternatives"
 
     for alt in alternatives:
-        tokens = re.split(r"[\s']+", alt)
-        for token in tokens:
-            if not token:
-                continue
-            valid, reason = validate_single_pinyin_syllable(token)
-            if not valid:
-                return False, f"Invalid syllable in '{alt}': {reason}"
-    
+        syls, reason = tokenize_pinyin_phrase(alt)
+        if syls is None:
+            return False, f"Invalid syllable in '{alt}': {reason}"
+
     return True, "Valid"
 
 def check_pinyin_matches_hanzi(hanzi, pinyin_str):
@@ -192,7 +265,9 @@ def check_pinyin_matches_hanzi(hanzi, pinyin_str):
     
     match_found = False
     for alt in user_alts:
-        user_tokens = [unicodedata.normalize("NFC", t.lower()) for t in re.split(r"[\s']+", alt) if t]
+        user_tokens, tok_err = tokenize_pinyin_phrase(alt)
+        if user_tokens is None:
+            return False, tok_err
         if len(user_tokens) != len(hz):
             # Erhua special case (e.g. 那儿 nàr = 2 chars, 1 syllable)
             if hz.endswith('儿') and len(user_tokens) == len(hz) - 1:
