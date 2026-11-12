@@ -9,15 +9,6 @@
     }
   },
   "profiles": {
-    "Testing": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://127.0.0.1:5000",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Testing"
-      }
-    },
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
@@ -36,6 +27,15 @@
       "applicationUrl": "https://127.0.0.1:7001;http://127.0.0.1:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Testing": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://127.0.0.1:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Testing"
       }
     },
     "IIS Express": {

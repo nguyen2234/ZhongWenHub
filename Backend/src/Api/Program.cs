@@ -16,15 +16,6 @@ using ZhongWenHub.Data.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ensure local runs invoked directly via `dotnet ZhongWenHub.Api.dll` (where ASPNETCORE_ENVIRONMENT is unset)
-// still load developer User Secrets while keeping explicit Production/Staging environments isolated.
-if (builder.Environment.IsProduction() &&
-    string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")) &&
-    string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")))
-{
-    builder.Configuration.AddUserSecrets<Program>(optional: true);
-}
-
 // Add Data (SQL Server DbContext, Identity) and Business Services (JWT, Policies, Services)
 builder.Services.AddData(builder.Configuration);
 builder.Services.AddBusiness(builder.Configuration);
@@ -164,6 +155,17 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+var geminiOptionsSnapshot = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<ZhongWenHub.Business.AITutor.GeminiOptions>>().Value;
+var geminiKeyConfigured = !string.IsNullOrWhiteSpace(app.Configuration["Gemini:ApiKey"])
+    || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GEMINI_API_KEY"));
+var geminiOptionsKeyConfigured = !string.IsNullOrWhiteSpace(geminiOptionsSnapshot.ApiKey);
+app.Logger.LogInformation(
+    "AI Tutor Startup Diagnostic | EnvironmentName={EnvironmentName} | GeminiKeyConfigured={GeminiKeyConfigured} | GeminiOptionsKeyConfigured={GeminiOptionsKeyConfigured} | GeminiModel={GeminiModel}",
+    app.Environment.EnvironmentName,
+    geminiKeyConfigured,
+    geminiOptionsKeyConfigured,
+    geminiOptionsSnapshot.Model);
 
 // Seed Database and apply pending migrations on startup (guarded to protect Dev database)
 var autoMigrate = app.Configuration.GetValue<bool>("Database:AutoMigrate", false);
