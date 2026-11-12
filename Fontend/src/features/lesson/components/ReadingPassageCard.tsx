@@ -1,6 +1,59 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Eye, EyeOff, Volume2, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
+
+export interface AlignedReadingSentence {
+  zh: string;
+  pinyin: string;
+  vi: string;
+}
+
+export interface ReadingPassageSentenceSplitResult {
+  isAligned: boolean;
+  sentences: AlignedReadingSentence[];
+  zhSentences: string[];
+  pySentences: string[];
+  viSentences: string[];
+}
+
+/**
+ * Safely splits a passage into sentences at sentence-ending punctuation
+ * (including trailing closing quotes/brackets) without splitting Pinyin by spaces.
+ */
+export function splitIntoSentences(text?: string): string[] {
+  if (!text) return [];
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (!normalized) return [];
+
+  const matches = normalized.match(/[^。！？.!?]+[。！？.!?]+[”"’'」』)\]]*|[^。！？.!?]+$/g);
+  if (!matches) return [normalized];
+  return matches.map((s) => s.trim()).filter((s) => s.length > 0);
+}
+
+export function splitReadingPassageSentences(
+  passageZh: string,
+  passagePinyin: string,
+  passageVi: string
+): ReadingPassageSentenceSplitResult {
+  const zhSentences = splitIntoSentences(passageZh);
+  const pySentences = splitIntoSentences(passagePinyin);
+  const viSentences = splitIntoSentences(passageVi);
+
+  const isAligned =
+    zhSentences.length > 0 &&
+    zhSentences.length === pySentences.length &&
+    zhSentences.length === viSentences.length;
+
+  const sentences = isAligned
+    ? zhSentences.map((zh, idx) => ({
+        zh,
+        pinyin: pySentences[idx],
+        vi: viSentences[idx],
+      }))
+    : [];
+
+  return { isAligned, sentences, zhSentences, pySentences, viSentences };
+}
 
 interface ReadingPassageCardProps {
   passage: LessonReadingPassageDTO;
@@ -10,15 +63,22 @@ interface ReadingPassageCardProps {
 
 export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage, audioUrl, className = '' }) => {
   const [showPinyin, setShowPinyin] = useState<boolean>(true);
-  const [showMeaning, setShowMeaning] = useState<boolean>(true);
+  const [showMeaning, setShowMeaning] = useState<boolean>(false);
+  const [visibleQuestionVi, setVisibleQuestionVi] = useState<Record<number, boolean>>({});
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [submittedAnswers, setSubmittedAnswers] = useState<Record<number, boolean>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const splitResult = useMemo(
+    () => splitReadingPassageSentences(passage.passageZh, passage.passagePinyin, passage.passageVi),
+    [passage.passageZh, passage.passagePinyin, passage.passageVi]
+  );
+
   useEffect(() => {
     setSelectedAnswers({});
     setSubmittedAnswers({});
+    setVisibleQuestionVi({});
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -77,7 +137,7 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
   };
 
   const handleSelectOption = (qIdx: number, optIdx: number) => {
-    if (submittedAnswers[qIdx]) return; // lock once checked
+    if (submittedAnswers[qIdx]) return;
     setSelectedAnswers((prev) => ({ ...prev, [qIdx]: optIdx }));
   };
 
@@ -100,75 +160,34 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
     });
   };
 
+  const totalQuestions = passage.comprehensionQuestions?.length ?? 0;
+  const checkedCount = Object.values(submittedAnswers).filter(Boolean).length;
+
   return (
     <div
-      className={`reading-passage-container ${className}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-4)',
-        background: 'var(--card-bg, #ffffff)',
-        border: '1px solid var(--border, #e2e8f0)',
-        borderRadius: 'var(--radius-xl, 16px)',
-        padding: 'var(--space-5, 24px)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-      }}
+      className={`reading-passage-card ${className}`}
       data-testid="reading-passage-card"
     >
       {/* Header bar */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 'var(--space-3)',
-          borderBottom: '1px solid var(--border, #e2e8f0)',
-          paddingBottom: 'var(--space-3, 12px)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              backgroundColor: 'rgba(234, 88, 12, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--primary, #ea580c)',
-            }}
-          >
-            <BookOpen size={20} />
+      <div className="reading-passage-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="hsk-section-icon-badge is-reading">
+            <BookOpen size={18} />
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground, #0f172a)' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--lesson-text-primary, #0f172a)' }}>
               {passage.titleZh}
             </h3>
-            <span style={{ fontSize: '0.85rem', color: 'var(--muted, #64748b)' }}>{passage.titleVi}</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--lesson-text-secondary, #64748b)' }}>{passage.titleVi}</span>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+        <div className="reading-passage-controls">
           <button
             type="button"
             onClick={() => handlePlayAudio(false)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              border: 'none',
-              background: isPlaying ? 'var(--primary, #ea580c)' : 'rgba(234, 88, 12, 0.12)',
-              color: isPlaying ? '#ffffff' : 'var(--primary, #ea580c)',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
+            className={`reading-ctrl-btn is-tts ${isPlaying ? 'is-playing' : ''}`}
             data-testid="reading-passage-tts-btn"
           >
             <Volume2 size={14} />
@@ -177,20 +196,9 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
 
           <button
             type="button"
-            onClick={() => setShowPinyin(!showPinyin)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              border: '1px solid var(--border, #cbd5e1)',
-              background: showPinyin ? 'var(--primary-light, #fff7ed)' : '#ffffff',
-              color: showPinyin ? 'var(--primary, #ea580c)' : 'var(--muted, #64748b)',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            onClick={() => setShowPinyin((prev) => !prev)}
+            className={`reading-ctrl-btn ${showPinyin ? 'is-active' : ''}`}
+            aria-pressed={showPinyin}
             data-testid="toggle-pinyin-btn"
           >
             {showPinyin ? <Eye size={13} /> : <EyeOff size={13} />}
@@ -199,20 +207,9 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
 
           <button
             type="button"
-            onClick={() => setShowMeaning(!showMeaning)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: '20px',
-              border: '1px solid var(--border, #cbd5e1)',
-              background: showMeaning ? 'var(--primary-light, #fff7ed)' : '#ffffff',
-              color: showMeaning ? 'var(--primary, #ea580c)' : 'var(--muted, #64748b)',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            onClick={() => setShowMeaning((prev) => !prev)}
+            className={`reading-ctrl-btn ${showMeaning ? 'is-active' : ''}`}
+            aria-pressed={showMeaning}
             data-testid="toggle-meaning-btn"
           >
             {showMeaning ? <Eye size={13} /> : <EyeOff size={13} />}
@@ -223,16 +220,17 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
 
       {/* Target Focus Tags */}
       {(passage.targetWords?.length || passage.targetGrammar?.length) ? (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11.5px' }}>
           {passage.targetWords?.map((tw, idx) => (
             <span
               key={`tw-${idx}`}
               style={{
-                backgroundColor: '#f1f5f9',
-                color: '#475569',
+                backgroundColor: 'var(--lesson-study-soft, #eff6ff)',
+                color: 'var(--lesson-study, #2563EB)',
+                border: '1px solid var(--lesson-study-border, #bfdbfe)',
                 padding: '2px 8px',
                 borderRadius: '6px',
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
               Từ khóa: {tw}
@@ -242,11 +240,12 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
             <span
               key={`tg-${idx}`}
               style={{
-                backgroundColor: '#fef3c7',
-                color: '#b45309',
+                backgroundColor: 'var(--lesson-grammar-soft, #fffbeb)',
+                color: 'var(--lesson-grammar, #d97706)',
+                border: '1px solid var(--lesson-grammar-border, #fde68a)',
                 padding: '2px 8px',
                 borderRadius: '6px',
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
               Ngữ pháp: {tg}
@@ -256,128 +255,183 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
       ) : null}
 
       {/* Passage Content Box */}
-      <div
-        style={{
-          background: 'linear-gradient(to bottom right, #fffaf5, #ffffff)',
-          border: '1px solid #fed7aa',
-          borderRadius: '12px',
-          padding: '20px',
-          lineHeight: '1.8',
-        }}
-      >
-        <div
-          style={{
-            fontSize: '1.35rem',
-            fontWeight: 600,
-            color: '#1e293b',
-            letterSpacing: '0.04em',
-            marginBottom: showPinyin ? '8px' : '0',
-          }}
-          data-testid="passage-hanzi"
-        >
-          {passage.passageZh}
-        </div>
-
-        {showPinyin && (
-          <div
-            style={{
-              fontSize: '0.95rem',
-              color: '#d97706',
-              fontWeight: 500,
-              marginBottom: showMeaning ? '10px' : '0',
-            }}
-            data-testid="passage-pinyin"
-          >
-            {passage.passagePinyin}
+      <div className="reading-passage-body">
+        {splitResult.isAligned ? (
+          <div className="reading-sentences-list" data-testid="passage-sentences-list">
+            {splitResult.sentences.map((sentence, idx) => (
+              <div key={idx} className="reading-sentence-item" data-testid={`passage-sentence-${idx}`}>
+                <div className="reading-sentence-hanzi" data-testid={idx === 0 ? 'passage-hanzi' : undefined}>
+                  {sentence.zh}
+                </div>
+                {showPinyin && (
+                  <div className="reading-sentence-pinyin" data-testid={idx === 0 ? 'passage-pinyin' : undefined}>
+                    {sentence.pinyin}
+                  </div>
+                )}
+                {showMeaning && (
+                  <div className="reading-sentence-vi" data-testid={idx === 0 ? 'passage-meaning' : undefined}>
+                    {sentence.vi}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        )}
-
-        {showMeaning && (
-          <div
-            style={{
-              fontSize: '0.95rem',
-              color: '#475569',
-              fontStyle: 'italic',
-              borderTop: '1px dashed #fed7aa',
-              paddingTop: '8px',
-              marginTop: '8px',
-            }}
-            data-testid="passage-meaning"
-          >
-            {passage.passageVi}
+        ) : (
+          <div className="reading-sentences-list">
+            <div className="reading-sentence-hanzi" data-testid="passage-hanzi">
+              {passage.passageZh}
+            </div>
+            {showPinyin && (
+              <div className="reading-sentence-pinyin" data-testid="passage-pinyin">
+                {passage.passagePinyin}
+              </div>
+            )}
+            {showMeaning && (
+              <div className="reading-sentence-vi" data-testid="passage-meaning">
+                {passage.passageVi}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Comprehension Questions Section */}
-      {passage.comprehensionQuestions && passage.comprehensionQuestions.length > 0 && (
-        <div style={{ marginTop: 'var(--space-2)' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              marginBottom: '12px',
-              fontSize: '14px',
-              fontWeight: 700,
-              color: 'var(--foreground, #0f172a)',
-            }}
-          >
-            <HelpCircle size={16} style={{ color: 'var(--primary, #ea580c)' }} />
-            <span>Câu hỏi đọc hiểu ({passage.comprehensionQuestions.length} câu)</span>
+      {totalQuestions > 0 && (
+        <div style={{ marginTop: '4px' }}>
+          <div className="reading-questions-header">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: 'var(--lesson-text-primary, #0f172a)',
+              }}
+            >
+              <HelpCircle size={16} style={{ color: 'var(--lesson-study, #2563EB)' }} />
+              <span>Câu hỏi đọc hiểu ({totalQuestions} câu)</span>
+            </div>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--lesson-text-secondary, #64748b)',
+                backgroundColor: 'var(--lesson-bg-subtle, #f8fafc)',
+                border: '1px solid var(--lesson-border, #e2e8f0)',
+                padding: '3px 10px',
+                borderRadius: '999px',
+              }}
+              data-testid="reading-questions-progress"
+            >
+              Tiến độ: {checkedCount}/{totalQuestions} câu
+            </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {passage.comprehensionQuestions.map((q, qIdx) => {
               const selectedOpt = selectedAnswers[qIdx];
               const isSubmitted = submittedAnswers[qIdx];
               const isCorrect = isSubmitted && selectedOpt === q.correctIndex;
+              const isQuestionViVisible = Boolean(visibleQuestionVi[qIdx]);
 
               return (
                 <div
                   key={qIdx}
-                  style={{
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    backgroundColor: '#fafafa',
-                  }}
+                  className="reading-question-card"
                   data-testid={`reading-question-${qIdx}`}
                 >
-                  <div style={{ fontWeight: 600, fontSize: '15px', color: '#1e293b', marginBottom: '4px' }}>
-                    {qIdx + 1}. {q.questionZh}
-                  </div>
-                  {showPinyin && q.questionPinyin && (
-                    <div style={{ fontSize: '12px', color: '#d97706', marginBottom: '4px' }}>
-                      {q.questionPinyin}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                        <span
+                          style={{
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: 'var(--lesson-study, #2563EB)',
+                            backgroundColor: 'var(--lesson-study-soft, #eff6ff)',
+                            border: '1px solid var(--lesson-study-border, #bfdbfe)',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          Câu {qIdx + 1}/{totalQuestions}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-hanzi)',
+                          fontWeight: 600,
+                          fontSize: '16px',
+                          color: 'var(--lesson-text-primary, #0f172a)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {q.questionZh}
+                      </div>
+
+                      {showPinyin && q.questionPinyin && (
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-pinyin)',
+                            fontSize: '13px',
+                            color: 'var(--lesson-study, #2563EB)',
+                            marginTop: '3px',
+                          }}
+                        >
+                          {q.questionPinyin}
+                        </div>
+                      )}
+
+                      {isQuestionViVisible && q.questionVi && (
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            color: 'var(--lesson-text-secondary, #64748b)',
+                            marginTop: '4px',
+                          }}
+                          data-testid={`question-vi-${qIdx}`}
+                        >
+                          {q.questionVi}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '12px' }}>
-                    {q.questionVi}
+
+                    {q.questionVi && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVisibleQuestionVi((prev) => ({
+                            ...prev,
+                            [qIdx]: !prev[qIdx],
+                          }))
+                        }
+                        className={`reading-ctrl-btn ${isQuestionViVisible ? 'is-active' : ''}`}
+                        aria-label={isQuestionViVisible ? 'Ẩn bản dịch câu hỏi' : 'Hiện bản dịch câu hỏi'}
+                        aria-pressed={isQuestionViVisible}
+                        title={isQuestionViVisible ? 'Ẩn dịch câu hỏi' : 'Hiện dịch câu hỏi'}
+                        data-testid={`toggle-question-vi-${qIdx}`}
+                      >
+                        {isQuestionViVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                        <span>Dịch</span>
+                      </button>
+                    )}
                   </div>
 
-                  {/* Options */}
+                  {/* Options A / B / C / D */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                     {q.options.map((opt, optIdx) => {
-                      let btnBg = '#ffffff';
-                      let btnBorder = '#cbd5e1';
-                      let btnColor = '#334155';
-
-                      if (isSubmitted) {
-                        if (optIdx === q.correctIndex) {
-                          btnBg = '#ecfdf5';
-                          btnBorder = '#10b981';
-                          btnColor = '#065f46';
-                        } else if (optIdx === selectedOpt) {
-                          btnBg = '#fef2f2';
-                          btnBorder = '#ef4444';
-                          btnColor = '#991b1b';
-                        }
-                      } else if (selectedOpt === optIdx) {
-                        btnBg = 'rgba(234, 88, 12, 0.08)';
-                        btnBorder = 'var(--primary, #ea580c)';
-                        btnColor = 'var(--primary, #ea580c)';
-                      }
+                      const letter = String.fromCharCode(65 + optIdx);
+                      const stateClass = isSubmitted
+                        ? optIdx === q.correctIndex
+                          ? 'is-correct'
+                          : optIdx === selectedOpt
+                            ? 'is-incorrect'
+                            : ''
+                        : selectedOpt === optIdx
+                          ? 'is-selected'
+                          : '';
 
                       return (
                         <button
@@ -385,29 +439,19 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                           type="button"
                           onClick={() => handleSelectOption(qIdx, optIdx)}
                           disabled={isSubmitted}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 14px',
-                            borderRadius: '8px',
-                            border: `1.5px solid ${btnBorder}`,
-                            background: btnBg,
-                            color: btnColor,
-                            fontSize: '13.5px',
-                            fontWeight: selectedOpt === optIdx ? 600 : 400,
-                            cursor: isSubmitted ? 'default' : 'pointer',
-                            textAlign: 'left',
-                            transition: 'all 0.15s ease',
-                          }}
+                          className={`reading-option-btn ${stateClass}`}
+                          style={{ cursor: isSubmitted ? 'default' : 'pointer' }}
                           data-testid={`question-${qIdx}-opt-${optIdx}`}
                         >
-                          <span>{opt}</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                            <span className="reading-option-letter">{letter}</span>
+                            <span style={{ fontFamily: 'var(--font-hanzi)' }}>{opt}</span>
+                          </span>
                           {isSubmitted && optIdx === q.correctIndex && (
-                            <CheckCircle2 size={16} color="#10b981" />
+                            <CheckCircle2 size={16} color="var(--lesson-success, #16A34A)" style={{ flexShrink: 0 }} />
                           )}
                           {isSubmitted && optIdx === selectedOpt && optIdx !== q.correctIndex && (
-                            <XCircle size={16} color="#ef4444" />
+                            <XCircle size={16} color="var(--lesson-error, #DC2626)" style={{ flexShrink: 0 }} />
                           )}
                         </button>
                       );
@@ -415,21 +459,22 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                   </div>
 
                   {/* Submit / Reset Action & Explanation */}
-                  <div style={{ marginTop: '12px' }}>
+                  <div style={{ marginTop: '2px' }}>
                     {!isSubmitted ? (
                       <button
                         type="button"
                         onClick={() => handleCheckQuestion(qIdx)}
                         disabled={selectedOpt === undefined}
                         style={{
-                          padding: '6px 16px',
+                          padding: '7px 16px',
                           borderRadius: '8px',
-                          background: selectedOpt !== undefined ? 'var(--primary, #ea580c)' : '#e2e8f0',
-                          color: selectedOpt !== undefined ? '#ffffff' : '#94a3b8',
+                          background: selectedOpt !== undefined ? 'var(--lesson-brand, #E60012)' : 'var(--lesson-border, #e2e8f0)',
+                          color: selectedOpt !== undefined ? '#ffffff' : 'var(--lesson-text-secondary, #94a3b8)',
                           border: 'none',
                           fontWeight: 600,
                           fontSize: '13px',
                           cursor: selectedOpt !== undefined ? 'pointer' : 'not-allowed',
+                          transition: 'background 0.15s ease',
                         }}
                         data-testid={`check-answer-btn-${qIdx}`}
                       >
@@ -439,27 +484,35 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                       <div
                         style={{
                           padding: '10px 14px',
-                          borderRadius: '8px',
-                          background: isCorrect ? '#ecfdf5' : '#fef2f2',
-                          border: `1px solid ${isCorrect ? '#a7f3d0' : '#fecaca'}`,
+                          borderRadius: '10px',
+                          background: isCorrect ? 'var(--lesson-success-soft, #ecfdf5)' : 'var(--lesson-error-soft, #fef2f2)',
+                          border: `1px solid ${isCorrect ? 'var(--lesson-success-border, #a7f3d0)' : 'var(--lesson-error-border, #fecaca)'}`,
                           fontSize: '13px',
                         }}
                       >
-                        <div style={{ fontWeight: 600, color: isCorrect ? '#065f46' : '#991b1b', marginBottom: '4px' }}>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            color: isCorrect ? 'var(--lesson-success, #16A34A)' : 'var(--lesson-error, #DC2626)',
+                            marginBottom: '4px',
+                          }}
+                        >
                           {isCorrect ? '✓ Chính xác!' : '✗ Chưa đúng!'}
                         </div>
-                        <div style={{ color: '#475569' }}>{q.explanation}</div>
+                        <div style={{ color: 'var(--lesson-text-primary, #334155)' }}>{q.explanation}</div>
                         {!isCorrect && (
                           <button
                             type="button"
                             onClick={() => handleResetQuestion(qIdx)}
                             style={{
                               marginTop: '8px',
-                              padding: '4px 10px',
-                              background: '#ffffff',
-                              border: '1px solid #cbd5e1',
+                              padding: '5px 12px',
+                              background: 'var(--lesson-surface, #ffffff)',
+                              border: '1px solid var(--lesson-border, #cbd5e1)',
+                              color: 'var(--lesson-text-primary, #0f172a)',
                               borderRadius: '6px',
                               fontSize: '12px',
+                              fontWeight: 600,
                               cursor: 'pointer',
                             }}
                           >

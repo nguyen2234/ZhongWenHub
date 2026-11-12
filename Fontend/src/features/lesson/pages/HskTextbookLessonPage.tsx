@@ -21,7 +21,6 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Maximize2,
 } from 'lucide-react';
 import {
   hskTextbookService,
@@ -420,13 +419,13 @@ export const HskTextbookLessonPage: React.FC = () => {
 
               {/* Objectives List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--lesson-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Mục tiêu học tập:
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {textbookData.objectives.map((obj, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13.5px', color: '#334155' }}>
-                      <CheckCircle2 size={16} color="var(--primary, #E60012)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13.5px', color: 'var(--lesson-text-primary, #0F172A)' }}>
+                      <CheckCircle2 size={16} color="var(--lesson-support, #0D9488)" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span>{obj}</span>
                     </div>
                   ))}
@@ -436,45 +435,25 @@ export const HskTextbookLessonPage: React.FC = () => {
               {/* Meta Stats Chips */}
               <div className="hsk-meta-chips-row">
                 <span className="hsk-meta-chip">
-                  <Languages size={14} color="#64748b" />
+                  <Languages size={14} color="var(--lesson-study, #2563EB)" />
                   {textbookData.vocabularies.length} từ vựng
                 </span>
                 <span className="hsk-meta-chip">
-                  <BookText size={14} color="#64748b" />
+                  <BookText size={14} color="var(--lesson-grammar, #D97706)" />
                   {textbookData.grammars.length} điểm ngữ pháp
                 </span>
                 <span className="hsk-meta-chip">
-                  <MessageSquare size={14} color="#64748b" />
+                  <MessageSquare size={14} color="var(--lesson-support, #0D9488)" />
                   {textbookData.dialogue.lines.length} câu hội thoại
                 </span>
                 <span className="hsk-meta-chip">
-                  <Clock size={14} color="#64748b" />
+                  <Clock size={14} color="var(--lesson-text-secondary, #64748B)" />
                   ~{textbookData.durationMinutes} phút
                 </span>
-                <span className="hsk-meta-chip" style={{ color: 'var(--primary, #E60012)', fontWeight: 700, backgroundColor: '#FFF0F1', borderColor: '#fed7da' }}>
+                <span className="hsk-meta-chip hsk-meta-chip-xp">
                   <Award size={14} />
                   +{textbookData.xpReward} XP
                 </span>
-              </div>
-
-              {/* Quick Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '4px' }}>
-                <Button variant="primary" onClick={() => handleScrollToSection('practice')}>
-                  <Dumbbell size={16} />
-                  Luyện tập củng cố ngay
-                </Button>
-                <Button variant="outline" onClick={() => handleScrollToSection('vocabulary')}>
-                  <Languages size={16} />
-                  Đọc từ vựng ({textbookData.vocabularies.length})
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/lesson?id=${activeLessonId}`)}
-                  title="Mở giao diện tập trung từng bước (Focus Mode)"
-                >
-                  <Maximize2 size={15} />
-                  Chế độ tập trung
-                </Button>
               </div>
             </div>
           </section>
@@ -483,7 +462,7 @@ export const HskTextbookLessonPage: React.FC = () => {
           <section id="vocabulary" className="hsk-textbook-section" aria-label="Từ vựng bài học">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-vocab">
                   <Languages size={18} />
                 </div>
                 <div>
@@ -493,19 +472,6 @@ export const HskTextbookLessonPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  textbookData.vocabularies.forEach((v) => handleToggleSrs(v));
-                  triggerToast('Đã lưu tất cả từ vựng của bài vào kho Spaced Repetition (SRS)!');
-                }}
-                className="ds-btn ds-btn-outline"
-                style={{ fontSize: '12.5px', height: '34px', gap: '6px' }}
-              >
-                <BookmarkCheck size={15} color="var(--primary, #E60012)" />
-                Lưu toàn bộ vào SRS
-              </button>
             </div>
 
             {/* 2-Column Responsive Vocabulary Cards Grid */}
@@ -628,7 +594,7 @@ export const HskTextbookLessonPage: React.FC = () => {
           <section id="grammar" className="hsk-textbook-section" aria-label="Ngữ pháp bài học">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-grammar">
                   <BookText size={18} />
                 </div>
                 <div>
@@ -737,7 +703,7 @@ export const HskTextbookLessonPage: React.FC = () => {
           <section id="dialogue" className="hsk-textbook-section" aria-label="Hội thoại thực tế">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-dialogue">
                   <MessageSquare size={18} />
                 </div>
                 <div>
@@ -858,7 +824,7 @@ export const HskTextbookLessonPage: React.FC = () => {
           <section id="practice" className="hsk-textbook-section" aria-label="Luyện tập củng cố kiến thức">
             <div className="hsk-section-header-box">
               <div className="hsk-section-title-group">
-                <div className="hsk-section-icon-badge">
+                <div className="hsk-section-icon-badge is-practice">
                   <Dumbbell size={18} />
                 </div>
                 <div>

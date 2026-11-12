@@ -1,8 +1,58 @@
 /* HskTextbookLessonPage.css - FE-6 HSK Digital Textbook Vertical Layout */
 
 .hsk-textbook-page-root {
+  --lesson-brand: #E60012;
+  --lesson-brand-soft: #FFF1F2;
+  --lesson-brand-border: #FECDD3;
+  --lesson-study: #2563EB;
+  --lesson-study-soft: #EFF6FF;
+  --lesson-study-border: #BFDBFE;
+  --lesson-support: #0D9488;
+  --lesson-support-soft: #F0FDFA;
+  --lesson-support-border: #99F6E4;
+  --lesson-grammar: #D97706;
+  --lesson-grammar-soft: #FFFBEB;
+  --lesson-grammar-border: #FDE68A;
+  --lesson-success: #16A34A;
+  --lesson-success-soft: #ECFDF5;
+  --lesson-success-border: #A7F3D0;
+  --lesson-error: #DC2626;
+  --lesson-error-soft: #FEF2F2;
+  --lesson-error-border: #FECACA;
+  --lesson-text-primary: #0F172A;
+  --lesson-text-secondary: #64748B;
+  --lesson-bg-subtle: #F8FAFC;
+  --lesson-surface: #FFFFFF;
+  --lesson-border: #E2E8F0;
+
   width: 100%;
   box-sizing: border-box;
+}
+
+.dark .hsk-textbook-page-root,
+[data-theme="dark"] .hsk-textbook-page-root {
+  --lesson-brand-soft: rgba(230, 0, 18, 0.14);
+  --lesson-brand-border: rgba(230, 0, 18, 0.35);
+  --lesson-study: #60A5FA;
+  --lesson-study-soft: rgba(37, 99, 235, 0.14);
+  --lesson-study-border: rgba(59, 130, 246, 0.35);
+  --lesson-support: #2DD4BF;
+  --lesson-support-soft: rgba(13, 148, 136, 0.14);
+  --lesson-support-border: rgba(45, 212, 191, 0.35);
+  --lesson-grammar: #FBBF24;
+  --lesson-grammar-soft: rgba(217, 119, 6, 0.14);
+  --lesson-grammar-border: rgba(251, 191, 36, 0.35);
+  --lesson-success: #4ADE80;
+  --lesson-success-soft: rgba(22, 163, 74, 0.14);
+  --lesson-success-border: rgba(74, 222, 128, 0.35);
+  --lesson-error: #F87171;
+  --lesson-error-soft: rgba(220, 38, 38, 0.14);
+  --lesson-error-border: rgba(248, 113, 113, 0.35);
+  --lesson-text-primary: #F1F5F9;
+  --lesson-text-secondary: #94A3B8;
+  --lesson-bg-subtle: #0F172A;
+  --lesson-surface: #1E293B;
+  --lesson-border: #334155;
 }
 
 /* Two-column container: Main reading column + Right sticky TOC */
@@ -55,40 +105,61 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background-color: #FFF0F1;
-  color: var(--primary, #E60012);
+  background-color: var(--lesson-study-soft);
+  color: var(--lesson-study);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+.hsk-section-icon-badge.is-vocab,
+.hsk-section-icon-badge.is-reading {
+  background-color: var(--lesson-study-soft);
+  color: var(--lesson-study);
+}
+
+.hsk-section-icon-badge.is-grammar {
+  background-color: var(--lesson-grammar-soft);
+  color: var(--lesson-grammar);
+}
+
+.hsk-section-icon-badge.is-dialogue {
+  background-color: var(--lesson-support-soft);
+  color: var(--lesson-support);
+}
+
+.hsk-section-icon-badge.is-practice {
+  background-color: var(--lesson-brand-soft);
+  color: var(--lesson-brand);
+}
+
 .hsk-section-main-title {
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--lesson-text-primary);
   letter-spacing: -0.01em;
   margin: 0;
 }
 
 .hsk-section-subtitle {
   font-size: 13.5px;
-  color: #64748b;
+  color: var(--lesson-text-secondary);
   margin: 2px 0 0;
 }
 
 /* 1. OVERVIEW HERO CARD */
 .hsk-overview-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--lesson-surface);
+  border: 1px solid var(--lesson-border);
   border-radius: 20px;
-  padding: clamp(18px, 2.2vw, 28px) clamp(16px, 2.5vw, 32px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  padding: clamp(18px, 2.2vw, 26px) clamp(16px, 2.5vw, 30px);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 1.8vw, 20px);
+  gap: clamp(12px, 1.6vw, 18px);
 }
 
 .hsk-breadcrumb {
@@ -121,7 +192,7 @@
   font-family: var(--font-hanzi);
   font-size: clamp(24px, 2.6vw, 34px);
   font-weight: 800;
-  color: #0f172a;
+  color: var(--lesson-text-primary);
   letter-spacing: -0.01em;
   line-height: 1.2;
 }
@@ -130,14 +201,14 @@
   font-family: var(--font-pinyin);
   font-size: clamp(13.5px, 1.3vw, 16px);
   font-weight: 600;
-  color: #64748b;
+  color: var(--lesson-study);
 }
 
 .hsk-overview-vi-title {
   font-family: var(--font-sans);
   font-size: clamp(16px, 1.5vw, 20px);
   font-weight: 700;
-  color: #1e293b;
+  color: var(--lesson-text-primary);
 }
 
 .hsk-meta-chips-row {
@@ -146,7 +217,7 @@
   flex-wrap: wrap;
   gap: 10px;
   padding: 12px 0 0;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--lesson-border);
 }
 
 .hsk-meta-chip {
@@ -155,11 +226,18 @@
   gap: 6px;
   padding: 5px 12px;
   border-radius: 999px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--lesson-bg-subtle);
+  border: 1px solid var(--lesson-border);
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--lesson-text-secondary);
+}
+
+.hsk-meta-chip-xp {
+  color: var(--lesson-support);
+  background-color: var(--lesson-support-soft);
+  border-color: var(--lesson-support-border);
+  font-weight: 700;
 }
 
 /* 2. VOCABULARY GRID & CARDS */
@@ -229,7 +307,7 @@
   font-family: var(--font-pinyin);
   font-size: 14px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--lesson-study);
   margin-top: 2px;
 }
 
@@ -287,7 +365,7 @@
 .hsk-vocab-example-pinyin {
   font-family: var(--font-pinyin);
   font-size: 12px;
-  color: #64748b;
+  color: var(--lesson-study);
   margin-top: 1px;
 }
 
@@ -311,9 +389,9 @@
 }
 
 .hsk-grammar-formula-box {
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background-color: var(--lesson-grammar-soft);
+  border: 1px solid var(--lesson-grammar-border);
+  border-radius: 10px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
@@ -325,7 +403,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--muted);
+  color: var(--lesson-grammar);
 }
 
 .hsk-grammar-formula-text {
@@ -417,13 +495,13 @@
 }
 
 .hsk-chat-row.speaker-b .hsk-chat-avatar {
-  background-color: #FFF0F1;
-  color: var(--primary, #E60012);
+  background-color: var(--lesson-support-soft);
+  color: var(--lesson-support);
 }
 
 .hsk-chat-bubble {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background-color: var(--lesson-bg-subtle);
+  border: 1px solid var(--lesson-border);
   border-radius: 16px;
   padding: 14px 18px;
   display: flex;
@@ -433,8 +511,8 @@
 }
 
 .hsk-chat-row.speaker-b .hsk-chat-bubble {
-  background-color: #fff8f8;
-  border-color: #fed7da;
+  background-color: var(--lesson-support-soft);
+  border-color: var(--lesson-support-border);
 }
 
 .hsk-chat-speaker-name {
@@ -455,7 +533,7 @@
 .hsk-chat-pinyin {
   font-family: var(--font-pinyin);
   font-size: 12.5px;
-  color: #64748b;
+  color: var(--lesson-study);
 }
 
 .hsk-chat-vi {
@@ -706,4 +784,212 @@
   .hsk-vocab-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 6. READING PASSAGE & COMPREHENSION QUESTIONS */
+.reading-passage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background-color: var(--lesson-surface, #ffffff);
+  border: 1px solid var(--lesson-border, #e2e8f0);
+  border-radius: 20px;
+  padding: clamp(18px, 2.2vw, 26px);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
+}
+
+.reading-passage-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--lesson-border, #e2e8f0);
+  padding-bottom: 14px;
+}
+
+.reading-passage-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.reading-ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--lesson-border, #cbd5e1);
+  background-color: var(--lesson-surface, #ffffff);
+  color: var(--lesson-text-secondary, #64748b);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reading-ctrl-btn:hover {
+  border-color: var(--lesson-study, #2563EB);
+  color: var(--lesson-study, #2563EB);
+}
+
+.reading-ctrl-btn.is-active {
+  background-color: var(--lesson-study-soft, #eff6ff);
+  border-color: var(--lesson-study-border, #bfdbfe);
+  color: var(--lesson-study, #2563EB);
+}
+
+.reading-ctrl-btn.is-tts {
+  background-color: var(--lesson-support-soft, #f0fdfa);
+  border-color: var(--lesson-support-border, #99f6e4);
+  color: var(--lesson-support, #0d9488);
+}
+
+.reading-ctrl-btn.is-tts.is-playing {
+  background-color: var(--lesson-support, #0d9488);
+  border-color: var(--lesson-support, #0d9488);
+  color: #ffffff;
+}
+
+.reading-passage-body {
+  background-color: var(--lesson-bg-subtle, #f8fafc);
+  border: 1px solid var(--lesson-border, #e2e8f0);
+  border-radius: 16px;
+  padding: clamp(16px, 2vw, 22px);
+}
+
+.reading-sentences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 760px;
+}
+
+.reading-sentence-item {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--lesson-border, #e2e8f0);
+}
+
+.reading-sentence-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.reading-sentence-hanzi {
+  font-family: var(--font-hanzi);
+  font-size: clamp(18px, 1.8vw, 21px);
+  font-weight: 600;
+  color: var(--lesson-text-primary, #0f172a);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.reading-sentence-pinyin {
+  font-family: var(--font-pinyin);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--lesson-study, #2563EB);
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
+.reading-sentence-vi {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--lesson-text-secondary, #64748b);
+  line-height: 1.55;
+  margin-top: 4px;
+}
+
+.reading-questions-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reading-question-card {
+  border: 1px solid var(--lesson-border, #e2e8f0);
+  border-radius: 14px;
+  padding: clamp(14px, 1.8vw, 18px);
+  background-color: var(--lesson-bg-subtle, #f8fafc);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reading-option-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--lesson-border, #cbd5e1);
+  background-color: var(--lesson-surface, #ffffff);
+  color: var(--lesson-text-primary, #0f172a);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reading-option-btn:hover:not(:disabled) {
+  border-color: var(--lesson-study, #2563EB);
+  background-color: var(--lesson-study-soft, #eff6ff);
+}
+
+.reading-option-btn.is-selected {
+  border-color: var(--lesson-study, #2563EB);
+  background-color: var(--lesson-study-soft, #eff6ff);
+  color: var(--lesson-study, #2563EB);
+  font-weight: 600;
+}
+
+.reading-option-btn.is-correct {
+  border-color: var(--lesson-success, #16A34A);
+  background-color: var(--lesson-success-soft, #ecfdf5);
+  color: var(--lesson-success, #16A34A);
+  font-weight: 600;
+}
+
+.reading-option-btn.is-incorrect {
+  border-color: var(--lesson-error, #DC2626);
+  background-color: var(--lesson-error-soft, #fef2f2);
+  color: var(--lesson-error, #DC2626);
+  font-weight: 600;
+}
+
+.reading-option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background-color: var(--lesson-bg-subtle, #f1f5f9);
+  color: var(--lesson-text-secondary, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.reading-option-btn.is-selected .reading-option-letter {
+  background-color: var(--lesson-study, #2563EB);
+  color: #ffffff;
+}
+
+.reading-option-btn.is-correct .reading-option-letter {
+  background-color: var(--lesson-success, #16A34A);
+  color: #ffffff;
+}
+
+.reading-option-btn.is-incorrect .reading-option-letter {
+  background-color: var(--lesson-error, #DC2626);
+  color: #ffffff;
 }
