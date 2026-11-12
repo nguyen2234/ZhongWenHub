@@ -452,6 +452,7 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
               const isSubmitted = submittedAnswers[qIdx];
               const isCorrect = isSubmitted && selectedOpt === q.correctIndex;
               const isQuestionViVisible = Boolean(visibleQuestionVi[qIdx]);
+              const hasQuestionZh = Boolean(q.questionZh && q.questionZh.trim().length > 0);
               const hasAlignedOptionsPinyin =
                 Array.isArray(q.optionsPinyin) && q.optionsPinyin.length === q.options.length;
               const hasAlignedOptionsVi =
@@ -481,17 +482,19 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-hanzi)',
-                          fontWeight: 600,
-                          fontSize: '16px',
-                          color: 'var(--lesson-text-primary, #0f172a)',
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {q.questionZh}
-                      </div>
+                      {hasQuestionZh && (
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-hanzi)',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            color: 'var(--lesson-text-primary, #0f172a)',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {q.questionZh}
+                        </div>
+                      )}
 
                       {showPinyin && q.questionPinyin && (
                         <div
@@ -506,12 +509,15 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                         </div>
                       )}
 
-                      {isQuestionViVisible && q.questionVi && (
+                      {(!hasQuestionZh || isQuestionViVisible) && q.questionVi && (
                         <div
                           style={{
-                            fontSize: '13px',
-                            color: 'var(--lesson-text-secondary, #64748b)',
-                            marginTop: '4px',
+                            fontSize: hasQuestionZh ? '13px' : '15px',
+                            fontWeight: hasQuestionZh ? 400 : 600,
+                            color: hasQuestionZh
+                              ? 'var(--lesson-text-secondary, #64748b)'
+                              : 'var(--lesson-text-primary, #0f172a)',
+                            marginTop: hasQuestionZh ? '4px' : '0px',
                           }}
                           data-testid={`question-vi-${qIdx}`}
                         >
@@ -520,7 +526,7 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                       )}
                     </div>
 
-                    {(q.questionVi || (hasAlignedOptionsVi && q.optionsVi!.some(Boolean))) && (
+                    {((hasQuestionZh && q.questionVi) || (hasAlignedOptionsVi && q.optionsVi!.some(Boolean))) && (
                       <button
                         type="button"
                         onClick={() =>

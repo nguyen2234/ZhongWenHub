@@ -66,3 +66,4 @@ python -m unittest scripts/hsk20/test_validate_hsk20_data.py -v
 # Kiểm tra một lesson bundle JSON theo chuẩn
 python scripts/hsk20/validate_hsk20_data.py --bundle <path-to-bundle.json>
 ```
+
