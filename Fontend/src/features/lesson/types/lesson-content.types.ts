@@ -174,11 +174,19 @@ export type LessonContentStatus = 'DRAFT' | 'REVIEW' | 'PENDING_REVIEW' | 'PUBLI
  * Normalized Lesson Content Aggregate DTO
  * Does NOT contain user progress, streak, or SRS metrics.
  */
+export interface ReadingSentenceDTO {
+  zh: string;
+  pinyin: string;
+  vi: string;
+}
+
 export interface ReadingComprehensionQuestionDTO {
   questionZh: string;
   questionPinyin?: string;
   questionVi: string;
   options: string[];
+  optionsPinyin?: string[];
+  optionsVi?: string[];
   correctIndex: number;
   explanation: string;
 }
@@ -191,6 +199,7 @@ export interface LessonReadingPassageDTO {
   passageZh: string;
   passagePinyin: string;
   passageVi: string;
+  sentences?: ReadingSentenceDTO[];
   characterCount: number;
   targetWords?: string[];
   targetGrammar?: string[];

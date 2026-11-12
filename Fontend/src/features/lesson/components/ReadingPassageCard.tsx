@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Eye, EyeOff, Volume2, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
-import type { LessonReadingPassageDTO } from '../types/lesson-content.types';
+import type { LessonReadingPassageDTO, ReadingSentenceDTO } from '../types/lesson-content.types';
 
 export interface AlignedReadingSentence {
   zh: string;
@@ -8,8 +8,11 @@ export interface AlignedReadingSentence {
   vi: string;
 }
 
+export type ReadingAlignmentMode = 'structured' | 'verified-split' | 'block-fallback';
+
 export interface ReadingPassageSentenceSplitResult {
   isAligned: boolean;
+  alignmentMode: ReadingAlignmentMode;
   sentences: AlignedReadingSentence[];
   zhSentences: string[];
   pySentences: string[];
@@ -30,29 +33,126 @@ export function splitIntoSentences(text?: string): string[] {
   return matches.map((s) => s.trim()).filter((s) => s.length > 0);
 }
 
+function getTerminalKind(sentence: string): 'question' | 'exclamation' | 'statement' {
+  const cleaned = sentence.replace(/[”"’'」』)\]\s]+$/g, '');
+  const last = cleaned.at(-1) ?? '';
+  if (last === '？' || last === '?') return 'question';
+  if (last === '！' || last === '!') return 'exclamation';
+  return 'statement';
+}
+
+function hasDialogueQuote(sentence: string): boolean {
+  return /[“"「『]/.test(sentence);
+}
+
+function countHanziChars(sentence: string): number {
+  const matches = sentence.match(/[\u4e00-\u9fff]/g);
+  return matches ? matches.length : 0;
+}
+
+function countPinyinTokens(sentence: string): number {
+  return sentence
+    .replace(/["'“”‘’.,!?;:()\-]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+/**
+ * Verifies that split zh/pinyin/vi sentence arrays actually align beyond mere equal length:
+ * checks terminal punctuation compatibility, quote parity, and Hanzi-to-Pinyin token ratio.
+ */
+export function areSentencesLikelyAligned(
+  zhSentences: string[],
+  pySentences: string[],
+  viSentences: string[]
+): boolean {
+  if (
+    zhSentences.length === 0 ||
+    zhSentences.length !== pySentences.length ||
+    zhSentences.length !== viSentences.length
+  ) {
+    return false;
+  }
+
+  for (let i = 0; i < zhSentences.length; i++) {
+    const zh = zhSentences[i];
+    const py = pySentences[i];
+    const vi = viSentences[i];
+
+    const zhEnd = getTerminalKind(zh);
+    const pyEnd = getTerminalKind(py);
+    const viEnd = getTerminalKind(vi);
+    if (zhEnd !== pyEnd || zhEnd !== viEnd) {
+      return false;
+    }
+
+    if (hasDialogueQuote(zh) !== hasDialogueQuote(py) || hasDialogueQuote(zh) !== hasDialogueQuote(vi)) {
+      return false;
+    }
+
+    const hanziCount = countHanziChars(zh);
+    const pyTokens = countPinyinTokens(py);
+    if (hanziCount > 0 && (pyTokens === 0 || pyTokens < hanziCount * 0.3 || pyTokens > hanziCount * 1.8)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function splitReadingPassageSentences(
   passageZh: string,
   passagePinyin: string,
-  passageVi: string
+  passageVi: string,
+  structuredSentences?: ReadingSentenceDTO[]
 ): ReadingPassageSentenceSplitResult {
+  if (Array.isArray(structuredSentences) && structuredSentences.length > 0) {
+    const valid = structuredSentences.filter((s) => s && typeof s.zh === 'string' && s.zh.trim().length > 0);
+    if (valid.length > 0) {
+      const normalized = valid.map((s) => ({
+        zh: s.zh.trim(),
+        pinyin: (s.pinyin ?? '').trim(),
+        vi: (s.vi ?? '').trim(),
+      }));
+      return {
+        isAligned: true,
+        alignmentMode: 'structured',
+        sentences: normalized,
+        zhSentences: normalized.map((s) => s.zh),
+        pySentences: normalized.map((s) => s.pinyin),
+        viSentences: normalized.map((s) => s.vi),
+      };
+    }
+  }
+
   const zhSentences = splitIntoSentences(passageZh);
   const pySentences = splitIntoSentences(passagePinyin);
   const viSentences = splitIntoSentences(passageVi);
 
-  const isAligned =
-    zhSentences.length > 0 &&
-    zhSentences.length === pySentences.length &&
-    zhSentences.length === viSentences.length;
-
-  const sentences = isAligned
-    ? zhSentences.map((zh, idx) => ({
+  if (areSentencesLikelyAligned(zhSentences, pySentences, viSentences)) {
+    return {
+      isAligned: true,
+      alignmentMode: 'verified-split',
+      sentences: zhSentences.map((zh, idx) => ({
         zh,
         pinyin: pySentences[idx],
         vi: viSentences[idx],
-      }))
-    : [];
+      })),
+      zhSentences,
+      pySentences,
+      viSentences,
+    };
+  }
 
-  return { isAligned, sentences, zhSentences, pySentences, viSentences };
+  return {
+    isAligned: false,
+    alignmentMode: 'block-fallback',
+    sentences: [],
+    zhSentences,
+    pySentences,
+    viSentences,
+  };
 }
 
 interface ReadingPassageCardProps {
@@ -71,8 +171,14 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const splitResult = useMemo(
-    () => splitReadingPassageSentences(passage.passageZh, passage.passagePinyin, passage.passageVi),
-    [passage.passageZh, passage.passagePinyin, passage.passageVi]
+    () =>
+      splitReadingPassageSentences(
+        passage.passageZh,
+        passage.passagePinyin,
+        passage.passageVi,
+        passage.sentences
+      ),
+    [passage.passageZh, passage.passagePinyin, passage.passageVi, passage.sentences]
   );
 
   useEffect(() => {
@@ -277,18 +383,30 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
             ))}
           </div>
         ) : (
-          <div className="reading-sentences-list">
-            <div className="reading-sentence-hanzi" data-testid="passage-hanzi">
-              {passage.passageZh}
+          <div className="reading-fallback-blocks" data-testid="passage-fallback-blocks">
+            <div className="reading-fallback-block" data-testid="passage-hanzi">
+              {splitResult.zhSentences.map((line, idx) => (
+                <div key={`zh-${idx}`} className="reading-sentence-hanzi">
+                  {line}
+                </div>
+              ))}
             </div>
-            {showPinyin && (
-              <div className="reading-sentence-pinyin" data-testid="passage-pinyin">
-                {passage.passagePinyin}
+            {showPinyin && splitResult.pySentences.length > 0 && (
+              <div className="reading-fallback-block" data-testid="passage-pinyin">
+                {splitResult.pySentences.map((line, idx) => (
+                  <div key={`py-${idx}`} className="reading-sentence-pinyin">
+                    {line}
+                  </div>
+                ))}
               </div>
             )}
-            {showMeaning && (
-              <div className="reading-sentence-vi" data-testid="passage-meaning">
-                {passage.passageVi}
+            {showMeaning && splitResult.viSentences.length > 0 && (
+              <div className="reading-fallback-block" data-testid="passage-meaning">
+                {splitResult.viSentences.map((line, idx) => (
+                  <div key={`vi-${idx}`} className="reading-sentence-vi">
+                    {line}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -398,7 +516,7 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                       )}
                     </div>
 
-                    {q.questionVi && (
+                    {(q.questionVi || (q.optionsVi && q.optionsVi.some(Boolean))) && (
                       <button
                         type="button"
                         onClick={() =>
@@ -423,6 +541,8 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                     {q.options.map((opt, optIdx) => {
                       const letter = String.fromCharCode(65 + optIdx);
+                      const optPinyin = q.optionsPinyin?.[optIdx];
+                      const optVi = q.optionsVi?.[optIdx];
                       const stateClass = isSubmitted
                         ? optIdx === q.correctIndex
                           ? 'is-correct'
@@ -445,7 +565,25 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                         >
                           <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                             <span className="reading-option-letter">{letter}</span>
-                            <span style={{ fontFamily: 'var(--font-hanzi)' }}>{opt}</span>
+                            <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                              <span style={{ fontFamily: 'var(--font-hanzi)' }}>{opt}</span>
+                              {showPinyin && optPinyin && (
+                                <span
+                                  style={{
+                                    fontFamily: 'var(--font-pinyin)',
+                                    fontSize: '12px',
+                                    color: 'var(--lesson-study, #2563EB)',
+                                  }}
+                                >
+                                  {optPinyin}
+                                </span>
+                              )}
+                              {isQuestionViVisible && optVi && (
+                                <span className="reading-option-vi" data-testid={`question-${qIdx}-opt-${optIdx}-vi`}>
+                                  {optVi}
+                                </span>
+                              )}
+                            </span>
                           </span>
                           {isSubmitted && optIdx === q.correctIndex && (
                             <CheckCircle2 size={16} color="var(--lesson-success, #16A34A)" style={{ flexShrink: 0 }} />

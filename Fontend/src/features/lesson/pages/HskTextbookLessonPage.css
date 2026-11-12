@@ -864,7 +864,34 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-width: 760px;
+  max-width: 720px;
+}
+
+.reading-fallback-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.reading-fallback-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--lesson-border, #e2e8f0);
+}
+
+.reading-fallback-block:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.reading-option-vi {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--lesson-text-secondary, #64748b);
+  margin-top: 2px;
 }
 
 .reading-sentence-item {
