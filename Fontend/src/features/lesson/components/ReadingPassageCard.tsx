@@ -452,6 +452,10 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
               const isSubmitted = submittedAnswers[qIdx];
               const isCorrect = isSubmitted && selectedOpt === q.correctIndex;
               const isQuestionViVisible = Boolean(visibleQuestionVi[qIdx]);
+              const hasAlignedOptionsPinyin =
+                Array.isArray(q.optionsPinyin) && q.optionsPinyin.length === q.options.length;
+              const hasAlignedOptionsVi =
+                Array.isArray(q.optionsVi) && q.optionsVi.length === q.options.length;
 
               return (
                 <div
@@ -516,7 +520,7 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                       )}
                     </div>
 
-                    {(q.questionVi || (q.optionsVi && q.optionsVi.some(Boolean))) && (
+                    {(q.questionVi || (hasAlignedOptionsVi && q.optionsVi!.some(Boolean))) && (
                       <button
                         type="button"
                         onClick={() =>
@@ -541,8 +545,8 @@ export const ReadingPassageCard: React.FC<ReadingPassageCardProps> = ({ passage,
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                     {q.options.map((opt, optIdx) => {
                       const letter = String.fromCharCode(65 + optIdx);
-                      const optPinyin = q.optionsPinyin?.[optIdx];
-                      const optVi = q.optionsVi?.[optIdx];
+                      const optPinyin = hasAlignedOptionsPinyin ? q.optionsPinyin![optIdx] : undefined;
+                      const optVi = hasAlignedOptionsVi ? q.optionsVi![optIdx] : undefined;
                       const stateClass = isSubmitted
                         ? optIdx === q.correctIndex
                           ? 'is-correct'

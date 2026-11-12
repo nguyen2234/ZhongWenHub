@@ -138,12 +138,21 @@ public class LessonDto
     public DateTime? UpdatedAt { get; set; }
 }
 
+public class ReadingSentenceDto
+{
+    public string Zh { get; set; } = string.Empty;
+    public string Pinyin { get; set; } = string.Empty;
+    public string Vi { get; set; } = string.Empty;
+}
+
 public class ReadingComprehensionQuestionDto
 {
     public string QuestionZh { get; set; } = string.Empty;
     public string? QuestionPinyin { get; set; }
     public string QuestionVi { get; set; } = string.Empty;
     public List<string> Options { get; set; } = new();
+    public List<string>? OptionsPinyin { get; set; }
+    public List<string>? OptionsVi { get; set; }
     public int CorrectIndex { get; set; }
     public string Explanation { get; set; } = string.Empty;
 }
@@ -157,6 +166,7 @@ public class ReadingPassageDto
     public string PassageZh { get; set; } = string.Empty;
     public string PassagePinyin { get; set; } = string.Empty;
     public string PassageVi { get; set; } = string.Empty;
+    public List<ReadingSentenceDto>? Sentences { get; set; }
     public int CharacterCount { get; set; }
     public List<string> TargetWords { get; set; } = new();
     public List<string> TargetGrammar { get; set; } = new();

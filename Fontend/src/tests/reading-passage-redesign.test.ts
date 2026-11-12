@@ -93,5 +93,7 @@ describe('HSK Lesson Redesign & Reading Passage Contract (Round 2)', () => {
     expect(cardSrc).toContain('useState<boolean>(false)');
     expect(cardSrc).toContain('optionsVi');
     expect(cardSrc).toContain('isQuestionViVisible && optVi');
+    expect(cardSrc).toContain('q.optionsVi.length === q.options.length');
+    expect(cardSrc).toContain('q.optionsPinyin.length === q.options.length');
   });
 });
