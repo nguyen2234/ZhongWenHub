@@ -36,16 +36,16 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             throw AITutorException.UnauthorizedUser();
         }
 
-        var profileHskLevel = await _dbContext.StudentLearningProfiles
+        var profile = await _dbContext.StudentLearningProfiles
             .AsNoTracking()
             .Where(p => p.UserId == userId)
-            .Select(p => (int?)p.SelectedHskLevel)
+            .Select(p => new { p.SelectedHskLevel, p.TargetDailyMinutes })
             .FirstOrDefaultAsync(cancellationToken);
 
         var requestedLevel = requestedContext?.HskLevel;
         var effectiveHskLevel = requestedLevel is >= 1 and <= 9
             ? requestedLevel.Value
-            : (profileHskLevel is >= 1 and <= 9 ? profileHskLevel.Value : 2);
+            : (profile?.SelectedHskLevel is >= 1 and <= 9 ? profile.SelectedHskLevel : 2);
 
         var source = requestedContext?.Source is not null && AllowedSources.Contains(requestedContext.Source.Trim())
             ? requestedContext.Source.Trim().ToLowerInvariant()
@@ -56,6 +56,8 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
             : "Vietnamese";
 
         var (verifiedLessonId, verifiedLessonTitle) = await ResolveVerifiedLessonAsync(requestedContext, effectiveHskLevel, cancellationToken);
+        var (lessonReadingPreview, lessonAcademicNote) = await ResolveLessonReadingSummaryAsync(verifiedLessonId, cancellationToken);
+        var verifiedGrammar = await ResolveVerifiedGrammarAsync(requestedContext, cancellationToken);
         var verifiedVocabulary = await ResolveVerifiedVocabularyAsync(requestedContext, effectiveHskLevel, cancellationToken);
         var verifiedExercise = await ResolveVerifiedExerciseAsync(requestedContext?.ExerciseContext, cancellationToken);
 
@@ -91,15 +93,24 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
         }
 
         var weaknesses = SanitizeList(requestedContext?.Weaknesses, maxItems: 3, maxLength: 80);
+        var learningGoal = !string.IsNullOrWhiteSpace(requestedContext?.LearningGoal)
+            ? PromptSanitizer.SanitizeUntrustedText(requestedContext.LearningGoal, 120)
+            : (profile is not null ? $"HSK {effectiveHskLevel} ({profile.TargetDailyMinutes} phút/ngày)" : $"HSK {effectiveHskLevel}");
 
         return new VerifiedAITutorContext
         {
+            UserId = userId,
             EffectiveHskLevel = effectiveHskLevel,
             Source = source,
             LanguagePreference = languagePreference,
+            VerifiedLessonId = verifiedLessonId,
             VerifiedLessonTitle = verifiedLessonTitle,
+            LessonReadingPreview = lessonReadingPreview,
+            LessonAcademicNote = lessonAcademicNote,
             CurrentStep = Truncate(requestedContext?.CurrentStep, 60),
+            LearningGoal = learningGoal,
             GrammarPoints = grammarPoints,
+            VerifiedGrammar = verifiedGrammar,
             LessonVocabularyPreview = lessonVocabularyPreview,
             VerifiedVocabulary = verifiedVocabulary,
             VerifiedExercise = verifiedExercise,
@@ -145,6 +156,97 @@ public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
         }
 
         return (null, Truncate(ctx?.LessonTitle, 120));
+    }
+
+    private async Task<(string? ReadingPreview, string? AcademicNote)> ResolveLessonReadingSummaryAsync(
+        Guid? lessonId,
+        CancellationToken cancellationToken)
+    {
+        if (!lessonId.HasValue)
+        {
+            return (null, null);
+        }
+
+        var dialogueJson = await _dbContext.Lessons
+            .AsNoTracking()
+            .Where(l => l.Id == lessonId.Value)
+            .Select(l => l.DialogueJson)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(dialogueJson))
+        {
+            return (null, null);
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(dialogueJson);
+            var root = doc.RootElement;
+            string? academicNote = null;
+            if (root.TryGetProperty("readingPassage", out var rp) && rp.ValueKind == JsonValueKind.Object)
+            {
+                if (rp.TryGetProperty("academicApproved", out var approvedProp) && approvedProp.ValueKind == JsonValueKind.False)
+                {
+                    academicNote = "Nội dung bài đọc đang ở trạng thái luyện tập thử nghiệm (chưa duyệt học thuật).";
+                }
+
+                if (rp.TryGetProperty("sentences", out var sentencesProp) && sentencesProp.ValueKind == JsonValueKind.Array)
+                {
+                    var items = new List<string>();
+                    foreach (var s in sentencesProp.EnumerateArray().Take(2))
+                    {
+                        var zh = s.TryGetProperty("zh", out var zhEl) ? zhEl.GetString() : null;
+                        var py = s.TryGetProperty("pinyin", out var pyEl) ? pyEl.GetString() : null;
+                        if (!string.IsNullOrWhiteSpace(zh))
+                        {
+                            items.Add(string.IsNullOrWhiteSpace(py) ? zh : $"{zh} ({py})");
+                        }
+                    }
+
+                    if (items.Count > 0)
+                    {
+                        return (Truncate(string.Join(" / ", items), 260), academicNote);
+                    }
+                }
+            }
+
+            return (null, academicNote);
+        }
+        catch (JsonException)
+        {
+            return (null, null);
+        }
+    }
+
+    private async Task<VerifiedGrammarInfo?> ResolveVerifiedGrammarAsync(
+        AITutorContextDto? ctx,
+        CancellationToken cancellationToken)
+    {
+        if (ctx?.GrammarPointId is not JsonElement gpEl ||
+            gpEl.ValueKind != JsonValueKind.String ||
+            !Guid.TryParse(gpEl.GetString(), out var grammarId))
+        {
+            return null;
+        }
+
+        var gp = await _dbContext.GrammarPoints
+            .AsNoTracking()
+            .Where(g => g.Id == grammarId && g.Status == "PUBLISHED")
+            .Select(g => new { g.Id, g.Title, g.StructureFormula, g.Explanation })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (gp is null)
+        {
+            return null;
+        }
+
+        return new VerifiedGrammarInfo
+        {
+            Id = gp.Id,
+            Title = Truncate(gp.Title, 100) ?? string.Empty,
+            StructureFormula = Truncate(gp.StructureFormula, 120) ?? string.Empty,
+            Explanation = Truncate(gp.Explanation, 240) ?? string.Empty
+        };
     }
 
     private async Task<VerifiedVocabularyInfo?> ResolveVerifiedVocabularyAsync(

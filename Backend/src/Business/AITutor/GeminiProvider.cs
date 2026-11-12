@@ -1,5 +1,5 @@
+using System.Diagnostics;
 using System.Net;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -43,48 +43,26 @@ public sealed class GeminiProvider : IAIProvider
         var endpoint = $"{baseUrl}/models/{Uri.EscapeDataString(model)}:generateContent";
 
         var timeoutSeconds = Math.Clamp(_options.TimeoutSeconds, 5, 120);
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+        var maxRetries = Math.Clamp(_options.MaxRetries, 0, 3);
+        var payloadJson = JsonSerializer.Serialize(BuildRequestPayload(request), JsonOptions);
+        var sw = Stopwatch.StartNew();
 
-        var payload = BuildRequestPayload(request);
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        for (var attempt = 0; attempt <= maxRetries; attempt++)
         {
-            Content = new StringContent(JsonSerializer.Serialize(payload, JsonOptions), Encoding.UTF8, "application/json")
-        };
-        // Send API key via request header instead of URL query string so it never appears in HTTP/proxy logs.
-        httpRequest.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-        HttpResponseMessage httpResponse;
-        try
-        {
-            httpResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, timeoutCts.Token);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (OperationCanceledException ex)
-        {
-            _logger.LogWarning(ex, "Gemini AI request timed out after {TimeoutSeconds}s for model {Model}.", timeoutSeconds, model);
-            throw AITutorException.Timeout();
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogWarning(ex, "Gemini AI network failure for model {Model}.", model);
-            throw AITutorException.ProviderUnavailable();
-        }
-
-        using (httpResponse)
-        {
-            if (!httpResponse.IsSuccessStatusCode)
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
             {
-                throw MapProviderError(httpResponse.StatusCode, model);
-            }
+                Content = new StringContent(payloadJson, Encoding.UTF8, "application/json")
+            };
+            // Send API key via request header instead of URL query string so it never appears in HTTP/proxy logs.
+            httpRequest.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
 
-            string responseBody;
+            HttpResponseMessage httpResponse;
             try
             {
-                responseBody = await httpResponse.Content.ReadAsStringAsync(timeoutCts.Token);
+                httpResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, timeoutCts.Token);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -92,23 +70,77 @@ public sealed class GeminiProvider : IAIProvider
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Gemini AI response read timed out for model {Model}.", model);
+                _logger.LogWarning(ex, "Gemini AI request timed out after {TimeoutSeconds}s for model {Model} (attempt {Attempt}).", timeoutSeconds, model, attempt + 1);
+                if (attempt < maxRetries)
+                {
+                    await DelayBackoffAsync(attempt, cancellationToken);
+                    continue;
+                }
                 throw AITutorException.Timeout();
             }
-
-            var rawText = ExtractCandidateText(responseBody);
-            if (string.IsNullOrWhiteSpace(rawText))
+            catch (HttpRequestException ex)
             {
-                _logger.LogWarning("Gemini AI returned empty candidate content for model {Model}.", model);
-                throw AITutorException.ProviderUnavailable("Trợ giảng AI không trả về nội dung hợp lệ. Vui lòng thử đặt câu hỏi khác.");
+                _logger.LogWarning(ex, "Gemini AI network failure for model {Model} (attempt {Attempt}).", model, attempt + 1);
+                if (attempt < maxRetries)
+                {
+                    await DelayBackoffAsync(attempt, cancellationToken);
+                    continue;
+                }
+                throw AITutorException.ProviderUnavailable();
             }
 
-            return new AIProviderResponse
+            using (httpResponse)
             {
-                RawText = rawText,
-                Model = model
-            };
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    if (IsTransientStatus(httpResponse.StatusCode) && attempt < maxRetries)
+                    {
+                        _logger.LogWarning("Gemini AI transient HTTP {StatusCode} for model {Model}; retrying attempt {NextAttempt}.", (int)httpResponse.StatusCode, model, attempt + 2);
+                        await DelayBackoffAsync(attempt, cancellationToken);
+                        continue;
+                    }
+                    throw MapProviderError(httpResponse.StatusCode, model);
+                }
+
+                string responseBody;
+                try
+                {
+                    responseBody = await httpResponse.Content.ReadAsStringAsync(timeoutCts.Token);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (OperationCanceledException ex)
+                {
+                    _logger.LogWarning(ex, "Gemini AI response read timed out for model {Model}.", model);
+                    throw AITutorException.Timeout();
+                }
+
+                var rawText = ExtractCandidateText(responseBody);
+                if (string.IsNullOrWhiteSpace(rawText))
+                {
+                    _logger.LogWarning("Gemini AI returned empty candidate content for model {Model}.", model);
+                    throw AITutorException.ProviderUnavailable("Trợ giảng AI không trả về nội dung hợp lệ. Vui lòng thử đặt câu hỏi khác.");
+                }
+
+                sw.Stop();
+                var (promptTokens, completionTokens, totalTokens) = ExtractUsageMetadata(responseBody);
+                return new AIProviderResponse
+                {
+                    RawText = rawText,
+                    Model = model,
+                    Provider = "Gemini",
+                    IsMock = false,
+                    PromptTokens = promptTokens,
+                    CompletionTokens = completionTokens,
+                    TotalTokens = totalTokens,
+                    LatencyMs = (int)Math.Max(1, sw.ElapsedMilliseconds)
+                };
+            }
         }
+
+        throw AITutorException.ProviderUnavailable();
     }
 
     private string ResolveApiKey()
@@ -241,6 +273,48 @@ public sealed class GeminiProvider : IAIProvider
         catch (JsonException)
         {
             return string.Empty;
+        }
+    }
+
+    private static bool IsTransientStatus(HttpStatusCode statusCode) => statusCode is
+        HttpStatusCode.TooManyRequests or
+        HttpStatusCode.BadGateway or
+        HttpStatusCode.ServiceUnavailable or
+        HttpStatusCode.GatewayTimeout;
+
+    private static Task DelayBackoffAsync(int attempt, CancellationToken cancellationToken)
+    {
+        var baseMs = 300 * (int)Math.Pow(2, attempt);
+        var jitterMs = Random.Shared.Next(50, 200);
+        return Task.Delay(TimeSpan.FromMilliseconds(baseMs + jitterMs), cancellationToken);
+    }
+
+    public static (int PromptTokens, int CompletionTokens, int TotalTokens) ExtractUsageMetadata(string responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            return (0, 0, 0);
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(responseBody);
+            if (!doc.RootElement.TryGetProperty("usageMetadata", out var usage) ||
+                usage.ValueKind != JsonValueKind.Object)
+            {
+                return (0, 0, 0);
+            }
+
+            var prompt = usage.TryGetProperty("promptTokenCount", out var p) && p.TryGetInt32(out var pVal) ? pVal : 0;
+            var completion = usage.TryGetProperty("candidatesTokenCount", out var c) && c.TryGetInt32(out var cVal) ? cVal : 0;
+            var total = usage.TryGetProperty("totalTokenCount", out var t) && t.TryGetInt32(out var tVal)
+                ? tVal
+                : prompt + completion;
+            return (prompt, completion, total);
+        }
+        catch (JsonException)
+        {
+            return (0, 0, 0);
         }
     }
 }

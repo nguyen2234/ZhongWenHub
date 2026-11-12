@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using ZhongWenHub.Business.AILearning;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
@@ -101,11 +102,18 @@ public static class DependencyInjection
         services.AddScoped<IQuestionBankService, QuestionBankService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
-        // AI Tutor & Gemini Provider
+        // AI Tutor, Provider Layer & AI Learning Engine V1
         services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
-        services.AddHttpClient<IAIProvider, GeminiProvider>();
+        services.AddHttpClient<GeminiProvider>();
+        services.AddSingleton<MockAIProvider>();
+        services.AddScoped<IAIProvider, ConfigurableAIProvider>();
+        services.AddScoped<IAIUsageLogger, EfAIUsageLogger>();
         services.AddScoped<IAITutorContextVerifier, EfAITutorContextVerifier>();
         services.AddScoped<IAITutorService, AITutorService>();
+        services.AddScoped<IAIConversationService, AIConversationService>();
+        services.AddScoped<IAIExerciseService, AIExerciseService>();
+        services.AddScoped<IAIErrorAnalysisService, AIErrorAnalysisService>();
+        services.AddScoped<IPersonalizedLearningService, PersonalizedLearningService>();
 
         return services;
     }

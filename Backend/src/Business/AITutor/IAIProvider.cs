@@ -8,6 +8,7 @@ public sealed class AIProviderTurn
 
 public sealed class AIProviderRequest
 {
+    public string Feature { get; init; } = "AI_TUTOR";
     public string SystemInstruction { get; init; } = string.Empty;
     public string UserPrompt { get; init; } = string.Empty;
     public IReadOnlyList<AIProviderTurn> History { get; init; } = Array.Empty<AIProviderTurn>();
@@ -20,6 +21,12 @@ public sealed class AIProviderResponse
 {
     public string RawText { get; init; } = string.Empty;
     public string Model { get; init; } = string.Empty;
+    public string Provider { get; init; } = "Gemini";
+    public bool IsMock { get; init; }
+    public int PromptTokens { get; init; }
+    public int CompletionTokens { get; init; }
+    public int TotalTokens { get; init; }
+    public int LatencyMs { get; init; }
 }
 
 public interface IAIProvider

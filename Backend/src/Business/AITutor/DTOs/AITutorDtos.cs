@@ -24,11 +24,13 @@ public sealed class AITutorContextDto
     public JsonElement? LessonId { get; set; }
     public string? LessonTitle { get; set; }
     public string? CurrentStep { get; set; }
+    public JsonElement? GrammarPointId { get; set; }
     public List<string>? GrammarPoints { get; set; }
     public List<JsonElement>? VocabularyIds { get; set; }
     public AITutorVocabularyWordDto? VocabularyWord { get; set; }
     public AITutorExerciseContextDto? ExerciseContext { get; set; }
     public List<string>? Weaknesses { get; set; }
+    public string? LearningGoal { get; set; }
     public string? LanguagePreference { get; set; }
 }
 
@@ -58,5 +60,17 @@ public sealed class AITutorChatResponseDto
     public string? MarkdownFallback { get; set; }
     public List<JsonElement> Blocks { get; set; } = new();
     public List<string> SuggestedActions { get; set; } = new();
+    public AIProviderMetaDto? Meta { get; set; }
+}
+
+public sealed class AIProviderMetaDto
+{
+    public string Provider { get; set; } = "Gemini";
+    public string Model { get; set; } = string.Empty;
+    public bool IsMock { get; set; }
+    public int PromptTokens { get; set; }
+    public int CompletionTokens { get; set; }
+    public int TotalTokens { get; set; }
+    public int LatencyMs { get; set; }
 }
 

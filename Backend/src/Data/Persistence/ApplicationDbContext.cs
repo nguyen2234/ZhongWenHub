@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 
@@ -44,6 +45,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
     public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
+
+    // AI Learning Engine DbSets
+    public DbSet<AiConversationSession> AiConversationSessions => Set<AiConversationSession>();
+    public DbSet<AiMessage> AiMessages => Set<AiMessage>();
+    public DbSet<AiGeneratedExercise> AiGeneratedExercises => Set<AiGeneratedExercise>();
+    public DbSet<AiExerciseAttempt> AiExerciseAttempts => Set<AiExerciseAttempt>();
+    public DbSet<LearningSkillStatistic> LearningSkillStatistics => Set<LearningSkillStatistic>();
+    public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -697,6 +706,117 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.Restrict);
 
             b.HasIndex(a => new { a.ExamId, a.UserId }).HasDatabaseName("idx_student_exam_attempts_exam_user");
+        });
+
+        // AI Learning Engine Configuration
+        builder.Entity<AiConversationSession>(b =>
+        {
+            b.ToTable("ai_conversation_sessions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SessionType).HasMaxLength(30).IsRequired();
+            b.Property(x => x.ScenarioCode).HasMaxLength(80).IsRequired();
+            b.Property(x => x.ScenarioTitle).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Status).HasMaxLength(30).IsRequired();
+            b.Property(x => x.SummaryVi).HasMaxLength(1000);
+            b.Property(x => x.StartedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.EndedAt).HasColumnType("datetime2");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.StartedAt }).HasDatabaseName("idx_ai_sessions_user_started");
+        });
+
+        builder.Entity<AiMessage>(b =>
+        {
+            b.ToTable("ai_messages");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Role).HasMaxLength(20).IsRequired();
+            b.Property(x => x.ContentZh).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(x => x.Pinyin).HasColumnType("nvarchar(max)");
+            b.Property(x => x.ContentVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CorrectionJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.StructuredPayloadJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.Model).HasMaxLength(100);
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.Session)
+                .WithMany(s => s.Messages)
+                .HasForeignKey(x => x.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.SessionId, x.CreatedAt }).HasDatabaseName("idx_ai_messages_session_created");
+        });
+
+        builder.Entity<AiGeneratedExercise>(b =>
+        {
+            b.ToTable("ai_generated_exercises");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SourceType).HasMaxLength(30).IsRequired();
+            b.Property(x => x.ExerciseType).HasMaxLength(40).IsRequired();
+            b.Property(x => x.OriginTag).HasMaxLength(40).IsRequired();
+            b.Property(x => x.AcademicStatus).HasMaxLength(50).IsRequired();
+            b.Property(x => x.SourceReviewNote).HasMaxLength(500);
+            b.Property(x => x.PromptZh).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(x => x.PromptPinyin).HasColumnType("nvarchar(max)");
+            b.Property(x => x.PromptVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.OptionsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CorrectAnswer).HasMaxLength(500);
+            b.Property(x => x.ExplanationVi).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(x => x.MetadataJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.HskLevel, x.CreatedAt }).HasDatabaseName("idx_ai_exercises_user_hsk");
+        });
+
+        builder.Entity<AiExerciseAttempt>(b =>
+        {
+            b.ToTable("ai_exercise_attempts");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.UserAnswer).HasMaxLength(500).IsRequired();
+            b.Property(x => x.SkillCategory).HasMaxLength(30).IsRequired();
+            b.Property(x => x.AttemptedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.AiExercise)
+                .WithMany()
+                .HasForeignKey(x => x.AiExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.AttemptedAt }).HasDatabaseName("idx_ai_exercise_attempts_user");
+        });
+
+        builder.Entity<LearningSkillStatistic>(b =>
+        {
+            b.ToTable("learning_skill_statistics");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SkillCategory).HasMaxLength(30).IsRequired();
+            b.Property(x => x.WeakTopicsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.LastAssessedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.SkillCategory }).IsUnique().HasDatabaseName("idx_learning_skill_stats_user_skill");
+        });
+
+        builder.Entity<AiUsageLog>(b =>
+        {
+            b.ToTable("ai_usage_logs");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Feature).HasMaxLength(40).IsRequired();
+            b.Property(x => x.Provider).HasMaxLength(30).IsRequired();
+            b.Property(x => x.Model).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ErrorCode).HasMaxLength(80);
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasIndex(x => new { x.UserId, x.CreatedAt }).HasDatabaseName("idx_ai_usage_logs_user_created");
         });
     }
 

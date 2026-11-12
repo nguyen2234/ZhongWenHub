@@ -4,16 +4,30 @@ namespace ZhongWenHub.Business.AITutor;
 
 public sealed class VerifiedAITutorContext
 {
+    public Guid UserId { get; init; }
     public int EffectiveHskLevel { get; init; } = 2;
     public string Source { get; init; } = "general";
     public string LanguagePreference { get; init; } = "Vietnamese";
+    public Guid? VerifiedLessonId { get; init; }
     public string? VerifiedLessonTitle { get; init; }
+    public string? LessonReadingPreview { get; init; }
+    public string? LessonAcademicNote { get; init; }
     public string? CurrentStep { get; init; }
+    public string? LearningGoal { get; init; }
     public List<string> GrammarPoints { get; init; } = new();
+    public VerifiedGrammarInfo? VerifiedGrammar { get; init; }
     public List<string> LessonVocabularyPreview { get; init; } = new();
     public VerifiedVocabularyInfo? VerifiedVocabulary { get; init; }
     public VerifiedExerciseInfo? VerifiedExercise { get; init; }
     public List<string> Weaknesses { get; init; } = new();
+}
+
+public sealed class VerifiedGrammarInfo
+{
+    public Guid Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string StructureFormula { get; init; } = string.Empty;
+    public string Explanation { get; init; } = string.Empty;
 }
 
 public sealed class VerifiedVocabularyInfo

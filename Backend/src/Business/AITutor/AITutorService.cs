@@ -16,6 +16,7 @@ public sealed class AITutorService : IAITutorService
 
     private readonly IAIProvider _aiProvider;
     private readonly IAITutorContextVerifier _contextVerifier;
+    private readonly IAIUsageLogger? _usageLogger;
     private readonly GeminiOptions _options;
     private readonly ILogger<AITutorService> _logger;
 
@@ -23,12 +24,14 @@ public sealed class AITutorService : IAITutorService
         IAIProvider aiProvider,
         IAITutorContextVerifier contextVerifier,
         IOptions<GeminiOptions> options,
-        ILogger<AITutorService> logger)
+        ILogger<AITutorService> logger,
+        IAIUsageLogger? usageLogger = null)
     {
         _aiProvider = aiProvider;
         _contextVerifier = contextVerifier;
         _options = options.Value;
         _logger = logger;
+        _usageLogger = usageLogger;
     }
 
     public async Task<AITutorChatResponseDto> ChatAsync(
@@ -41,11 +44,16 @@ public sealed class AITutorService : IAITutorService
             throw AITutorException.BadRequest("Nội dung câu hỏi không được để trống.");
         }
 
-        var trimmedMessage = request.Message.Trim();
+        var trimmedMessage = PromptSanitizer.SanitizeUntrustedText(request.Message.Trim(), 4000);
         var maxInputLength = Math.Clamp(_options.MaxInputLength, 100, 4000);
         if (trimmedMessage.Length > maxInputLength)
         {
             throw AITutorException.BadRequest($"Nội dung câu hỏi tối đa {maxInputLength} ký tự (hiện tại {trimmedMessage.Length} ký tự).");
+        }
+
+        if (_usageLogger is not null)
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
         }
 
         var normalizedMode = !string.IsNullOrWhiteSpace(request.Mode) && AllowedModes.Contains(request.Mode.Trim())
@@ -57,19 +65,48 @@ public sealed class AITutorService : IAITutorService
         var systemInstruction = BuildSystemInstruction(normalizedMode, verifiedContext);
         var userPrompt = BuildUserPrompt(trimmedMessage, normalizedMode, verifiedContext);
 
-        var providerResponse = await _aiProvider.GenerateContentAsync(
-            new AIProviderRequest
+        AIProviderResponse providerResponse;
+        try
+        {
+            providerResponse = await _aiProvider.GenerateContentAsync(
+                new AIProviderRequest
+                {
+                    Feature = "AI_TUTOR",
+                    SystemInstruction = systemInstruction,
+                    UserPrompt = userPrompt,
+                    History = sanitizedHistory,
+                    ExpectJson = true,
+                    Temperature = normalizedMode == "CONVERSATION" ? 0.6 : 0.35,
+                    MaxOutputTokens = Math.Clamp(_options.MaxOutputTokens, 256, 4096)
+                },
+                cancellationToken);
+        }
+        catch (AITutorException ex)
+        {
+            if (_usageLogger is not null)
             {
-                SystemInstruction = systemInstruction,
-                UserPrompt = userPrompt,
-                History = sanitizedHistory,
-                ExpectJson = true,
-                Temperature = normalizedMode == "CONVERSATION" ? 0.6 : 0.35,
-                MaxOutputTokens = Math.Clamp(_options.MaxOutputTokens, 256, 4096)
-            },
-            cancellationToken);
+                await _usageLogger.LogAsync(userId, "AI_TUTOR", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            throw;
+        }
 
-        return ParseProviderResponse(providerResponse.RawText, _logger);
+        if (_usageLogger is not null)
+        {
+            await _usageLogger.LogAsync(userId, "AI_TUTOR", providerResponse, true, null, cancellationToken);
+        }
+
+        var dto = ParseProviderResponse(providerResponse.RawText, _logger);
+        dto.Meta = new AIProviderMetaDto
+        {
+            Provider = providerResponse.Provider,
+            Model = providerResponse.Model,
+            IsMock = providerResponse.IsMock,
+            PromptTokens = providerResponse.PromptTokens,
+            CompletionTokens = providerResponse.CompletionTokens,
+            TotalTokens = providerResponse.TotalTokens,
+            LatencyMs = providerResponse.LatencyMs
+        };
+        return dto;
     }
 
     public static string BuildSystemInstruction(string mode, VerifiedAITutorContext context)
@@ -129,9 +166,30 @@ public sealed class AITutorService : IAITutorService
             sb.AppendLine($"- Bài học: {context.VerifiedLessonTitle}");
         }
 
+        if (!string.IsNullOrWhiteSpace(context.LearningGoal))
+        {
+            sb.AppendLine($"- Mục tiêu học tập: {context.LearningGoal}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(context.LessonReadingPreview))
+        {
+            sb.AppendLine($"- Trích đoạn bài đọc liên quan: {context.LessonReadingPreview}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(context.LessonAcademicNote))
+        {
+            sb.AppendLine($"- Trạng thái học liệu: {context.LessonAcademicNote}");
+        }
+
         if (!string.IsNullOrWhiteSpace(context.CurrentStep))
         {
             sb.AppendLine($"- Bước học hiện tại: {context.CurrentStep}");
+        }
+
+        if (context.VerifiedGrammar is not null)
+        {
+            var g = context.VerifiedGrammar;
+            sb.AppendLine($"- Điểm ngữ pháp trọng tâm (DB): {g.Title} | Công thức: {g.StructureFormula} | Giải thích: {g.Explanation}");
         }
 
         if (context.GrammarPoints.Count > 0)
