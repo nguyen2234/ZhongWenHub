@@ -4,7 +4,34 @@ import type {
   CreateVideoDTO,
   UpdateVideoDTO,
   TranscriptSegment,
+  LearningVideoItem,
+  VideoAdminQuery,
+  PagedAdminVideoResponse,
+  CreateVideoPayload,
+  UpdateVideoPayload,
+  StorageStatus,
+  StorageUploadResponse,
 } from '../types/video.types';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+function getAuthHeaders(isFormData = false): HeadersInit {
+  const token = authTokenService.getAccessToken();
+  const headers: Record<string, string> = {};
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 export function secondsToTimestamp(sec: number): string {
   const mins = Math.floor(sec / 60);
@@ -29,6 +56,10 @@ const INITIAL_VIDEOS: VideoContent[] = [
     id: 'VID-101',
     title: 'Giao tiếp hàng ngày: Chào hỏi và giới thiệu bản thân',
     description: 'Video hội thoại cơ bản dành cho người mới bắt đầu học tiếng Trung HSK 1. Hướng dẫn phát âm chuẩn Bắc Kinh.',
+    sourceType: 'YouTube',
+    youtubeVideoId: '4lHwBZr66so',
+    storagePath: null,
+    durationSeconds: 180,
     hskLevel: 1,
     topic: 'Giao tiếp hàng ngày',
     duration: 180,
@@ -99,6 +130,10 @@ const INITIAL_VIDEOS: VideoContent[] = [
     id: 'VID-102',
     title: 'Đi siêu thị và mặc cả bằng tiếng Trung',
     description: 'Tình huống thực tế khi mua sắm, hỏi giá, trả giá và thanh toán tiền mặt/WeChat Pay.',
+    sourceType: 'YouTube',
+    youtubeVideoId: 'k38L07o_9zM',
+    storagePath: null,
+    durationSeconds: 245,
     hskLevel: 2,
     topic: 'Mua sắm & Đời sống',
     duration: 245,
@@ -129,86 +164,86 @@ const INITIAL_VIDEOS: VideoContent[] = [
         endTime: 8.9,
         startFormatted: '00:05.200',
         endFormatted: '00:08.900',
-        textZh: '五块钱一斤，新鲜又甜。',
-        pinyin: 'Wǔ kuài qián yì jīn, xīnxiān yòu tián.',
-        textVi: 'Năm tệ một cân, tươi và ngọt lắm.',
+        textZh: '五块钱一斤，很甜很新鲜。',
+        pinyin: 'Wǔ kuài qián yì jīn, hěn tián hěn xīnxiān.',
+        textVi: 'Năm tệ một cân, rất ngọt và tươi.',
       },
       {
         id: 'ts-203',
         startTime: 9.3,
-        endTime: 13.0,
+        endTime: 13.1,
         startFormatted: '00:09.300',
-        endFormatted: '00:13.000',
-        textZh: '太贵了，可以便宜一点儿吗？',
-        pinyin: 'Tài guì le, kěyǐ piányi yìdiǎnr ma?',
-        textVi: 'Đắt quá, có thể giảm giá một chút không?',
-      },
-      {
-        id: 'ts-204',
-        startTime: 13.5,
-        endTime: 17.5,
-        startFormatted: '00:13.500',
-        endFormatted: '00:17.500',
-        textZh: '给你四块五吧，买两斤怎么样？',
-        pinyin: 'Gěi nǐ sì kuài wǔ ba, mǎi liǎng jīn zěnmeyàng?',
-        textVi: 'Bán cho bạn bốn tệ rưỡi nhé, mua hai cân thế nào?',
+        endFormatted: '00:13.100',
+        textZh: '太贵了！四块钱可以吗？',
+        pinyin: 'Tài guì le! Sì kuài qián kěyǐ ma?',
+        textVi: 'Đắt quá! Bốn tệ được không?',
       },
     ],
   },
   {
     id: 'VID-103',
-    title: 'Hành trình trải nghiệm tàu cao tốc Bắc Kinh - Thượng Hải',
-    description: 'Khám phá văn hóa di chuyển hiện đại của Trung Quốc và các mẫu câu hữu ích khi đi ga tàu, mua vé, tìm chỗ ngồi.',
+    title: 'Đặt phòng khách sạn và hỏi đường khi du lịch Trung Quốc',
+    description: 'Kỹ năng giao tiếp HSK 3 cần thiết khi du lịch: làm thủ tục check-in, hỏi đường xe bus, tàu điện ngầm.',
+    sourceType: 'Uploaded',
+    youtubeVideoId: null,
+    storagePath: 'videos/hsk3/travel.mp4',
+    durationSeconds: 310,
     hskLevel: 3,
-    topic: 'Du lịch & Giao thông',
+    topic: 'Du lịch & Đời sống',
     duration: 310,
     durationFormatted: '05:10',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?w=600&q=80&auto=format&fit=crop',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=600&q=80&auto=format&fit=crop',
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    lessonId: 'les-8',
-    lessonTitle: 'HSK 3 - Bài 2: Đi du lịch (旅游)',
-    status: 'REVIEW',
-    tags: ['Tàu cao tốc', 'Ga tàu', 'Du lịch', 'HSK 3'],
-    viewCount: 640,
-    createdAt: '2026-10-05T11:00:00Z',
+    lessonId: 'les-12',
+    lessonTitle: 'HSK 3 - Bài 5: Du lịch (旅游)',
+    status: 'PUBLISHED',
+    tags: ['Du lịch', 'Khách sạn', 'Hỏi đường', 'HSK 3'],
+    viewCount: 650,
+    createdAt: '2026-10-01T15:00:00Z',
     updatedAt: '2026-10-25T16:30:00Z',
     transcripts: [
       {
         id: 'ts-301',
         startTime: 1.0,
-        endTime: 5.5,
+        endTime: 4.5,
         startFormatted: '00:01.000',
-        endFormatted: '00:05.500',
-        textZh: '中国的高铁速度非常快，每小时达到350公里。',
-        pinyin: 'Zhōngguó de gāotiě sùdù fēicháng kuài, měi xiǎoshí dádào 350 gōnglǐ.',
-        textVi: 'Tốc độ tàu cao tốc Trung Quốc rất nhanh, đạt 350 km mỗi giờ.',
+        endFormatted: '00:04.500',
+        textZh: '你好，我在网上预订了一个大床房。',
+        pinyin: 'Nǐ hǎo, wǒ zài wǎngshàng yùdìng le yí ge dàchuáng fáng.',
+        textVi: 'Xin chào, tôi đã đặt phòng một giường lớn qua mạng.',
       },
       {
         id: 'ts-302',
-        startTime: 6.0,
-        endTime: 10.2,
-        startFormatted: '00:06.000',
-        endFormatted: '00:10.200',
-        textZh: '从北京到上海，只需要四个多小时。',
-        pinyin: 'Cóng Běijīng dào Shànghǎi, zhǐ xūyào sì gè duō xiǎoshí.',
-        textVi: 'Từ Bắc Kinh đến Thượng Hải, chỉ cần hơn bốn tiếng.',
+        startTime: 5.0,
+        endTime: 8.5,
+        startFormatted: '00:05.000',
+        endFormatted: '00:08.500',
+        textZh: '好的，请出示您的护照和预订确认单。',
+        pinyin: 'Hǎode, qǐng chūshì nín de hùzhào hé yùdìng quèrèndān.',
+        textVi: 'Vâng, xin vui lòng xuất trình hộ chiếu và phiếu xác nhận đặt phòng.',
       },
     ],
   },
   {
     id: 'VID-104',
-    title: 'Kỹ năng phỏng vấn tuyển dụng tại các tập đoàn công nghệ',
-    description: 'Chuẩn bị phỏng vấn tiếng Trung chuyên nghiệp: giới thiệu bản thân, giải quyết vấn đề, đàm phán đãi ngộ.',
+    title: 'Phỏng vấn xin việc bằng tiếng Trung chuyên nghiệp',
+    description: 'Chuẩn bị phỏng vấn công ty Trung Quốc: giới thiệu kinh nghiệm, đàm phán lương và trả lời tình huống.',
+    sourceType: 'YouTube',
+    youtubeVideoId: 'dQw4w9WgXcQ',
+    storagePath: null,
+    durationSeconds: 420,
     hskLevel: 4,
-    topic: 'Công sở & Nghề nghiệp',
-    duration: 360,
-    durationFormatted: '06:00',
+    topic: 'Công việc & Phỏng vấn',
+    duration: 420,
+    durationFormatted: '07:00',
     thumbnailUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80&auto=format&fit=crop',
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    lessonId: 'les-25',
+    lessonTitle: 'HSK 4 - Bài 8: Xin việc (找工作)',
     status: 'DRAFT',
-    tags: ['Phỏng vấn', 'Công sở', 'HSK 4', 'CV'],
-    viewCount: 120,
-    createdAt: '2026-10-20T14:00:00Z',
+    tags: ['Phỏng vấn', 'Công việc', 'CV', 'HSK 4'],
+    viewCount: 320,
+    createdAt: '2026-10-10T09:00:00Z',
     updatedAt: '2026-10-26T11:45:00Z',
     transcripts: [
       {
@@ -225,23 +260,277 @@ const INITIAL_VIDEOS: VideoContent[] = [
   },
 ];
 
-class VideoManagementService {
-  private videos: VideoContent[] = structuredClone(INITIAL_VIDEOS);
+export class VideoManagementService {
+  private syncVideos: VideoContent[] = structuredClone(INITIAL_VIDEOS);
 
-  resetToInitial(): void {
-    this.videos = structuredClone(INITIAL_VIDEOS);
+  // ==========================================
+  // REAL BACKEND API CLIENT METHODS
+  // ==========================================
+
+  public parseYouTubeUrl(url: string): string | null {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    const regex =
+      /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[?&].*)?$/i;
+    const match = trimmed.match(regex);
+    if (match && match[1] && match[1].length === 11) {
+      return match[1];
+    }
+
+    return null;
   }
 
-  getVideos(filters?: VideoFilters): VideoContent[] {
-    let result = structuredClone(this.videos);
+  public getYouTubeHqThumbnail(videoId: string): string {
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
 
-    if (filters?.hskLevel && filters.hskLevel !== 'ALL') {
+  public async fetchVideos(query: VideoAdminQuery = {}): Promise<PagedAdminVideoResponse> {
+    const params = new URLSearchParams();
+
+    if (query.page && query.page > 0) {
+      params.append('page', String(query.page));
+    }
+    if (query.pageSize && query.pageSize > 0) {
+      params.append('pageSize', String(query.pageSize));
+    }
+    if (query.search?.trim()) {
+      params.append('search', query.search.trim());
+    }
+    if (query.hskLevel && String(query.hskLevel).toUpperCase() !== 'ALL') {
+      params.append('hskLevel', String(query.hskLevel));
+    }
+    if (query.topic && String(query.topic).toUpperCase() !== 'ALL') {
+      params.append('topic', query.topic.trim());
+    }
+    if (query.sourceType && String(query.sourceType).toUpperCase() !== 'ALL') {
+      params.append('sourceType', query.sourceType.trim());
+    }
+    if (query.status && String(query.status).toUpperCase() !== 'ALL') {
+      params.append('status', query.status.trim());
+    }
+
+    const qs = params.toString();
+    const endpoint = qs ? `/videos/manage?${qs}` : '/videos/manage';
+
+    const response = await fetch(getApiUrl(endpoint), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Lỗi tải danh sách video quản trị (${response.status}): ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const rawItems: any[] = data.items || [];
+    const items: LearningVideoItem[] = rawItems.map((item) => ({
+      ...item,
+      youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+      durationFormatted: item.durationFormatted ?? '00:00',
+    }));
+
+    return {
+      items,
+      totalItems: data.totalItems ?? 0,
+      page: data.page ?? data.pageNumber ?? 1,
+      pageSize: data.pageSize ?? 12,
+      totalPages: Math.max(1, data.totalPages ?? 1),
+      hasPreviousPage: !!data.hasPreviousPage,
+      hasNextPage: !!data.hasNextPage,
+    };
+  }
+
+  public async fetchVideoById(id: string): Promise<LearningVideoItem | null> {
+    try {
+      const response = await fetch(getApiUrl(`/videos/manage/${id}`), {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 404) return null;
+      if (!response.ok) {
+        throw new Error(`Lỗi tải video (${response.status})`);
+      }
+
+      const item = (await response.json()) as any;
+      return {
+        ...item,
+        youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+        durationFormatted: item.durationFormatted ?? '00:00',
+      };
+    } catch (err) {
+      console.warn('[VideoManagementService] Error fetching video:', err);
+      return null;
+    }
+  }
+
+  public async createVideoApi(payload: CreateVideoPayload): Promise<LearningVideoItem> {
+    const response = await fetch(getApiUrl('/videos/manage'), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorJson = await response.json().catch(() => ({}));
+      const message = errorJson.message || `Lỗi tạo video (${response.status})`;
+      throw new Error(message);
+    }
+
+    return (await response.json()) as LearningVideoItem;
+  }
+
+  public async updateVideoApi(id: string, payload: UpdateVideoPayload): Promise<LearningVideoItem> {
+    const response = await fetch(getApiUrl(`/videos/manage/${id}`), {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorJson = await response.json().catch(() => ({}));
+      const message = errorJson.message || `Lỗi cập nhật video (${response.status})`;
+      throw new Error(message);
+    }
+
+    return (await response.json()) as LearningVideoItem;
+  }
+
+  public async updateStatus(id: string, status: 'Draft' | 'Published' | 'Hidden'): Promise<LearningVideoItem> {
+    const response = await fetch(getApiUrl(`/videos/manage/${id}/status`), {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      const errorJson = await response.json().catch(() => ({}));
+      const message = errorJson.message || `Lỗi chuyển trạng thái video (${response.status})`;
+      throw new Error(message);
+    }
+
+    return (await response.json()) as LearningVideoItem;
+  }
+
+  public async deleteVideoApi(id: string): Promise<boolean> {
+    const response = await fetch(getApiUrl(`/videos/manage/${id}`), {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+
+    if (response.status === 404) return false;
+    if (!response.ok) {
+      throw new Error(`Lỗi xóa video (${response.status})`);
+    }
+
+    return true;
+  }
+
+  public async uploadVideoFile(file: File): Promise<StorageUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(getApiUrl('/videos/manage/upload-video'), {
+      method: 'POST',
+      headers: getAuthHeaders(true),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorJson = await response.json().catch(() => ({}));
+      throw new Error(errorJson.message || `Lỗi tải lên video (${response.status})`);
+    }
+
+    return (await response.json()) as StorageUploadResponse;
+  }
+
+  public async uploadThumbnailFile(file: File): Promise<StorageUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(getApiUrl('/videos/manage/upload-thumbnail'), {
+      method: 'POST',
+      headers: getAuthHeaders(true),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorJson = await response.json().catch(() => ({}));
+      throw new Error(errorJson.message || `Lỗi tải lên thumbnail (${response.status})`);
+    }
+
+    return (await response.json()) as StorageUploadResponse;
+  }
+
+  public async getStorageStatus(): Promise<StorageStatus> {
+    try {
+      const response = await fetch(getApiUrl('/videos/manage/storage-status'), {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        return {
+          isConfigured: false,
+          providerName: 'Unconfigured',
+          maxVideoSizeBytes: 104857600,
+          maxThumbnailSizeBytes: 5242880,
+          allowedVideoMimeTypes: ['video/mp4'],
+          allowedThumbnailMimeTypes: ['image/jpeg', 'image/png'],
+        };
+      }
+
+      return (await response.json()) as StorageStatus;
+    } catch {
+      return {
+        isConfigured: false,
+        providerName: 'Unconfigured',
+        maxVideoSizeBytes: 104857600,
+        maxThumbnailSizeBytes: 5242880,
+        allowedVideoMimeTypes: ['video/mp4'],
+        allowedThumbnailMimeTypes: ['image/jpeg', 'image/png'],
+      };
+    }
+  }
+
+  public async fetchTopics(): Promise<string[]> {
+    try {
+      const response = await fetch(getApiUrl('/videos/topics'), {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) return ['Giao tiếp hàng ngày', 'Luyện thi HSK'];
+      return (await response.json()) as string[];
+    } catch {
+      return ['Giao tiếp hàng ngày', 'Luyện thi HSK'];
+    }
+  }
+
+  // ==========================================
+  // SYNCHRONOUS FIXTURE METHODS (FOR FE-13 TEST COMPATIBILITY)
+  // ==========================================
+
+  public resetToInitial(): void {
+    this.syncVideos = structuredClone(INITIAL_VIDEOS);
+  }
+
+  public getVideos(filters?: VideoFilters): VideoContent[] {
+    let result = structuredClone(this.syncVideos);
+
+    if (filters?.hskLevel && String(filters.hskLevel).toUpperCase() !== 'ALL') {
       result = result.filter((v) => v.hskLevel === filters.hskLevel);
     }
-    if (filters?.status && filters.status !== 'ALL') {
-      result = result.filter((v) => v.status === filters.status);
+    if (filters?.status && String(filters.status).toUpperCase() !== 'ALL') {
+      const st = String(filters.status).toUpperCase();
+      result = result.filter((v) => String(v.status).toUpperCase() === st);
     }
-    if (filters?.topic && filters.topic !== 'ALL') {
+    if (filters?.topic && String(filters.topic).toUpperCase() !== 'ALL') {
       result = result.filter((v) => v.topic === filters.topic);
     }
     if (filters?.search?.trim()) {
@@ -250,29 +539,30 @@ class VideoManagementService {
         (v) =>
           v.id.toLowerCase().includes(q) ||
           v.title.toLowerCase().includes(q) ||
-          v.description.toLowerCase().includes(q) ||
-          v.tags.some((t) => t.toLowerCase().includes(q)) ||
-          v.transcripts.some(
-            (ts) =>
-              ts.textZh.toLowerCase().includes(q) ||
-              ts.pinyin.toLowerCase().includes(q) ||
-              ts.textVi.toLowerCase().includes(q)
-          )
+          (v.description && v.description.toLowerCase().includes(q)) ||
+          (v.tags && v.tags.some((t: string) => t.toLowerCase().includes(q))) ||
+          (v.transcripts &&
+            v.transcripts.some(
+              (ts: any) =>
+                ts.textZh?.toLowerCase().includes(q) ||
+                ts.pinyin?.toLowerCase().includes(q) ||
+                ts.textVi?.toLowerCase().includes(q)
+            ))
       );
     }
 
     return result;
   }
 
-  getVideoById(id: string): VideoContent | undefined {
-    const video = this.videos.find((v) => v.id === id);
+  public getVideoById(id: string): VideoContent | undefined {
+    const video = this.syncVideos.find((v) => v.id === id);
     return video ? structuredClone(video) : undefined;
   }
 
-  createVideo(dto: CreateVideoDTO): VideoContent {
+  public createVideo(dto: CreateVideoDTO): VideoContent {
     const newId = `VID-${Math.floor(100 + Math.random() * 900)}`;
     const now = new Date().toISOString();
-    const duration = dto.duration || 180;
+    const duration = dto.duration || dto.durationSeconds || 180;
     const mins = Math.floor(duration / 60);
     const secs = duration % 60;
     const durationFormatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -280,72 +570,68 @@ class VideoManagementService {
     const newVideo: VideoContent = {
       id: newId,
       title: dto.title,
-      description: dto.description,
-      hskLevel: dto.hskLevel,
-      topic: dto.topic,
+      description: dto.description || '',
+      sourceType: dto.sourceType || 'Uploaded',
+      youtubeVideoId: dto.youtubeVideoId || null,
+      storagePath: dto.storagePath || null,
+      hskLevel: dto.hskLevel || 1,
+      topic: dto.topic || 'Giao tiếp hàng ngày',
       duration,
+      durationSeconds: duration,
       durationFormatted,
-      thumbnailUrl: dto.thumbnailUrl || 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80&auto=format&fit=crop',
-      videoUrl: dto.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      lessonId: dto.lessonId,
-      lessonTitle: dto.lessonTitle,
+      thumbnailUrl: dto.thumbnailUrl || 'https://example.com/thumb.jpg',
+      videoUrl: dto.videoUrl || 'https://example.com/sample.mp4',
+      lessonId: dto.lessonId || null,
+      lessonTitle: dto.lessonTitle || null,
       status: dto.status || 'DRAFT',
-      tags: dto.tags.length > 0 ? [...dto.tags] : ['Học liệu video'],
+      tags: dto.tags && dto.tags.length > 0 ? [...dto.tags] : ['Học liệu video'],
       viewCount: 0,
       transcripts: dto.transcripts ? structuredClone(dto.transcripts) : [],
       createdAt: now,
       updatedAt: now,
     };
 
-    this.videos.unshift(newVideo);
+    this.syncVideos.unshift(newVideo);
     return structuredClone(newVideo);
   }
 
-  updateVideo(id: string, dto: UpdateVideoDTO): VideoContent {
-    const index = this.videos.findIndex((v) => v.id === id);
+  public updateVideo(id: string, dto: UpdateVideoDTO): VideoContent {
+    const index = this.syncVideos.findIndex((v) => v.id === id);
     if (index === -1) throw new Error(`Không tìm thấy video với ID: ${id}`);
 
-    const existing = this.videos[index];
+    const existing = this.syncVideos[index];
     const now = new Date().toISOString();
-
-    let durationFormatted = existing.durationFormatted;
-    if (dto.duration && dto.duration !== existing.duration) {
-      const mins = Math.floor(dto.duration / 60);
-      const secs = dto.duration % 60;
-      durationFormatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    }
 
     const updated: VideoContent = {
       ...existing,
       ...dto,
-      tags: dto.tags ? [...dto.tags] : [...existing.tags],
-      transcripts: dto.transcripts ? structuredClone(dto.transcripts) : structuredClone(existing.transcripts),
-      durationFormatted,
+      tags: dto.tags ? [...dto.tags] : [...(existing.tags || [])],
+      transcripts: dto.transcripts ? structuredClone(dto.transcripts) : structuredClone(existing.transcripts || []),
       updatedAt: now,
     };
 
-    this.videos[index] = updated;
+    this.syncVideos[index] = updated;
     return structuredClone(updated);
   }
 
-  deleteVideo(id: string): boolean {
-    const index = this.videos.findIndex((v) => v.id === id);
+  public deleteVideo(id: string): boolean {
+    const index = this.syncVideos.findIndex((v) => v.id === id);
     if (index === -1) return false;
-    this.videos.splice(index, 1);
+    this.syncVideos.splice(index, 1);
     return true;
   }
 
-  updateTranscript(id: string, transcripts: TranscriptSegment[]): VideoContent {
-    const index = this.videos.findIndex((v) => v.id === id);
+  public updateTranscript(id: string, transcripts: TranscriptSegment[]): VideoContent {
+    const index = this.syncVideos.findIndex((v) => v.id === id);
     if (index === -1) throw new Error(`Không tìm thấy video: ${id}`);
 
     const now = new Date().toISOString();
     const updated: VideoContent = {
-      ...this.videos[index],
+      ...this.syncVideos[index],
       transcripts: structuredClone(transcripts),
       updatedAt: now,
     };
-    this.videos[index] = updated;
+    this.syncVideos[index] = updated;
     return structuredClone(updated);
   }
 }

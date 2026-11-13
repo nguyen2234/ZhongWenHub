@@ -1274,6 +1274,101 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("hanzi_level_requirements", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LearningVideo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("DurationSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("HskLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("YouTube");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Draft");
+
+                    b.Property<string>("StoragePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("Giao tiếp hàng ngày");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ViewCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("YouTubeVideoId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HskLevel")
+                        .HasDatabaseName("idx_learning_videos_hsk_level");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("SourceType")
+                        .HasDatabaseName("idx_learning_videos_source_type");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_learning_videos_status");
+
+                    b.HasIndex("Topic")
+                        .HasDatabaseName("idx_learning_videos_topic");
+
+                    b.HasIndex("Status", "HskLevel", "CreatedAt")
+                        .HasDatabaseName("idx_learning_videos_status_hsk_created");
+
+                    b.ToTable("learning_videos", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2393,6 +2488,16 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("CharacterEntity");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LearningVideo", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Lesson");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.LessonEntity", b =>

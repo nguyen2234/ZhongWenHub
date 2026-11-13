@@ -1,18 +1,13 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { X, Info, Clock, BookOpen } from 'lucide-react';
-import type { VideoContent } from '../types/video.types';
+import React, { useEffect } from 'react';
+import { X, Clock, BookOpen, ExternalLink } from 'lucide-react';
+import type { LearningVideoItem } from '../types/video.types';
 
 export interface VideoPreviewModalProps {
-  video: VideoContent | null;
+  video: LearningVideoItem | null;
   onClose: () => void;
 }
 
 export const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({ video, onClose }) => {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [activeSegmentIndex, setActiveSegmentIndex] = useState<number>(-1);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -21,35 +16,15 @@ export const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({ video, onC
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  useEffect(() => {
-    if (!video) return;
-    const segIdx = video.transcripts.findIndex(
-      (s) => currentTime >= s.startTime && currentTime <= s.endTime
-    );
-    setActiveSegmentIndex(segIdx);
-  }, [currentTime, video]);
-
   if (!video) return null;
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-    }
-  };
-
-
-
-  const handleSeek = (sec: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = sec;
-      if (!isPlaying) {
-        videoRef.current.play().catch(() => {});
-        setIsPlaying(true);
-      }
-    }
-  };
-
-  const activeSegment = activeSegmentIndex >= 0 ? video.transcripts[activeSegmentIndex] : null;
+  const isYouTube = video.sourceType?.toLowerCase() === 'youtube';
+  const ytId = video.youtubeVideoId || video.youTubeVideoId;
+  const videoSourceUrl = video.storagePath
+    ? video.storagePath.startsWith('http')
+      ? video.storagePath
+      : `/uploads/${video.storagePath.replace(/^\/+/, '')}`
+    : null;
 
   return (
     <div
@@ -59,242 +34,205 @@ export const VideoPreviewModal: React.FC<VideoPreviewModalProps> = ({ video, onC
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
         backdropFilter: 'blur(4px)',
-        zIndex: 'var(--z-modal)',
+        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 'var(--space-4)',
+        padding: '16px',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
           width: '100%',
-          maxWidth: '860px',
-          maxHeight: '90vh',
-          backgroundColor: 'var(--surface)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-strong)',
+          maxWidth: '850px',
+          overflow: 'hidden',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: 'var(--shadow-xl)',
-          overflow: 'hidden',
+          maxHeight: '90vh',
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: '14px 20px',
-            borderBottom: '1px solid var(--border)',
+            padding: '16px 20px',
+            borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span
               style={{
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 800,
                 padding: '2px 8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--primary-light)',
-                color: 'var(--primary)',
+                borderRadius: '6px',
+                backgroundColor: isYouTube ? '#fee2e2' : '#dbeafe',
+                color: isYouTube ? '#dc2626' : '#2563eb',
               }}
             >
-              HSK {video.hskLevel}
+              {isYouTube ? 'YouTube' : 'Uploaded'}
             </span>
-            <h3
+            <h2
               id="video-preview-title"
-              style={{
-                margin: 0,
-                fontSize: '15px',
-                fontWeight: 700,
-                color: 'var(--foreground)',
-              }}
+              style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0 }}
             >
-              {video.title}
-            </h3>
+              Xem trước: {video.title}
+            </h2>
           </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="ds-btn ds-btn-ghost ds-btn-icon"
-            style={{ width: '32px', height: '32px' }}
-            aria-label="Đóng xem trước"
+            aria-label="Đóng"
+            style={{
+              border: 'none',
+              background: '#f1f5f9',
+              borderRadius: '8px',
+              padding: '6px',
+              cursor: 'pointer',
+              color: '#64748b',
+              display: 'flex',
+            }}
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Video Player & Realtime Subtitle Overlay */}
-        <div style={{ backgroundColor: '#000000', position: 'relative', width: '100%' }}>
-          <video
-            ref={videoRef}
-            src={video.videoUrl}
-            poster={video.thumbnailUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            style={{ width: '100%', maxHeight: '380px', display: 'block', margin: '0 auto' }}
-            controls
-          />
-
-          {/* Active Subtitle Overlay */}
-          {activeSegment && (
+        {/* Video Player Box (16:9 ratio) */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            paddingTop: '56.25%',
+            backgroundColor: '#000000',
+          }}
+        >
+          {isYouTube && ytId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+              title={video.title}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                border: 'none',
+              }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : videoSourceUrl ? (
+            <video
+              src={videoSourceUrl}
+              poster={video.thumbnailUrl}
+              controls
+              autoPlay
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          ) : (
             <div
               style={{
                 position: 'absolute',
-                bottom: '60px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: 'rgba(0, 0, 0, 0.78)',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 color: '#ffffff',
-                padding: '8px 18px',
-                borderRadius: '8px',
-                textAlign: 'center',
-                maxWidth: '90%',
-                pointerEvents: 'none',
+                gap: '8px',
               }}
             >
-              <div style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '0.5px' }}>
-                {activeSegment.textZh}
-              </div>
-              <div style={{ fontSize: '13px', color: '#fef08a', marginTop: '2px' }}>
-                {activeSegment.pinyin}
-              </div>
-              <div style={{ fontSize: '12px', color: '#e2e8f0', marginTop: '2px' }}>
-                {activeSegment.textVi}
-              </div>
+              <p style={{ margin: 0, fontSize: '14px', color: '#94a3b8' }}>
+                Không có nguồn phát khả dụng cho video này.
+              </p>
             </div>
           )}
         </div>
 
-        {/* Video Info Strip */}
-        <div
-          style={{
-            padding: '10px 20px',
-            backgroundColor: 'var(--background)',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '12px',
-            color: 'var(--muted)',
-            flexWrap: 'wrap',
-            gap: '8px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Clock size={13} /> Thời lượng: <strong>{video.durationFormatted}</strong>
+        {/* Video Metadata Footer */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: 'var(--primary, #E60012)',
+                backgroundColor: '#FFF0F1',
+                padding: '2px 8px',
+                borderRadius: '6px',
+              }}
+            >
+              HSK {video.hskLevel}
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <BookOpen size={13} /> Chủ đề: <strong>{video.topic}</strong>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#475569',
+                backgroundColor: '#f1f5f9',
+                padding: '2px 8px',
+                borderRadius: '6px',
+              }}
+            >
+              {video.topic}
             </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b' }}>
+              <Clock size={13} />
+              <span>{video.durationFormatted || '00:00'}</span>
+            </span>
+            {video.lessonTitle && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#2563eb' }}>
+                <BookOpen size={13} />
+                <span>{video.lessonTitle}</span>
+              </span>
+            )}
+            {isYouTube && ytId && (
+              <a
+                href={`https://www.youtube.com/watch?v=${ytId}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '12px',
+                  color: '#dc2626',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                  marginLeft: 'auto',
+                }}
+              >
+                <span>Xem trên YouTube</span>
+                <ExternalLink size={12} />
+              </a>
+            )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Info size={13} />
-            <span>Click vào từng câu bên dưới để nhảy trực tiếp đến mốc thời gian đó</span>
-          </div>
-        </div>
 
-        {/* Synchronized Transcript List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', maxHeight: '240px' }}>
-          <h4
-            style={{
-              margin: '0 0 10px 0',
-              fontSize: '13px',
-              fontWeight: 700,
-              color: 'var(--foreground)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.4px',
-            }}
-          >
-            Đồng bộ phụ đề ({video.transcripts.length} đoạn)
-          </h4>
-
-          {video.transcripts.length === 0 ? (
-            <p style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center' }}>
-              Video này chưa có dữ liệu phụ đề.
+          {video.description && (
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+              {video.description}
             </p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {video.transcripts.map((seg, idx) => {
-                const isActive = activeSegmentIndex === idx;
-                return (
-                  <button
-                    type="button"
-                    key={seg.id}
-                    onClick={() => handleSeek(seg.startTime)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      backgroundColor: isActive ? 'var(--primary-light)' : 'var(--surface)',
-                      border: `1px solid ${isActive ? 'var(--primary)' : 'var(--border)'}`,
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      transition: 'all 0.12s ease',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          color: isActive ? 'var(--primary)' : 'var(--foreground)',
-                        }}
-                      >
-                        {seg.textZh || '—'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
-                        {seg.pinyin}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--foreground)', marginTop: '2px' }}>
-                        {seg.textVi}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: '11px',
-                        fontFamily: 'monospace',
-                        color: isActive ? 'var(--primary)' : 'var(--muted)',
-                        backgroundColor: isActive ? '#ffffff' : 'var(--secondary)',
-                        padding: '2px 6px',
-                        borderRadius: 'var(--radius-sm)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {seg.startFormatted}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            padding: '12px 20px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <button type="button" onClick={onClose} className="ds-btn ds-btn-secondary">
-            Đóng xem trước
-          </button>
         </div>
       </div>
     </div>
   );
 };
-export default VideoPreviewModal;

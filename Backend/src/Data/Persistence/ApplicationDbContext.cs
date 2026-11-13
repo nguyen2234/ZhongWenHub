@@ -40,6 +40,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<ExamQuestionEntity> ExamQuestions => Set<ExamQuestionEntity>();
     public DbSet<StudentExamAttempt> StudentExamAttempts => Set<StudentExamAttempt>();
     public DbSet<QuestionBankPracticeSessionEntity> QuestionBankPracticeSessions => Set<QuestionBankPracticeSessionEntity>();
+    public DbSet<LearningVideo> LearningVideos => Set<LearningVideo>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -549,6 +550,36 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .HasDatabaseName("idx_exercises_hsk_skill_diff_status");
             b.HasIndex(e => new { e.HskLevel, e.AdministrativeApprovalStatus })
                 .HasDatabaseName("idx_exercises_hsk_admin_approval");
+        });
+
+        // Learning Videos Configuration
+        builder.Entity<LearningVideo>(b =>
+        {
+            b.ToTable("learning_videos");
+            b.HasKey(v => v.Id);
+            b.Property(v => v.Title).HasMaxLength(250).IsRequired();
+            b.Property(v => v.Description).HasMaxLength(2000);
+            b.Property(v => v.SourceType).HasMaxLength(50).IsRequired().HasDefaultValue("YouTube");
+            b.Property(v => v.YouTubeVideoId).HasMaxLength(50);
+            b.Property(v => v.StoragePath).HasMaxLength(500);
+            b.Property(v => v.ThumbnailUrl).HasMaxLength(1000).IsRequired();
+            b.Property(v => v.DurationSeconds).HasDefaultValue(0);
+            b.Property(v => v.HskLevel).HasDefaultValue(1);
+            b.Property(v => v.Topic).HasMaxLength(100).IsRequired().HasDefaultValue("Giao tiếp hàng ngày");
+            b.Property(v => v.Status).HasMaxLength(50).IsRequired().HasDefaultValue("Draft");
+            b.Property(v => v.ViewCount).HasDefaultValue(0);
+
+            b.HasOne(v => v.Lesson)
+                .WithMany()
+                .HasForeignKey(v => v.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(v => v.Status).HasDatabaseName("idx_learning_videos_status");
+            b.HasIndex(v => v.HskLevel).HasDatabaseName("idx_learning_videos_hsk_level");
+            b.HasIndex(v => v.Topic).HasDatabaseName("idx_learning_videos_topic");
+            b.HasIndex(v => v.SourceType).HasDatabaseName("idx_learning_videos_source_type");
+            b.HasIndex(v => new { v.Status, v.HskLevel, v.CreatedAt })
+                .HasDatabaseName("idx_learning_videos_status_hsk_created");
         });
 
         // Question Bank Practice Sessions Configuration

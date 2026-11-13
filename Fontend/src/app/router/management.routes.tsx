@@ -52,6 +52,10 @@ export const managementRoutes: RouteObject[] = [
         element: <Navigate to="/management/admin/dashboard" replace />,
       },
       {
+        path: 'videos',
+        element: <Navigate to="/management/content-manager/videos" replace />,
+      },
+      {
         path: 'admin',
         children: [
           {

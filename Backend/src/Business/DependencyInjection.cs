@@ -1,3 +1,4 @@
+﻿using ZhongWenHub.Business.Content.Services.Storage;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -100,6 +101,10 @@ public static class DependencyInjection
         services.AddScoped<IContentService, ContentService>();
         services.AddScoped<IExamService, ExamService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
+        services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
+        services.AddHttpClient<VideoStorageService>();
+        services.AddScoped<IVideoStorageService, VideoStorageService>();
+        services.AddScoped<ILearningVideoService, LearningVideoService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         // AI Tutor, Provider Layer & AI Learning Engine V1
