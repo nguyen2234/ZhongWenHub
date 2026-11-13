@@ -24,17 +24,20 @@ public class VideosController : BaseApiController
     private readonly ILearningVideoService _videoService;
     private readonly IVideoStorageService _storageService;
     private readonly IStorageCleanupService _cleanupService;
+    private readonly IUploadAssetService _uploadAssetService;
     private readonly ILogger<VideosController> _logger;
 
     public VideosController(
         ILearningVideoService videoService,
         IVideoStorageService storageService,
         IStorageCleanupService cleanupService,
+        IUploadAssetService uploadAssetService,
         ILogger<VideosController> logger)
     {
         _videoService = videoService;
         _storageService = storageService;
         _cleanupService = cleanupService;
+        _uploadAssetService = uploadAssetService;
         _logger = logger;
     }
 
@@ -265,6 +268,21 @@ public class VideosController : BaseApiController
             return BadRequest(new { message = result.ErrorMessage });
         }
 
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value
+            ?? User.Identity?.Name
+            ?? "system";
+
+        var asset = await _uploadAssetService.RegisterUploadAsync(
+            result.StoragePath!,
+            _storageService.ProviderName,
+            userId,
+            file.ContentType,
+            file.Length,
+            assetType: "Video",
+            cancellationToken: cancellationToken);
+
+        result.UploadId = asset.Id;
         return Ok(result);
     }
 
@@ -295,6 +313,21 @@ public class VideosController : BaseApiController
             return BadRequest(new { message = result.ErrorMessage });
         }
 
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value
+            ?? User.Identity?.Name
+            ?? "system";
+
+        var asset = await _uploadAssetService.RegisterUploadAsync(
+            result.StoragePath!,
+            _storageService.ProviderName,
+            userId,
+            file.ContentType,
+            file.Length,
+            assetType: "Thumbnail",
+            cancellationToken: cancellationToken);
+
+        result.UploadId = asset.Id;
         return Ok(result);
     }
 

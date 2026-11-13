@@ -42,6 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<QuestionBankPracticeSessionEntity> QuestionBankPracticeSessions => Set<QuestionBankPracticeSessionEntity>();
     public DbSet<LearningVideo> LearningVideos => Set<LearningVideo>();
     public DbSet<VideoStorageCleanupJob> VideoStorageCleanupJobs => Set<VideoStorageCleanupJob>();
+    public DbSet<VideoUploadAsset> VideoUploadAssets => Set<VideoUploadAsset>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -590,13 +591,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasKey(j => j.Id);
             b.Property(j => j.StoragePath).HasMaxLength(500).IsRequired();
             b.Property(j => j.StorageProvider).HasMaxLength(50).IsRequired().HasDefaultValue("Unknown");
+            b.Property(j => j.Status).HasMaxLength(50).IsRequired().HasDefaultValue(VideoStorageCleanupStatus.Pending);
             b.Property(j => j.Reason).HasMaxLength(100).IsRequired().HasDefaultValue("VideoDeleted");
             b.Property(j => j.LastError).HasMaxLength(2000);
             b.Property(j => j.RetryCount).HasDefaultValue(0);
-            b.Property(j => j.IsCompleted).HasDefaultValue(false);
+            b.Property(j => j.LeaseOwner).HasMaxLength(100);
 
-            b.HasIndex(j => new { j.IsCompleted, j.RetryCount, j.CreatedAt })
+            b.HasIndex(j => new { j.Status, j.NextRetryAt, j.CreatedAt })
                 .HasDatabaseName("idx_cleanup_jobs_status_retry_created");
+            b.HasIndex(j => j.LeaseExpiresAt)
+                .HasDatabaseName("idx_cleanup_jobs_lease_expires");
+        });
+
+        // Video Upload Assets Configuration (Upload Ownership & Concurrency Protection)
+        builder.Entity<VideoUploadAsset>(b =>
+        {
+            b.ToTable("video_upload_assets");
+            b.HasKey(a => a.Id);
+            b.Property(a => a.StoragePath).HasMaxLength(500).IsRequired();
+            b.Property(a => a.StorageProvider).HasMaxLength(50).IsRequired().HasDefaultValue("Unknown");
+            b.Property(a => a.UploadedByUserId).HasMaxLength(450).IsRequired();
+            b.Property(a => a.UploadStatus).HasMaxLength(50).IsRequired().HasDefaultValue(VideoUploadAssetStatus.Completed);
+            b.Property(a => a.ContentType).HasMaxLength(100);
+            b.Property(a => a.FileSizeBytes).HasDefaultValue(0L);
+            b.Property(a => a.AssetType).HasMaxLength(50).IsRequired().HasDefaultValue("Video");
+
+            b.HasOne(a => a.LinkedVideo)
+                .WithMany()
+                .HasForeignKey(a => a.LinkedVideoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(a => new { a.UploadStatus, a.UploadedByUserId })
+                .HasDatabaseName("idx_upload_assets_status_user");
+            b.HasIndex(a => a.StoragePath)
+                .HasDatabaseName("idx_upload_assets_storage_path");
+            b.HasIndex(a => a.LinkedVideoId)
+                .HasDatabaseName("idx_upload_assets_linked_video");
         });
 
         // Question Bank Practice Sessions Configuration

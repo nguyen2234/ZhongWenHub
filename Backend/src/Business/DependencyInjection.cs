@@ -104,8 +104,10 @@ public static class DependencyInjection
         services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
         services.AddHttpClient<VideoStorageService>();
         services.AddScoped<IVideoStorageService, VideoStorageService>();
+        services.AddScoped<IUploadAssetService, UploadAssetService>();
         services.AddScoped<IStorageCleanupService, StorageCleanupService>();
         services.AddScoped<ILearningVideoService, LearningVideoService>();
+        services.AddHostedService<VideoStorageCleanupWorker>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         // AI Tutor, Provider Layer & AI Learning Engine V1

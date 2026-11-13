@@ -8,6 +8,12 @@ namespace ZhongWenHub.Business.Content.Services.Storage;
 
 public interface IStorageCleanupService
 {
+    Task QueueCleanupJobAsync(
+        string storagePath,
+        string provider,
+        string reason,
+        CancellationToken cancellationToken = default);
+
     Task RecordFailedCleanupAsync(
         string storagePath,
         string provider,
@@ -15,7 +21,13 @@ public interface IStorageCleanupService
         string? errorMessage,
         CancellationToken cancellationToken = default);
 
-    Task<int> ProcessPendingCleanupsAsync(CancellationToken cancellationToken = default);
+    Task<int> ProcessPendingCleanupsAsync(
+        CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<VideoStorageCleanupJob>> GetPendingCleanupsAsync(CancellationToken cancellationToken = default);
+    Task<int> ProcessPendingCleanupsAsync(
+        int batchSize,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<VideoStorageCleanupJob>> GetPendingCleanupsAsync(
+        CancellationToken cancellationToken = default);
 }

@@ -48,6 +48,7 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
   // Uploaded source fields
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [uploadId, setUploadId] = useState<string | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
 
@@ -95,6 +96,7 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
 
       setStoragePath(video.storagePath || null);
       setUploadedFileName(video.storagePath ? video.storagePath.split('/').pop() || null : null);
+      setUploadId(null);
       setThumbnailUrl(video.thumbnailUrl || '');
 
       const dur = Math.max(0, video.durationSeconds || 0);
@@ -113,6 +115,7 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
       setExtractedYoutubeId(null);
       setStoragePath(null);
       setUploadedFileName(null);
+      setUploadId(null);
       setThumbnailUrl('');
       setDurationMinutes(3);
       setDurationSeconds(0);
@@ -160,12 +163,16 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
         setVideoUploadProgress(percent);
       });
       setStoragePath(res.storagePath);
+      if (res.uploadId) {
+        setUploadId(res.uploadId);
+      }
       setUploadedFileName(file.name);
       setVideoUploadProgress(100);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Tải lên video thất bại.';
       setErrorMessage(msg);
       setStoragePath(null);
+      setUploadId(null);
       setUploadedFileName(null);
     } finally {
       setIsUploadingVideo(false);
@@ -258,6 +265,7 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
           youtubeUrl: sourceType === 'YouTube' ? youtubeUrl.trim() : undefined,
           youtubeVideoId: sourceType === 'YouTube' ? finalYtId : undefined,
           storagePath: sourceType === 'Uploaded' ? (storagePath ?? undefined) : undefined,
+          uploadId: sourceType === 'Uploaded' ? (uploadId ?? undefined) : undefined,
           thumbnailUrl: finalThumbnail,
           durationSeconds: totalDurationSeconds,
           hskLevel,
@@ -274,6 +282,7 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
           youtubeUrl: sourceType === 'YouTube' ? youtubeUrl.trim() : undefined,
           youtubeVideoId: sourceType === 'YouTube' ? finalYtId : undefined,
           storagePath: sourceType === 'Uploaded' ? (storagePath ?? undefined) : undefined,
+          uploadId: sourceType === 'Uploaded' ? (uploadId ?? undefined) : undefined,
           thumbnailUrl: finalThumbnail,
           durationSeconds: totalDurationSeconds,
           hskLevel,

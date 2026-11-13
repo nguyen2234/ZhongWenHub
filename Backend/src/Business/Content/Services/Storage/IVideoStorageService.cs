@@ -7,6 +7,7 @@ namespace ZhongWenHub.Business.Content.Services.Storage;
 public class StorageUploadResult
 {
     public bool Success { get; set; }
+    public Guid? UploadId { get; set; }
     public string? StoragePath { get; set; }
     public string? PublicUrl { get; set; }
     public long FileSizeBytes { get; set; }
@@ -16,10 +17,11 @@ public class StorageUploadResult
     public static StorageUploadResult Failed(string error) =>
         new() { Success = false, ErrorMessage = error };
 
-    public static StorageUploadResult Succeeded(string storagePath, string publicUrl, long size, string contentType) =>
+    public static StorageUploadResult Succeeded(string storagePath, string publicUrl, long size, string contentType, Guid? uploadId = null) =>
         new()
         {
             Success = true,
+            UploadId = uploadId,
             StoragePath = storagePath,
             PublicUrl = publicUrl,
             FileSizeBytes = size,

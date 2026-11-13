@@ -99,6 +99,8 @@ public class CreateLearningVideoDto : IValidatableObject
     [StringLength(500, ErrorMessage = "Đường dẫn lưu trữ không được vượt quá 500 ký tự.")]
     public string? StoragePath { get; set; }
 
+    public Guid? UploadId { get; set; }
+
     [Required(ErrorMessage = "Ảnh đại diện (ThumbnailUrl) là bắt buộc.")]
     [StringLength(1000, ErrorMessage = "Thumbnail URL không được vượt quá 1000 ký tự.")]
     public string ThumbnailUrl { get; set; } = string.Empty;
@@ -173,6 +175,8 @@ public class UpdateLearningVideoDto : IValidatableObject
 
     [StringLength(500, ErrorMessage = "Đường dẫn lưu trữ không được vượt quá 500 ký tự.")]
     public string? StoragePath { get; set; }
+
+    public Guid? UploadId { get; set; }
 
     [Required(ErrorMessage = "Ảnh đại diện (ThumbnailUrl) là bắt buộc.")]
     [StringLength(1000, ErrorMessage = "Thumbnail URL không được vượt quá 1000 ký tự.")]

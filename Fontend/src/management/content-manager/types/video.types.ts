@@ -75,6 +75,7 @@ export interface CreateVideoPayload {
   youtubeUrl?: string;
   youtubeVideoId?: string;
   storagePath?: string;
+  uploadId?: string;
   thumbnailUrl?: string;
   durationSeconds?: number;
   hskLevel: number;
@@ -93,6 +94,7 @@ export interface CreateVideoDTO {
   youtubeUrl?: string;
   youtubeVideoId?: string;
   storagePath?: string;
+  uploadId?: string;
   thumbnailUrl?: string;
   duration?: number;
   durationSeconds?: number;
@@ -119,6 +121,7 @@ export interface StorageStatus {
 
 export interface StorageUploadResponse {
   success: boolean;
+  uploadId?: string;
   storagePath: string;
   publicUrl: string;
   fileSizeBytes: number;

@@ -1621,14 +1621,19 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsCompleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("LastError")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("LeaseExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LeaseOwner")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("NextRetryAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("datetime2");
@@ -1645,6 +1650,13 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pending");
+
                     b.Property<string>("StoragePath")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -1659,10 +1671,83 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsCompleted", "RetryCount", "CreatedAt")
+                    b.HasIndex("LeaseExpiresAt")
+                        .HasDatabaseName("idx_cleanup_jobs_lease_expires");
+
+                    b.HasIndex("Status", "NextRetryAt", "CreatedAt")
                         .HasDatabaseName("idx_cleanup_jobs_status_retry_created");
 
                     b.ToTable("video_storage_cleanup_jobs", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VideoUploadAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssetType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Video");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("FileSizeBytes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<Guid?>("LinkedVideoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("StorageProvider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Unknown");
+
+                    b.Property<string>("UploadStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Completed");
+
+                    b.Property<string>("UploadedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LinkedVideoId")
+                        .HasDatabaseName("idx_upload_assets_linked_video");
+
+                    b.HasIndex("StoragePath")
+                        .HasDatabaseName("idx_upload_assets_storage_path");
+
+                    b.HasIndex("UploadStatus", "UploadedByUserId")
+                        .HasDatabaseName("idx_upload_assets_status_user");
+
+                    b.ToTable("video_upload_assets", (string)null);
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
@@ -2610,6 +2695,16 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VideoUploadAsset", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LearningVideo", "LinkedVideo")
+                        .WithMany()
+                        .HasForeignKey("LinkedVideoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("LinkedVideo");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
