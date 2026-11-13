@@ -17,6 +17,7 @@ public static class YouTubeUrlParser
 
     /// <summary>
     /// Parses an input string (full URL or raw ID) and extracts a valid 11-character YouTube Video ID.
+    /// Strictly verifies that full URLs belong to legitimate YouTube domains (youtube.com or youtu.be).
     /// Returns null if the URL is invalid or from an untrusted domain.
     /// </summary>
     public static string? ExtractVideoId(string? input)
@@ -32,6 +33,28 @@ public static class YouTubeUrlParser
         if (RawIdRegex.IsMatch(trimmed))
         {
             return trimmed;
+        }
+
+        // Enforce strict URI host validation if input resembles a full URL
+        if (trimmed.Contains("://", StringComparison.Ordinal) || trimmed.StartsWith("//", StringComparison.Ordinal))
+        {
+            var testUrl = trimmed.StartsWith("//", StringComparison.Ordinal) ? $"https:{trimmed}" : trimmed;
+            if (Uri.TryCreate(testUrl, UriKind.Absolute, out var uri))
+            {
+                var host = uri.Host.ToLowerInvariant();
+                if (host.StartsWith("www.")) host = host[4..];
+                if (host.StartsWith("m.")) host = host[2..];
+
+                // Strictly allow only genuine YouTube hostnames
+                if (host != "youtube.com" && host != "youtu.be")
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
         }
 
         // Match against valid YouTube URL patterns

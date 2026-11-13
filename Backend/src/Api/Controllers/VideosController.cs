@@ -13,6 +13,7 @@ using ZhongWenHub.Business.Content;
 using ZhongWenHub.Business.Content.DTOs;
 using ZhongWenHub.Business.Content.Services.Storage;
 using ZhongWenHub.Data.Constants;
+using ZhongWenHub.Data.Entities.Content;
 
 namespace ZhongWenHub.Api.Controllers;
 
@@ -22,15 +23,18 @@ public class VideosController : BaseApiController
 {
     private readonly ILearningVideoService _videoService;
     private readonly IVideoStorageService _storageService;
+    private readonly IStorageCleanupService _cleanupService;
     private readonly ILogger<VideosController> _logger;
 
     public VideosController(
         ILearningVideoService videoService,
         IVideoStorageService storageService,
+        IStorageCleanupService cleanupService,
         ILogger<VideosController> logger)
     {
         _videoService = videoService;
         _storageService = storageService;
+        _cleanupService = cleanupService;
         _logger = logger;
     }
 
@@ -100,8 +104,6 @@ public class VideosController : BaseApiController
     [HttpGet("manage")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(PagedResponse<LearningVideoDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAdminVideos(
         [FromQuery] LearningVideoAdminQueryDto query,
         CancellationToken cancellationToken)
@@ -111,7 +113,7 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy chi tiết một video quản trị theo Id
+    /// Lấy thông tin chi tiết video quản trị theo Id
     /// </summary>
     [HttpGet("manage/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
@@ -131,7 +133,7 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
-    /// Tạo mới một video học tập (YouTube hoặc Uploaded)
+    /// Tạo mới một video học tập
     /// </summary>
     [HttpPost("manage")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
@@ -144,16 +146,20 @@ public class VideosController : BaseApiController
         try
         {
             var created = await _videoService.CreateVideoAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetVideoById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetAdminVideoById), new { id = created.Id }, created);
         }
         catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
     }
 
     /// <summary>
-    /// Cập nhật thông tin video học tập
+    /// Cập nhật thông tin một video học tập
     /// </summary>
     [HttpPut("manage/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
@@ -178,10 +184,14 @@ public class VideosController : BaseApiController
         {
             return BadRequest(new { message = ex.Message });
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>
-    /// Cập nhật nhanh trạng thái xuất bản video (Draft / Published / Hidden)
+    /// Đổi trạng thái xuất bản của video (Draft / Published / Hidden)
     /// </summary>
     [HttpPatch("manage/{id:guid}/status")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
@@ -209,7 +219,7 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
-    /// Xóa một video học tập và tệp lưu trữ liên quan
+    /// Xóa một video học tập và dọn dẹp an toàn tệp lưu trữ liên quan
     /// </summary>
     [HttpDelete("manage/{id:guid}")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
@@ -229,11 +239,13 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
-    /// Tải lên tệp video nhị phân (hỗ trợ MP4, WebM, QuickTime)
+    /// Tải lên tệp video nhị phân (hỗ trợ MP4, WebM, QuickTime - tối đa 100MB)
     /// </summary>
     [HttpPost("manage/upload-video")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(104857600)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
     [ProducesResponseType(typeof(StorageUploadResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UploadVideoFile(
@@ -257,11 +269,13 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
-    /// Tải lên ảnh đại diện thumbnail (hỗ trợ JPEG, PNG, WebP)
+    /// Tải lên ảnh đại diện thumbnail (hỗ trợ JPEG, PNG, WebP - tối đa 5MB)
     /// </summary>
     [HttpPost("manage/upload-thumbnail")]
     [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(5242880)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 5242880)]
     [ProducesResponseType(typeof(StorageUploadResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UploadThumbnailFile(
@@ -294,5 +308,29 @@ public class VideosController : BaseApiController
     {
         var status = _videoService.GetStorageStatus();
         return Ok(status);
+    }
+
+    /// <summary>
+    /// Danh sách các tác vụ dọn dẹp tệp lưu trữ đang chờ xử lý
+    /// </summary>
+    [HttpGet("manage/cleanups")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(typeof(IReadOnlyList<VideoStorageCleanupJob>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPendingCleanups(CancellationToken cancellationToken)
+    {
+        var jobs = await _cleanupService.GetPendingCleanupsAsync(cancellationToken);
+        return Ok(jobs);
+    }
+
+    /// <summary>
+    /// Kích hoạt thủ công tiến trình thử lại các tác vụ dọn dẹp thất bại
+    /// </summary>
+    [HttpPost("manage/cleanups/retry")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RetryCleanups(CancellationToken cancellationToken)
+    {
+        var processed = await _cleanupService.ProcessPendingCleanupsAsync(cancellationToken);
+        return Ok(new { processedCount = processed, message = $"Đã xử lý xong {processed} tác vụ dọn dẹp." });
     }
 }

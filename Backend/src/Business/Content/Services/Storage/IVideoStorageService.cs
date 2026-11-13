@@ -64,3 +64,4 @@ public interface IVideoStorageService
     /// </summary>
     string GetPublicUrl(string storagePath);
 }
+

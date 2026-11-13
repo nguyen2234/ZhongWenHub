@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ZhongWenHub.Business.Content.Helpers;
 
 namespace ZhongWenHub.Business.Content.Services.Storage;
 
@@ -33,12 +34,18 @@ public class VideoStorageService : IVideoStorageService
     {
         get
         {
-            if (string.Equals(_options.Provider, "Supabase", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(_options.Provider, "Auto", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(_options.Provider, VideoStorageProviders.Supabase, StringComparison.OrdinalIgnoreCase))
             {
-                if (_options.Supabase.IsConfigured) return true;
+                return _options.Supabase.IsConfigured;
             }
 
+            if (string.Equals(_options.Provider, VideoStorageProviders.Local, StringComparison.OrdinalIgnoreCase))
+            {
+                return _options.Local.Enabled;
+            }
+
+            // Auto mode
+            if (_options.Supabase.IsConfigured) return true;
             return _options.Local.Enabled;
         }
     }
@@ -47,8 +54,21 @@ public class VideoStorageService : IVideoStorageService
     {
         get
         {
-            if (_options.Supabase.IsConfigured) return "Supabase";
-            if (_options.Local.Enabled) return "LocalFileSystem";
+            if (string.Equals(_options.Provider, VideoStorageProviders.Local, StringComparison.OrdinalIgnoreCase))
+            {
+                return VideoStorageProviders.Local;
+            }
+
+            if (_options.Supabase.IsConfigured)
+            {
+                return VideoStorageProviders.Supabase;
+            }
+
+            if (_options.Local.Enabled)
+            {
+                return VideoStorageProviders.Local;
+            }
+
             return "Unconfigured";
         }
     }
@@ -74,6 +94,13 @@ public class VideoStorageService : IVideoStorageService
         if (!_options.AllowedVideoMimeTypes.Contains(cleanMime))
         {
             return StorageUploadResult.Failed($"Định dạng video '{cleanMime}' không được hỗ trợ. Chỉ hỗ trợ MP4, WebM, QuickTime.");
+        }
+
+        // Validate Magic Bytes to prevent MIME-spoofing
+        if (!FileSignatureValidator.ValidateSignature(stream, cleanMime, out var detectedFormat))
+        {
+            _logger.LogWarning("MIME spoofing detected on video upload: Claimed={Claimed}, Detected={Detected}", cleanMime, detectedFormat);
+            return StorageUploadResult.Failed($"Chữ ký tệp (magic bytes) không khớp với định dạng video đã khai báo ({cleanMime}). Phát hiện: {detectedFormat}.");
         }
 
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
@@ -108,6 +135,13 @@ public class VideoStorageService : IVideoStorageService
             return StorageUploadResult.Failed($"Định dạng ảnh '{cleanMime}' không được hỗ trợ. Chỉ hỗ trợ JPEG, PNG, WebP.");
         }
 
+        // Validate Magic Bytes to prevent MIME-spoofing
+        if (!FileSignatureValidator.ValidateSignature(stream, cleanMime, out var detectedFormat))
+        {
+            _logger.LogWarning("MIME spoofing detected on thumbnail upload: Claimed={Claimed}, Detected={Detected}", cleanMime, detectedFormat);
+            return StorageUploadResult.Failed($"Chữ ký tệp (magic bytes) không khớp với định dạng ảnh đã khai báo ({cleanMime}). Phát hiện: {detectedFormat}.");
+        }
+
         var ext = Path.GetExtension(fileName).ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
 
@@ -123,9 +157,29 @@ public class VideoStorageService : IVideoStorageService
         string contentType,
         CancellationToken cancellationToken)
     {
-        // 1. Try Supabase Storage if configured
-        if (_options.Supabase.IsConfigured)
+        var isSupabaseConfigured = _options.Supabase.IsConfigured;
+        var isLocalEnabled = _options.Local.Enabled;
+        var allowLocalFallback = _options.FallbackToLocalOnSupabaseFailure && !_environment.IsProduction();
+
+        // 1. Direct Local Provider configured
+        if (string.Equals(_options.Provider, VideoStorageProviders.Local, StringComparison.OrdinalIgnoreCase))
         {
+            if (!isLocalEnabled)
+            {
+                return StorageUploadResult.Failed("Local FileSystem Storage bị tắt trong cấu hình.");
+            }
+            return await UploadToLocalStorageAsync(stream, relativePath, contentType, cancellationToken);
+        }
+
+        // 2. Direct Supabase or Auto Mode with Supabase configured
+        if (string.Equals(_options.Provider, VideoStorageProviders.Supabase, StringComparison.OrdinalIgnoreCase) ||
+            (string.Equals(_options.Provider, VideoStorageProviders.Auto, StringComparison.OrdinalIgnoreCase) && isSupabaseConfigured))
+        {
+            if (!isSupabaseConfigured)
+            {
+                return StorageUploadResult.Failed("Supabase Storage chưa được cấu hình ProjectUrl hoặc ServiceRoleKey.");
+            }
+
             try
             {
                 var supabaseResult = await UploadToSupabaseAsync(stream, relativePath, contentType, cancellationToken);
@@ -133,16 +187,32 @@ public class VideoStorageService : IVideoStorageService
                 {
                     return supabaseResult;
                 }
-                _logger.LogWarning("Supabase upload failed: {Error}. Falling back to local storage.", supabaseResult.ErrorMessage);
+
+                _logger.LogWarning("Supabase upload failed: {Error}", supabaseResult.ErrorMessage);
+
+                // Check if local fallback is explicitly allowed
+                if (allowLocalFallback && isLocalEnabled)
+                {
+                    _logger.LogWarning("Local fallback explicitly enabled in non-production. Falling back to LocalFileSystem.");
+                    return await UploadToLocalStorageAsync(stream, relativePath, contentType, cancellationToken);
+                }
+
+                return StorageUploadResult.Failed($"Tải lên Supabase Storage thất bại: {supabaseResult.ErrorMessage}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error uploading to Supabase Storage.");
+                if (allowLocalFallback && isLocalEnabled)
+                {
+                    _logger.LogWarning("Falling back to local storage after unexpected Supabase exception.");
+                    return await UploadToLocalStorageAsync(stream, relativePath, contentType, cancellationToken);
+                }
+                return StorageUploadResult.Failed($"Lỗi kết nối Supabase Storage: {ex.Message}");
             }
         }
 
-        // 2. Fall back to Local File System
-        if (_options.Local.Enabled)
+        // 3. Auto mode fallback to Local in development
+        if (isLocalEnabled)
         {
             return await UploadToLocalStorageAsync(stream, relativePath, contentType, cancellationToken);
         }
@@ -180,7 +250,8 @@ public class VideoStorageService : IVideoStorageService
                 ? $"{cfg.PublicBaseUrl.TrimEnd('/')}/{relativePath}"
                 : $"{cleanProjectUrl}/storage/v1/object/public/{cfg.BucketName}/{relativePath}";
 
-            return StorageUploadResult.Succeeded(relativePath, publicUrl, stream.Length, contentType);
+            var providerPath = StoragePathSecurity.FormatWithProvider(VideoStorageProviders.Supabase, relativePath);
+            return StorageUploadResult.Succeeded(providerPath, publicUrl, stream.Length, contentType);
         }
 
         var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -196,7 +267,7 @@ public class VideoStorageService : IVideoStorageService
         try
         {
             var rootDir = Path.Combine(_environment.ContentRootPath, "wwwroot", _options.Local.BaseUploadDirectory);
-            var targetFilePath = Path.Combine(rootDir, relativePath.Replace('/', Path.DirectorySeparatorChar));
+            var targetFilePath = StoragePathSecurity.ResolveAndVerifyLocalPath(rootDir, relativePath);
 
             var targetDir = Path.GetDirectoryName(targetFilePath);
             if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
@@ -209,15 +280,16 @@ public class VideoStorageService : IVideoStorageService
                 stream.Position = 0;
             }
 
-            using (var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            await using (var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 await stream.CopyToAsync(fileStream, cancellationToken);
             }
 
             var cleanPublicBase = _options.Local.PublicBaseUrl.TrimEnd('/');
             var publicUrl = $"{cleanPublicBase}/{relativePath.TrimStart('/')}";
+            var providerPath = StoragePathSecurity.FormatWithProvider(VideoStorageProviders.Local, relativePath);
 
-            return StorageUploadResult.Succeeded(relativePath, publicUrl, stream.Length, contentType);
+            return StorageUploadResult.Succeeded(providerPath, publicUrl, stream.Length, contentType);
         }
         catch (Exception ex)
         {
@@ -230,32 +302,42 @@ public class VideoStorageService : IVideoStorageService
     {
         if (string.IsNullOrWhiteSpace(storagePath)) return false;
 
+        if (!StoragePathSecurity.IsValidStoragePath(storagePath))
+        {
+            _logger.LogWarning("Attempted to delete file with invalid or dangerous path: {Path}", storagePath);
+            return false;
+        }
+
+        var (provider, relativePath) = StoragePathSecurity.Parse(storagePath);
         var deleted = false;
 
-        // Delete from local file system if present
-        try
+        // If explicitly Local or Unknown
+        if (provider is "LocalFileSystem" or "Unknown")
         {
-            var rootDir = Path.Combine(_environment.ContentRootPath, "wwwroot", _options.Local.BaseUploadDirectory);
-            var localPath = Path.Combine(rootDir, storagePath.Replace('/', Path.DirectorySeparatorChar));
-            if (File.Exists(localPath))
+            try
             {
-                File.Delete(localPath);
-                deleted = true;
+                var rootDir = Path.Combine(_environment.ContentRootPath, "wwwroot", _options.Local.BaseUploadDirectory);
+                var localPath = StoragePathSecurity.ResolveAndVerifyLocalPath(rootDir, relativePath);
+                if (File.Exists(localPath))
+                {
+                    File.Delete(localPath);
+                    deleted = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not delete local file: {Path}", storagePath);
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not delete local file: {Path}", storagePath);
-        }
 
-        // Delete from Supabase if configured
-        if (_options.Supabase.IsConfigured)
+        // If explicitly Supabase or Unknown
+        if ((provider is "Supabase" or "Unknown") && _options.Supabase.IsConfigured)
         {
             try
             {
                 var cfg = _options.Supabase;
                 var cleanProjectUrl = cfg.ProjectUrl!.TrimEnd('/');
-                var url = $"{cleanProjectUrl}/storage/v1/object/{cfg.BucketName}/{storagePath}";
+                var url = $"{cleanProjectUrl}/storage/v1/object/{cfg.BucketName}/{relativePath}";
 
                 using var request = new HttpRequestMessage(HttpMethod.Delete, url);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cfg.ServiceRoleKey);
@@ -276,14 +358,55 @@ public class VideoStorageService : IVideoStorageService
         return deleted;
     }
 
-    public Task<bool> FileExistsAsync(string storagePath, CancellationToken cancellationToken = default)
+    public async Task<bool> FileExistsAsync(string storagePath, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(storagePath)) return Task.FromResult(false);
+        if (string.IsNullOrWhiteSpace(storagePath)) return false;
 
-        var rootDir = Path.Combine(_environment.ContentRootPath, "wwwroot", _options.Local.BaseUploadDirectory);
-        var localPath = Path.Combine(rootDir, storagePath.Replace('/', Path.DirectorySeparatorChar));
+        if (!StoragePathSecurity.IsValidStoragePath(storagePath))
+        {
+            return false;
+        }
 
-        return Task.FromResult(File.Exists(localPath));
+        var (provider, relativePath) = StoragePathSecurity.Parse(storagePath);
+
+        // Check Local
+        if (provider is "LocalFileSystem" or "Unknown")
+        {
+            try
+            {
+                var rootDir = Path.Combine(_environment.ContentRootPath, "wwwroot", _options.Local.BaseUploadDirectory);
+                var localPath = StoragePathSecurity.ResolveAndVerifyLocalPath(rootDir, relativePath);
+                if (File.Exists(localPath)) return true;
+            }
+            catch
+            {
+                // Ignored - check Supabase if unknown
+            }
+        }
+
+        // Check Supabase
+        if ((provider is "Supabase" or "Unknown") && _options.Supabase.IsConfigured)
+        {
+            try
+            {
+                var cfg = _options.Supabase;
+                var cleanProjectUrl = cfg.ProjectUrl!.TrimEnd('/');
+                var url = $"{cleanProjectUrl}/storage/v1/object/{cfg.BucketName}/{relativePath}";
+
+                using var request = new HttpRequestMessage(HttpMethod.Head, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cfg.ServiceRoleKey);
+                request.Headers.Add("apikey", cfg.ServiceRoleKey);
+
+                var response = await _httpClient.SendAsync(request, cancellationToken);
+                if (response.IsSuccessStatusCode) return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Supabase file existence check failed for {Path}", storagePath);
+            }
+        }
+
+        return false;
     }
 
     public string GetPublicUrl(string storagePath)
@@ -296,18 +419,23 @@ public class VideoStorageService : IVideoStorageService
             return storagePath;
         }
 
-        if (_options.Supabase.IsConfigured)
+        var (provider, relativePath) = StoragePathSecurity.Parse(storagePath);
+
+        if (provider == "Supabase" || (provider == "Unknown" && _options.Supabase.IsConfigured))
         {
             var cfg = _options.Supabase;
-            if (!string.IsNullOrWhiteSpace(cfg.PublicBaseUrl))
+            if (cfg.IsConfigured)
             {
-                return $"{cfg.PublicBaseUrl.TrimEnd('/')}/{storagePath.TrimStart('/')}";
+                if (!string.IsNullOrWhiteSpace(cfg.PublicBaseUrl))
+                {
+                    return $"{cfg.PublicBaseUrl.TrimEnd('/')}/{relativePath.TrimStart('/')}";
+                }
+                var cleanProjectUrl = cfg.ProjectUrl!.TrimEnd('/');
+                return $"{cleanProjectUrl}/storage/v1/object/public/{cfg.BucketName}/{relativePath.TrimStart('/')}";
             }
-            var cleanProjectUrl = cfg.ProjectUrl!.TrimEnd('/');
-            return $"{cleanProjectUrl}/storage/v1/object/public/{cfg.BucketName}/{storagePath.TrimStart('/')}";
         }
 
         var cleanBase = _options.Local.PublicBaseUrl.TrimEnd('/');
-        return $"{cleanBase}/{storagePath.TrimStart('/')}";
+        return $"{cleanBase}/{relativePath.TrimStart('/')}";
     }
 }

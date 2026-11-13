@@ -431,11 +431,58 @@ export class VideoManagementService {
     return true;
   }
 
-  public async uploadVideoFile(file: File): Promise<StorageUploadResponse> {
+  public async uploadVideoFile(
+    file: File,
+    onProgress?: (percent: number) => void
+  ): Promise<StorageUploadResponse> {
+    const token = authTokenService.getAccessToken();
+    const url = getApiUrl('/videos/manage/upload-video');
+
+    if (onProgress && typeof XMLHttpRequest !== 'undefined') {
+      return new Promise<StorageUploadResponse>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        if (token) {
+          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        }
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && e.total > 0) {
+            const percent = Math.min(99, Math.round((e.loaded / e.total) * 100));
+            onProgress(percent);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            onProgress(100);
+            try {
+              resolve(JSON.parse(xhr.responseText) as StorageUploadResponse);
+            } catch {
+              reject(new Error('Phản hồi từ máy chủ không hợp lệ.'));
+            }
+          } else {
+            try {
+              const errObj = JSON.parse(xhr.responseText);
+              reject(new Error(errObj.message || `Lỗi tải lên video (${xhr.status})`));
+            } catch {
+              reject(new Error(`Lỗi tải lên video (${xhr.status})`));
+            }
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Lỗi kết nối khi tải lên video.'));
+
+        const formData = new FormData();
+        formData.append('file', file);
+        xhr.send(formData);
+      });
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(getApiUrl('/videos/manage/upload-video'), {
+    const response = await fetch(url, {
       method: 'POST',
       headers: getAuthHeaders(true),
       body: formData,

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using ZhongWenHub.Business.Content.Helpers;
 
 namespace ZhongWenHub.Business.Content.DTOs;
 
@@ -15,6 +17,7 @@ public class LearningVideoDto
     public string? YouTubeVideoId { get; set; }
 
     public string? StoragePath { get; set; }
+    public string? VideoUrl { get; set; }
     public string ThumbnailUrl { get; set; } = string.Empty;
     public int DurationSeconds { get; set; }
     public string DurationFormatted => FormatDuration(DurationSeconds);
@@ -139,6 +142,13 @@ public class CreateLearningVideoDto : IValidatableObject
                 "Video tự tải lên (Uploaded) phải có StoragePath hợp lệ trước khi xuất bản.",
                 new[] { nameof(StoragePath) });
         }
+
+        if (!string.IsNullOrWhiteSpace(StoragePath) && !StoragePathSecurity.IsValidStoragePath(StoragePath))
+        {
+            yield return new ValidationResult(
+                "Đường dẫn lưu trữ (StoragePath) không hợp lệ hoặc chứa ký tự nguy hiểm.",
+                new[] { nameof(StoragePath) });
+        }
     }
 }
 
@@ -205,6 +215,13 @@ public class UpdateLearningVideoDto : IValidatableObject
         {
             yield return new ValidationResult(
                 "Video tự tải lên (Uploaded) phải có StoragePath hợp lệ trước khi xuất bản.",
+                new[] { nameof(StoragePath) });
+        }
+
+        if (!string.IsNullOrWhiteSpace(StoragePath) && !StoragePathSecurity.IsValidStoragePath(StoragePath))
+        {
+            yield return new ValidationResult(
+                "Đường dẫn lưu trữ (StoragePath) không hợp lệ hoặc chứa ký tự nguy hiểm.",
                 new[] { nameof(StoragePath) });
         }
     }

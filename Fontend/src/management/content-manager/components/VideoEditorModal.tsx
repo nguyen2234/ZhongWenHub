@@ -152,11 +152,13 @@ export const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
     }
 
     setIsUploadingVideo(true);
-    setVideoUploadProgress(30);
+    setVideoUploadProgress(0);
     setErrorMessage(null);
 
     try {
-      const res = await videoManagementService.uploadVideoFile(file);
+      const res = await videoManagementService.uploadVideoFile(file, (percent) => {
+        setVideoUploadProgress(percent);
+      });
       setStoragePath(res.storagePath);
       setUploadedFileName(file.name);
       setVideoUploadProgress(100);

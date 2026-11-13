@@ -104,6 +104,7 @@ public static class DependencyInjection
         services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
         services.AddHttpClient<VideoStorageService>();
         services.AddScoped<IVideoStorageService, VideoStorageService>();
+        services.AddScoped<IStorageCleanupService, StorageCleanupService>();
         services.AddScoped<ILearningVideoService, LearningVideoService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 

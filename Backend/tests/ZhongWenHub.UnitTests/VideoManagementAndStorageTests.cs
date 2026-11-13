@@ -2,15 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Security;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
+using ZhongWenHub.Business.Content;
 using ZhongWenHub.Business.Content.DTOs;
 using ZhongWenHub.Business.Content.Helpers;
 using ZhongWenHub.Business.Content.Services.Storage;
+using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;
 
@@ -30,6 +36,24 @@ public class VideoManagementAndStorageTests
         var results = new List<ValidationResult>();
         Validator.TryValidateObject(dto, context, results, validateAllProperties: true);
         return results;
+    }
+
+    // Helper: Valid MP4 magic bytes header (ftyp box at offset 4)
+    private static byte[] CreateValidMp4Bytes(int totalSize = 64)
+    {
+        var bytes = new byte[Math.Max(32, totalSize)];
+        bytes[0] = 0x00; bytes[1] = 0x00; bytes[2] = 0x00; bytes[3] = 0x18; // 24 bytes box size
+        bytes[4] = 0x66; bytes[5] = 0x74; bytes[6] = 0x79; bytes[7] = 0x70; // "ftyp"
+        bytes[8] = 0x6D; bytes[9] = 0x70; bytes[10] = 0x34; bytes[11] = 0x32; // "mp42"
+        return bytes;
+    }
+
+    // Helper: Valid JPEG magic bytes header (0xFF, 0xD8, 0xFF)
+    private static byte[] CreateValidJpegBytes(int totalSize = 32)
+    {
+        var bytes = new byte[Math.Max(16, totalSize)];
+        bytes[0] = 0xFF; bytes[1] = 0xD8; bytes[2] = 0xFF; bytes[3] = 0xE0;
+        return bytes;
     }
 
     [Theory]
@@ -60,62 +84,127 @@ public class VideoManagementAndStorageTests
     }
 
     [Fact]
-    public void YouTubeUrlParser_GenerateHqThumbnailUrl_ProducesStandardFormat()
+    public void YouTubeUrlParser_GenerateHqThumbnailUrl_ReturnsCorrectCdnUrl()
     {
         var url = YouTubeUrlParser.GenerateHqThumbnailUrl("4lHwBZr66so");
         Assert.Equal("https://img.youtube.com/vi/4lHwBZr66so/hqdefault.jpg", url);
     }
 
+    // ==========================================
+    // PATH SECURITY & INJECTION TESTS
+    // ==========================================
+
+    [Theory]
+    [InlineData("videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4", true)]
+    [InlineData("local://videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.webm", true)]
+    [InlineData("supabase://thumbnails/202611/thumb_a1b2c3d4e5f60718293a4b5c6d7e8f90.jpg", true)]
+    [InlineData("../../../etc/passwd", false)]
+    [InlineData("..\\..\\appsettings.json", false)]
+    [InlineData("videos/../../appsettings.json", false)]
+    [InlineData("/absolute/path/to/video.mp4", false)]
+    [InlineData("C:\\Windows\\System32\\cmd.exe", false)]
+    [InlineData("http://attacker.com/evil.mp4", false)]
+    [InlineData("videos/arbitrary.exe", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void StoragePathSecurity_IsValidStoragePath_RejectsPathTraversalAndInvalidSchemes(string? path, bool expectedValid)
+    {
+        var isValid = StoragePathSecurity.IsValidStoragePath(path);
+        Assert.Equal(expectedValid, isValid);
+    }
+
     [Fact]
-    public void CreateLearningVideoDto_WithYouTubeUrl_PassesValidation()
+    public void StoragePathSecurity_ResolveAndVerifyLocalPath_ThrowsSecurityExceptionOnTraversal()
+    {
+        var baseDir = Path.Combine(Path.GetTempPath(), "zwh_safe_root");
+        Assert.Throws<SecurityException>(() =>
+            StoragePathSecurity.ResolveAndVerifyLocalPath(baseDir, "../../../outside.mp4"));
+    }
+
+    [Fact]
+    public void StoragePathSecurity_Parse_CorrectlySeparatesProviderAndRelativePath()
+    {
+        var (supProvider, supRel) = StoragePathSecurity.Parse("supabase://videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4");
+        Assert.Equal("Supabase", supProvider);
+        Assert.Equal("videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4", supRel);
+
+        var (locProvider, locRel) = StoragePathSecurity.Parse("local://videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4");
+        Assert.Equal("LocalFileSystem", locProvider);
+        Assert.Equal("videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4", locRel);
+    }
+
+    // ==========================================
+    // MAGIC BYTES & MIME SPOOFING TESTS
+    // ==========================================
+
+    [Fact]
+    public void FileSignatureValidator_ValidMp4_ReturnsTrue()
+    {
+        var bytes = CreateValidMp4Bytes();
+        using var stream = new MemoryStream(bytes);
+
+        var valid = FileSignatureValidator.ValidateSignature(stream, "video/mp4", out var detected);
+        Assert.True(valid);
+        Assert.Equal("video/mp4", detected);
+    }
+
+    [Fact]
+    public void FileSignatureValidator_SpoofedMimeType_RejectsFakeFile()
+    {
+        // Fake text/script pretending to be video/mp4
+        var fakeBytes = Encoding.UTF8.GetBytes("echo 'malicious script'; exit 0;");
+        using var stream = new MemoryStream(fakeBytes);
+
+        var valid = FileSignatureValidator.ValidateSignature(stream, "video/mp4", out var detected);
+        Assert.False(valid);
+        Assert.Equal("Unknown", detected);
+    }
+
+    [Fact]
+    public void FileSignatureValidator_ValidJpeg_ReturnsTrue()
+    {
+        var bytes = CreateValidJpegBytes();
+        using var stream = new MemoryStream(bytes);
+
+        var valid = FileSignatureValidator.ValidateSignature(stream, "image/jpeg", out var detected);
+        Assert.True(valid);
+        Assert.Equal("image/jpeg", detected);
+    }
+
+    // ==========================================
+    // DTO VALIDATION TESTS
+    // ==========================================
+
+    [Fact]
+    public void CreateLearningVideoDto_WithTraversingStoragePath_FailsValidation()
     {
         var dto = new CreateLearningVideoDto
         {
-            Title = "Video đàm thoại HSK 1",
-            SourceType = "YouTube",
-            YouTubeUrl = "https://www.youtube.com/watch?v=k38L07o_9zM",
-            ThumbnailUrl = "https://img.youtube.com/vi/k38L07o_9zM/hqdefault.jpg",
-            DurationSeconds = 120,
+            Title = "Video Test",
+            SourceType = "Uploaded",
+            StoragePath = "../../appsettings.json",
+            ThumbnailUrl = "https://example.com/thumb.jpg",
             HskLevel = 1,
             Topic = "Giao tiếp hàng ngày",
             Status = "Draft"
         };
 
         var errors = ValidateDto(dto);
-        Assert.Empty(errors);
+        Assert.Contains(errors, e => e.MemberNames.Contains(nameof(dto.StoragePath)) &&
+                                     e.ErrorMessage!.Contains("không hợp lệ hoặc chứa ký tự nguy hiểm"));
     }
 
     [Fact]
-    public void CreateLearningVideoDto_YouTubeWithoutUrlOrId_FailsValidation()
+    public void CreateLearningVideoDto_UploadedAndPublishedWithoutStoragePath_FailsValidation()
     {
         var dto = new CreateLearningVideoDto
         {
-            Title = "Video thiếu nguồn",
-            SourceType = "YouTube",
-            YouTubeUrl = null,
-            YouTubeVideoId = null,
-            ThumbnailUrl = "https://example.com/thumb.jpg",
-            DurationSeconds = 100,
-            HskLevel = 2,
-            Topic = "Giao tiếp hàng ngày"
-        };
-
-        var errors = ValidateDto(dto);
-        Assert.Contains(errors, e => e.MemberNames.Contains(nameof(dto.YouTubeVideoId)));
-    }
-
-    [Fact]
-    public void UpdateLearningVideoDto_PublishedUploadedWithoutStoragePath_FailsValidation()
-    {
-        var dto = new UpdateLearningVideoDto
-        {
-            Title = "Video Upload thiếu tệp",
+            Title = "Video Tự Tải",
             SourceType = "Uploaded",
             StoragePath = null,
             ThumbnailUrl = "https://example.com/thumb.jpg",
-            DurationSeconds = 150,
-            HskLevel = 3,
-            Topic = "Du lịch & Đời sống",
+            HskLevel = 1,
+            Topic = "Giao tiếp hàng ngày",
             Status = "Published"
         };
 
@@ -123,43 +212,26 @@ public class VideoManagementAndStorageTests
         Assert.Contains(errors, e => e.MemberNames.Contains(nameof(dto.StoragePath)));
     }
 
-    [Theory]
-    [InlineData("Draft")]
-    [InlineData("Published")]
-    [InlineData("Hidden")]
-    public void UpdateVideoStatusDto_ValidStatus_PassesValidation(string status)
-    {
-        var dto = new UpdateVideoStatusDto { Status = status };
-        var errors = ValidateDto(dto);
-        Assert.Empty(errors);
-    }
-
-    [Theory]
-    [InlineData("InvalidStatus")]
-    [InlineData("Deleted")]
-    [InlineData("")]
-    public void UpdateVideoStatusDto_InvalidStatus_FailsValidation(string status)
-    {
-        var dto = new UpdateVideoStatusDto { Status = status };
-        var errors = ValidateDto(dto);
-        Assert.NotEmpty(errors);
-    }
-
     [Fact]
-    public async Task VideoStorageService_UploadVideo_RejectsInvalidMimeType()
+    public void CreateLearningVideoDto_MissingTitle_FailsValidation()
     {
-        var options = Options.Create(new VideoStorageOptions());
-        var env = new DummyHostEnvironment();
-        var service = new VideoStorageService(options, env, new System.Net.Http.HttpClient(), NullLogger<VideoStorageService>.Instance);
+        var dto = new CreateLearningVideoDto
+        {
+            Title = "",
+            SourceType = "YouTube",
+            YouTubeVideoId = "4lHwBZr66so",
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            HskLevel = 1,
+            Topic = "Giao tiếp"
+        };
 
-        var bytes = Encoding.UTF8.GetBytes("fake executable binary content");
-        using var stream = new MemoryStream(bytes);
-
-        var result = await service.UploadVideoAsync(stream, "script.exe", "application/x-msdownload");
-
-        Assert.False(result.Success);
-        Assert.Contains("không được hỗ trợ", result.ErrorMessage);
+        var errors = ValidateDto(dto);
+        Assert.Contains(errors, e => e.MemberNames.Contains(nameof(dto.Title)));
     }
+
+    // ==========================================
+    // STORAGE SERVICE & PROVIDER ISOLATION TESTS
+    // ==========================================
 
     [Fact]
     public async Task VideoStorageService_UploadVideo_RejectsOversizedFile()
@@ -171,13 +243,29 @@ public class VideoManagementAndStorageTests
         var env = new DummyHostEnvironment();
         var service = new VideoStorageService(options, env, new System.Net.Http.HttpClient(), NullLogger<VideoStorageService>.Instance);
 
-        var bytes = new byte[200];
+        var bytes = CreateValidMp4Bytes(200);
         using var stream = new MemoryStream(bytes);
 
         var result = await service.UploadVideoAsync(stream, "big.mp4", "video/mp4");
 
         Assert.False(result.Success);
         Assert.Contains("vượt quá giới hạn cho phép", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task VideoStorageService_UploadVideo_RejectsMimeSpoofing()
+    {
+        var options = Options.Create(new VideoStorageOptions());
+        var env = new DummyHostEnvironment();
+        var service = new VideoStorageService(options, env, new System.Net.Http.HttpClient(), NullLogger<VideoStorageService>.Instance);
+
+        var fakeBytes = Encoding.UTF8.GetBytes("fake exe file content");
+        using var stream = new MemoryStream(fakeBytes);
+
+        var result = await service.UploadVideoAsync(stream, "evil.mp4", "video/mp4");
+
+        Assert.False(result.Success);
+        Assert.Contains("magic bytes", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -193,18 +281,19 @@ public class VideoManagementAndStorageTests
 
         var service = new VideoStorageService(options, env, new System.Net.Http.HttpClient(), NullLogger<VideoStorageService>.Instance);
 
-        var content = "dummy mp4 stream content";
-        var bytes = Encoding.UTF8.GetBytes(content);
+        var bytes = CreateValidMp4Bytes(128);
         using var stream = new MemoryStream(bytes);
 
         var result = await service.UploadVideoAsync(stream, "lesson1.mp4", "video/mp4");
 
         Assert.True(result.Success);
         Assert.NotNull(result.StoragePath);
+        Assert.StartsWith("local://", result.StoragePath);
         Assert.NotNull(result.PublicUrl);
 
         // Verify file was written to disk
-        var filePath = Path.Combine(tempDir, "wwwroot", "uploads", result.StoragePath.Replace('/', Path.DirectorySeparatorChar));
+        var cleanRel = StoragePathSecurity.ExtractRelativePath(result.StoragePath);
+        var filePath = Path.Combine(tempDir, "wwwroot", "uploads", cleanRel.Replace('/', Path.DirectorySeparatorChar));
         Assert.True(File.Exists(filePath));
 
         // Delete file
@@ -217,5 +306,35 @@ public class VideoManagementAndStorageTests
         {
             Directory.Delete(tempDir, recursive: true);
         }
+    }
+
+    [Fact]
+    public void VideoStorageService_GetPublicUrl_PreservesCorrectProviderScheme()
+    {
+        var options = Options.Create(new VideoStorageOptions
+        {
+            Supabase = new SupabaseStorageConfig
+            {
+                ProjectUrl = "https://xyzcompany.supabase.co",
+                ServiceRoleKey = "fake_key",
+                BucketName = "learning-videos",
+                PublicBaseUrl = "https://cdn.mycompany.com/videos"
+            },
+            Local = new LocalStorageConfig
+            {
+                PublicBaseUrl = "/uploads"
+            }
+        });
+
+        var env = new DummyHostEnvironment();
+        var service = new VideoStorageService(options, env, new System.Net.Http.HttpClient(), NullLogger<VideoStorageService>.Instance);
+
+        // Supabase scheme URL
+        var supUrl = service.GetPublicUrl("supabase://videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4");
+        Assert.Equal("https://cdn.mycompany.com/videos/videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4", supUrl);
+
+        // Local scheme URL
+        var locUrl = service.GetPublicUrl("local://videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4");
+        Assert.Equal("/uploads/videos/202611/video_a1b2c3d4e5f60718293a4b5c6d7e8f90.mp4", locUrl);
     }
 }

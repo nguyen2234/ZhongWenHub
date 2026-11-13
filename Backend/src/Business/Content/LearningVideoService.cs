@@ -20,6 +20,7 @@ public class LearningVideoService : ILearningVideoService
 {
     private readonly ApplicationDbContext _context;
     private readonly IVideoStorageService _storageService;
+    private readonly IStorageCleanupService _cleanupService;
     private readonly VideoStorageOptions _storageOptions;
     private readonly ILogger<LearningVideoService> _logger;
 
@@ -36,11 +37,13 @@ public class LearningVideoService : ILearningVideoService
     public LearningVideoService(
         ApplicationDbContext context,
         IVideoStorageService storageService,
+        IStorageCleanupService cleanupService,
         IOptions<VideoStorageOptions> storageOptions,
         ILogger<LearningVideoService> logger)
     {
         _context = context;
         _storageService = storageService;
+        _cleanupService = cleanupService;
         _storageOptions = storageOptions.Value;
         _logger = logger;
     }
@@ -74,14 +77,14 @@ public class LearningVideoService : ILearningVideoService
             q = q.Where(v => v.Topic == topic);
         }
 
-        // Source Type filter (YouTube / Uploaded)
+        // Source Type filter
         if (!string.IsNullOrWhiteSpace(query.SourceType) && !string.Equals(query.SourceType, "all", StringComparison.OrdinalIgnoreCase))
         {
             var src = query.SourceType.Trim();
             q = q.Where(v => v.SourceType == src);
         }
 
-        // Search in title and description
+        // Search query
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim();
@@ -90,19 +93,20 @@ public class LearningVideoService : ILearningVideoService
                 (v.Description != null && EF.Functions.Like(v.Description, $"%{search}%")));
         }
 
-        // Default sort: newest first
+        // Newest first
         q = q.OrderByDescending(v => v.CreatedAt);
 
         var totalItems = await q.CountAsync(cancellationToken);
 
         var page = Math.Max(1, query.Page);
-        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        var pageSize = Math.Clamp(query.PageSize, 1, 50);
 
-        var items = await q
+        var entities = await q
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(v => MapToDto(v))
             .ToListAsync(cancellationToken);
+
+        var items = entities.Select(v => MapToDto(v, isPublicView: publishedOnly)).ToList();
 
         return new PagedResponse<LearningVideoDto>(items, totalItems, page, pageSize);
     }
@@ -158,13 +162,14 @@ public class LearningVideoService : ILearningVideoService
         var totalItems = await q.CountAsync(cancellationToken);
 
         var page = Math.Max(1, query.Page);
-        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        var pageSize = Math.Clamp(query.PageSize, 1, 50);
 
-        var items = await q
+        var entities = await q
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(v => MapToDto(v))
             .ToListAsync(cancellationToken);
+
+        var items = entities.Select(v => MapToDto(v, isPublicView: false)).ToList();
 
         return new PagedResponse<LearningVideoDto>(items, totalItems, page, pageSize);
     }
@@ -174,44 +179,34 @@ public class LearningVideoService : ILearningVideoService
         bool isStaff = false,
         CancellationToken cancellationToken = default)
     {
-        var video = await _context.LearningVideos
-            .AsNoTracking()
+        var entity = await _context.LearningVideos
             .Include(v => v.Lesson)
             .FirstOrDefaultAsync(v => v.Id == id, cancellationToken);
 
-        if (video == null)
+        if (entity == null)
         {
             return null;
         }
 
-        // Security gate: non-staff cannot view Draft or Hidden videos
-        if (!isStaff && video.Status != "Published")
+        // If not staff, non-published videos are strictly hidden (404)
+        if (!isStaff && !string.Equals(entity.Status, "Published", StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
 
-        return MapToDto(video);
+        // Increment view count if non-staff view
+        if (!isStaff)
+        {
+            entity.ViewCount++;
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        return MapToDto(entity, isPublicView: !isStaff);
     }
 
-    public async Task<List<string>> GetAvailableTopicsAsync(CancellationToken cancellationToken = default)
+    public Task<List<string>> GetAvailableTopicsAsync(CancellationToken cancellationToken = default)
     {
-        var dbTopics = await _context.LearningVideos
-            .AsNoTracking()
-            .Where(v => v.Status == "Published")
-            .Select(v => v.Topic)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        var merged = new HashSet<string>(StandardTopics, StringComparer.OrdinalIgnoreCase);
-        foreach (var t in dbTopics)
-        {
-            if (!string.IsNullOrWhiteSpace(t))
-            {
-                merged.Add(t.Trim());
-            }
-        }
-
-        return merged.OrderBy(t => t).ToList();
+        return Task.FromResult(StandardTopics.ToList());
     }
 
     public async Task<LearningVideoDto> CreateVideoAsync(
@@ -268,6 +263,28 @@ public class LearningVideoService : ILearningVideoService
             }
         }
 
+        var normalizedStatus = NormalizeStatus(dto.Status);
+        var storagePath = !isYouTube ? dto.StoragePath?.Trim() : null;
+
+        // Security check on storage path
+        if (!isYouTube && !string.IsNullOrWhiteSpace(storagePath))
+        {
+            if (!StoragePathSecurity.IsValidStoragePath(storagePath))
+            {
+                throw new ArgumentException("Đường dẫn lưu trữ (StoragePath) không hợp lệ hoặc chứa ký tự nguy hiểm.");
+            }
+
+            // If creating directly with Published status, verify file exists in storage
+            if (string.Equals(normalizedStatus, "Published", StringComparison.OrdinalIgnoreCase))
+            {
+                var fileExists = await _storageService.FileExistsAsync(storagePath, cancellationToken);
+                if (!fileExists)
+                {
+                    throw new InvalidOperationException($"Không thể tạo video ở trạng thái Published: Tệp lưu trữ '{storagePath}' không tồn tại trên hệ thống.");
+                }
+            }
+        }
+
         var entity = new LearningVideo
         {
             Id = Guid.NewGuid(),
@@ -275,12 +292,12 @@ public class LearningVideoService : ILearningVideoService
             Description = dto.Description?.Trim(),
             SourceType = isYouTube ? "YouTube" : "Uploaded",
             YouTubeVideoId = isYouTube ? resolvedYouTubeId : null,
-            StoragePath = !isYouTube ? dto.StoragePath?.Trim() : null,
+            StoragePath = storagePath,
             ThumbnailUrl = dto.ThumbnailUrl.Trim(),
             DurationSeconds = Math.Max(0, dto.DurationSeconds),
             HskLevel = Math.Clamp(dto.HskLevel, 1, 6),
             Topic = dto.Topic.Trim(),
-            Status = NormalizeStatus(dto.Status),
+            Status = normalizedStatus,
             ViewCount = 0,
             LessonId = dto.LessonId,
             CreatedAt = DateTime.UtcNow
@@ -289,7 +306,7 @@ public class LearningVideoService : ILearningVideoService
         _context.LearningVideos.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return MapToDto(entity);
+        return MapToDto(entity, isPublicView: false);
     }
 
     public async Task<LearningVideoDto> UpdateVideoAsync(
@@ -355,26 +372,30 @@ public class LearningVideoService : ILearningVideoService
             }
         }
 
-        // If storage file was replaced, delete old file to avoid orphan objects
         var oldStoragePath = entity.StoragePath;
         var newStoragePath = !isYouTube ? dto.StoragePath?.Trim() : null;
+        var normalizedStatus = NormalizeStatus(dto.Status);
 
-        if (!string.IsNullOrWhiteSpace(oldStoragePath) &&
-            !string.Equals(oldStoragePath, newStoragePath, StringComparison.OrdinalIgnoreCase))
+        // Validate new storage path safety
+        if (!isYouTube && !string.IsNullOrWhiteSpace(newStoragePath))
         {
-            _ = Task.Run(async () =>
+            if (!StoragePathSecurity.IsValidStoragePath(newStoragePath))
             {
-                try
+                throw new ArgumentException("Đường dẫn lưu trữ mới (StoragePath) không hợp lệ hoặc chứa ký tự nguy hiểm.");
+            }
+
+            // If updating to Published, verify file exists
+            if (string.Equals(normalizedStatus, "Published", StringComparison.OrdinalIgnoreCase))
+            {
+                var exists = await _storageService.FileExistsAsync(newStoragePath, cancellationToken);
+                if (!exists)
                 {
-                    await _storageService.DeleteFileAsync(oldStoragePath, CancellationToken.None);
+                    throw new InvalidOperationException($"Không thể xuất bản video: tệp lưu trữ mới '{newStoragePath}' không tồn tại.");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Could not delete replaced video file: {Path}", oldStoragePath);
-                }
-            });
+            }
         }
 
+        // 1. UPDATE DATABASE FIRST!
         entity.Title = dto.Title.Trim();
         entity.Description = dto.Description?.Trim();
         entity.SourceType = isYouTube ? "YouTube" : "Uploaded";
@@ -384,13 +405,41 @@ public class LearningVideoService : ILearningVideoService
         entity.DurationSeconds = Math.Max(0, dto.DurationSeconds);
         entity.HskLevel = Math.Clamp(dto.HskLevel, 1, 6);
         entity.Topic = dto.Topic.Trim();
-        entity.Status = NormalizeStatus(dto.Status);
+        entity.Status = normalizedStatus;
         entity.LessonId = dto.LessonId;
         entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return MapToDto(entity);
+        // 2. ONLY AFTER DATABASE PERSISTENCE SUCCEEDS: Cleanup replaced old file
+        if (!string.IsNullOrWhiteSpace(oldStoragePath) &&
+            !string.Equals(oldStoragePath, newStoragePath, StringComparison.OrdinalIgnoreCase))
+        {
+            // Verify old file is not referenced by any other video record
+            var isReferencedElsewhere = await _context.LearningVideos
+                .AnyAsync(v => v.Id != entity.Id && v.StoragePath == oldStoragePath, cancellationToken);
+
+            if (!isReferencedElsewhere)
+            {
+                try
+                {
+                    var deleted = await _storageService.DeleteFileAsync(oldStoragePath, cancellationToken);
+                    if (!deleted)
+                    {
+                        await _cleanupService.RecordFailedCleanupAsync(
+                            oldStoragePath, "Unknown", "VideoReplaced", "Storage returned false on delete attempt", cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to delete old video file during update: {Path}. Enqueueing cleanup job.", oldStoragePath);
+                    await _cleanupService.RecordFailedCleanupAsync(
+                        oldStoragePath, "Unknown", "VideoReplaced", ex.Message, cancellationToken);
+                }
+            }
+        }
+
+        return MapToDto(entity, isPublicView: false);
     }
 
     public async Task<LearningVideoDto> UpdateStatusAsync(
@@ -425,6 +474,13 @@ public class LearningVideoService : ILearningVideoService
                 {
                     throw new InvalidOperationException("Không thể xuất bản video tự tải lên khi chưa có đường dẫn tệp (StoragePath).");
                 }
+
+                // Verify file exists on storage provider before publishing
+                var fileExists = await _storageService.FileExistsAsync(entity.StoragePath, cancellationToken);
+                if (!fileExists)
+                {
+                    throw new InvalidOperationException($"Không thể xuất bản video: tệp lưu trữ '{entity.StoragePath}' không tồn tại trên hệ thống lưu trữ.");
+                }
             }
 
             if (string.IsNullOrWhiteSpace(entity.ThumbnailUrl))
@@ -438,7 +494,7 @@ public class LearningVideoService : ILearningVideoService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return MapToDto(entity);
+        return MapToDto(entity, isPublicView: false);
     }
 
     public async Task<bool> DeleteVideoAsync(Guid id, CancellationToken cancellationToken = default)
@@ -451,23 +507,35 @@ public class LearningVideoService : ILearningVideoService
 
         var storagePath = entity.StoragePath;
 
+        // 1. DELETE DATABASE ENTITY FIRST!
         _context.LearningVideos.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Remove file from storage if uploaded
+        // 2. ONLY AFTER DATABASE PERSISTENCE SUCCEEDS: Cleanup file
         if (!string.IsNullOrWhiteSpace(storagePath))
         {
-            _ = Task.Run(async () =>
+            // Verify file is not referenced by any other video
+            var isReferencedElsewhere = await _context.LearningVideos
+                .AnyAsync(v => v.StoragePath == storagePath, cancellationToken);
+
+            if (!isReferencedElsewhere)
             {
                 try
                 {
-                    await _storageService.DeleteFileAsync(storagePath, CancellationToken.None);
+                    var deleted = await _storageService.DeleteFileAsync(storagePath, cancellationToken);
+                    if (!deleted)
+                    {
+                        await _cleanupService.RecordFailedCleanupAsync(
+                            storagePath, "Unknown", "VideoDeleted", "Storage returned false on delete attempt", cancellationToken);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to delete storage file on video deletion: {Path}", storagePath);
+                    _logger.LogError(ex, "Failed to delete storage file on video deletion: {Path}. Enqueueing cleanup job.", storagePath);
+                    await _cleanupService.RecordFailedCleanupAsync(
+                        storagePath, "Unknown", "VideoDeleted", ex.Message, cancellationToken);
                 }
-            });
+            }
         }
 
         return true;
@@ -495,8 +563,12 @@ public class LearningVideoService : ILearningVideoService
         return "Draft";
     }
 
-    private static LearningVideoDto MapToDto(LearningVideo v)
+    private LearningVideoDto MapToDto(LearningVideo v, bool isPublicView)
     {
+        var videoUrl = !string.IsNullOrWhiteSpace(v.StoragePath)
+            ? _storageService.GetPublicUrl(v.StoragePath)
+            : null;
+
         return new LearningVideoDto
         {
             Id = v.Id,
@@ -504,7 +576,9 @@ public class LearningVideoService : ILearningVideoService
             Description = v.Description,
             SourceType = v.SourceType,
             YouTubeVideoId = v.YouTubeVideoId,
-            StoragePath = v.StoragePath,
+            // Mask internal StoragePath for public student view
+            StoragePath = isPublicView ? null : v.StoragePath,
+            VideoUrl = videoUrl,
             ThumbnailUrl = v.ThumbnailUrl,
             DurationSeconds = v.DurationSeconds,
             HskLevel = v.HskLevel,

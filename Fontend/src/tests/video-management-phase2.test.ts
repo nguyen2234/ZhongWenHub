@@ -200,6 +200,32 @@ describe('Video Learning Phase 2: Management & Cloud Upload Integration Tests', 
       expect(status.providerName).toBe('LocalFileSystem');
       expect(status.maxVideoSizeBytes).toBe(104857600);
     });
+
+    it('uploadVideoFile sends FormData and reports progress safely', async () => {
+      const mockFetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+        expect(String(input)).toContain('/videos/manage/upload-video');
+        expect(init?.method).toBe('POST');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            storagePath: 'local://videos/202611/video_test123.mp4',
+            publicUrl: '/uploads/videos/202611/video_test123.mp4',
+            fileSizeBytes: 1024,
+            contentType: 'video/mp4',
+          }),
+          { status: 200 }
+        );
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const fakeFile = new File(['fake-mp4-data'], 'test.mp4', { type: 'video/mp4' });
+      const result = await videoManagementService.uploadVideoFile(fakeFile);
+
+      expect(result.success).toBe(true);
+      expect(result.storagePath).toContain('video_test123.mp4');
+      expect(result.publicUrl).toBe('/uploads/videos/202611/video_test123.mp4');
+    });
   });
 
   describe('3. Routing & Role Protection Contracts', () => {

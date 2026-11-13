@@ -41,6 +41,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<StudentExamAttempt> StudentExamAttempts => Set<StudentExamAttempt>();
     public DbSet<QuestionBankPracticeSessionEntity> QuestionBankPracticeSessions => Set<QuestionBankPracticeSessionEntity>();
     public DbSet<LearningVideo> LearningVideos => Set<LearningVideo>();
+    public DbSet<VideoStorageCleanupJob> VideoStorageCleanupJobs => Set<VideoStorageCleanupJob>();
 
     // Wallet & Subscription DbSets
     public DbSet<UserWallet> UserWallets => Set<UserWallet>();
@@ -580,6 +581,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(v => v.SourceType).HasDatabaseName("idx_learning_videos_source_type");
             b.HasIndex(v => new { v.Status, v.HskLevel, v.CreatedAt })
                 .HasDatabaseName("idx_learning_videos_status_hsk_created");
+        });
+
+        // Video Storage Cleanup Jobs Configuration
+        builder.Entity<VideoStorageCleanupJob>(b =>
+        {
+            b.ToTable("video_storage_cleanup_jobs");
+            b.HasKey(j => j.Id);
+            b.Property(j => j.StoragePath).HasMaxLength(500).IsRequired();
+            b.Property(j => j.StorageProvider).HasMaxLength(50).IsRequired().HasDefaultValue("Unknown");
+            b.Property(j => j.Reason).HasMaxLength(100).IsRequired().HasDefaultValue("VideoDeleted");
+            b.Property(j => j.LastError).HasMaxLength(2000);
+            b.Property(j => j.RetryCount).HasDefaultValue(0);
+            b.Property(j => j.IsCompleted).HasDefaultValue(false);
+
+            b.HasIndex(j => new { j.IsCompleted, j.RetryCount, j.CreatedAt })
+                .HasDatabaseName("idx_cleanup_jobs_status_retry_created");
         });
 
         // Question Bank Practice Sessions Configuration
