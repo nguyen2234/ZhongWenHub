@@ -57,30 +57,29 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
         // 2. Fetch competency profile (Deterministic, BKT)
         var competency = await _competencyService.GetCompetencyProfileAsync(userId, cancellationToken);
 
-        // 3. Query real SRS due status
-        var vocabStats = await _dbContext.StudentVocabularyProgresses
+        // 3. Query real SRS due status with SQL-level counting (zero row materialization)
+        var dueSrsCount = await _dbContext.StudentVocabularyProgresses
             .AsNoTracking()
-            .Where(v => v.UserId == userId)
-            .Select(v => new { v.Status, v.NextReviewAt })
-            .ToListAsync(cancellationToken);
+            .CountAsync(v => v.UserId == userId && v.NextReviewAt <= now, cancellationToken);
 
-        var dueSrsCount = vocabStats.Count(v => v.NextReviewAt <= now);
-        var masteredCount = vocabStats.Count(v => v.Status == "mastered");
-
-        // 4. Query lesson progresses
-        var lessonProgresses = await _dbContext.StudentLessonProgresses
+        var masteredCount = await _dbContext.StudentVocabularyProgresses
             .AsNoTracking()
-            .Where(l => l.UserId == userId)
-            .Select(l => new { l.LessonId, l.Status, l.CurrentStepIndex, l.UpdatedAt })
-            .ToListAsync(cancellationToken);
+            .CountAsync(v => v.UserId == userId && v.Status == "mastered", cancellationToken);
 
-        var inProgressLesson = lessonProgresses
+        // 4. Query in-progress lesson directly with SQL Server TOP 1
+        var inProgressLesson = await _dbContext.StudentLessonProgresses
+            .AsNoTracking()
+            .Where(l => l.UserId == userId && l.Status == "IN_PROGRESS")
             .OrderByDescending(l => l.UpdatedAt)
-            .FirstOrDefault(l => l.Status == "IN_PROGRESS");
+            .Select(l => new { l.LessonId })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        var completedLessonIds = lessonProgresses
-            .Where(l => l.Status == "COMPLETED")
+        // 5. Query completed lesson IDs from SQL Server
+        var completedLessonIds = (await _dbContext.StudentLessonProgresses
+            .AsNoTracking()
+            .Where(l => l.UserId == userId && l.Status == "COMPLETED")
             .Select(l => l.LessonId)
+            .ToListAsync(cancellationToken))
             .ToHashSet();
 
         // 5. Query candidate lesson from current HSK level

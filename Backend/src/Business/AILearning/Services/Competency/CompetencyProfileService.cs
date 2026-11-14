@@ -71,12 +71,18 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
                 a.AttemptedAt))
             .ToListAsync(cancellationToken);
 
-        // Fetch Vocabulary SRS progress to augment vocabulary mastery
-        var vocabProgressList = await _dbContext.StudentVocabularyProgresses
+        // Fetch Vocabulary SRS summary with SQL Server aggregation (no entity materialization)
+        var vocabStats = await _dbContext.StudentVocabularyProgresses
             .AsNoTracking()
             .Where(v => v.UserId == userId)
-            .Select(v => new { v.Status, v.Repetitions, v.EaseFactor })
-            .ToListAsync(cancellationToken);
+            .GroupBy(v => v.UserId)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Mastered = g.Count(x => x.Status == "mastered"),
+                Learning = g.Count(x => x.Status == "learning")
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         // Reverse to ascending chronological order for BKT sequence processing
         var allAttempts = practiceAttempts
@@ -121,19 +127,20 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             if (count == 0)
             {
                 // Special boost for vocabulary if SRS reviews exist without explicit practice attempts
-                if (key == "vocabulary" && vocabProgressList.Count > 0)
+                if (key == "vocabulary" && vocabStats != null && vocabStats.Total > 0)
                 {
-                    var masteredCount = vocabProgressList.Count(v => v.Status == "mastered");
-                    var learningCount = vocabProgressList.Count(v => v.Status == "learning");
-                    var srsMastery = Math.Clamp(((masteredCount * 1.0) + (learningCount * 0.5)) / Math.Max(10, vocabProgressList.Count), 0.1, 0.95);
-                    var srsConf = BktAlgorithm.ComputeConfidence(vocabProgressList.Count);
-                    var srsTier = BktAlgorithm.ResolveMasteryTier(srsMastery, vocabProgressList.Count, srsConf);
+                    var totalVocab = vocabStats.Total;
+                    var masteredCount = vocabStats.Mastered;
+                    var learningCount = vocabStats.Learning;
+                    var srsMastery = Math.Clamp(((masteredCount * 1.0) + (learningCount * 0.5)) / Math.Max(10, totalVocab), 0.1, 0.95);
+                    var srsConf = BktAlgorithm.ComputeConfidence(totalVocab);
+                    var srsTier = BktAlgorithm.ResolveMasteryTier(srsMastery, totalVocab, srsConf);
 
                     skillDtos.Add(new SkillCompetencyDto
                     {
                         SkillCategory = key,
                         LabelVi = label,
-                        TotalAttempts = vocabProgressList.Count,
+                        TotalAttempts = totalVocab,
                         CorrectAttempts = masteredCount,
                         AccuracyPercent = Math.Round(srsMastery * 100.0, 1),
                         MasteryScore = Math.Round(srsMastery, 3),
