@@ -322,4 +322,97 @@ public class DiagnosticAssessmentServiceTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.SubmitAssessmentAsync(userId, submission));
     }
+
+    [Fact]
+    public async Task SubmitAssessmentAsync_CorruptSnapshotJson_ThrowsInvalidOperationException_AndSessionRemainsInProgress()
+    {
+        using var context = CreateContext();
+        var userId = Guid.NewGuid();
+        var service = new DiagnosticAssessmentService(context);
+
+        var session = await service.StartSessionAsync(userId);
+
+        // Corrupt snapshot JSON in database
+        var dbSession = await context.QuestionBankPracticeSessions.FindAsync(session.SessionId);
+        Assert.NotNull(dbSession);
+        dbSession.ExerciseIdsJson = "corrupt-non-json-data";
+        await context.SaveChangesAsync();
+
+        var submission = new DiagnosticSubmissionDto
+        {
+            SessionId = session.SessionId,
+            TimeSpentSeconds = 60,
+            Answers = session.Questions.Select(q => new DiagnosticAnswerSubmissionDto
+            {
+                QuestionId = q.Id,
+                SelectedIndex = 0
+            }).ToList()
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.SubmitAssessmentAsync(userId, submission));
+        Assert.Contains("lỗi hoặc không thể phục hồi", ex.Message);
+
+        // Session must NOT be marked COMPLETED and attempts must not be created
+        var refreshedSession = await context.QuestionBankPracticeSessions.FindAsync(session.SessionId);
+        Assert.Equal("IN_PROGRESS", refreshedSession?.Status);
+        var attempts = await context.StudentPracticeAttempts.Where(a => a.UserId == userId).ToListAsync();
+        Assert.Empty(attempts);
+    }
+
+    [Fact]
+    public async Task SubmitAssessmentAsync_InvalidRequest_DoesNotCommit_AndAllowsSubsequentValidRetry()
+    {
+        using var context = CreateContext();
+        var userId = Guid.NewGuid();
+        var service = new DiagnosticAssessmentService(context);
+
+        var session = await service.StartSessionAsync(userId);
+        var dbSession = await context.QuestionBankPracticeSessions.FindAsync(session.SessionId);
+        Assert.NotNull(dbSession);
+        var snapshots = JsonSerializer.Deserialize<List<SessionQuestionSnapshotItem>>(dbSession.ExerciseIdsJson)!;
+
+        // 1. Submit invalid payload (SelectedIndex out of bounds)
+        var invalidSubmission = new DiagnosticSubmissionDto
+        {
+            SessionId = session.SessionId,
+            TimeSpentSeconds = 60,
+            Answers = snapshots.Select(s => new DiagnosticAnswerSubmissionDto
+            {
+                QuestionId = s.QuestionId,
+                SelectedIndex = 99 // Invalid index
+            }).ToList()
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.SubmitAssessmentAsync(userId, invalidSubmission));
+
+        // Verify session remains IN_PROGRESS and no attempts inserted
+        var refreshed = await context.QuestionBankPracticeSessions.FindAsync(session.SessionId);
+        Assert.Equal("IN_PROGRESS", refreshed?.Status);
+        var attemptsBeforeRetry = await context.StudentPracticeAttempts.Where(a => a.UserId == userId).ToListAsync();
+        Assert.Empty(attemptsBeforeRetry);
+
+        // 2. Retry with valid payload on the SAME session
+        var validSubmission = new DiagnosticSubmissionDto
+        {
+            SessionId = session.SessionId,
+            TimeSpentSeconds = 180,
+            Answers = snapshots.Select(s => new DiagnosticAnswerSubmissionDto
+            {
+                QuestionId = s.QuestionId,
+                SelectedIndex = s.CorrectIndex
+            }).ToList()
+        };
+
+        var result = await service.SubmitAssessmentAsync(userId, validSubmission);
+        Assert.NotNull(result);
+        Assert.Equal(12, result.CorrectCount);
+        Assert.Equal(100.0, result.AccuracyPercent);
+
+        var completedSession = await context.QuestionBankPracticeSessions.FindAsync(session.SessionId);
+        Assert.Equal("COMPLETED", completedSession?.Status);
+        var attemptsAfterRetry = await context.StudentPracticeAttempts.Where(a => a.UserId == userId).ToListAsync();
+        Assert.Equal(12, attemptsAfterRetry.Count);
+    }
 }

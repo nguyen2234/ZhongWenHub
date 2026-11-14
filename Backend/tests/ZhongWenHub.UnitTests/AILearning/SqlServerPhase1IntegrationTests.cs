@@ -37,19 +37,34 @@ public class SqlServerPhase1IntegrationTests
         // 1. Verify connection to dedicated test SQL Server database
         Assert.True(await context.Database.CanConnectAsync(), "Must connect to SQL Server ZhongWenHub_Test database");
 
-        // 2. Use 2 real existing student accounts in ZhongWenHub_Test for isolation verification
-        var student1Id = Guid.Parse("46e15f31-a780-490c-bfca-fc07113786d6"); // hocvien@gmail.com
-        var student2Id = Guid.Parse("360f3a1b-edc0-47ec-80b9-ea2eea39de02"); // student.binh.demo@zhongwenhub.edu.vn
+        // 2. Create isolated transient test student accounts in ZhongWenHub_Test
+        var student1Id = Guid.NewGuid();
+        var student2Id = Guid.NewGuid();
+
+        var testUser1 = new ApplicationUser
+        {
+            Id = student1Id,
+            UserName = $"test.student1.{student1Id:N}@zhongwenhub.edu.vn",
+            Email = $"test.student1.{student1Id:N}@zhongwenhub.edu.vn",
+            DisplayName = "Transient Test Student 1",
+            Status = UserStatus.ACTIVE,
+            EmailConfirmed = true
+        };
+        var testUser2 = new ApplicationUser
+        {
+            Id = student2Id,
+            UserName = $"test.student2.{student2Id:N}@zhongwenhub.edu.vn",
+            Email = $"test.student2.{student2Id:N}@zhongwenhub.edu.vn",
+            DisplayName = "Transient Test Student 2",
+            Status = UserStatus.ACTIVE,
+            EmailConfirmed = true
+        };
+
+        context.Users.AddRange(testUser1, testUser2);
+        await context.SaveChangesAsync();
 
         try
         {
-            // Clean any previous test data for these IDs
-            context.StudentPracticeAttempts.RemoveRange(context.StudentPracticeAttempts.Where(a => a.UserId == student1Id || a.UserId == student2Id));
-            context.StudentVocabularyProgresses.RemoveRange(context.StudentVocabularyProgresses.Where(v => v.UserId == student1Id || v.UserId == student2Id));
-            context.StudentLessonProgresses.RemoveRange(context.StudentLessonProgresses.Where(l => l.UserId == student1Id || l.UserId == student2Id));
-            context.StudentLearningProfiles.RemoveRange(context.StudentLearningProfiles.Where(p => p.UserId == student1Id || p.UserId == student2Id));
-            await context.SaveChangesAsync();
-
             // Seed student profiles
             context.StudentLearningProfiles.AddRange(
                 new StudentLearningProfile { UserId = student1Id, SelectedHskLevel = 1, TargetDailyMinutes = 25, StreakDays = 3 },
@@ -126,11 +141,12 @@ public class SqlServerPhase1IntegrationTests
         }
         finally
         {
-            // Clean up test data in SQL Server
+            // Clean up test data in SQL Server strictly for these transient test users
             context.StudentPracticeAttempts.RemoveRange(context.StudentPracticeAttempts.Where(a => a.UserId == student1Id || a.UserId == student2Id));
             context.StudentVocabularyProgresses.RemoveRange(context.StudentVocabularyProgresses.Where(v => v.UserId == student1Id || v.UserId == student2Id));
             context.StudentLessonProgresses.RemoveRange(context.StudentLessonProgresses.Where(l => l.UserId == student1Id || l.UserId == student2Id));
             context.StudentLearningProfiles.RemoveRange(context.StudentLearningProfiles.Where(p => p.UserId == student1Id || p.UserId == student2Id));
+            context.Users.RemoveRange(testUser1, testUser2);
             await context.SaveChangesAsync();
         }
     }

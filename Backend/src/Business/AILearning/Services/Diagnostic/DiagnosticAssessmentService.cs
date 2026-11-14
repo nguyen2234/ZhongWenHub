@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using ZhongWenHub.Business.AILearning.DTOs;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
@@ -73,7 +75,7 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 
         new("pl-2-gra-01", 2, "grammar", "Cấu trúc nhấn mạnh 是...的", "这本书___昨天买的。", "Zhè běn shū ___ zuótiān mǎi de.", "Chọn từ điền vào cấu trúc nhấn mạnh thời gian quá khứ:",
             new() { "在", "是", "有", "让" }, "是",
-            "Cấu trúc \"是...的\" dùng để nhấn mạnh thời gian, địa điểm hoặc phương thức của hành vi đã xảy ra."),
+            "Cấu trúc \"是... của\" dùng để nhấn mạnh thời gian, địa điểm hoặc phương thức của hành vi đã xảy ra."),
 
         new("pl-2-gra-02", 2, "grammar", "So sánh hơn 比", "他比我___两岁。", "Tā bǐ wǒ ___ liǎng suì.", "Chọn từ chỉ độ tuổi thích hợp:",
             new() { "高", "大", "长", "远" }, "大",
@@ -218,7 +220,9 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 
     public async Task<DiagnosticResultDto> SubmitAssessmentAsync(Guid userId, DiagnosticSubmissionDto submission, CancellationToken cancellationToken = default)
     {
-        // 1. Basic payload validations
+        // -------------------------------------------------------------------------
+        // STEP 1: VALIDATE ENTIRE PAYLOAD & PARAMETERS BEFORE ANY STATUS CHANGE
+        // -------------------------------------------------------------------------
         if (submission == null || submission.SessionId == Guid.Empty)
         {
             throw new ArgumentException("SessionId không hợp lệ.", nameof(submission));
@@ -229,14 +233,15 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             throw new ArgumentException("Danh sách câu trả lời không được để trống.", nameof(submission));
         }
 
-        // Check duplicate QuestionId in submission payload
         var questionIdsInSubmission = submission.Answers.Select(a => a.QuestionId).ToList();
         if (questionIdsInSubmission.Count != questionIdsInSubmission.Distinct().Count())
         {
             throw new ArgumentException("Payload chứa câu trả lời bị lặp QuestionId.", nameof(submission));
         }
 
-        // 2. Fetch session and perform ownership & state checks
+        // -------------------------------------------------------------------------
+        // STEP 2: FETCH SESSION & VERIFY OWNERSHIP, STATUS, TIMEOUT BEFORE TRANSACTION
+        // -------------------------------------------------------------------------
         var session = await _dbContext.QuestionBankPracticeSessions
             .FirstOrDefaultAsync(s => s.Id == submission.SessionId, cancellationToken);
 
@@ -250,7 +255,6 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             throw new UnauthorizedAccessException("Bạn không có quyền nộp bài cho phiên khảo sát của người dùng khác.");
         }
 
-        // Concurrency / Duplicate check
         if (session.Status != "IN_PROGRESS")
         {
             throw new InvalidOperationException("Phiên làm bài này đã hoàn thành hoặc không còn ở trạng thái nhận bài.");
@@ -258,7 +262,6 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 
         var now = DateTime.UtcNow;
 
-        // Session timeout check (60 minutes)
         if (now - session.StartedAt > TimeSpan.FromMinutes(60))
         {
             session.Status = "EXPIRED";
@@ -266,34 +269,9 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             throw new InvalidOperationException("Phiên làm bài đã hết thời hạn 60 phút. Vui lòng bắt đầu phiên mới.");
         }
 
-        // 3. Concurrency Protection:
-        // On SQL Server / Relational DBs, execute an atomic conditional UPDATE first
-        if (_dbContext.Database.IsRelational())
-        {
-            var rowsAffected = await _dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE question_bank_practice_sessions SET Status = 'COMPLETED' WHERE Id = {submission.SessionId} AND UserId = {userId} AND Status = 'IN_PROGRESS'",
-                cancellationToken);
-
-            if (rowsAffected == 0)
-            {
-                var refreshed = await _dbContext.QuestionBankPracticeSessions.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == submission.SessionId, cancellationToken);
-
-                if (refreshed?.Status == "COMPLETED")
-                {
-                    throw new InvalidOperationException("Phiên làm bài này đã được nộp và chấm điểm trước đó.");
-                }
-
-                throw new InvalidOperationException("Không thể hoàn tất nộp bài do phiên đã kết thúc hoặc xung đột đồng thời.");
-            }
-        }
-        else
-        {
-            // For in-memory database test harness
-            session.Status = "COMPLETED";
-        }
-
-        // 4. Retrieve session snapshot from ExerciseIdsJson
+        // -------------------------------------------------------------------------
+        // STEP 3: DESERIALIZE & VALIDATE SNAPSHOT INTEGRITY BEFORE ANY STATUS CHANGE
+        // -------------------------------------------------------------------------
         List<SessionQuestionSnapshotItem> snapshots;
         try
         {
@@ -312,7 +290,8 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 
         var snapshotMap = snapshots.ToDictionary(s => s.QuestionId);
 
-        // 5. Validate that all submitted QuestionIds belong to the snapshot and SelectedIndex is in bounds
+        // Validate that every submitted question belongs to this session's snapshot
+        // and every selected index is within bounds: [-1, Options.Count - 1]
         var userAnswersDict = new Dictionary<string, int>();
         foreach (var answer in submission.Answers)
         {
@@ -329,7 +308,9 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             userAnswersDict[answer.QuestionId] = answer.SelectedIndex;
         }
 
-        // 6. Grade against the snapshot
+        // -------------------------------------------------------------------------
+        // STEP 4: GRADE AND BUILD ATTEMPTS IN-MEMORY
+        // -------------------------------------------------------------------------
         var detailedQuestions = new List<DiagnosticQuestionResultDto>();
         var practiceAttempts = new List<StudentPracticeAttempt>();
 
@@ -384,8 +365,7 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             });
         }
 
-        // 7. Psychometric Estimation for 12-item screening placement test
-        // Criteria: Needs at least 2/3 (66%) accuracy on level N and all lower levels
+        // Psychometric Screening estimation criteria (requires >= 2/3 on level and lower levels)
         var hsk1Acc = hskStats[1].Total > 0 ? (hskStats[1].Correct * 1.0 / hskStats[1].Total) : 0;
         var hsk2Acc = hskStats[2].Total > 0 ? (hskStats[2].Correct * 1.0 / hskStats[2].Total) : 0;
         var hsk3Acc = hskStats[3].Total > 0 ? (hskStats[3].Correct * 1.0 / hskStats[3].Total) : 0;
@@ -409,46 +389,112 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             estimatedHsk = 1;
         }
 
-        // 8. Honest psychometric confidence for 12-question screening
-        // 12 items yield preliminary screening confidence ~0.46, never falsely claiming >0.85
+        // Transparent preliminary screening index (honest ~0.45 for 12 screening items)
         var totalQuestions = snapshots.Count;
-        var confidence = Math.Round(totalQuestions / (totalQuestions + 14.0), 3);
+        var confidence = 0.45;
         var accuracy = Math.Round(totalCorrect * 100.0 / totalQuestions, 1);
+        var serializedAnswers = JsonSerializer.Serialize(userAnswersDict);
 
-        // 9. Update session fields in database
-        session.Status = "COMPLETED";
-        session.HskLevel = estimatedHsk;
-        session.CorrectCount = totalCorrect;
-        session.Accuracy = accuracy;
-        session.TimeSpentSeconds = submission.TimeSpentSeconds;
-        session.AnswersJson = JsonSerializer.Serialize(userAnswersDict);
-        session.CompletedAt = now;
+        // -------------------------------------------------------------------------
+        // STEP 5: ATOMIC TRANSACTION: STATUS UPDATE + ATTEMPTS + PROFILE INTEGRITY
+        // -------------------------------------------------------------------------
+        var isRelational = _dbContext.Database.IsRelational();
+        IDbContextTransaction? transaction = null;
 
-        _dbContext.StudentPracticeAttempts.AddRange(practiceAttempts);
-
-        // 10. DO NOT OVERWRITE SelectedHskLevel!
-        // Only update LastActivityDate. Keep the student's chosen goal intact.
-        var profile = await _dbContext.StudentLearningProfiles
-            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
-
-        if (profile != null)
+        if (isRelational)
         {
-            profile.LastActivityDate = now.ToString("yyyy-MM-dd");
+            transaction = await _dbContext.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
         }
-        else
+
+        try
         {
-            _dbContext.StudentLearningProfiles.Add(new StudentLearningProfile
+            if (isRelational)
             {
-                UserId = userId,
-                SelectedHskLevel = 1, // Default goal for new account
-                TargetDailyMinutes = 20,
-                StreakDays = 1,
-                LastActivityDate = now.ToString("yyyy-MM-dd")
-            });
+                // Atomic conditional UPDATE on SQL Server:
+                // Only 1 concurrent request can succeed in transitioning IN_PROGRESS -> COMPLETED
+                var rowsAffected = await _dbContext.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE question_bank_practice_sessions SET Status = 'COMPLETED', HskLevel = {estimatedHsk}, CorrectCount = {totalCorrect}, Accuracy = {accuracy}, TimeSpentSeconds = {submission.TimeSpentSeconds}, AnswersJson = {serializedAnswers}, CompletedAt = {now} WHERE Id = {submission.SessionId} AND UserId = {userId} AND Status = 'IN_PROGRESS'",
+                    cancellationToken);
+
+                if (rowsAffected == 0)
+                {
+                    var refreshed = await _dbContext.QuestionBankPracticeSessions.AsNoTracking()
+                        .FirstOrDefaultAsync(s => s.Id == submission.SessionId, cancellationToken);
+
+                    if (refreshed?.Status == "COMPLETED")
+                    {
+                        throw new InvalidOperationException("Phiên làm bài này đã được nộp và chấm điểm trước đó.");
+                    }
+
+                    throw new InvalidOperationException("Không thể hoàn tất nộp bài do phiên đã kết thúc hoặc có xung đột đồng thời.");
+                }
+            }
+            else
+            {
+                // In-Memory test database fallback
+                if (session.Status != "IN_PROGRESS")
+                {
+                    throw new InvalidOperationException("Phiên làm bài này đã được nộp và chấm điểm trước đó.");
+                }
+
+                session.Status = "COMPLETED";
+                session.HskLevel = estimatedHsk;
+                session.CorrectCount = totalCorrect;
+                session.Accuracy = accuracy;
+                session.TimeSpentSeconds = submission.TimeSpentSeconds;
+                session.AnswersJson = serializedAnswers;
+                session.CompletedAt = now;
+            }
+
+            // Persist all 12 student practice attempts atomically
+            _dbContext.StudentPracticeAttempts.AddRange(practiceAttempts);
+
+            // Update LastActivityDate WITHOUT modifying SelectedHskLevel
+            var profile = await _dbContext.StudentLearningProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+
+            if (profile != null)
+            {
+                profile.LastActivityDate = now.ToString("yyyy-MM-dd");
+            }
+            else
+            {
+                _dbContext.StudentLearningProfiles.Add(new StudentLearningProfile
+                {
+                    UserId = userId,
+                    SelectedHskLevel = 1, // Default goal for new accounts
+                    TargetDailyMinutes = 20,
+                    StreakDays = 1,
+                    LastActivityDate = now.ToString("yyyy-MM-dd")
+                });
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            if (transaction != null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            if (transaction != null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+            }
+            throw;
+        }
+        finally
+        {
+            if (transaction != null)
+            {
+                await transaction.DisposeAsync();
+            }
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
+        // -------------------------------------------------------------------------
+        // STEP 6: COMPOSE RESULT DTO WITH HONEST LIMITATIONS DISCLAIMER
+        // -------------------------------------------------------------------------
         var skillBreakdown = skillStats.ToDictionary(
             k => k.Key,
             v => v.Value.Total > 0 ? Math.Round(v.Value.Correct * 100.0 / v.Value.Total, 1) : 0.0);
@@ -457,8 +503,8 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             k => k.Key,
             v => v.Value.Total > 0 ? Math.Round(v.Value.Correct * 100.0 / v.Value.Total, 1) : 0.0);
 
-        var summary = $"Định vị thành công: Trình độ khuyến nghị là HSK {estimatedHsk} (Đúng {totalCorrect}/{totalQuestions} câu, độ chính xác {accuracy}%). Mục tiêu học tập cá nhân của bạn vẫn được giữ nguyên.";
-        var limitations = $"Kết quả định vị ban đầu (Screening Placement). Do số lượng câu hỏi sàng lọc là {totalQuestions} câu (3 câu/cấp HSK), độ tin cậy đạt mức sơ bộ (~{Math.Round(confidence * 100)}%). Để đạt độ tin cậy cao (>75%), học viên cần hoàn thành thêm các bài tập theo kỹ năng.";
+        var summary = $"Ước tính sơ bộ: Trình độ gợi ý là HSK {estimatedHsk} (Đúng {totalCorrect}/{totalQuestions} câu, độ chính xác {accuracy}%). Mục tiêu học tập bạn tự chọn vẫn được bảo toàn nguyên vẹn.";
+        var limitations = $"Kết quả là ước tính sàng lọc sơ bộ dựa trên {totalQuestions} câu hỏi trắc nghiệm (3 câu cho mỗi cấp HSK 1–4). Do số lượng câu hỏi ít và mang tính định hướng ban đầu, chỉ số tin cậy chỉ đạt mức sơ bộ (~{Math.Round(confidence * 100)}%). Đây không phải chứng chỉ HSK hay kết quả đánh giá năng lực toàn diện đã kiểm chứng chuẩn hóa. Để xác định chính xác trình độ và điểm mạnh/yếu, học viên cần tiếp tục luyện tập chuyên sâu các kỹ năng Nghe, Nói, Đọc, Viết trong lộ trình học.";
 
         return new DiagnosticResultDto
         {
@@ -539,7 +585,7 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 
         var estimatedHsk = latestSession.HskLevel ?? 1;
         var totalQuestions = snapshots.Count;
-        var confidence = Math.Round(totalQuestions / (totalQuestions + 14.0), 3);
+        var confidence = 0.45;
         var accuracy = latestSession.Accuracy > 0 ? latestSession.Accuracy : Math.Round(totalCorrect * 100.0 / totalQuestions, 1);
 
         var skillBreakdown = skillStats.ToDictionary(
@@ -550,8 +596,8 @@ public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
             k => k.Key,
             v => v.Value.Total > 0 ? Math.Round(v.Value.Correct * 100.0 / v.Value.Total, 1) : 0.0);
 
-        var summary = $"Định vị thành công: Trình độ khuyến nghị là HSK {estimatedHsk} (Đúng {totalCorrect}/{totalQuestions} câu, độ chính xác {accuracy}%). Mục tiêu học tập cá nhân của bạn vẫn được giữ nguyên.";
-        var limitations = $"Kết quả định vị ban đầu (Screening Placement). Do số lượng câu hỏi sàng lọc là {totalQuestions} câu (3 câu/cấp HSK), độ tin cậy đạt mức sơ bộ (~{Math.Round(confidence * 100)}%).";
+        var summary = $"Ước tính sơ bộ: Trình độ gợi ý là HSK {estimatedHsk} (Đúng {totalCorrect}/{totalQuestions} câu, độ chính xác {accuracy}%). Mục tiêu học tập bạn tự chọn vẫn được bảo toàn nguyên vẹn.";
+        var limitations = $"Kết quả là ước tính sàng lọc sơ bộ dựa trên {totalQuestions} câu hỏi trắc nghiệm (3 câu cho mỗi cấp HSK 1–4). Do số lượng câu hỏi ít và mang tính định hướng ban đầu, chỉ số tin cậy chỉ đạt mức sơ bộ (~{Math.Round(confidence * 100)}%).";
 
         return new DiagnosticResultDto
         {
