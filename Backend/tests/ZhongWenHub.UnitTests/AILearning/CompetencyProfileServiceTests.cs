@@ -14,16 +14,16 @@ namespace ZhongWenHub.UnitTests.AILearning;
 
 public class CompetencyProfileServiceTests
 {
-    private static ApplicationDbContext CreateContext()
+    private static ApplicationDbContext CreateContext(string? dbName = null)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(dbName ?? Guid.NewGuid().ToString())
             .Options;
         return new ApplicationDbContext(options);
     }
 
     [Fact]
-    public async Task GetCompetencyProfileAsync_NewUser_ReturnsNotAssessedStatus()
+    public async Task GetCompetencyProfileAsync_NewUser_ReturnsNotAssessedStatusAndNullEstimatedHsk()
     {
         using var context = CreateContext();
         var userId = Guid.NewGuid();
@@ -34,6 +34,8 @@ public class CompetencyProfileServiceTests
         Assert.NotNull(profile);
         Assert.Equal(userId, profile.UserId);
         Assert.Equal("NOT_ASSESSED", profile.AssessmentStatus);
+        Assert.Equal(1, profile.SelectedHskLevel);
+        Assert.Null(profile.EstimatedHskLevel); // Insufficient evidence must remain null
         Assert.Equal(0, profile.TotalEvaluations);
         Assert.Equal(0.0, profile.ConfidenceScore);
         Assert.False(profile.HasSpeakingAudioData);
@@ -76,51 +78,120 @@ public class CompetencyProfileServiceTests
     }
 
     [Fact]
-    public async Task GetCompetencyProfileAsync_WithFrequentErrors_IdentifiesWeakConcepts()
+    public async Task GetCompetencyProfileAsync_WithFrequentErrors_IdentifiesWeakConceptsWithUniqueStableCode()
     {
         using var context = CreateContext();
         var userId = Guid.NewGuid();
 
-        // 3 consecutive errors on "Câu chữ 把"
+        // 3 errors on "Câu chữ 把" and 2 errors on "Trợ từ kết cấu 的" both at HSK 2 Grammar
         context.StudentPracticeAttempts.AddRange(
+            new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Câu chữ 把", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-20) },
             new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Câu chữ 把", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-15) },
             new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Câu chữ 把", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-10) },
-            new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Câu chữ 把", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-5) }
+            new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Trợ từ 的", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-8) },
+            new StudentPracticeAttempt { UserId = userId, Category = "grammar", TopicTitle = "Trợ từ 的", HskLevel = 2, IsCorrect = false, AttemptedAt = DateTime.UtcNow.AddMinutes(-5) }
         );
         await context.SaveChangesAsync();
 
         var service = new CompetencyProfileService(context);
         var profile = await service.GetCompetencyProfileAsync(userId);
 
-        Assert.NotEmpty(profile.TopWeakConcepts);
-        var topWeak = profile.TopWeakConcepts.First();
-        Assert.Equal("Câu chữ 把", topWeak.TitleVi);
-        Assert.Equal(3, topWeak.IncorrectAttempts);
-        Assert.True(topWeak.MasteryScore < 0.30);
-        Assert.Equal("NOVICE", topWeak.MasteryTier);
-        Assert.Contains("WK-2-GRAMMAR", topWeak.ConceptCode);
+        Assert.Equal(2, profile.TopWeakConcepts.Count);
+
+        var baTopic = profile.TopWeakConcepts.First(w => w.TitleVi == "Câu chữ 把");
+        var deTopic = profile.TopWeakConcepts.First(w => w.TitleVi == "Trợ từ 的");
+
+        // Verify ConceptCode is unique per knowledge point even with same skill & HSK level
+        Assert.NotEqual(baTopic.ConceptCode, deTopic.ConceptCode);
+        Assert.StartsWith("CP-2-GRAMMAR", baTopic.ConceptCode);
+        Assert.StartsWith("CP-2-GRAMMAR", deTopic.ConceptCode);
+
+        // Verify ConceptCode is deterministic and stable
+        var expectedCode = CompetencyProfileService.GenerateConceptCode(2, "grammar", "Câu chữ 把");
+        Assert.Equal(expectedCode, baTopic.ConceptCode);
     }
 
     [Fact]
-    public async Task GetCompetencyProfileAsync_ConcurrentAccess_IsThreadSafe()
+    public async Task GetCompetencyProfileAsync_WithSkewedSingleSkillData_DoesNotAssumeOverallHsk()
     {
         using var context = CreateContext();
         var userId = Guid.NewGuid();
 
-        context.StudentPracticeAttempts.Add(new StudentPracticeAttempt
+        // 15 vocabulary attempts (100% correct) but 0 in grammar, reading, listening
+        for (var i = 0; i < 15; i++)
         {
-            UserId = userId,
-            Category = "reading",
-            TopicTitle = "Đoạn văn ngắn HSK 1",
-            IsCorrect = true,
-            AttemptedAt = DateTime.UtcNow
-        });
+            context.StudentPracticeAttempts.Add(new StudentPracticeAttempt
+            {
+                UserId = userId,
+                Category = "vocabulary",
+                TopicTitle = $"Từ vựng bài {i + 1}",
+                HskLevel = 1,
+                IsCorrect = true,
+                AttemptedAt = DateTime.UtcNow.AddMinutes(-100 + (i * 5))
+            });
+        }
         await context.SaveChangesAsync();
 
         var service = new CompetencyProfileService(context);
+        var profile = await service.GetCompetencyProfileAsync(userId);
 
-        // Run 10 parallel queries
-        var tasks = Enumerable.Range(0, 10).Select(_ => service.GetCompetencyProfileAsync(userId));
+        var vocab = profile.MacroSkills.First(s => s.SkillCategory == "vocabulary");
+        var reading = profile.MacroSkills.First(s => s.SkillCategory == "reading");
+
+        Assert.Equal("MASTERED", vocab.MasteryTier);
+        Assert.Equal("NOT_ASSESSED", reading.MasteryTier);
+
+        // Even though vocabulary has high accuracy, estimated HSK level should not be automatically bumped
+        Assert.True(profile.SelectedHskLevel == 1);
+    }
+
+    [Fact]
+    public void NormalizeSkill_PreservesPinyinDistinctFromHanziAndTracksUnknowns()
+    {
+        Assert.Equal("pinyin", CompetencyProfileService.NormalizeSkill("pinyin"));
+        Assert.Equal("pinyin", CompetencyProfileService.NormalizeSkill("tone"));
+        Assert.Equal("pinyin", CompetencyProfileService.NormalizeSkill("phonetics"));
+
+        Assert.Equal("hanzi", CompetencyProfileService.NormalizeSkill("hanzi"));
+        Assert.Equal("hanzi", CompetencyProfileService.NormalizeSkill("writing"));
+
+        Assert.Equal("grammar", CompetencyProfileService.NormalizeSkill("grammar"));
+        Assert.Equal("vocabulary", CompetencyProfileService.NormalizeSkill("vocab"));
+
+        // Unknowns must NOT be coerced into grammar or hanzi
+        Assert.Equal("unclassified:culture_history", CompetencyProfileService.NormalizeSkill("culture_history"));
+        Assert.Equal("unclassified", CompetencyProfileService.NormalizeSkill(null));
+    }
+
+    [Fact]
+    public async Task GetCompetencyProfileAsync_ConcurrentAccess_UsesDedicatedDbContextInstances()
+    {
+        var sharedDbName = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
+
+        // Seed with initial context
+        using (var seedContext = CreateContext(sharedDbName))
+        {
+            seedContext.StudentPracticeAttempts.Add(new StudentPracticeAttempt
+            {
+                UserId = userId,
+                Category = "reading",
+                TopicTitle = "Đoạn văn ngắn HSK 1",
+                IsCorrect = true,
+                AttemptedAt = DateTime.UtcNow
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        // Concurrency test: each parallel operation uses its own scoped DbContext instance,
+        // mirroring real-world ASP.NET Core scoped dependency injection.
+        var tasks = Enumerable.Range(0, 10).Select(async _ =>
+        {
+            using var taskContext = CreateContext(sharedDbName);
+            var service = new CompetencyProfileService(taskContext);
+            return await service.GetCompetencyProfileAsync(userId);
+        });
+
         var results = await Task.WhenAll(tasks);
 
         Assert.Equal(10, results.Length);

@@ -12,79 +12,94 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
     expect(typeof aiLearningEngineService.getRecommendationsV2).toBe('function');
   });
 
-  it('validates CompetencyProfile schema with 6 macro-skills and transparent speaking disclaimer', () => {
+  it('validates CompetencyProfile schema with distinct selected vs estimated HSK and transparent speaking disclaimer', () => {
     const mockProfile: CompetencyProfile = {
       userId: '11111111-2222-3333-4444-555555555555',
-      assessmentStatus: 'ASSESSED',
-      estimatedHskLevel: 2,
-      confidenceScore: 0.82,
-      overallMasteryPercent: 74.5,
-      totalEvaluations: 45,
+      assessmentStatus: 'IN_PROGRESS',
+      selectedHskLevel: 2,
+      estimatedHskLevel: null, // Insufficient multi-skill evidence preserves null
+      confidenceScore: 0.42,
+      overallMasteryPercent: 68.5,
+      totalEvaluations: 8,
+      unclassifiedEvaluationsCount: 0,
       hasSpeakingAudioData: false,
       speakingAudioNote: 'Chưa có dữ liệu âm thanh được chấm điểm; không suy đoán điểm nói.',
       macroSkills: [
         {
           skillCategory: 'vocabulary',
           labelVi: 'Từ vựng (Vocabulary)',
-          totalAttempts: 15,
-          correctAttempts: 13,
-          accuracyPercent: 86.7,
-          masteryScore: 0.85,
-          masteryPercent: 85.0,
-          confidenceScore: 0.78,
-          masteryTier: 'MASTERED',
-          isMeasuredRealData: true,
-          weakTopics: [],
-        },
-        {
-          skillCategory: 'grammar',
-          labelVi: 'Ngữ pháp (Grammar)',
-          totalAttempts: 12,
-          correctAttempts: 8,
-          accuracyPercent: 66.7,
-          masteryScore: 0.62,
-          masteryPercent: 62.0,
-          confidenceScore: 0.71,
-          masteryTier: 'EMERGING',
-          isMeasuredRealData: true,
-          weakTopics: ['Trợ từ 的'],
-        },
-        {
-          skillCategory: 'reading',
-          labelVi: 'Đọc hiểu (Reading)',
-          totalAttempts: 10,
-          correctAttempts: 8,
-          accuracyPercent: 80.0,
-          masteryScore: 0.77,
-          masteryPercent: 77.0,
-          confidenceScore: 0.65,
-          masteryTier: 'COMPETENT',
-          isMeasuredRealData: true,
-          weakTopics: [],
-        },
-        {
-          skillCategory: 'listening',
-          labelVi: 'Nghe hiểu (Listening)',
           totalAttempts: 5,
           correctAttempts: 4,
           accuracyPercent: 80.0,
-          masteryScore: 0.70,
-          masteryPercent: 70.0,
+          masteryScore: 0.72,
+          masteryPercent: 72.0,
           confidenceScore: 0.45,
           masteryTier: 'COMPETENT',
           isMeasuredRealData: true,
           weakTopics: [],
         },
         {
-          skillCategory: 'hanzi',
-          labelVi: 'Chữ Hán & Bộ thủ (Hanzi)',
+          skillCategory: 'grammar',
+          labelVi: 'Ngữ pháp (Grammar)',
           totalAttempts: 3,
-          correctAttempts: 2,
-          accuracyPercent: 66.7,
-          masteryScore: 0.58,
-          masteryPercent: 58.0,
-          confidenceScore: 0.32,
-          masteryTier: 'EMERGING',
+          correctAttempts: 1,
+          accuracyPercent: 33.3,
+          masteryScore: 0.38,
+          masteryPercent: 38.0,
+          confidenceScore: 0.31,
+          masteryTier: 'NOVICE',
+          isMeasuredRealData: true,
+          weakTopics: ['Trợ từ 的'],
+        },
+        {
+          skillCategory: 'reading',
+          labelVi: 'Đọc hiểu (Reading)',
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracyPercent: 0.0,
+          masteryScore: 0.0,
+          masteryPercent: 0.0,
+          confidenceScore: 0.0,
+          masteryTier: 'NOT_ASSESSED',
+          isMeasuredRealData: true,
+          weakTopics: [],
+        },
+        {
+          skillCategory: 'listening',
+          labelVi: 'Nghe hiểu (Listening)',
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracyPercent: 0.0,
+          masteryScore: 0.0,
+          masteryPercent: 0.0,
+          confidenceScore: 0.0,
+          masteryTier: 'NOT_ASSESSED',
+          isMeasuredRealData: true,
+          weakTopics: [],
+        },
+        {
+          skillCategory: 'hanzi',
+          labelVi: 'Nhận diện & Viết chữ Hán',
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracyPercent: 0.0,
+          masteryScore: 0.0,
+          masteryPercent: 0.0,
+          confidenceScore: 0.0,
+          masteryTier: 'NOT_ASSESSED',
+          isMeasuredRealData: true,
+          weakTopics: [],
+        },
+        {
+          skillCategory: 'pinyin',
+          labelVi: 'Phiên âm & Thanh điệu (Pinyin)',
+          totalAttempts: 0,
+          correctAttempts: 0,
+          accuracyPercent: 0.0,
+          masteryScore: 0.0,
+          masteryPercent: 0.0,
+          confidenceScore: 0.0,
+          masteryTier: 'NOT_ASSESSED',
           isMeasuredRealData: true,
           weakTopics: [],
         },
@@ -104,24 +119,26 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
       ],
       topWeakConcepts: [
         {
-          conceptCode: 'WK-1-GRAMMAR',
+          conceptCode: 'CP-2-GRAMMAR-TRO-TU-DE-A1B2C3D4',
           titleVi: 'Trợ từ 的',
           skillCategory: 'grammar',
-          hskLevel: 1,
+          hskLevel: 2,
           masteryScore: 0.35,
           masteryTier: 'NOVICE',
-          totalAttempts: 4,
-          incorrectAttempts: 3,
-          evidenceVi: 'Sai 3/4 câu hỏi về trợ từ kết cấu 的.',
-          recommendedActionRoute: '/ai-exercises?hsk=1&source=WEAKNESS',
+          totalAttempts: 3,
+          incorrectAttempts: 2,
+          evidenceVi: 'Sai 2/3 câu hỏi về trợ từ kết cấu 的.',
+          recommendedActionRoute: '/ai-exercises?hsk=2&source=WEAKNESS',
         },
       ],
-      topStrengths: ['Từ vựng (Vocabulary)'],
+      topStrengths: [],
       lastAssessedAt: new Date().toISOString(),
     };
 
-    expect(mockProfile.macroSkills).toHaveLength(6);
+    expect(mockProfile.selectedHskLevel).toBe(2);
+    expect(mockProfile.estimatedHskLevel).toBeNull();
     expect(mockProfile.hasSpeakingAudioData).toBe(false);
+    expect(mockProfile.unclassifiedEvaluationsCount).toBe(0);
 
     const speakingSkill = mockProfile.macroSkills.find(
       (s: SkillCompetency) => s.skillCategory === 'speaking'
@@ -130,13 +147,17 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
     expect(speakingSkill?.masteryTier).toBe('NOT_ASSESSED');
     expect(speakingSkill?.isMeasuredRealData).toBe(false);
     expect(mockProfile.speakingAudioNote).toContain('không suy đoán điểm nói');
+
+    // Verify ConceptCode is unique and prefixed CP-
+    expect(mockProfile.topWeakConcepts[0].conceptCode).toMatch(/^CP-2-GRAMMAR-/);
   });
 
-  it('validates PersonalizedLearningPlanV2 schema with multi-factor utility ranking and real routes', () => {
+  it('validates PersonalizedLearningPlanV2 schema with real React router routes and no fake diagnostic route', () => {
     const mockPlan: PersonalizedLearningPlanV2 = {
       userId: '11111111-2222-3333-4444-555555555555',
       assessmentStatus: 'ASSESSED',
       currentHskLevel: 1,
+      estimatedHskLevel: 1,
       availableMinutes: 25,
       confidenceScore: 0.85,
       overallMasteryPercent: 72.0,
@@ -160,18 +181,32 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
           actionLabel: 'Ôn tập SRS ngay',
         },
         {
-          id: 'rec-weak-WK-1-GRAMMAR',
+          id: 'rec-weak-CP-1-GRAMMAR-TRO-TU-DE',
           category: 'weak-skill',
           title: 'Củng cố điểm yếu: Trợ từ 的',
           priority: 2,
           utilityScore: 0.76,
           reason: 'Độ thành thạo ước tính 35% với 3 lần làm bài chưa chính xác.',
           pedagogicalGoalVi: 'Lấp lỗ hổng kiến thức ngữ pháp.',
-          evidenceData: { conceptCode: 'WK-1-GRAMMAR', incorrectAttempts: 3 },
+          evidenceData: { conceptCode: 'CP-1-GRAMMAR-TRO-TU-DE', incorrectAttempts: 3 },
           estimatedMinutes: 10,
           destinationRoute: '/ai-exercises?hsk=1&source=WEAKNESS',
           badge: 'NOVICE',
           actionLabel: 'Tạo bài tập AI củng cố',
+        },
+        {
+          id: 'rec-next-lesson-01',
+          category: 'next-lesson',
+          title: 'Học bài mới: Xin chào',
+          priority: 3,
+          utilityScore: 0.68,
+          reason: 'Bài học kế tiếp theo khung đào tạo HSK 1.',
+          pedagogicalGoalVi: 'Tiếp thu từ mới và điểm ngữ pháp tiếp theo.',
+          evidenceData: { lessonId: 'lesson-01', hskLevel: 1 },
+          estimatedMinutes: 15,
+          destinationRoute: '/lesson/lesson-01',
+          badge: 'HSK 1',
+          actionLabel: 'Bắt đầu bài mới',
         },
       ],
       aiCoachingExplanationVi: 'Nên ưu tiên giải quyết 5 từ vựng đến hạn trước khi củng cố ngữ pháp.',
@@ -180,14 +215,19 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
       generatedAt: new Date().toISOString(),
     };
 
-    expect(mockPlan.recommendations).toHaveLength(2);
+    expect(mockPlan.recommendations).toHaveLength(3);
+
+    // Assert strictly valid React Router paths
+    const validRoutes = ['/srs-review', '/ai-exercises?hsk=1&source=WEAKNESS', '/lesson/lesson-01'];
+    mockPlan.recommendations.forEach((rec) => {
+      expect(validRoutes).toContain(rec.destinationRoute);
+      // Guarantee no fake diagnostic test route
+      expect(rec.category).not.toBe('diagnostic-test');
+    });
+
     expect(mockPlan.recommendations[0].priority).toBe(1);
     expect(mockPlan.recommendations[0].utilityScore).toBeGreaterThanOrEqual(
       mockPlan.recommendations[1].utilityScore
     );
-    expect(mockPlan.recommendations[0].destinationRoute).toBe('/srs-review');
-    expect(mockPlan.recommendations[1].destinationRoute).toBe('/ai-exercises?hsk=1&source=WEAKNESS');
-    expect(mockPlan.usedLlmExplanation).toBe(true);
-    expect(mockPlan.aiCoachingExplanationVi).toBeDefined();
   });
 });

@@ -73,9 +73,9 @@ Phase 1 hiện thực hóa hai trụ cột nền tảng cho hệ thống cá nh�
 
 ### 1. Backend Unit Tests
 - **Command:** `dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj`
-- **Kết quả:** **219/219 tests PASS (100%)**
+- **Kết quả:** **223/223 tests PASS (100%)**
   - Thời gian chạy: 2.0s
-  - 15/15 tests BKT, Competency Profile và Recommendation Engine V2 vượt qua mọi assertions.
+  - 19/19 tests BKT, Competency Profile và Recommendation Engine V2 vượt qua mọi assertions (bao gồm các test về thứ tự thời gian BKT, độ tin cậy khi ít dữ liệu, phân tầng kỹ năng, concurrency EF Core với scoped DbContext, và ConceptCode duy nhất).
 
 ### 2. Frontend TypeScript Compilation
 - **Command:** `bunx tsc -b --noEmit`
@@ -99,3 +99,4 @@ Phase 1 hiện thực hóa hai trụ cột nền tảng cho hệ thống cá nh�
 
 Phase 1 đã hoàn thành trọn vẹn cả tầng Backend, Frontend, kiểm thử đơn vị, kiểm thử tích hợp và tuân thủ nghiêm ngặt nguyên tắc **Zero-Write** vào cơ sở dữ liệu `ZhongWenHub_Dev`.
 Hệ thống sẵn sàng để chuyển sang **Phase 2 – Adaptive Practice Loop & Diagnostic Assessment**.
+

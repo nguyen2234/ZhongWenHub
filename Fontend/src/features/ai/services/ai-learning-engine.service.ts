@@ -165,10 +165,12 @@ export interface WeakConcept {
 export interface CompetencyProfile {
   userId: string;
   assessmentStatus: 'NOT_ASSESSED' | 'IN_PROGRESS' | 'ASSESSED' | 'CALIBRATED' | string;
-  estimatedHskLevel: number;
+  selectedHskLevel: number;
+  estimatedHskLevel: number | null;
   confidenceScore: number;
   overallMasteryPercent: number;
   totalEvaluations: number;
+  unclassifiedEvaluationsCount: number;
   hasSpeakingAudioData: boolean;
   speakingAudioNote: string;
   macroSkills: SkillCompetency[];
@@ -179,7 +181,7 @@ export interface CompetencyProfile {
 
 export interface RecommendationItemV2 {
   id: string;
-  category: 'srs-due' | 'weak-skill' | 'resume-lesson' | 'next-lesson' | 'ai-conversation' | 'diagnostic-test' | string;
+  category: 'srs-due' | 'weak-skill' | 'resume-lesson' | 'next-lesson' | 'ai-conversation' | string;
   title: string;
   priority: number;
   utilityScore: number;
@@ -196,6 +198,7 @@ export interface PersonalizedLearningPlanV2 {
   userId: string;
   assessmentStatus: string;
   currentHskLevel: number;
+  estimatedHskLevel?: number | null;
   availableMinutes: number;
   confidenceScore: number;
   overallMasteryPercent: number;

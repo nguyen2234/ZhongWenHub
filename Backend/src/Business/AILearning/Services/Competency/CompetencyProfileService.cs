@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +14,8 @@ namespace ZhongWenHub.Business.AILearning.Services.Competency;
 
 public sealed class CompetencyProfileService : ICompetencyProfileService
 {
+    private const int MaxAttemptsWindow = 200;
+
     private static readonly (string Key, string Label)[] MacroSkills =
     {
         ("vocabulary", "Từ vựng (Vocabulary)"),
@@ -18,7 +23,8 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         ("reading", "Đọc hiểu (Reading)"),
         ("listening", "Nghe hiểu (Listening)"),
         ("hanzi", "Nhận diện & Viết chữ Hán"),
-        ("speaking", "Phát âm & Thanh điệu")
+        ("pinyin", "Phiên âm & Thanh điệu (Pinyin)"),
+        ("speaking", "Phát âm & Nói (Speaking)")
     };
 
     private readonly ApplicationDbContext _dbContext;
@@ -34,13 +40,14 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
-        var currentHsk = profile?.SelectedHskLevel is >= 1 and <= 6 ? profile.SelectedHskLevel : 1;
+        var selectedHsk = profile?.SelectedHskLevel is >= 1 and <= 6 ? profile.SelectedHskLevel : 1;
 
-        // Fetch standard practice attempts in chronological order
+        // Fetch recent practice attempts with window cap to prevent unbounded query load
         var practiceAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
             .Where(a => a.UserId == userId)
-            .OrderBy(a => a.AttemptedAt)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(MaxAttemptsWindow)
             .Select(a => new AttemptRecord(
                 NormalizeSkill(a.Category),
                 string.IsNullOrWhiteSpace(a.TopicTitle) ? (a.KnowledgePointId ?? "Kiến thức tổng hợp") : a.TopicTitle,
@@ -49,16 +56,17 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
                 a.AttemptedAt))
             .ToListAsync(cancellationToken);
 
-        // Fetch AI-generated exercise attempts in chronological order
+        // Fetch recent AI-generated exercise attempts with window cap
         var aiAttempts = await _dbContext.AiExerciseAttempts
             .AsNoTracking()
             .Include(a => a.AiExercise)
             .Where(a => a.UserId == userId)
-            .OrderBy(a => a.AttemptedAt)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(MaxAttemptsWindow)
             .Select(a => new AttemptRecord(
                 NormalizeSkill(a.SkillCategory),
                 a.AiExercise != null ? $"{a.AiExercise.SourceType} HSK {a.AiExercise.HskLevel}" : "Bài tập AI",
-                a.AiExercise != null ? a.AiExercise.HskLevel : currentHsk,
+                a.AiExercise != null ? a.AiExercise.HskLevel : selectedHsk,
                 a.IsCorrect,
                 a.AttemptedAt))
             .ToListAsync(cancellationToken);
@@ -70,8 +78,14 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             .Select(v => new { v.Status, v.Repetitions, v.EaseFactor })
             .ToListAsync(cancellationToken);
 
-        var allAttempts = practiceAttempts.Concat(aiAttempts).OrderBy(a => a.AttemptedAt).ToList();
+        // Reverse to ascending chronological order for BKT sequence processing
+        var allAttempts = practiceAttempts
+            .Concat(aiAttempts)
+            .OrderBy(a => a.AttemptedAt)
+            .ToList();
+
         var totalEvals = allAttempts.Count;
+        var unclassifiedCount = allAttempts.Count(a => a.SkillCategory.StartsWith("unclassified", StringComparison.OrdinalIgnoreCase));
 
         // Process Macro Skills
         var skillDtos = new List<SkillCompetencyDto>();
@@ -209,9 +223,9 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             assessmentStatus = "IN_PROGRESS";
         }
 
-        // Extract Top Weak Concepts
+        // Extract Top Weak Concepts with unique and stable ConceptCode
         var weakConcepts = allAttempts
-            .Where(a => !string.IsNullOrWhiteSpace(a.TopicTitle))
+            .Where(a => !string.IsNullOrWhiteSpace(a.TopicTitle) && !a.SkillCategory.StartsWith("unclassified"))
             .GroupBy(a => new { a.TopicTitle, a.SkillCategory, a.HskLevel })
             .Select(g =>
             {
@@ -238,7 +252,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             .Take(5)
             .Select(x => new WeakConceptDto
             {
-                ConceptCode = $"WK-{x.HskLevel}-{x.SkillCategory.ToUpperInvariant()}",
+                ConceptCode = GenerateConceptCode(x.HskLevel, x.SkillCategory, x.TopicTitle),
                 TitleVi = x.TopicTitle,
                 SkillCategory = x.SkillCategory,
                 HskLevel = x.HskLevel,
@@ -257,17 +271,21 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             .Select(s => s.LabelVi)
             .ToList();
 
-        // Estimated HSK Level adjustment
-        var estimatedHsk = currentHsk;
+        // Estimated HSK Level:
+        // Do NOT automatically increment or decrement purely by average score and attempt count.
+        // If unassessed or evidence across levels is insufficient, keep EstimatedHskLevel as null.
+        int? estimatedHsk = null;
         if (assessmentStatus is "ASSESSED" or "CALIBRATED")
         {
-            if (overallMastery >= 85.0 && totalEvals >= 20)
+            // Verify if student has evaluated attempts for their selected HSK level
+            var attemptsAtSelectedHsk = allAttempts.Where(a => a.HskLevel == selectedHsk).ToList();
+            if (attemptsAtSelectedHsk.Count >= 10)
             {
-                estimatedHsk = Math.Min(6, currentHsk + 1);
-            }
-            else if (overallMastery < 40.0 && totalEvals >= 15 && currentHsk > 1)
-            {
-                estimatedHsk = Math.Max(1, currentHsk - 1);
+                var accuracyAtLevel = attemptsAtSelectedHsk.Count(a => a.IsCorrect) * 1.0 / attemptsAtSelectedHsk.Count;
+                if (accuracyAtLevel >= 0.70 && overallConfidence >= 0.60)
+                {
+                    estimatedHsk = selectedHsk;
+                }
             }
         }
 
@@ -275,10 +293,12 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         {
             UserId = userId,
             AssessmentStatus = assessmentStatus,
+            SelectedHskLevel = selectedHsk,
             EstimatedHskLevel = estimatedHsk,
             ConfidenceScore = overallConfidence,
             OverallMasteryPercent = overallMastery,
             TotalEvaluations = totalEvals,
+            UnclassifiedEvaluationsCount = unclassifiedCount,
             HasSpeakingAudioData = false,
             SpeakingAudioNote = "Chưa có dữ liệu âm thanh được chấm điểm; hệ thống không suy đoán điểm nói.",
             MacroSkills = skillDtos,
@@ -288,22 +308,58 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         };
     }
 
-    private static string NormalizeSkill(string? category)
+    /// <summary>
+    /// Normalizes raw skill category strings without conflating distinct skills or coercing unknowns.
+    /// Pinyin and tone are preserved as "pinyin" (distinct from "hanzi").
+    /// Unknown values remain traceable as "unclassified:{category}".
+    /// </summary>
+    public static string NormalizeSkill(string? category)
     {
-        var c = (category ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(category)) return "unclassified";
+        var c = category.Trim().ToLowerInvariant();
         return c switch
         {
             "vocabulary" or "vocab" => "vocabulary",
             "grammar" or "sentence" => "grammar",
-            "hanzi" or "character" or "writing" => "hanzi",
-            "pinyin" or "tone" => "hanzi",
             "reading" => "reading",
             "listening" => "listening",
+            "hanzi" or "character" or "writing" => "hanzi",
+            "pinyin" or "tone" or "phonetics" => "pinyin",
             "speaking" => "speaking",
-            _ => "grammar"
+            _ => $"unclassified:{c}"
         };
+    }
+
+    /// <summary>
+    /// Generates a unique, stable, deterministic ConceptCode per knowledge point.
+    /// Prevents collisions among different topics sharing the same skill and HSK level.
+    /// Format: CP-{hsk}-{SKILL}-{SLUG}-{SHORTHASH}
+    /// </summary>
+    public static string GenerateConceptCode(int hskLevel, string skillCategory, string topicTitle)
+    {
+        var rawTitle = (topicTitle ?? "general").Trim();
+        var normalizedTitle = rawTitle.ToLowerInvariant();
+
+        // 8-character deterministic SHA256 hex
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalizedTitle));
+        var shortHash = Convert.ToHexString(hashBytes)[..8];
+
+        var slug = Slugify(normalizedTitle);
+        if (slug.Length > 20) slug = slug[..20];
+
+        var skill = string.IsNullOrWhiteSpace(skillCategory) ? "GEN" : skillCategory.ToUpperInvariant();
+
+        return string.IsNullOrWhiteSpace(slug)
+            ? $"CP-{hskLevel}-{skill}-{shortHash}"
+            : $"CP-{hskLevel}-{skill}-{slug.ToUpperInvariant()}-{shortHash}";
+    }
+
+    private static string Slugify(string text)
+    {
+        var clean = Regex.Replace(text, @"[^\w\s-]", "");
+        clean = Regex.Replace(clean, @"\s+", "-").Trim('-');
+        return clean;
     }
 
     private sealed record AttemptRecord(string SkillCategory, string TopicTitle, int HskLevel, bool IsCorrect, DateTime AttemptedAt);
 }
-

@@ -214,8 +214,10 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
 
           <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.5, maxWidth: '640px' }}>
             {isNotAssessed
-              ? 'Học viên mới chưa có đủ dữ liệu câu hỏi thực tế. Hãy làm bài khảo sát định vị hoặc hoàn thành bài tập đầu tiên để kích hoạt ma trận năng lực.'
-              : `Ước tính trình độ HSK ${profile?.estimatedHskLevel} dựa trên ${profile?.totalEvaluations} lượt làm bài với độ tin cậy thống kê ${Math.round((profile?.confidenceScore || 0) * 100)}%.`}
+              ? 'Học viên mới chưa có dữ liệu câu hỏi thực tế. Hãy bắt đầu học theo lộ trình HSK hoặc làm bài tập để hệ thống kích hoạt ma trận năng lực.'
+              : profile?.estimatedHskLevel
+              ? `Ước tính trình độ HSK ${profile.estimatedHskLevel} dựa trên ${profile.totalEvaluations} lượt làm bài với độ tin cậy thống kê ${Math.round(profile.confidenceScore * 100)}%.`
+              : `Mục tiêu học viên chọn: HSK ${profile?.selectedHskLevel || 1}. Hệ thống đang thu thập thêm bằng chứng câu hỏi để xác định trình độ thực tế.`}
           </p>
         </div>
 
@@ -306,7 +308,7 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
                 Trạng thái: Chưa có dữ liệu đánh giá ban đầu
               </div>
               <div style={{ fontSize: '13px', color: 'var(--muted, #64748b)', marginTop: '4px', lineHeight: 1.5 }}>
-                Hệ thống không giả định bạn bắt đầu từ HSK 1 nếu bạn đã có nền tảng. Hãy làm bài khảo sát định vị nhanh 10 phút hoặc hoàn thành bài học để hệ thống bắt đầu theo dõi tiến độ chính xác.
+                Học viên chưa có dữ liệu làm bài tập. Hãy bắt đầu học bài học đầu tiên trong lộ trình HSK để hệ thống ghi nhận và phân tích năng lực của bạn.
               </div>
             </div>
           </div>
@@ -329,7 +331,7 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
               gap: '6px',
             }}
           >
-            <span>Khảo sát định vị ngay</span>
+            <span>Bắt đầu học lộ trình HSK</span>
             <ArrowRight size={14} />
           </button>
         </div>
@@ -353,12 +355,12 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
               border: '1px solid var(--border, #e2e8f0)',
             }}
           >
-            <div style={{ fontSize: '12px', color: 'var(--muted, #64748b)', fontWeight: 600 }}>Trình độ HSK ước lượng</div>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#4338ca', marginTop: '6px' }}>
-              HSK {profile.estimatedHskLevel}
+            <div style={{ fontSize: '12px', color: 'var(--muted, #64748b)', fontWeight: 600 }}>Trình độ HSK</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: '#4338ca', marginTop: '6px' }}>
+              {profile.estimatedHskLevel ? `Đánh giá: HSK ${profile.estimatedHskLevel}` : `Mục tiêu: HSK ${profile.selectedHskLevel}`}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--muted, #64748b)', marginTop: '4px' }}>
-              Trạng thái: {profile.assessmentStatus}
+              {profile.estimatedHskLevel ? `Trạng thái: ${profile.assessmentStatus}` : 'Chưa đủ bằng chứng để xác định HSK thực tế'}
             </div>
           </div>
 

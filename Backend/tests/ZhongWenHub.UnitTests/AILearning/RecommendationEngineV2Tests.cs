@@ -96,7 +96,7 @@ public class RecommendationEngineV2Tests
     }
 
     [Fact]
-    public void BuildScoredCandidates_WhenNotAssessed_IncludesDiagnosticRecommendation()
+    public void BuildScoredCandidates_WhenNotAssessed_RecommendsNextLessonInCurriculumWithoutFakeDiagnosticTest()
     {
         var competency = new CompetencyProfileDto
         {
@@ -112,13 +112,15 @@ public class RecommendationEngineV2Tests
             dueSrsCount: 0,
             masteredCount: 0,
             inProgressLessonId: null,
-            nextLessonId: null,
-            nextLessonTitle: null);
+            nextLessonId: "lesson-01",
+            nextLessonTitle: "Bài 1: Chào hỏi");
 
-        var diagItem = candidates.FirstOrDefault(c => c.Category == "diagnostic-test");
-        Assert.NotNull(diagItem);
-        Assert.True(diagItem.UtilityScore > 0.70);
-        Assert.NotEmpty(diagItem.ActionLabel);
+        // Must NOT emit a non-existent diagnostic assessment recommendation
+        Assert.DoesNotContain(candidates, c => c.Category == "diagnostic-test");
+
+        var nextLesson = candidates.FirstOrDefault(c => c.Category == "next-lesson");
+        Assert.NotNull(nextLesson);
+        Assert.Equal("/lesson/lesson-01", nextLesson.DestinationRoute);
     }
 
     [Fact]
@@ -164,6 +166,7 @@ public class RecommendationEngineV2Tests
         Assert.NotNull(plan);
         Assert.Equal(userId, plan.UserId);
         Assert.Equal(1, plan.CurrentHskLevel);
+        Assert.Null(plan.EstimatedHskLevel); // Insufficient multi-skill evaluations
         Assert.Equal(25, plan.AvailableMinutes);
         Assert.Equal(3, plan.DueSrsCount);
         Assert.Equal(5, plan.StreakDays);
@@ -173,6 +176,7 @@ public class RecommendationEngineV2Tests
         var top = plan.Recommendations.First();
         Assert.Equal(1, top.Priority);
         Assert.Equal("srs-due", top.Category);
+        Assert.Equal("/srs-review", top.DestinationRoute);
         Assert.True(top.UtilityScore >= plan.Recommendations.Last().UtilityScore);
     }
 }

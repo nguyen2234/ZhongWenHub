@@ -8,6 +8,7 @@ public class PersonalizedLearningPlanV2Dto
     public Guid UserId { get; set; }
     public string AssessmentStatus { get; set; } = "NOT_ASSESSED";
     public int CurrentHskLevel { get; set; } = 1;
+    public int? EstimatedHskLevel { get; set; }
     public int AvailableMinutes { get; set; } = 20;
     public double ConfidenceScore { get; set; } = 0.0;
     public double OverallMasteryPercent { get; set; } = 0.0;

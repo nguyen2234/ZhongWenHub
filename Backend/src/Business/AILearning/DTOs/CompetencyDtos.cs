@@ -13,9 +13,15 @@ public class CompetencyProfileDto
     public string AssessmentStatus { get; set; } = "NOT_ASSESSED";
 
     /// <summary>
-    /// Estimated current HSK level (1 to 6) based on real evaluated data.
+    /// Student's self-selected / enrolled HSK level.
     /// </summary>
-    public int EstimatedHskLevel { get; set; } = 1;
+    public int SelectedHskLevel { get; set; } = 1;
+
+    /// <summary>
+    /// Empirically estimated HSK level (1 to 6) based on validated cross-skill evidence.
+    /// Null when NOT_ASSESSED or evidence is insufficient.
+    /// </summary>
+    public int? EstimatedHskLevel { get; set; }
 
     /// <summary>
     /// Statistical confidence in [0.0, 1.0] reflecting data volume and consistency.
@@ -31,6 +37,12 @@ public class CompetencyProfileDto
     /// Total real practice and test questions analyzed.
     /// </summary>
     public int TotalEvaluations { get; set; } = 0;
+
+    /// <summary>
+    /// Number of attempts whose categories could not be mapped to standard macro skills.
+    /// Preserved for traceability without distorting other skills.
+    /// </summary>
+    public int UnclassifiedEvaluationsCount { get; set; } = 0;
 
     /// <summary>
     /// Whether speaking pronunciation has been evaluated with real audio data.

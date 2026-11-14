@@ -135,7 +135,8 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
         {
             UserId = userId,
             AssessmentStatus = competency.AssessmentStatus,
-            CurrentHskLevel = competency.EstimatedHskLevel,
+            CurrentHskLevel = competency.SelectedHskLevel,
+            EstimatedHskLevel = competency.EstimatedHskLevel,
             AvailableMinutes = plannedMinutes,
             ConfidenceScore = competency.ConfidenceScore,
             OverallMasteryPercent = competency.OverallMasteryPercent,
@@ -236,36 +237,13 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
                     { "status", "IN_PROGRESS" }
                 },
                 EstimatedMinutes = Math.Min(15, plannedMinutes),
-                DestinationRoute = $"/lesson?id={Uri.EscapeDataString(inProgressLessonId)}",
+                DestinationRoute = $"/lesson/{Uri.EscapeDataString(inProgressLessonId)}",
                 Badge = $"HSK {currentHsk}",
                 ActionLabel = "Học tiếp bài hiện tại"
             });
         }
 
-        // Candidate 4: Diagnostic Assessment (if completely unassessed)
-        if (competency.AssessmentStatus == "NOT_ASSESSED")
-        {
-            items.Add(new RecommendationItemV2Dto
-            {
-                Id = "rec-diagnostic-test",
-                Category = "diagnostic-test",
-                Title = "Khảo sát nhanh định vị trình độ HSK",
-                UtilityScore = 0.72,
-                Reason = "Bạn chưa có dữ liệu đánh giá năng lực ban đầu. Bài khảo sát nhanh 10 phút sẽ giúp hệ thống gợi ý bài học sát với trình độ thực của bạn.",
-                PedagogicalGoalVi = "Đo lường năng lực thực tế để tự động điều chỉnh lộ trình học tập tối ưu, không mất thời gian học lại kiến thức đã biết.",
-                EvidenceData = new Dictionary<string, object>
-                {
-                    { "totalEvaluations", competency.TotalEvaluations },
-                    { "status", "NOT_ASSESSED" }
-                },
-                EstimatedMinutes = 10,
-                DestinationRoute = "/learning-path",
-                Badge = "Khuyến nghị",
-                ActionLabel = "Định vị trình độ"
-            });
-        }
-
-        // Candidate 5: Next Lesson in Curriculum
+        // Candidate 4: Next Lesson in Curriculum
         if (string.IsNullOrWhiteSpace(inProgressLessonId) && !string.IsNullOrWhiteSpace(nextLessonId))
         {
             var title = string.IsNullOrWhiteSpace(nextLessonTitle) ? "Bài học tiếp theo" : nextLessonTitle;
@@ -274,7 +252,7 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
                 Id = $"rec-next-{nextLessonId}",
                 Category = "next-lesson",
                 Title = $"Học bài mới: {title}",
-                UtilityScore = 0.65,
+                UtilityScore = 0.68,
                 Reason = $"Bài học kế tiếp theo khung đào tạo HSK {currentHsk} chuẩn quốc tế.",
                 PedagogicalGoalVi = "Tiếp thu vốn từ mới và điểm ngữ pháp tiếp theo trong chương trình.",
                 EvidenceData = new Dictionary<string, object>
@@ -283,7 +261,7 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
                     { "hskLevel", currentHsk }
                 },
                 EstimatedMinutes = Math.Min(20, plannedMinutes),
-                DestinationRoute = $"/lesson?id={Uri.EscapeDataString(nextLessonId)}",
+                DestinationRoute = $"/lesson/{Uri.EscapeDataString(nextLessonId)}",
                 Badge = $"HSK {currentHsk}",
                 ActionLabel = "Bắt đầu bài mới"
             });
