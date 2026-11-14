@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { AuthUser, LoginRequest, AuthResponse } from '../types/auth.types';
+import type { AuthUser, LoginRequest, RegisterRequest, AuthResponse } from '../types/auth.types';
 import { authService } from '../services/authService';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { managementAuthService } from '../../../management/shared/services/management-auth.service';
@@ -11,6 +11,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (req: LoginRequest) => Promise<AuthResponse>;
+  register: (req: RegisterRequest) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
   updateUser: (updated: Partial<AuthUser>) => void;
@@ -116,6 +117,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [syncManagementSession]
   );
 
+  const register = useCallback(
+    async (req: RegisterRequest): Promise<AuthResponse> => {
+      const res = await authService.register(req);
+      if (res.success && res.user) {
+        setUser(res.user);
+        syncManagementSession(res.user);
+      }
+      return res;
+    },
+    [syncManagementSession]
+  );
+
   const logout = useCallback(async (): Promise<void> => {
     try {
       await authService.logout();
@@ -142,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: Boolean(user && authTokenService.isAuthenticated()),
     isLoading,
     login,
+    register,
     logout,
     refreshUser,
     updateUser,
@@ -158,6 +172,7 @@ export function useAuthContext(): AuthContextType {
       isAuthenticated: false,
       isLoading: false,
       login: async (req: LoginRequest) => authService.login(req),
+      register: async (req: RegisterRequest) => authService.register(req),
       logout: async () => authService.logout(),
       refreshUser: async () => authService.getCurrentUser(),
       updateUser: () => {},

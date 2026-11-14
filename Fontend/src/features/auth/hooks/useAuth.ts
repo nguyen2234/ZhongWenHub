@@ -45,7 +45,7 @@ export function useAuth() {
       setApiSuccess(null);
 
       try {
-        const response = await authService.register(request);
+        const response = await authContext.register(request);
         if (response.success && response.user) {
           setApiSuccess(response.message || 'Đăng ký thành công!');
           setTimeout(() => {
@@ -59,7 +59,7 @@ export function useAuth() {
         setIsSubmitting(false);
       }
     },
-    []
+    [authContext]
   );
 
   const loginWithGoogle = useCallback(
