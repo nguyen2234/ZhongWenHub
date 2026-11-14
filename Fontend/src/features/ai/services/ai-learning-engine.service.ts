@@ -135,6 +135,81 @@ export interface PersonalizedLearningPlan {
   generatedAt: string;
 }
 
+export interface SkillCompetency {
+  skillCategory: string;
+  labelVi: string;
+  totalAttempts: number;
+  correctAttempts: number;
+  accuracyPercent: number;
+  masteryScore: number;
+  masteryPercent: number;
+  confidenceScore: number;
+  masteryTier: 'NOT_ASSESSED' | 'NOVICE' | 'EMERGING' | 'COMPETENT' | 'MASTERED' | string;
+  isMeasuredRealData: boolean;
+  weakTopics: string[];
+}
+
+export interface WeakConcept {
+  conceptCode: string;
+  titleVi: string;
+  skillCategory: string;
+  hskLevel: number;
+  masteryScore: number;
+  masteryTier: string;
+  totalAttempts: number;
+  incorrectAttempts: number;
+  evidenceVi: string;
+  recommendedActionRoute: string;
+}
+
+export interface CompetencyProfile {
+  userId: string;
+  assessmentStatus: 'NOT_ASSESSED' | 'IN_PROGRESS' | 'ASSESSED' | 'CALIBRATED' | string;
+  estimatedHskLevel: number;
+  confidenceScore: number;
+  overallMasteryPercent: number;
+  totalEvaluations: number;
+  hasSpeakingAudioData: boolean;
+  speakingAudioNote: string;
+  macroSkills: SkillCompetency[];
+  topWeakConcepts: WeakConcept[];
+  topStrengths: string[];
+  lastAssessedAt: string;
+}
+
+export interface RecommendationItemV2 {
+  id: string;
+  category: 'srs-due' | 'weak-skill' | 'resume-lesson' | 'next-lesson' | 'ai-conversation' | 'diagnostic-test' | string;
+  title: string;
+  priority: number;
+  utilityScore: number;
+  reason: string;
+  pedagogicalGoalVi: string;
+  evidenceData: Record<string, unknown>;
+  estimatedMinutes: number;
+  destinationRoute: string;
+  badge: string;
+  actionLabel: string;
+}
+
+export interface PersonalizedLearningPlanV2 {
+  userId: string;
+  assessmentStatus: string;
+  currentHskLevel: number;
+  availableMinutes: number;
+  confidenceScore: number;
+  overallMasteryPercent: number;
+  dueSrsCount: number;
+  masteredWordsCount: number;
+  inProgressLessonId?: string | null;
+  streakDays: number;
+  recommendations: RecommendationItemV2[];
+  aiCoachingExplanationVi?: string | null;
+  aiFocusTipVi?: string | null;
+  usedLlmExplanation: boolean;
+  generatedAt: string;
+}
+
 export const aiLearningEngineService = {
   getScenarios: () => httpClient.get<ConversationScenario[]>('/ai/conversations/scenarios'),
 
@@ -197,4 +272,16 @@ export const aiLearningEngineService = {
     httpClient.get<PersonalizedLearningPlan>(`/ai/recommendations?explain=${explain ? 'true' : 'false'}`, {
       timeoutMs: 35000,
     }),
+
+  getCompetencyProfile: () => httpClient.get<CompetencyProfile>('/ai/competency-profile'),
+
+  getRecommendationsV2: (availableMinutes = 20, explain = false) => {
+    const params = new URLSearchParams();
+    if (availableMinutes) params.set('availableMinutes', String(availableMinutes));
+    if (explain) params.set('explain', 'true');
+    const qs = params.toString();
+    return httpClient.get<PersonalizedLearningPlanV2>(`/ai/recommendations/v2${qs ? `?${qs}` : ''}`, {
+      timeoutMs: 35000,
+    });
+  },
 };

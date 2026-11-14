@@ -1,10 +1,12 @@
-﻿using ZhongWenHub.Business.Content.Services.Storage;
+using ZhongWenHub.Business.Content.Services.Storage;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using ZhongWenHub.Business.AILearning;
+using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Business.AILearning.Services.Recommendation;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
@@ -122,6 +124,8 @@ public static class DependencyInjection
         services.AddScoped<IAIExerciseService, AIExerciseService>();
         services.AddScoped<IAIErrorAnalysisService, AIErrorAnalysisService>();
         services.AddScoped<IPersonalizedLearningService, PersonalizedLearningService>();
+        services.AddScoped<ICompetencyProfileService, CompetencyProfileService>();
+        services.AddScoped<IRecommendationEngineV2, RecommendationEngineV2>();
 
         return services;
     }

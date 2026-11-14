@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ZhongWenHub.Business.AILearning;
 using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Business.AILearning.Services.Recommendation;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authorization;
 using ZhongWenHub.Business.Users;
@@ -19,6 +21,8 @@ public class AILearningEngineController : BaseApiController
     private readonly IAIExerciseService _exerciseService;
     private readonly IAIErrorAnalysisService _errorAnalysisService;
     private readonly IPersonalizedLearningService _personalizedLearningService;
+    private readonly ICompetencyProfileService _competencyService;
+    private readonly IRecommendationEngineV2 _recommendationEngineV2;
     private readonly ICurrentUserService _currentUserService;
 
     public AILearningEngineController(
@@ -26,12 +30,16 @@ public class AILearningEngineController : BaseApiController
         IAIExerciseService exerciseService,
         IAIErrorAnalysisService errorAnalysisService,
         IPersonalizedLearningService personalizedLearningService,
+        ICompetencyProfileService competencyService,
+        IRecommendationEngineV2 recommendationEngineV2,
         ICurrentUserService currentUserService)
     {
         _conversationService = conversationService;
         _exerciseService = exerciseService;
         _errorAnalysisService = errorAnalysisService;
         _personalizedLearningService = personalizedLearningService;
+        _competencyService = competencyService;
+        _recommendationEngineV2 = recommendationEngineV2;
         _currentUserService = currentUserService;
     }
 
@@ -224,5 +232,30 @@ public class AILearningEngineController : BaseApiController
         if (!userId.HasValue) return Unauthorized();
 
         return Ok(await _personalizedLearningService.GetPersonalizedPlanAsync(userId.Value, explain, cancellationToken));
+    }
+
+    // ==================== COMPETENCY PROFILE & RECOMMENDATIONS V2 ====================
+
+    [HttpGet("competency-profile")]
+    [ProducesResponseType(typeof(CompetencyProfileDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCompetencyProfile(CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _competencyService.GetCompetencyProfileAsync(userId.Value, cancellationToken));
+    }
+
+    [HttpGet("recommendations/v2")]
+    [ProducesResponseType(typeof(PersonalizedLearningPlanV2Dto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPersonalizedPlanV2(
+        [FromQuery] int? availableMinutes = null,
+        [FromQuery] bool explain = false,
+        CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _recommendationEngineV2.GetPlanV2Async(userId.Value, availableMinutes, explain, cancellationToken));
     }
 }
