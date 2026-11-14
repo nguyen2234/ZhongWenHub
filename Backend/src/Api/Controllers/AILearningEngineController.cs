@@ -214,7 +214,38 @@ public class AILearningEngineController : BaseApiController
         }
     }
 
+    [HttpPost("exercises/adaptive/session")]
+    [ProducesResponseType(typeof(AdaptiveSessionDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GenerateAdaptiveSession(
+        [FromBody] GenerateAdaptiveSessionRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        try
+        {
+            return Ok(await _exerciseService.GenerateAdaptiveSessionAsync(userId.Value, request, cancellationToken));
+        }
+        catch (AITutorException ex)
+        {
+            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
+        }
+    }
+
     // ==================== ERROR ANALYSIS & PERSONALIZED LEARNING ====================
+
+    [HttpPost("error-analysis/explain")]
+    [ProducesResponseType(typeof(AIErrorAnalysisDetailDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExplainErrorDetail(
+        [FromBody] RequestErrorAnalysisDto request,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _errorAnalysisService.AnalyzeErrorDetailAsync(userId.Value, request, cancellationToken));
+    }
 
     [HttpGet("error-analysis")]
     [ProducesResponseType(typeof(ErrorAnalysisReportDto), StatusCodes.Status200OK)]

@@ -45,7 +45,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         // Fetch recent practice attempts with window cap to prevent unbounded query load
         var practiceAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
-            .Where(a => a.UserId == userId)
+            .Where(a => a.UserId == userId && !a.ExerciseId.StartsWith("ai_"))
             .OrderByDescending(a => a.AttemptedAt)
             .Take(MaxAttemptsWindow)
             .Select(a => new AttemptRecord(

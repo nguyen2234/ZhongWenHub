@@ -131,9 +131,92 @@ public sealed class AiExerciseAttemptResultDto
     public string ExplanationVi { get; init; } = string.Empty;
     public string SkillCategory { get; init; } = string.Empty;
     public DateTime AttemptedAt { get; init; }
+    public AIErrorAnalysisDetailDto? ErrorAnalysis { get; init; }
+    public NextPracticeSuggestionDto? NextSuggestion { get; init; }
+}
+
+public sealed class NextPracticeSuggestionDto
+{
+    public string Title { get; init; } = string.Empty;
+    public string SkillCategory { get; init; } = string.Empty;
+    public int HskLevel { get; init; } = 1;
+    public string ActionRoute { get; init; } = "/ai-exercises";
+    public string ReasonVi { get; init; } = string.Empty;
+}
+
+// ==================== ADAPTIVE PRACTICE SESSION ====================
+
+public sealed class GenerateAdaptiveSessionRequestDto
+{
+    public int? TargetHskLevel { get; set; }
+    public string? FocusSkill { get; set; } = "all";
+    public int QuestionCount { get; set; } = 5;
+    public int AvailableMinutes { get; set; } = 15;
+    public bool PreferWeakness { get; set; } = true;
+    public bool IncludeSrsDue { get; set; } = true;
+}
+
+public sealed class AdaptiveExerciseDto
+{
+    public Guid Id { get; init; }
+    public int HskLevel { get; init; }
+    public string SkillCategory { get; init; } = string.Empty;
+    public string ExerciseType { get; init; } = "multiple-choice";
+    public string OriginTag { get; init; } = "AI_GENERATED";
+    public string AcademicStatus { get; init; } = "UNAPPROVED_EXPERIMENTAL";
+    public string? SourceReviewNote { get; init; }
+    public string PromptZh { get; init; } = string.Empty;
+    public string? PromptPinyin { get; init; }
+    public string? PromptVi { get; init; }
+    public List<string> Options { get; init; } = new();
+    public string? DifficultyTag { get; init; }
+    public string? TargetConcept { get; init; }
+}
+
+public sealed class AdaptiveSessionDto
+{
+    public Guid SessionId { get; init; }
+    public int HskLevel { get; init; }
+    public string FocusSkill { get; init; } = "all";
+    public string Mode { get; init; } = "ADAPTIVE";
+    public int TotalQuestions { get; init; }
+    public string StrategySummaryVi { get; init; } = string.Empty;
+    public List<AdaptiveExerciseDto> Questions { get; init; } = new();
+    public DateTime CreatedAt { get; init; }
 }
 
 // ==================== AI ERROR ANALYSIS ====================
+
+public sealed class AIErrorExampleDto
+{
+    public string Hanzi { get; init; } = string.Empty;
+    public string Pinyin { get; init; } = string.Empty;
+    public string Vietnamese { get; init; } = string.Empty;
+}
+
+public sealed class AIErrorAnalysisDetailDto
+{
+    public string ErrorType { get; init; } = "grammar";
+    public string ErrorTypeLabelVi { get; init; } = string.Empty;
+    public string WhyIncorrectVi { get; init; } = string.Empty;
+    public string WhyCorrectVi { get; init; } = string.Empty;
+    public string KnowledgePointVi { get; init; } = string.Empty;
+    public List<AIErrorExampleDto> Examples { get; init; } = new();
+    public string RecommendedPracticeAction { get; init; } = string.Empty;
+    public string RecommendedRoute { get; init; } = "/ai-exercises";
+    public bool IsAiGenerated { get; init; } = true;
+    public bool IsFallback { get; init; } = false;
+}
+
+public sealed class RequestErrorAnalysisDto
+{
+    public Guid? ExerciseId { get; set; }
+    public string? QuestionText { get; set; }
+    public string? UserAnswer { get; set; }
+    public string? CorrectAnswer { get; set; }
+    public string? SkillCategory { get; set; }
+    public int HskLevel { get; set; } = 1;
+}
 
 public sealed class SkillStatisticDto
 {

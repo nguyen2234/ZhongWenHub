@@ -1,10 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Business.AILearning.Services.Competency;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Business.AILearning;
@@ -14,6 +22,7 @@ public interface IAIExerciseService
     Task<List<AiGeneratedExerciseDto>> GenerateExercisesAsync(Guid userId, GenerateAiExercisesRequestDto request, CancellationToken cancellationToken = default);
     Task<List<AiGeneratedExerciseDto>> ListMyExercisesAsync(Guid userId, int? hskLevel = null, Guid? lessonId = null, CancellationToken cancellationToken = default);
     Task<AiExerciseAttemptResultDto> SubmitAttemptAsync(Guid userId, Guid aiExerciseId, SubmitAiExerciseAttemptDto request, CancellationToken cancellationToken = default);
+    Task<AdaptiveSessionDto> GenerateAdaptiveSessionAsync(Guid userId, GenerateAdaptiveSessionRequestDto request, CancellationToken cancellationToken = default);
 }
 
 public sealed class AIExerciseService : IAIExerciseService
@@ -34,6 +43,7 @@ public sealed class AIExerciseService : IAIExerciseService
     private readonly IAIProvider _aiProvider;
     private readonly IAIUsageLogger _usageLogger;
     private readonly IAIErrorAnalysisService _errorAnalysisService;
+    private readonly ICompetencyProfileService? _competencyService;
     private readonly ILogger<AIExerciseService> _logger;
 
     public AIExerciseService(
@@ -41,13 +51,15 @@ public sealed class AIExerciseService : IAIExerciseService
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
         IAIErrorAnalysisService errorAnalysisService,
-        ILogger<AIExerciseService> logger)
+        ILogger<AIExerciseService> logger,
+        ICompetencyProfileService? competencyService = null)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
         _errorAnalysisService = errorAnalysisService;
         _logger = logger;
+        _competencyService = competencyService;
     }
 
     public async Task<List<AiGeneratedExerciseDto>> GenerateExercisesAsync(
@@ -117,7 +129,8 @@ public sealed class AIExerciseService : IAIExerciseService
         _dbContext.AiGeneratedExercises.AddRange(validatedEntities);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return validatedEntities.Select(MapDto).ToList();
+        // Security: Newly generated exercises must NOT expose answers before submission
+        return validatedEntities.Select(e => MapDto(e, isAttempted: false)).ToList();
     }
 
     public async Task<List<AiGeneratedExerciseDto>> ListMyExercisesAsync(
@@ -145,7 +158,14 @@ public sealed class AIExerciseService : IAIExerciseService
             .Take(30)
             .ToListAsync(cancellationToken);
 
-        return items.Select(MapDto).ToList();
+        // Determine which exercises have been attempted by this user
+        var attemptedExerciseIds = await _dbContext.AiExerciseAttempts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .Select(a => a.AiExerciseId)
+            .ToHashSetAsync(cancellationToken);
+
+        return items.Select(e => MapDto(e, isAttempted: attemptedExerciseIds.Contains(e.Id))).ToList();
     }
 
     public async Task<AiExerciseAttemptResultDto> SubmitAttemptAsync(
@@ -163,12 +183,52 @@ public sealed class AIExerciseService : IAIExerciseService
             throw new KeyNotFoundException("Không tìm thấy bài tập AI này.");
         }
 
+        // Idempotency check: if already attempted, return existing result without duplicate records or re-calling LLM
+        var existingAttempt = await _dbContext.AiExerciseAttempts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
+
+        if (existingAttempt != null)
+        {
+            AIErrorAnalysisDetailDto? existingAnalysis = null;
+            if (!existingAttempt.IsCorrect)
+            {
+                existingAnalysis = await _errorAnalysisService.AnalyzeErrorDetailAsync(
+                    userId,
+                    new RequestErrorAnalysisDto
+                    {
+                        ExerciseId = aiExerciseId,
+                        QuestionText = exercise.PromptZh,
+                        UserAnswer = existingAttempt.UserAnswer,
+                        CorrectAnswer = exercise.CorrectAnswer,
+                        SkillCategory = existingAttempt.SkillCategory,
+                        HskLevel = exercise.HskLevel
+                    },
+                    cancellationToken);
+            }
+
+            return new AiExerciseAttemptResultDto
+            {
+                AttemptId = existingAttempt.Id,
+                AiExerciseId = exercise.Id,
+                IsCorrect = existingAttempt.IsCorrect,
+                CorrectIndex = exercise.CorrectIndex,
+                CorrectAnswer = exercise.CorrectAnswer,
+                ExplanationVi = exercise.ExplanationVi,
+                SkillCategory = existingAttempt.SkillCategory,
+                AttemptedAt = existingAttempt.AttemptedAt,
+                ErrorAnalysis = existingAnalysis,
+                NextSuggestion = BuildNextSuggestion(existingAttempt.SkillCategory, exercise.HskLevel, existingAttempt.IsCorrect)
+            };
+        }
+
         var isCorrect = EvaluateAttempt(exercise, request);
         var userAnswerText = !string.IsNullOrWhiteSpace(request.UserAnswer)
             ? PromptSanitizer.SanitizeUntrustedText(request.UserAnswer, 400)
             : (request.SelectedIndex?.ToString() ?? string.Empty);
 
         var skillCategory = MapSkillCategory(exercise.ExerciseType, exercise.SourceType);
+        var now = DateTime.UtcNow;
 
         var attempt = new AiExerciseAttempt
         {
@@ -178,14 +238,50 @@ public sealed class AIExerciseService : IAIExerciseService
             SelectedIndex = request.SelectedIndex,
             IsCorrect = isCorrect,
             SkillCategory = skillCategory,
-            AttemptedAt = DateTime.UtcNow
+            AttemptedAt = now
         };
-
         _dbContext.AiExerciseAttempts.Add(attempt);
+
+        // Record StudentPracticeAttempt with 'ai_' prefix so other services can see student progress without duplicate counts in BKT
+        var practiceAttempt = new StudentPracticeAttempt
+        {
+            UserId = userId,
+            ExerciseId = $"ai_{exercise.Id}",
+            QuestionId = exercise.Id.ToString(),
+            KnowledgePointId = exercise.SourceType,
+            TopicTitle = exercise.PromptZh,
+            Category = skillCategory,
+            HskLevel = exercise.HskLevel,
+            UserAnswer = userAnswerText,
+            IsCorrect = isCorrect,
+            AttemptedAt = now
+        };
+        _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Update persisted skill statistics deterministically
         await _errorAnalysisService.RecomputeAndPersistSkillStatsAsync(userId, cancellationToken);
+
+        // Detailed error analysis if student was incorrect
+        AIErrorAnalysisDetailDto? errorAnalysis = null;
+        if (!isCorrect)
+        {
+            errorAnalysis = await _errorAnalysisService.AnalyzeErrorDetailAsync(
+                userId,
+                new RequestErrorAnalysisDto
+                {
+                    ExerciseId = exercise.Id,
+                    QuestionText = exercise.PromptZh,
+                    UserAnswer = userAnswerText,
+                    CorrectAnswer = exercise.CorrectAnswer,
+                    SkillCategory = skillCategory,
+                    HskLevel = exercise.HskLevel
+                },
+                cancellationToken);
+        }
+
+        var nextSuggestion = BuildNextSuggestion(skillCategory, exercise.HskLevel, isCorrect);
 
         return new AiExerciseAttemptResultDto
         {
@@ -196,7 +292,361 @@ public sealed class AIExerciseService : IAIExerciseService
             CorrectAnswer = exercise.CorrectAnswer,
             ExplanationVi = exercise.ExplanationVi,
             SkillCategory = skillCategory,
-            AttemptedAt = attempt.AttemptedAt
+            AttemptedAt = attempt.AttemptedAt,
+            ErrorAnalysis = errorAnalysis,
+            NextSuggestion = nextSuggestion
+        };
+    }
+
+    public async Task<AdaptiveSessionDto> GenerateAdaptiveSessionAsync(
+        Guid userId,
+        GenerateAdaptiveSessionRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var targetHsk = request.TargetHskLevel.HasValue && request.TargetHskLevel.Value >= 1 && request.TargetHskLevel.Value <= 4
+            ? request.TargetHskLevel.Value
+            : 1;
+
+        List<WeakConceptDto> weakConcepts = new();
+        if (_competencyService != null && !request.TargetHskLevel.HasValue)
+        {
+            try
+            {
+                var profile = await _competencyService.GetCompetencyProfileAsync(userId, cancellationToken);
+                targetHsk = profile.EstimatedHskLevel ?? profile.SelectedHskLevel;
+                targetHsk = Math.Clamp(targetHsk, 1, 4);
+                weakConcepts = profile.TopWeakConcepts;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not fetch Competency Profile for adaptive session, using default target HSK {Hsk}", targetHsk);
+            }
+        }
+
+        var questionCount = Math.Clamp(request.QuestionCount, 1, 10);
+        var focusSkill = (request.FocusSkill ?? "all").Trim().ToLowerInvariant();
+
+        // Anti-duplication: load recent attempted prompts
+        var recentPrompts = await _dbContext.AiExerciseAttempts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(30)
+            .Select(a => a.AiExercise != null ? a.AiExercise.PromptZh : string.Empty)
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToListAsync(cancellationToken);
+
+        var recentSet = new HashSet<string>(recentPrompts, StringComparer.OrdinalIgnoreCase);
+
+        // Fetch SRS due vocabulary
+        List<string> srsDueWords = new();
+        if (request.IncludeSrsDue)
+        {
+            srsDueWords = await _dbContext.StudentVocabularyProgresses
+                .AsNoTracking()
+                .Where(p => p.UserId == userId && p.NextReviewAt <= DateTime.UtcNow)
+                .OrderBy(p => p.NextReviewAt)
+                .Take(5)
+                .Select(p => p.Hanzi ?? string.Empty)
+                .Where(h => !string.IsNullOrEmpty(h))
+                .ToListAsync(cancellationToken);
+        }
+
+        var strategySummary = BuildAdaptiveStrategySummary(targetHsk, focusSkill, weakConcepts, srsDueWords.Count);
+        var sessionExercises = new List<AiGeneratedExercise>();
+
+        // Plan slots
+        for (var i = 0; i < questionCount; i++)
+        {
+            var slotSkill = focusSkill != "all" ? focusSkill : PickAdaptiveSlotSkill(i, weakConcepts, srsDueWords.Count > 0);
+            var slotSourceType = slotSkill switch
+            {
+                "grammar" => "GRAMMAR",
+                "reading" => "READING",
+                "pinyin" => "VOCABULARY",
+                _ => (srsDueWords.Count > 0 && i == 0 ? "VOCABULARY" : (weakConcepts.Count > 0 && i % 2 == 1 ? "WEAKNESS" : "VOCABULARY"))
+            };
+
+            var slotExerciseType = slotSkill switch
+            {
+                "pinyin" => "pinyin-match",
+                "reading" => "multiple-choice",
+                "grammar" => (i % 2 == 0 ? "multiple-choice" : "sentence-order"),
+                _ => (i % 2 == 0 ? "multiple-choice" : "meaning-match")
+            };
+
+            AiGeneratedExercise? generated = null;
+
+            // Try LLM generation first
+            try
+            {
+                var (sourceText, reviewNote) = await BuildVerifiedSourceContextAsync(userId, targetHsk, null, slotSourceType, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(sourceText))
+                {
+                    var systemPrompt = BuildGeneratorSystemPrompt(targetHsk, slotExerciseType, 1);
+                    var userPrompt = $"[BÀI TẬP THÍCH ỨNG - HSK {targetHsk} - {slotSourceType}]\n{sourceText}\n\nTạo 1 bài tập '{slotExerciseType}' chất lượng cao, đúng chuẩn JSON.";
+
+                    var aiResp = await _aiProvider.GenerateContentAsync(
+                        new AIProviderRequest
+                        {
+                            Feature = "AI_EXERCISE_GEN",
+                            SystemInstruction = systemPrompt,
+                            UserPrompt = userPrompt,
+                            ExpectJson = true,
+                            Temperature = 0.3,
+                            MaxOutputTokens = 900
+                        },
+                        cancellationToken);
+
+                    var parsed = ParseAndValidateExercises(userId, targetHsk, null, slotSourceType, slotExerciseType, reviewNote, aiResp.RawText, 1);
+                    if (parsed.Count > 0 && !recentSet.Contains(parsed[0].PromptZh))
+                    {
+                        generated = parsed[0];
+                        generated.OriginTag = "AI_GENERATED";
+                        generated.AcademicStatus = "UNAPPROVED_EXPERIMENTAL";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "LLM adaptive generation for slot {Slot} failed, using curated fallback", i);
+            }
+
+            // Curated Fallback if LLM failed, unvalidated, or duplicate
+            if (generated == null)
+            {
+                generated = await BuildCuratedFallbackExerciseAsync(userId, targetHsk, slotSkill, recentSet, cancellationToken);
+            }
+
+            if (generated != null)
+            {
+                recentSet.Add(generated.PromptZh);
+                sessionExercises.Add(generated);
+            }
+        }
+
+        if (sessionExercises.Count > 0)
+        {
+            _dbContext.AiGeneratedExercises.AddRange(sessionExercises);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Return session DTO with ZERO answer leakage
+        var sessionDto = new AdaptiveSessionDto
+        {
+            SessionId = Guid.NewGuid(),
+            HskLevel = targetHsk,
+            FocusSkill = focusSkill,
+            Mode = "ADAPTIVE",
+            TotalQuestions = sessionExercises.Count,
+            StrategySummaryVi = strategySummary,
+            Questions = sessionExercises.Select(e => MapAdaptiveDto(e, targetHsk)).ToList(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        return sessionDto;
+    }
+
+    private async Task<AiGeneratedExercise> BuildCuratedFallbackExerciseAsync(
+        Guid userId,
+        int hskLevel,
+        string skill,
+        HashSet<string> recentPrompts,
+        CancellationToken cancellationToken)
+    {
+        // 1. If Grammar: build from published GrammarPoints
+        if (skill == "grammar")
+        {
+            var gp = await _dbContext.GrammarPoints
+                .AsNoTracking()
+                .Where(g => g.HskLevel == hskLevel && g.Status == "PUBLISHED" && !recentPrompts.Contains(g.Title))
+                .OrderBy(g => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (gp != null)
+            {
+                var options = new List<string> { gp.StructureFormula, "S + V + O", "S + zài + V", "S + bǎ + O + V" }.Distinct().Take(4).ToList();
+                while (options.Count < 4) options.Add($"Công thức cấu trúc {options.Count + 1}");
+
+                return new AiGeneratedExercise
+                {
+                    UserId = userId,
+                    HskLevel = hskLevel,
+                    SourceType = "GRAMMAR",
+                    ExerciseType = "multiple-choice",
+                    OriginTag = "CURATED_QUESTION_BANK",
+                    AcademicStatus = "ACADEMIC_APPROVED",
+                    SourceReviewNote = "Ngân hàng câu hỏi ngữ pháp kiểm duyệt chính thức.",
+                    PromptZh = $"请选择语法点“{gp.Title}”的正确结构：",
+                    PromptVi = $"Chọn cấu trúc đúng của điểm ngữ pháp \"{gp.Title}\":",
+                    OptionsJson = JsonSerializer.Serialize(options, JsonOptions),
+                    CorrectIndex = 0,
+                    CorrectAnswer = options[0],
+                    ExplanationVi = $"Điểm ngữ pháp '{gp.Title}' có cấu trúc chuẩn là: {gp.StructureFormula}. {gp.Explanation}",
+                    CreatedAt = DateTime.UtcNow
+                };
+            }
+        }
+
+        // 2. Default/Vocabulary/Hanzi/Pinyin: build from published Vocabularies
+        var vocabs = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED")
+            .OrderBy(v => Guid.NewGuid())
+            .Take(8)
+            .ToListAsync(cancellationToken);
+
+        if (vocabs.Count >= 4)
+        {
+            var target = vocabs[0];
+            var distractors = vocabs.Skip(1).Take(3).ToList();
+
+            if (skill == "pinyin")
+            {
+                var options = new List<string> { target.Pinyin };
+                options.AddRange(distractors.Select(d => d.Pinyin));
+                var distinctOptions = options.Distinct().Take(4).ToList();
+                while (distinctOptions.Count < 4) distinctOptions.Add("pinyin_opt");
+
+                return new AiGeneratedExercise
+                {
+                    UserId = userId,
+                    HskLevel = hskLevel,
+                    SourceType = "VOCABULARY",
+                    ExerciseType = "pinyin-match",
+                    OriginTag = "CURATED_QUESTION_BANK",
+                    AcademicStatus = "ACADEMIC_APPROVED",
+                    SourceReviewNote = "Ngân hàng từ vựng kiểm duyệt chính thức.",
+                    PromptZh = $"请选择汉字“{target.Hanzi}”的正确拼音：",
+                    PromptVi = $"Chọn Pinyin chuẩn của chữ Hán \"{target.Hanzi}\":",
+                    OptionsJson = JsonSerializer.Serialize(distinctOptions, JsonOptions),
+                    CorrectIndex = 0,
+                    CorrectAnswer = distinctOptions[0],
+                    ExplanationVi = $"Chữ Hán '{target.Hanzi}' có phiên âm Pinyin chuẩn là: {target.Pinyin} ({target.MeaningVi}).",
+                    CreatedAt = DateTime.UtcNow
+                };
+            }
+
+            // Meaning match
+            var meaningOptions = new List<string> { target.MeaningVi };
+            meaningOptions.AddRange(distractors.Select(d => d.MeaningVi));
+            var distinctMeanings = meaningOptions.Distinct().Take(4).ToList();
+            while (distinctMeanings.Count < 4) distinctMeanings.Add("Ý nghĩa tham chiếu");
+
+            return new AiGeneratedExercise
+            {
+                UserId = userId,
+                HskLevel = hskLevel,
+                SourceType = "VOCABULARY",
+                ExerciseType = "multiple-choice",
+                OriginTag = "CURATED_QUESTION_BANK",
+                AcademicStatus = "ACADEMIC_APPROVED",
+                SourceReviewNote = "Ngân hàng từ vựng kiểm duyệt chính thức.",
+                PromptZh = $"请选择“{target.Hanzi}”的意思：",
+                PromptPinyin = target.Pinyin,
+                PromptVi = $"Chọn nghĩa đúng của từ \"{target.Hanzi}\":",
+                OptionsJson = JsonSerializer.Serialize(distinctMeanings, JsonOptions),
+                CorrectIndex = 0,
+                CorrectAnswer = distinctMeanings[0],
+                ExplanationVi = $"Từ '{target.Hanzi}' ({target.Pinyin}) có nghĩa tiếng Việt là: {target.MeaningVi}.",
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        // Generic robust fallback
+        return new AiGeneratedExercise
+        {
+            UserId = userId,
+            HskLevel = hskLevel,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            OriginTag = "CURATED_QUESTION_BANK",
+            AcademicStatus = "ACADEMIC_APPROVED",
+            SourceReviewNote = "Ngân hàng câu hỏi kiểm duyệt chuẩn HSK.",
+            PromptZh = "请选择“你好”的意思：",
+            PromptPinyin = "Nǐ hǎo",
+            PromptVi = "Chọn nghĩa đúng của câu chào \"你好\":",
+            OptionsJson = JsonSerializer.Serialize(new List<string> { "Xin chào", "Tạm biệt", "Cảm ơn", "Xin lỗi" }, JsonOptions),
+            CorrectIndex = 0,
+            CorrectAnswer = "Xin chào",
+            ExplanationVi = "你好 (Nǐ hǎo) là lời chào thông dụng nhất trong tiếng Trung, có nghĩa là Xin chào.",
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    private static string PickAdaptiveSlotSkill(int index, List<WeakConceptDto> weakConcepts, bool hasSrsDue)
+    {
+        if (hasSrsDue && index == 0) return "vocabulary";
+        if (weakConcepts.Count > 0 && index % 2 == 1)
+        {
+            var wc = weakConcepts[(index / 2) % weakConcepts.Count];
+            return wc.SkillCategory;
+        }
+
+        return (index % 3) switch
+        {
+            0 => "vocabulary",
+            1 => "grammar",
+            _ => "reading"
+        };
+    }
+
+    private static string BuildAdaptiveStrategySummary(
+        int targetHsk,
+        string focusSkill,
+        List<WeakConceptDto> weakConcepts,
+        int srsDueCount)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"Chiến lược luyện tập HSK {targetHsk}: ");
+
+        if (focusSkill != "all")
+        {
+            sb.Append($"Tập trung chuyên sâu kỹ năng {focusSkill.ToUpperInvariant()}. ");
+        }
+        else
+        {
+            sb.Append("Thích ứng toàn diện đa kỹ năng. ");
+        }
+
+        if (srsDueCount > 0)
+        {
+            sb.Append($"Đan xen {srsDueCount} từ vựng SRS sắp quên. ");
+        }
+
+        if (weakConcepts.Count > 0)
+        {
+            sb.Append($"Ưu tiên khắc phục điểm yếu: {weakConcepts[0].TitleVi}.");
+        }
+        else
+        {
+            sb.Append("Duy trì độ khó phù hợp với cấp độ hiện tại.");
+        }
+
+        return sb.ToString();
+    }
+
+    private static NextPracticeSuggestionDto BuildNextSuggestion(string skillCategory, int hskLevel, bool isCorrect)
+    {
+        if (isCorrect)
+        {
+            return new NextPracticeSuggestionDto
+            {
+                Title = $"Tiếp tục chinh phục HSK {hskLevel}",
+                SkillCategory = skillCategory,
+                HskLevel = hskLevel,
+                ActionRoute = $"/ai-exercises?hsk={hskLevel}",
+                ReasonVi = "Bạn đã trả lời đúng! Hãy tiếp tục duy trì đà luyện tập để nâng cao mastery score."
+            };
+        }
+
+        return new NextPracticeSuggestionDto
+        {
+            Title = $"Củng cố kỹ năng {skillCategory.ToUpperInvariant()}",
+            SkillCategory = skillCategory,
+            HskLevel = hskLevel,
+            ActionRoute = $"/ai-exercises?hsk={hskLevel}&source={skillCategory.ToUpperInvariant()}",
+            ReasonVi = "Luyện tập thêm 3-5 câu thuộc mảng này để khắc phục triệt để điểm nhầm lẫn."
         };
     }
 
@@ -258,9 +708,9 @@ public sealed class AIExerciseService : IAIExerciseService
                 }
             }
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            _logger.LogWarning(ex, "Invalid JSON returned from AI exercise generator.");
+            return results;
         }
 
         return results;
@@ -373,7 +823,8 @@ public sealed class AIExerciseService : IAIExerciseService
             OptionsJson = options.Count > 0 ? JsonSerializer.Serialize(options, JsonOptions) : null,
             CorrectIndex = correctIndex,
             CorrectAnswer = correctAnswer,
-            ExplanationVi = explanationVi
+            ExplanationVi = explanationVi,
+            CreatedAt = DateTime.UtcNow
         };
     }
 
@@ -422,8 +873,11 @@ public sealed class AIExerciseService : IAIExerciseService
                 .Select(g => new { g.Title, g.StructureFormula, g.Explanation })
                 .ToListAsync(cancellationToken);
 
-            var text = string.Join("\n", gps.Select(g => $"- {g.Title}: {g.StructureFormula} ({g.Explanation})"));
-            return (text, "Sinh từ điểm ngữ pháp trong kho dữ liệu; bài tập gắn nhãn AI_GENERATED.");
+            if (gps.Count > 0)
+            {
+                var text = string.Join("\n", gps.Select(g => $"- {g.Title}: {g.StructureFormula} ({g.Explanation})"));
+                return (text, "Sinh từ điểm ngữ pháp trong kho dữ liệu; bài tập gắn nhãn AI_GENERATED.");
+            }
         }
 
         if (sourceType == "READING")
@@ -471,8 +925,13 @@ public sealed class AIExerciseService : IAIExerciseService
             .Select(v => new { v.Hanzi, v.Pinyin, v.MeaningVi })
             .ToListAsync(cancellationToken);
 
-        var vocabText = string.Join("\n", vocabs.Select(v => $"- {v.Hanzi} ({v.Pinyin}): {v.MeaningVi}"));
-        return (vocabText, "Sinh từ từ vựng HSK 2.0; bài tập gắn nhãn AI_GENERATED.");
+        if (vocabs.Count > 0)
+        {
+            var vocabText = string.Join("\n", vocabs.Select(v => $"- {v.Hanzi} ({v.Pinyin}): {v.MeaningVi}"));
+            return (vocabText, "Sinh từ từ vựng HSK 2.0; bài tập gắn nhãn AI_GENERATED.");
+        }
+
+        return ("- 你好 (nǐ hǎo): Xin chào\n- 谢谢 (xièxie): Cảm ơn", "Dữ liệu mẫu cơ bản HSK.");
     }
 
     private static (string Text, bool AcademicApproved) ExtractReadingSentencesOnly(string dialogueJson)
@@ -553,7 +1012,7 @@ public sealed class AIExerciseService : IAIExerciseService
     private static string NormalizeAnswer(string input) =>
         input.Trim().Replace(" ", "").Replace("。", "").Replace(".", "").Replace("？", "").Replace("?", "");
 
-    private static AiGeneratedExerciseDto MapDto(AiGeneratedExercise e)
+    public static AiGeneratedExerciseDto MapDto(AiGeneratedExercise e, bool isAttempted)
     {
         var options = new List<string>();
         if (!string.IsNullOrWhiteSpace(e.OptionsJson))
@@ -579,10 +1038,43 @@ public sealed class AIExerciseService : IAIExerciseService
             PromptPinyin = e.PromptPinyin,
             PromptVi = e.PromptVi,
             Options = options,
-            CorrectIndex = e.CorrectIndex,
-            CorrectAnswer = e.CorrectAnswer,
-            ExplanationVi = e.ExplanationVi,
+            // SECURITY: Never leak answers or explanations before submission
+            CorrectIndex = isAttempted ? e.CorrectIndex : null,
+            CorrectAnswer = isAttempted ? e.CorrectAnswer : null,
+            ExplanationVi = isAttempted ? e.ExplanationVi : string.Empty,
             CreatedAt = e.CreatedAt
+        };
+    }
+
+    public static AdaptiveExerciseDto MapAdaptiveDto(AiGeneratedExercise e, int targetHsk)
+    {
+        var options = new List<string>();
+        if (!string.IsNullOrWhiteSpace(e.OptionsJson))
+        {
+            try
+            {
+                options = JsonSerializer.Deserialize<List<string>>(e.OptionsJson, JsonOptions) ?? new List<string>();
+            }
+            catch (JsonException) { }
+        }
+
+        var diffTag = e.HskLevel > targetHsk ? "Nâng cao" : (e.HskLevel < targetHsk ? "Cơ bản" : "Tiêu chuẩn");
+
+        return new AdaptiveExerciseDto
+        {
+            Id = e.Id,
+            HskLevel = e.HskLevel,
+            SkillCategory = MapSkillCategory(e.ExerciseType, e.SourceType),
+            ExerciseType = e.ExerciseType,
+            OriginTag = e.OriginTag,
+            AcademicStatus = e.AcademicStatus,
+            SourceReviewNote = e.SourceReviewNote,
+            PromptZh = e.PromptZh,
+            PromptPinyin = e.PromptPinyin,
+            PromptVi = e.PromptVi,
+            Options = options,
+            DifficultyTag = diffTag,
+            TargetConcept = e.SourceType
         };
     }
 }

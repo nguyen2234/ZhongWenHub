@@ -23,6 +23,7 @@ public sealed class MockAIProvider : IAIProvider
             "AI_CONVERSATION" => BuildConversationMockJson(request),
             "AI_EXERCISE_GEN" => BuildExerciseMockJson(request),
             "AI_LEARNING_EXPLAIN" => BuildLearningExplainMockJson(request),
+            "AI_ERROR_ANALYSIS" => BuildErrorAnalysisMockJson(request),
             _ => BuildTutorMockJson(request),
         };
 
@@ -131,6 +132,31 @@ public sealed class MockAIProvider : IAIProvider
         {
             explanationVi = "Dựa trên dữ liệu luyện tập và SRS thực tế, bạn nên ưu tiên ôn tập từ vựng đến hạn trước khi làm bài tập củng cố điểm yếu.",
             focusTipVi = "Hãy dành 10 phút ôn lại các điểm ngữ pháp có độ chính xác dưới 65%."
+        };
+
+        return JsonSerializer.Serialize(payload, JsonOptions);
+    }
+
+    private static string BuildErrorAnalysisMockJson(AIProviderRequest request)
+    {
+        var payload = new
+        {
+            errorType = "grammar",
+            errorTypeLabelVi = "Ngữ pháp - Trật tự từ và kết cấu câu",
+            whyIncorrectVi = "Phương án bạn chọn chưa đúng trật tự cú pháp tiếng Trung chuẩn hoặc nhầm lẫn giữa định ngữ và trung tâm ngữ.",
+            whyCorrectVi = "Đáp án đúng tuân thủ cấu trúc ngữ pháp chuẩn tiếng Trung và liên kết ngữ nghĩa chính xác với ngữ cảnh.",
+            knowledgePointVi = "Cần chú ý trật tự từ: Trong tiếng Trung, định ngữ bổ nghĩa luôn đứng trước danh từ trung tâm.",
+            examples = new[]
+            {
+                new
+                {
+                    hanzi = "这是我昨天买的书。",
+                    pinyin = "Zhè shì wǒ zuótiān mǎi de shū.",
+                    vietnamese = "Đây là quyển sách tôi mua hôm qua."
+                }
+            },
+            recommendedPracticeAction = "Luyện tập thêm 3 câu trắc nghiệm ngữ pháp về định ngữ và kết cấu 的.",
+            recommendedRoute = "/ai-exercises?source=GRAMMAR"
         };
 
         return JsonSerializer.Serialize(payload, JsonOptions);

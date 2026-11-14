@@ -1,6 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Persistence;
 
@@ -10,6 +17,10 @@ public interface IAIErrorAnalysisService
 {
     Task<ErrorAnalysisReportDto> GetErrorAnalysisAsync(Guid userId, CancellationToken cancellationToken = default);
     Task RecomputeAndPersistSkillStatsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<AIErrorAnalysisDetailDto> AnalyzeErrorDetailAsync(
+        Guid userId,
+        RequestErrorAnalysisDto request,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
@@ -27,17 +38,28 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
     };
 
     private readonly ApplicationDbContext _dbContext;
+    private readonly IAIProvider? _aiProvider;
+    private readonly IAIUsageLogger? _usageLogger;
+    private readonly ILogger<AIErrorAnalysisService>? _logger;
 
-    public AIErrorAnalysisService(ApplicationDbContext dbContext)
+    public AIErrorAnalysisService(
+        ApplicationDbContext dbContext,
+        IAIProvider? aiProvider = null,
+        IAIUsageLogger? usageLogger = null,
+        ILogger<AIErrorAnalysisService>? logger = null)
     {
         _dbContext = dbContext;
+        _aiProvider = aiProvider;
+        _usageLogger = usageLogger;
+        _logger = logger;
     }
 
     public async Task<ErrorAnalysisReportDto> GetErrorAnalysisAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        // Exclude AI attempts saved to StudentPracticeAttempts with 'ai_' prefix to avoid double-counting
         var practiceAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
-            .Where(a => a.UserId == userId)
+            .Where(a => a.UserId == userId && !a.ExerciseId.StartsWith("ai_"))
             .Select(a => new AttemptPoint(
                 NormalizeSkill(a.Category),
                 string.IsNullOrWhiteSpace(a.TopicTitle) ? a.KnowledgePointId : a.TopicTitle,
@@ -81,6 +103,340 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
     public async Task RecomputeAndPersistSkillStatsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         _ = await GetErrorAnalysisAsync(userId, cancellationToken);
+    }
+
+    public async Task<AIErrorAnalysisDetailDto> AnalyzeErrorDetailAsync(
+        Guid userId,
+        RequestErrorAnalysisDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var questionText = request.QuestionText?.Trim() ?? string.Empty;
+        var userAnswer = request.UserAnswer?.Trim() ?? string.Empty;
+        var correctAnswer = request.CorrectAnswer?.Trim() ?? string.Empty;
+        var skillCategory = NormalizeSkill(request.SkillCategory);
+        var hskLevel = Math.Clamp(request.HskLevel, 1, 4);
+
+        // Authoritative resolution from DB if ExerciseId is provided (prevent client spoofing)
+        if (request.ExerciseId.HasValue && request.ExerciseId.Value != Guid.Empty)
+        {
+            var exercise = await _dbContext.AiGeneratedExercises
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == request.ExerciseId.Value, cancellationToken);
+
+            if (exercise != null)
+            {
+                questionText = exercise.PromptZh;
+                correctAnswer = exercise.CorrectAnswer ?? string.Empty;
+                hskLevel = exercise.HskLevel;
+                skillCategory = NormalizeSkill(exercise.SourceType);
+            }
+        }
+
+        // Sanitize inputs
+        questionText = PromptSanitizer.SanitizeUntrustedText(questionText, 500);
+        userAnswer = PromptSanitizer.SanitizeUntrustedText(userAnswer, 200);
+        correctAnswer = PromptSanitizer.SanitizeUntrustedText(correctAnswer, 200);
+
+        // Ground-truth check
+        var isActuallyCorrect = !string.IsNullOrWhiteSpace(correctAnswer) &&
+                                !string.IsNullOrWhiteSpace(userAnswer) &&
+                                string.Equals(NormalizeAnswer(userAnswer), NormalizeAnswer(correctAnswer), StringComparison.OrdinalIgnoreCase);
+
+        if (isActuallyCorrect)
+        {
+            return new AIErrorAnalysisDetailDto
+            {
+                ErrorType = skillCategory,
+                ErrorTypeLabelVi = GetSkillLabelVi(skillCategory),
+                WhyIncorrectVi = "Câu trả lời của bạn thực tế đã hoàn toàn chính xác hoặc tương đương đáp án chuẩn.",
+                WhyCorrectVi = $"Đáp án '{correctAnswer}' là câu trả lời chuẩn xác cho câu hỏi.",
+                KnowledgePointVi = "Bạn đã nắm vững điểm kiến thức này.",
+                Examples = new List<AIErrorExampleDto>(),
+                RecommendedPracticeAction = "Tiếp tục bài tập kế tiếp.",
+                RecommendedRoute = "/ai-exercises",
+                IsAiGenerated = false,
+                IsFallback = false
+            };
+        }
+
+        // If no AI Provider configured, immediate pedagogical fallback
+        if (_aiProvider == null)
+        {
+            return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+        }
+
+        // Check budget & quota
+        if (_usageLogger != null)
+        {
+            try
+            {
+                await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+            }
+            catch (AITutorException)
+            {
+                // Quota exceeded: gracefully use offline pedagogical fallback instead of 500/429
+                return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+            }
+        }
+
+        var systemPrompt = BuildErrorAnalysisSystemPrompt(hskLevel);
+        var userPrompt = BuildErrorAnalysisUserPrompt(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+
+        AIProviderResponse? aiResponse = null;
+        try
+        {
+            aiResponse = await _aiProvider.GenerateContentAsync(
+                new AIProviderRequest
+                {
+                    Feature = "AI_ERROR_ANALYSIS",
+                    SystemInstruction = systemPrompt,
+                    UserPrompt = userPrompt,
+                    ExpectJson = true,
+                    Temperature = 0.3,
+                    MaxOutputTokens = 1200
+                },
+                cancellationToken);
+
+            if (_usageLogger != null)
+            {
+                await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", aiResponse, true, null, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "AI Error Analysis call failed, falling back to offline pedagogical engine");
+            if (_usageLogger != null)
+            {
+                await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", null, false, ex.Message, cancellationToken);
+            }
+            return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+        }
+
+        // Parse and validate schema
+        var parsed = ParseAndValidateErrorAnalysis(aiResponse.RawText, skillCategory, hskLevel);
+        return parsed ?? BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+    }
+
+    public static AIErrorAnalysisDetailDto? ParseAndValidateErrorAnalysis(string rawJson, string skillCategory, int hskLevel)
+    {
+        if (string.IsNullOrWhiteSpace(rawJson)) return null;
+
+        try
+        {
+            var cleaned = rawJson.Trim();
+            if (cleaned.StartsWith("```"))
+            {
+                var start = cleaned.IndexOf('{');
+                var end = cleaned.LastIndexOf('}');
+                if (start >= 0 && end > start)
+                {
+                    cleaned = cleaned[start..(end + 1)];
+                }
+            }
+
+            using var doc = JsonDocument.Parse(cleaned);
+            var root = doc.RootElement;
+
+            var errorType = root.TryGetProperty("errorType", out var et) && et.ValueKind == JsonValueKind.String
+                ? NormalizeSkill(et.GetString())
+                : skillCategory;
+
+            var errorTypeLabelVi = root.TryGetProperty("errorTypeLabelVi", out var el) && el.ValueKind == JsonValueKind.String
+                ? el.GetString()?.Trim() ?? GetSkillLabelVi(errorType)
+                : GetSkillLabelVi(errorType);
+
+            var whyIncorrectVi = root.TryGetProperty("whyIncorrectVi", out var wi) && wi.ValueKind == JsonValueKind.String
+                ? wi.GetString()?.Trim()
+                : null;
+
+            var whyCorrectVi = root.TryGetProperty("whyCorrectVi", out var wc) && wc.ValueKind == JsonValueKind.String
+                ? wc.GetString()?.Trim()
+                : null;
+
+            var knowledgePointVi = root.TryGetProperty("knowledgePointVi", out var kp) && kp.ValueKind == JsonValueKind.String
+                ? kp.GetString()?.Trim()
+                : null;
+
+            if (string.IsNullOrWhiteSpace(whyIncorrectVi) || string.IsNullOrWhiteSpace(whyCorrectVi))
+            {
+                return null;
+            }
+
+            var examples = new List<AIErrorExampleDto>();
+            if (root.TryGetProperty("examples", out var exArr) && exArr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in exArr.EnumerateArray())
+                {
+                    var hz = item.TryGetProperty("hanzi", out var h) && h.ValueKind == JsonValueKind.String ? h.GetString()?.Trim() : null;
+                    var py = item.TryGetProperty("pinyin", out var p) && p.ValueKind == JsonValueKind.String ? p.GetString()?.Trim() : null;
+                    var vi = item.TryGetProperty("vietnamese", out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()?.Trim() : null;
+                    if (!string.IsNullOrWhiteSpace(hz))
+                    {
+                        examples.Add(new AIErrorExampleDto
+                        {
+                            Hanzi = hz,
+                            Pinyin = py ?? string.Empty,
+                            Vietnamese = vi ?? string.Empty
+                        });
+                    }
+                }
+            }
+
+            var recommendedPracticeAction = root.TryGetProperty("recommendedPracticeAction", out var ra) && ra.ValueKind == JsonValueKind.String
+                ? ra.GetString()?.Trim() ?? "Luyện tập thêm các câu củng cố kiến thức này."
+                : "Luyện tập thêm các câu củng cố kiến thức này.";
+
+            var recommendedRoute = root.TryGetProperty("recommendedRoute", out var rr) && rr.ValueKind == JsonValueKind.String
+                ? rr.GetString()?.Trim() ?? $"/ai-exercises?hsk={hskLevel}&source={errorType.ToUpperInvariant()}"
+                : $"/ai-exercises?hsk={hskLevel}&source={errorType.ToUpperInvariant()}";
+
+            return new AIErrorAnalysisDetailDto
+            {
+                ErrorType = errorType,
+                ErrorTypeLabelVi = errorTypeLabelVi,
+                WhyIncorrectVi = whyIncorrectVi,
+                WhyCorrectVi = whyCorrectVi,
+                KnowledgePointVi = knowledgePointVi ?? "Cần chú ý đối chiếu cấu trúc ngữ nghĩa và ngữ cảnh câu hỏi.",
+                Examples = examples,
+                RecommendedPracticeAction = recommendedPracticeAction,
+                RecommendedRoute = recommendedRoute,
+                IsAiGenerated = true,
+                IsFallback = false
+            };
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    public static AIErrorAnalysisDetailDto BuildPedagogicalOfflineFallback(
+        string skillCategory,
+        string questionText,
+        string userAnswer,
+        string correctAnswer,
+        int hskLevel)
+    {
+        var category = NormalizeSkill(skillCategory);
+        var label = GetSkillLabelVi(category);
+
+        string whyIncorrect;
+        string whyCorrect;
+        string knowledgePoint;
+        List<AIErrorExampleDto> examples = new();
+
+        switch (category)
+        {
+            case "pinyin":
+                whyIncorrect = $"Lựa chọn '{userAnswer}' nhầm lẫn về thanh điệu hoặc phụ âm/nguyên âm tương cận trong Pinyin.";
+                whyCorrect = $"Đáp án đúng '{correctAnswer}' thể hiện phiên âm Pinyin chuẩn xác theo chuẩn phiên âm tiếng Hán HSK {hskLevel}.";
+                knowledgePoint = "Quy tắc thanh điệu: Cần chú ý phân biệt rõ thanh 1 (cao bằng - ā), thanh 2 (lên cao - á), thanh 3 (xuống lên - ǎ) và thanh 4 (xuống dứt khoát - à).";
+                examples.Add(new AIErrorExampleDto { Hanzi = "妈妈", Pinyin = "māma", Vietnamese = "Mẹ (thanh 1)" });
+                examples.Add(new AIErrorExampleDto { Hanzi = "马", Pinyin = "mǎ", Vietnamese = "Ngựa (thanh 3)" });
+                break;
+
+            case "vocabulary":
+                whyIncorrect = $"Phương án bạn chọn '{userAnswer}' không tương thích với ngữ cảnh hoặc sắc thái nghĩa trong câu hỏi HSK {hskLevel}.";
+                whyCorrect = $"Từ '{correctAnswer}' mang nghĩa và ngữ dụng phù hợp nhất với cụm từ hoặc ngữ cảnh câu hỏi.";
+                knowledgePoint = "Phân biệt từ gần nghĩa và từ loại: Hãy chú ý từ loại (danh từ, động từ, tính từ) và đối tượng kết hợp thường dùng trong câu.";
+                examples.Add(new AIErrorExampleDto { Hanzi = "我想学中文。", Pinyin = "Wǒ xiǎng xué Zhōngwén.", Vietnamese = "Tôi muốn học tiếng Trung." });
+                break;
+
+            case "hanzi":
+                whyIncorrect = $"Chữ Hán '{userAnswer}' có bộ thủ hoặc cấu tạo tương tự nhưng mang ý nghĩa hoặc phát âm hoàn toàn khác.";
+                whyCorrect = $"Chữ '{correctAnswer}' có kết cấu bộ thủ và ý nghĩa chuẩn xác cho ngữ cảnh được hỏi.";
+                knowledgePoint = "Phương pháp nhận diện chữ Hán: Quan sát kỹ bộ thủ biểu nghĩa và phần biểu âm để tránh nhầm các chữ có hình dạng gần giống nhau.";
+                examples.Add(new AIErrorExampleDto { Hanzi = "太 / 大", Pinyin = "tài / dà", Vietnamese = "Quá, lắm / To, lớn" });
+                break;
+
+            case "reading":
+                whyIncorrect = $"Lựa chọn '{userAnswer}' suy diễn chưa bám sát chi tiết trực tiếp trong văn bản đọc.";
+                whyCorrect = $"Đáp án '{correctAnswer}' phản ánh chính xác thông tin được khẳng định trong ngữ cảnh bài đọc.";
+                knowledgePoint = "Kỹ năng đọc hiểu HSK: Luôn định vị từ khóa (keywords) trong câu hỏi và đối chiếu trực tiếp với câu chứa từ khóa trong đoạn văn.";
+                examples.Add(new AIErrorExampleDto { Hanzi = "根据课文内容，...", Pinyin = "Gēnjù kèwén nèiróng, ...", Vietnamese = "Căn cứ vào nội dung bài đọc, ..." });
+                break;
+
+            case "listening":
+                whyIncorrect = $"Bạn có thể đã nghe nhầm từ đồng âm khác nghĩa hoặc thanh điệu trong đoạn nghe.";
+                whyCorrect = $"Đáp án '{correctAnswer}' khớp chính xác với thông tin chính được phát ra trong bài nghe.";
+                knowledgePoint = "Kỹ năng nghe hiểu HSK: Chú ý nắm bắt câu hỏi trước khi nghe và tập trung vào các từ then chốt (thời gian, địa điểm, hành động).";
+                examples.Add(new AIErrorExampleDto { Hanzi = "他在做作业。", Pinyin = "Tā zài zuò zuòyè.", Vietnamese = "Anh ấy đang làm bài tập." });
+                break;
+
+            default: // grammar
+                whyIncorrect = $"Lựa chọn '{userAnswer}' vi phạm trật tự từ hoặc ngữ pháp kết hợp trong tiếng Trung (người học Việt Nam hay áp dụng trật tự từ tiếng Việt).";
+                whyCorrect = $"Đáp án '{correctAnswer}' tuân thủ đúng kết cấu ngữ pháp chuẩn tiếng Trung cho câu này.";
+                knowledgePoint = "Quy tắc ngữ pháp quan trọng: Định ngữ và trạng ngữ chỉ thời gian/địa điểm luôn đứng TRƯỚC trung tâm ngữ và vị ngữ chính.";
+                examples.Add(new AIErrorExampleDto { Hanzi = "我明天在北京看朋友。", Pinyin = "Wǒ míngtiān zài Běijīng kàn péngyou.", Vietnamese = "Ngày mai tôi gặp bạn ở Bắc Kinh (Thời gian + Địa điểm đứng trước hành động)." });
+                break;
+        }
+
+        return new AIErrorAnalysisDetailDto
+        {
+            ErrorType = category,
+            ErrorTypeLabelVi = label,
+            WhyIncorrectVi = whyIncorrect,
+            WhyCorrectVi = whyCorrect,
+            KnowledgePointVi = knowledgePoint,
+            Examples = examples,
+            RecommendedPracticeAction = $"Luyện tập thêm 3-5 câu thuộc mảng {label} để củng cố phản xạ.",
+            RecommendedRoute = $"/ai-exercises?hsk={hskLevel}&source={category.ToUpperInvariant()}",
+            IsAiGenerated = false,
+            IsFallback = true
+        };
+    }
+
+    private static string BuildErrorAnalysisSystemPrompt(int hskLevel)
+    {
+        return $$"""
+Bạn là chuyên gia sư phạm tiếng Trung (HSK {{hskLevel}}) hướng dẫn cho người học Việt Nam.
+Khi học viên làm sai câu hỏi tiếng Trung, nhiệm vụ của bạn là phân tích sâu sắc NGUYÊN NHÂN LỖI SAI:
+1. Phân loại loại lỗi: 'vocabulary', 'grammar', 'pinyin', 'hanzi', 'reading', 'listening'.
+2. Chỉ rõ vì sao học viên nhầm lẫn (đặc biệt là lỗi do chuyển di tiêu cực từ tiếng Việt như trật tự từ, lượng từ, thanh điệu, cấu trúc câu).
+3. Giải thích tại sao đáp án đúng là đúng.
+4. Nêu điểm kiến thức cốt lõi cần nhớ (ngắn gọn, sư phạm).
+5. Đưa ra 1-2 ví dụ minh họa kèm Chữ Hán, Pinyin, và Dịch nghĩa tiếng Việt.
+6. Đề xuất hành động luyện tập tiếp theo.
+
+TUYỆT ĐỐI TUÂN THỦ:
+- Không bịa đặt kiến thức ngoài chương trình HSK {{hskLevel}}.
+- Không chứa thông tin cá nhân (PII).
+- Luôn trả về DUY NHẤT 1 JSON Object hợp lệ theo cấu trúc sau:
+{
+  "errorType": "grammar",
+  "errorTypeLabelVi": "Ngữ pháp - Trật tự từ chỉ thời gian",
+  "whyIncorrectVi": "Giải thích chi tiết vì sao học viên sai...",
+  "whyCorrectVi": "Giải thích tại sao đáp án đúng là chuẩn xác...",
+  "knowledgePointVi": "Quy tắc cốt lõi cần ghi nhớ...",
+  "examples": [
+    {
+      "hanzi": "我昨天买了一本书。",
+      "pinyin": "Wǒ zuótiān mǎi le yì běn shū.",
+      "vietnamese": "Hôm qua tôi đã mua một quyển sách."
+    }
+  ],
+  "recommendedPracticeAction": "Luyện thêm 3 câu trắc nghiệm về lượng từ và trợ từ.",
+  "recommendedRoute": "/ai-exercises?hsk={{hskLevel}}&source=GRAMMAR"
+}
+""";
+    }
+
+    private static string BuildErrorAnalysisUserPrompt(
+        string skillCategory,
+        string questionText,
+        string userAnswer,
+        string correctAnswer,
+        int hskLevel)
+    {
+        return $"""
+[YÊU CẦU PHÂN TÍCH LỖI SAI HSK {hskLevel}]
+- Kỹ năng/Chủ đề: {skillCategory}
+- Câu hỏi/Đề bài: {questionText}
+- Câu trả lời của học viên: {userAnswer}
+- Đáp án đúng của hệ thống: {correctAnswer}
+
+Hãy phân tích lỗi sai trên và trả về JSON theo đúng định dạng được yêu cầu.
+""";
     }
 
     private async Task UpsertSkillStatsAsync(
@@ -192,18 +548,36 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
 
     public static string NormalizeSkill(string? category)
     {
-        var c = (category ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(category)) return "unclassified";
+        var c = category.Trim().ToLowerInvariant();
         return c switch
         {
             "vocabulary" or "vocab" => "vocabulary",
             "grammar" or "sentence" => "grammar",
-            "hanzi" or "character" or "writing" => "hanzi",
-            "pinyin" or "tone" => "pinyin",
             "reading" => "reading",
             "listening" => "listening",
-            _ => "grammar"
+            "hanzi" or "character" or "writing" => "hanzi",
+            "pinyin" or "tone" or "phonetics" => "pinyin",
+            _ => c.Contains(':') ? c : $"unclassified:{c}"
         };
     }
+
+    private static string GetSkillLabelVi(string category)
+    {
+        return category switch
+        {
+            "vocabulary" => "Từ vựng (Vocabulary)",
+            "grammar" => "Ngữ pháp (Grammar)",
+            "hanzi" => "Nhận diện chữ Hán (Hanzi)",
+            "pinyin" => "Pinyin & Thanh điệu",
+            "reading" => "Đọc hiểu (Reading)",
+            "listening" => "Nghe hiểu (Listening)",
+            _ => "Kiến thức tổng hợp"
+        };
+    }
+
+    private static string NormalizeAnswer(string input) =>
+        input.Trim().Replace(" ", "").Replace("。", "").Replace(".", "").Replace("？", "").Replace("?", "");
 
     public sealed record AttemptPoint(string SkillCategory, string TopicTitle, int HskLevel, bool IsCorrect);
 }

@@ -64,6 +64,78 @@ export interface AiGeneratedExercise {
   createdAt: string;
 }
 
+export interface AIErrorExample {
+  hanzi: string;
+  pinyin: string;
+  vietnamese: string;
+}
+
+export interface AIErrorAnalysisDetail {
+  errorType: string;
+  errorTypeLabelVi: string;
+  whyIncorrectVi: string;
+  whyCorrectVi: string;
+  knowledgePointVi: string;
+  examples: AIErrorExample[];
+  recommendedPracticeAction: string;
+  recommendedRoute: string;
+  isAiGenerated: boolean;
+  isFallback: boolean;
+}
+
+export interface NextPracticeSuggestion {
+  title: string;
+  skillCategory: string;
+  hskLevel: number;
+  actionRoute: string;
+  reasonVi: string;
+}
+
+export interface AdaptiveExercise {
+  id: string;
+  hskLevel: number;
+  skillCategory: string;
+  exerciseType: string;
+  originTag: string;
+  academicStatus: string;
+  sourceReviewNote?: string | null;
+  promptZh: string;
+  promptPinyin?: string | null;
+  promptVi?: string | null;
+  options: string[];
+  difficultyTag?: string | null;
+  targetConcept?: string | null;
+}
+
+export interface AdaptiveSession {
+  sessionId: string;
+  hskLevel: number;
+  focusSkill: string;
+  mode: string;
+  totalQuestions: number;
+  strategySummaryVi: string;
+  questions: AdaptiveExercise[];
+  createdAt: string;
+}
+
+export interface GenerateAdaptiveSessionPayload {
+  targetHskLevel?: number;
+  focusSkill?: string;
+  questionCount?: number;
+  availableMinutes?: number;
+  preferWeakness?: boolean;
+  includeSrsDue?: boolean;
+}
+
+export interface RequestErrorAnalysisPayload {
+  exerciseId?: string;
+  questionText?: string;
+  userAnswer?: string;
+  correctAnswer?: string;
+  skillCategory?: string;
+  hskLevel?: number;
+}
+
 export interface AiExerciseAttemptResult {
   attemptId: string;
   aiExerciseId: string;
@@ -73,6 +145,8 @@ export interface AiExerciseAttemptResult {
   explanationVi: string;
   skillCategory: string;
   attemptedAt: string;
+  errorAnalysis?: AIErrorAnalysisDetail | null;
+  nextSuggestion?: NextPracticeSuggestion | null;
 }
 
 export interface SkillStatistic {
@@ -268,6 +342,12 @@ export const aiLearningEngineService = {
     exerciseId: string,
     payload: { selectedIndex?: number; userAnswer?: string }
   ) => httpClient.post<AiExerciseAttemptResult>(`/ai/exercises/${exerciseId}/attempts`, payload),
+
+  generateAdaptiveSession: (payload: GenerateAdaptiveSessionPayload) =>
+    httpClient.post<AdaptiveSession>('/ai/exercises/adaptive/session', payload, { timeoutMs: 35000 }),
+
+  explainErrorDetail: (payload: RequestErrorAnalysisPayload) =>
+    httpClient.post<AIErrorAnalysisDetail>('/ai/error-analysis/explain', payload, { timeoutMs: 35000 }),
 
   getErrorAnalysis: () => httpClient.get<ErrorAnalysisReport>('/ai/error-analysis'),
 
