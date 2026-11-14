@@ -113,13 +113,15 @@ public class SqlServerPhase1IntegrationTests
             Assert.Equal("srs-due", topRec1.Category);
             Assert.Equal("/srs-review", topRec1.DestinationRoute);
 
-            // Student 2: Must NOT have Student 1's SRS items
+            // Student 2: Must NOT have Student 1's SRS items; receives optional diagnostic assessment
             Assert.NotNull(plan2);
             Assert.Equal(student2Id, plan2.UserId);
             Assert.Equal(0, plan2.DueSrsCount);
             Assert.Equal(0, plan2.MasteredWordsCount);
             Assert.DoesNotContain(plan2.Recommendations, r => r.Category == "srs-due");
-            Assert.DoesNotContain(plan2.Recommendations, r => r.Category == "diagnostic-test");
+            var diagRec2 = plan2.Recommendations.FirstOrDefault(r => r.Category == "diagnostic-test");
+            Assert.NotNull(diagRec2);
+            Assert.Equal("/diagnostic-assessment", diagRec2.DestinationRoute);
         }
         finally
         {

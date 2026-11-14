@@ -96,7 +96,7 @@ public class RecommendationEngineV2Tests
     }
 
     [Fact]
-    public void BuildScoredCandidates_WhenNotAssessed_RecommendsNextLessonInCurriculumWithoutFakeDiagnosticTest()
+    public void BuildScoredCandidates_WhenNotAssessed_IncludesOptionalDiagnosticAssessmentRoute()
     {
         var competency = new CompetencyProfileDto
         {
@@ -115,8 +115,11 @@ public class RecommendationEngineV2Tests
             nextLessonId: "lesson-01",
             nextLessonTitle: "Bài 1: Chào hỏi");
 
-        // Must NOT emit a non-existent diagnostic assessment recommendation
-        Assert.DoesNotContain(candidates, c => c.Category == "diagnostic-test");
+        // Phase 2: Emits an optional adaptive diagnostic assessment pointing to /diagnostic-assessment
+        var diag = candidates.FirstOrDefault(c => c.Category == "diagnostic-test");
+        Assert.NotNull(diag);
+        Assert.Equal("/diagnostic-assessment", diag.DestinationRoute);
+        Assert.Equal("Làm khảo sát ngay", diag.ActionLabel);
 
         var nextLesson = candidates.FirstOrDefault(c => c.Category == "next-lesson");
         Assert.NotNull(nextLesson);

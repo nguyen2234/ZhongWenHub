@@ -205,6 +205,10 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   // Top weak grammar point if any
   const weakGrammar = weakKnowledge.find((w) => w.category === 'grammar');
 
+  // Decorative Chinese landscape asset paths with robust base resolution
+  const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const heroLandscapeUrl = `${basePath}/images/dashboard/hero-landscape.webp`;
+
   return (
     <div className="hanbeego-dashboard-layout">
       {/* =====================================================================
@@ -212,8 +216,17 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           ===================================================================== */}
       <div className="dashboard-main-column">
 
-        {/* SECTION 1: HERO BANNER (HanbeeGo Layout + Viettel Red Theme) */}
+        {/* SECTION 1: HERO BANNER (HanbeeGo Layout + Viettel Red Theme + Chinese Landscape) */}
         <section className="hero-banner-container" aria-label="Khẩu hiệu học tập">
+          {/* Background Landscape Layer */}
+          <div
+            className="hero-banner-landscape-layer"
+            aria-hidden="true"
+            style={{
+              ['--bg-hero-landscape' as string]: `url("${heroLandscapeUrl}")`,
+            }}
+          />
+
           <div className="hero-banner-content">
             <div className="hero-banner-badge">
               <Sparkles size={12} />

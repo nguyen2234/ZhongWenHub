@@ -313,27 +313,47 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
             </div>
           </div>
 
-          <button
-            type="button"
-            data-testid="competency-start-diagnostic-btn"
-            onClick={() => navigate('/learning-path')}
-            style={{
-              padding: '10px 18px',
-              borderRadius: '12px',
-              border: 'none',
-              backgroundColor: '#4338ca',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>Bắt đầu học lộ trình HSK</span>
-            <ArrowRight size={14} />
-          </button>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+            <button
+              type="button"
+              data-testid="competency-start-diagnostic-btn"
+              onClick={() => navigate('/diagnostic-assessment')}
+              style={{
+                padding: '10px 18px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#4338ca',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>Làm bài khảo sát định vị trình độ (12 câu)</span>
+              <ArrowRight size={14} />
+            </button>
+
+            <button
+              type="button"
+              data-testid="competency-start-learning-path-btn"
+              onClick={() => navigate('/learning-path')}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '12px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#475569',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              <span>Hoặc bắt đầu học lộ trình HSK 1 ngay</span>
+            </button>
+          </div>
         </div>
       )}
 

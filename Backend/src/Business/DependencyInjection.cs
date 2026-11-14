@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using ZhongWenHub.Business.AILearning;
 using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Business.AILearning.Services.Diagnostic;
 using ZhongWenHub.Business.AILearning.Services.Recommendation;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
@@ -126,6 +127,7 @@ public static class DependencyInjection
         services.AddScoped<IPersonalizedLearningService, PersonalizedLearningService>();
         services.AddScoped<ICompetencyProfileService, CompetencyProfileService>();
         services.AddScoped<IRecommendationEngineV2, RecommendationEngineV2>();
+        services.AddScoped<IDiagnosticAssessmentService, DiagnosticAssessmentService>();
 
         return services;
     }

@@ -1,0 +1,174 @@
+/* ==========================================================================
+   ZHONGWENHUB DASHBOARD & SIDEBAR CHINESE WATERCOLOR LANDSCAPE DECORATIONS
+   Subtle watercolor/pastel ink landscapes for Chinese cultural ambience.
+   Preserves ZhongWenHub Viettel Red-White theme and perfect text contrast.
+   ========================================================================== */
+
+/* 1. Dashboard Layout Canvas */
+.hanbeego-dashboard-layout {
+  position: relative;
+  isolation: isolate;
+}
+
+/* 2. Hero Banner Watercolor Background */
+.hero-banner-container {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Hero Landscape Layer: right-aligned, rich watercolor pastel scenery with protected left text zone */
+.hero-banner-landscape-layer {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      90deg,
+      #ffffff 0%,
+      rgba(255, 255, 255, 0.94) 28%,
+      rgba(255, 255, 255, 0.68) 52%,
+      rgba(255, 255, 255, 0.18) 78%,
+      rgba(255, 255, 255, 0.02) 100%
+    ),
+    var(--bg-hero-landscape, url('/ZhongWenHub/images/dashboard/hero-landscape.webp'));
+  background-repeat: no-repeat;
+  background-position: right 30% center;
+  background-size: cover;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Keep hero content on top and ensure crystal-clear text readability */
+.hero-banner-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-banner-illustration {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+/* 3. Sidebar Bottom Landscape Decoration */
+.student-sidebar-landscape-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 12px 14px 14px 14px;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition: opacity 0.25s ease, max-height 0.25s ease;
+}
+
+.sidebar-landscape-card {
+  position: relative;
+  width: 100%;
+  height: 94px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  background-color: #fafafa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.sidebar-landscape-image {
+  position: absolute;
+  inset: 0;
+  background-image: var(--bg-sidebar-landscape, url('/ZhongWenHub/images/dashboard/sidebar-landscape.webp'));
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  opacity: 0.82;
+}
+
+.sidebar-landscape-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+}
+
+.sidebar-landscape-caption {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  z-index: 2;
+}
+
+.sidebar-landscape-tag {
+  font-family: var(--font-hanzi, "Noto Serif SC", serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #881337;
+  background-color: rgba(255, 255, 255, 0.88);
+  padding: 1px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.sidebar-landscape-subtext {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+}
+
+/* 4. Responsive Rules */
+
+/* In collapsed mode, hide the sidebar bottom card to keep collapsed strip clean (72px) */
+.student-sidebar-container.collapsed .student-sidebar-landscape-footer,
+.student-sidebar-collapsed .student-sidebar-landscape-footer {
+  display: none !important;
+}
+
+/* Tablet & Mobile Breakpoints */
+@media (max-width: 900px) {
+  .hero-banner-landscape-layer {
+    background-image:
+      linear-gradient(
+        90deg,
+        #ffffff 0%,
+        rgba(255, 255, 255, 0.92) 42%,
+        rgba(255, 255, 255, 0.65) 75%,
+        rgba(255, 255, 255, 0.25) 100%
+      ),
+      var(--bg-hero-landscape, url('/ZhongWenHub/images/dashboard/hero-landscape.webp'));
+    opacity: 0.95;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-banner-landscape-layer {
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.94) 0%,
+        rgba(255, 255, 255, 0.8) 55%,
+        rgba(255, 255, 255, 0.5) 100%
+      ),
+      var(--bg-hero-landscape, url('/ZhongWenHub/images/dashboard/hero-landscape.webp'));
+    opacity: 0.85;
+  }
+
+  .student-sidebar-landscape-footer {
+    display: none; /* Hide on mobile drawer to conserve vertical navigation space */
+  }
+}
+

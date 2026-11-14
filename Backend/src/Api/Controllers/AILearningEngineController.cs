@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using ZhongWenHub.Business.AILearning;
 using ZhongWenHub.Business.AILearning.DTOs;
 using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Business.AILearning.Services.Diagnostic;
 using ZhongWenHub.Business.AILearning.Services.Recommendation;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authorization;
@@ -23,6 +24,7 @@ public class AILearningEngineController : BaseApiController
     private readonly IPersonalizedLearningService _personalizedLearningService;
     private readonly ICompetencyProfileService _competencyService;
     private readonly IRecommendationEngineV2 _recommendationEngineV2;
+    private readonly IDiagnosticAssessmentService _diagnosticService;
     private readonly ICurrentUserService _currentUserService;
 
     public AILearningEngineController(
@@ -32,6 +34,7 @@ public class AILearningEngineController : BaseApiController
         IPersonalizedLearningService personalizedLearningService,
         ICompetencyProfileService competencyService,
         IRecommendationEngineV2 recommendationEngineV2,
+        IDiagnosticAssessmentService diagnosticService,
         ICurrentUserService currentUserService)
     {
         _conversationService = conversationService;
@@ -40,6 +43,7 @@ public class AILearningEngineController : BaseApiController
         _personalizedLearningService = personalizedLearningService;
         _competencyService = competencyService;
         _recommendationEngineV2 = recommendationEngineV2;
+        _diagnosticService = diagnosticService;
         _currentUserService = currentUserService;
     }
 
@@ -257,5 +261,52 @@ public class AILearningEngineController : BaseApiController
         if (!userId.HasValue) return Unauthorized();
 
         return Ok(await _recommendationEngineV2.GetPlanV2Async(userId.Value, availableMinutes, explain, cancellationToken));
+    }
+
+    // ==================== ADAPTIVE HSK DIAGNOSTIC ASSESSMENT ====================
+
+    [HttpPost("diagnostic/start")]
+    [ProducesResponseType(typeof(DiagnosticSessionStartDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> StartDiagnosticSession(CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _diagnosticService.StartSessionAsync(userId.Value, cancellationToken));
+    }
+
+    [HttpPost("diagnostic/submit")]
+    [ProducesResponseType(typeof(DiagnosticResultDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SubmitDiagnosticSession(
+        [FromBody] DiagnosticSubmissionDto submission,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        try
+        {
+            var result = await _diagnosticService.SubmitAssessmentAsync(userId.Value, submission, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("diagnostic/latest")]
+    [ProducesResponseType(typeof(DiagnosticResultDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetLatestDiagnosticResult(CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        var result = await _diagnosticService.GetLatestResultAsync(userId.Value, cancellationToken);
+        return Ok(result);
     }
 }

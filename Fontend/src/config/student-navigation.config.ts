@@ -286,12 +286,13 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
     icon: Sparkles,
     badge: 'AI',
     badgeType: 'ai',
-    activeMatchPaths: ['/ai-tutor', '/ai-live', '/ai-grading', '/ai-analytics', '/ai-learning'],
+    activeMatchPaths: ['/ai-tutor', '/ai-live', '/ai-grading', '/ai-analytics', '/ai-learning', '/diagnostic-assessment'],
     secondaryFeatures: [
       { id: 'ai-chat', path: '/ai-tutor', label: 'AI Chat', icon: Sparkles },
       { id: 'ai-live', path: '/ai-live', label: 'AI Live Kippy', icon: Radio, badge: 'Live' },
       { id: 'ai-grading', path: '/ai-grading', label: 'AI Chấm bài', icon: FileCheck },
       { id: 'ai-analytics', path: '/ai-analytics', label: 'Phân tích AI', icon: BrainCircuit },
+      { id: 'diagnostic-assessment', path: '/diagnostic-assessment', label: 'Khảo sát định vị HSK', icon: Sparkles, badge: 'Adaptive' },
     ],
   },
   {

@@ -116,9 +116,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     if (onNavigate) onNavigate();
   };
 
+  const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const sidebarLandscapeUrl = `${basePath}/images/dashboard/sidebar-landscape.webp`;
+
   return (
     <aside
-      className={`student-sidebar-container ${className}`.trim()}
+      className={`student-sidebar-container ${isCollapsed ? 'collapsed student-sidebar-collapsed' : ''} ${className}`.trim()}
       style={{
         width: isCollapsed ? 'var(--student-sidebar-collapsed-width, 72px)' : 'var(--student-sidebar-width, 256px)',
         height: '100%',
@@ -451,6 +454,28 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           );
         })}
       </div>
+
+      {/* Decorative Chinese Watercolor Landscape at Bottom of Sidebar (Only when expanded) */}
+      {!isCollapsed && (
+        <div
+          className="student-sidebar-landscape-footer"
+          aria-hidden="true"
+        >
+          <div className="sidebar-landscape-card">
+            <div
+              className="sidebar-landscape-image"
+              style={{
+                ['--bg-sidebar-landscape' as string]: `url("${sidebarLandscapeUrl}")`,
+              }}
+            />
+            <div className="sidebar-landscape-gradient" />
+            <div className="sidebar-landscape-caption">
+              <span className="sidebar-landscape-tag">山水</span>
+              <span className="sidebar-landscape-subtext">ZhongWenHub</span>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

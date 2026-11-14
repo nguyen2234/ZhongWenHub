@@ -5,6 +5,8 @@
    ========================================================================== */
 
 /* Main 2-Column Responsive Layout */
+@import './dashboard-decorations.css';
+
 .hanbeego-dashboard-layout {
   width: 100%;
   max-width: 1360px;

@@ -13,7 +13,7 @@ import {
   StudentAssignmentRunnerPage,
   StudentHomeworkResultPage,
 } from '../../features/homework';
-import { StudentAIWorkspacePage, AIExerciseGeneratorPage } from '../../features/ai';
+import { StudentAIWorkspacePage, AIExerciseGeneratorPage, DiagnosticAssessmentPage } from '../../features/ai';
 import { AITutorWorkspacePage } from '../../features/ai-tutor';
 import { GrammarPage } from '../../features/grammar';
 import {
@@ -186,6 +186,10 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'ai-exercises',
         element: <AIExerciseGeneratorPage />,
+      },
+      {
+        path: 'diagnostic-assessment',
+        element: <DiagnosticAssessmentPage />,
       },
 
       // F. THÀNH TÍCH

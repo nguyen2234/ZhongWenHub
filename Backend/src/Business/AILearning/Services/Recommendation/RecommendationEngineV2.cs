@@ -242,7 +242,30 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
             });
         }
 
-        // Candidate 4: Next Lesson in Curriculum
+        // Candidate 4: Adaptive HSK Diagnostic Assessment (Optional for new unassessed learners)
+        if (competency.AssessmentStatus == "NOT_ASSESSED")
+        {
+            items.Add(new RecommendationItemV2Dto
+            {
+                Id = "rec-diagnostic-assessment",
+                Category = "diagnostic-test",
+                Title = "Khảo sát định vị trình độ HSK thích ứng (Tùy chọn)",
+                UtilityScore = 0.72,
+                Reason = "Bạn chưa có dữ liệu đánh giá năng lực ban đầu. Bài khảo sát nhanh 12 câu sẽ giúp hệ thống định vị chính xác trình độ thực tế của bạn.",
+                PedagogicalGoalVi = "Đo lường năng lực chuẩn xác để cá nhân hóa toàn bộ lộ trình bài học và bài tập tiếp theo.",
+                EvidenceData = new Dictionary<string, object>
+                {
+                    { "status", "NOT_ASSESSED" },
+                    { "isOptional", true }
+                },
+                EstimatedMinutes = 8,
+                DestinationRoute = "/diagnostic-assessment",
+                Badge = "Tùy chọn",
+                ActionLabel = "Làm khảo sát ngay"
+            });
+        }
+
+        // Candidate 5: Next Lesson in Curriculum
         if (string.IsNullOrWhiteSpace(inProgressLessonId) && !string.IsNullOrWhiteSpace(nextLessonId))
         {
             var title = string.IsNullOrWhiteSpace(nextLessonTitle) ? "Bài học tiếp theo" : nextLessonTitle;

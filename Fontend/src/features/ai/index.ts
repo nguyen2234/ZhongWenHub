@@ -19,6 +19,8 @@ export * from './student/services/student-ai.service';
 export * from './student/components/StudentAIFeatureCard';
 export * from './student/pages/StudentAIWorkspacePage';
 export * from './student/pages/AIExerciseGeneratorPage';
+export * from './services/diagnostic-assessment.service';
+export * from './diagnostic/pages/DiagnosticAssessmentPage';
 
 // Teacher AI
 export * from './teacher/types/teacher-ai.types';
