@@ -242,16 +242,16 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
             });
         }
 
-        // Candidate 4: Adaptive HSK Diagnostic Assessment (Optional for new unassessed learners)
+        // Candidate 4: Standardized HSK Diagnostic Placement Test (Optional for new unassessed learners)
         if (competency.AssessmentStatus == "NOT_ASSESSED")
         {
             items.Add(new RecommendationItemV2Dto
             {
                 Id = "rec-diagnostic-assessment",
                 Category = "diagnostic-test",
-                Title = "Khảo sát định vị trình độ HSK thích ứng (Tùy chọn)",
+                Title = "Khảo sát định vị HSK chuẩn hóa (Placement Test - Tùy chọn)",
                 UtilityScore = 0.72,
-                Reason = "Bạn chưa có dữ liệu đánh giá năng lực ban đầu. Bài khảo sát nhanh 12 câu sẽ giúp hệ thống định vị chính xác trình độ thực tế của bạn.",
+                Reason = "Bạn chưa có dữ liệu đánh giá năng lực ban đầu. Bài khảo sát định vị 12 câu sẽ giúp sàng lọc ban đầu trình độ của bạn để cá nhân hóa bài tập.",
                 PedagogicalGoalVi = "Đo lường năng lực chuẩn xác để cá nhân hóa toàn bộ lộ trình bài học và bài tập tiếp theo.",
                 EvidenceData = new Dictionary<string, object>
                 {

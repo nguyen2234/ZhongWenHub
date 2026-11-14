@@ -15,6 +15,7 @@ using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests.AILearning;
 
+[Collection("SqlServerIntegrationTests")]
 public class SqlServerPhase1IntegrationTests
 {
     private const string SqlServerConnectionString =

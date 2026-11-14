@@ -12,6 +12,8 @@ import {
   Award,
   ChevronRight,
   Zap,
+  ShieldCheck,
+  AlertCircle,
 } from 'lucide-react';
 import {
   diagnosticAssessmentService,
@@ -50,6 +52,8 @@ export const DiagnosticAssessmentPage: React.FC = () => {
   const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmingTarget, setConfirmingTarget] = useState(false);
+  const [targetConfirmed, setTargetConfirmed] = useState(false);
 
   const timerRef = useRef<number | null>(null);
 
@@ -61,7 +65,6 @@ export const DiagnosticAssessmentPage: React.FC = () => {
         const latest = await diagnosticAssessmentService.getLatestResult();
         if (mounted && latest) {
           setResult(latest);
-          // Keep in intro by default so student can choose whether to view previous result or start fresh
         }
       } catch {
         // Ignore initial fetch error
@@ -99,6 +102,7 @@ export const DiagnosticAssessmentPage: React.FC = () => {
       setCurrentIndex(0);
       setSelectedAnswers({});
       setTimeSpent(0);
+      setTargetConfirmed(false);
       setScreen('active');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Không thể khởi tạo bài khảo sát. Vui lòng thử lại sau.';
@@ -148,6 +152,20 @@ export const DiagnosticAssessmentPage: React.FC = () => {
     }
   }, [session, selectedAnswers, timeSpent]);
 
+  const handleConfirmTargetHsk = async (hskLevel: number) => {
+    setConfirmingTarget(true);
+    setErrorMessage(null);
+    try {
+      await diagnosticAssessmentService.confirmTargetHsk(hskLevel);
+      setTargetConfirmed(true);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Không thể cập nhật mục tiêu học tập.';
+      setErrorMessage(message);
+    } finally {
+      setConfirmingTarget(false);
+    }
+  };
+
   const formatSeconds = (sec: number) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
@@ -182,14 +200,14 @@ export const DiagnosticAssessmentPage: React.FC = () => {
         >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.15)', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
             <Sparkles size={16} />
-            <span>AI Adaptive Diagnostic Assessment</span>
+            <span>HSK Diagnostic Placement Test (Sàng lọc ban đầu)</span>
           </div>
 
           <h1 style={{ fontSize: '28px', fontWeight: 800, margin: '0 0 12px 0', lineHeight: 1.3 }}>
-            Khảo Sát Định Vị Trình Độ HSK Thích Ứng
+            Khảo Sát Định Vị Trình Độ HSK Chuẩn Hóa
           </h1>
           <p style={{ fontSize: '15px', color: '#e0e7ff', margin: '0 0 24px 0', lineHeight: 1.6, maxWidth: '640px' }}>
-            Bài khảo sát nhanh gồm 12 câu hỏi trắc nghiệm khách quan từ HSK 1 đến HSK 4. Hệ thống AI sử dụng mô hình Bayesian Knowledge Tracing (BKT) để định vị trình độ thực tế của bạn, từ đó gợi ý lộ trình học tập tối ưu nhất.
+            Bài kiểm tra trắc nghiệm khách quan gồm 12 câu hỏi sàng lọc (3 câu/cấp HSK 1–4). Đề thi và phương án được xáo trộn ngẫu nhiên theo từng phiên, chấm điểm độc lập tại máy chủ để định vị trình độ sơ bộ và giữ nguyên mục tiêu học tập tự chọn của bạn.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
@@ -215,7 +233,7 @@ export const DiagnosticAssessmentPage: React.FC = () => {
               }}
             >
               <Zap size={18} />
-              <span>{loading ? 'Đang tải đề thi...' : 'Bắt đầu làm bài (8 phút)'}</span>
+              <span>{loading ? 'Đang chuẩn bị đề thi...' : 'Bắt đầu làm bài (8–10 phút)'}</span>
             </button>
 
             <button
@@ -274,10 +292,10 @@ export const DiagnosticAssessmentPage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Kết quả đánh giá gần nhất
+                  Kết quả định vị gần nhất
                 </span>
                 <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
-                  Trình độ ước tính: HSK {result.estimatedHskLevel}
+                  Trình độ khuyến nghị: HSK {result.estimatedHskLevel}
                 </h3>
               </div>
               <button
@@ -311,13 +329,13 @@ export const DiagnosticAssessmentPage: React.FC = () => {
                 </div>
               </div>
               <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>Độ tin cậy BKT</div>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>Độ tin cậy sàng lọc</div>
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#059669', marginTop: '4px' }}>
-                  {Math.round(result.confidenceScore * 100)}%
+                  {Math.round(result.confidenceScore * 100)}% (Sơ bộ)
                 </div>
               </div>
               <div style={{ padding: '12px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>Thời gian hoàn thành</div>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>Thời gian làm bài</div>
                 <div style={{ fontSize: '18px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
                   {formatSeconds(result.timeSpentSeconds)}
                 </div>
@@ -332,19 +350,19 @@ export const DiagnosticAssessmentPage: React.FC = () => {
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#eef2ff', color: '#4338ca', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
               <Award size={20} />
             </div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>Đánh giá 4 Cấp độ HSK</h4>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>Ngân hàng đề xáo trộn</h4>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-              12 câu hỏi trắc nghiệm trải dài từ HSK 1 đến HSK 4, giúp kiểm tra cả kiến thức nền tảng và nâng cao.
+              12 câu hỏi và các phương án trả lời được bốc ngẫu nhiên từ ngân hàng câu hỏi kiểm duyệt và xáo trộn theo từng phiên.
             </p>
           </div>
 
           <div style={{ padding: '20px', borderRadius: '16px', backgroundColor: 'var(--surface, #ffffff)', border: '1px solid var(--border, #e2e8f0)' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-              <Sparkles size={20} />
+              <ShieldCheck size={20} />
             </div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>BKT AI Modeling</h4>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>Bảo mật & Không lộ đề</h4>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-              Phân tích kỹ năng theo xác suất Bayesian thực tế, không suy diễn điểm ảo và bảo toàn trạng thái chưa kiểm tra.
+              Đáp án và lời giải chỉ được đối chiếu trên máy chủ sau khi nộp bài; không gửi bản dịch câu hỏi đọc hiểu/nghe làm lộ nội dung.
             </p>
           </div>
 
@@ -352,9 +370,9 @@ export const DiagnosticAssessmentPage: React.FC = () => {
             <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
               <BookOpen size={20} />
             </div>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>Đề xuất cá nhân hóa</h4>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700 }}>Bảo toàn mục tiêu cá nhân</h4>
             <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-              Sau khi có kết quả, hệ thống tự động thiết kế lộ trình học tập, bài tập củng cố và flashcard phù hợp nhất.
+              Hệ thống không tự ý ghi đè mục tiêu HSK của bạn; bạn hoàn toàn chủ động quyết định việc cập nhật mục tiêu hay không.
             </p>
           </div>
         </div>
@@ -398,10 +416,10 @@ export const DiagnosticAssessmentPage: React.FC = () => {
           <RotateCcw size={32} />
         </div>
         <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0, color: 'var(--foreground, #0f172a)' }}>
-          Đang Chấm Điểm & Phân Tích Năng Lực AI...
+          Đang Chấm Điểm Tại Máy Chủ Bảo Mật...
         </h2>
         <p style={{ fontSize: '14px', color: '#64748b', margin: 0, lineHeight: 1.6, maxWidth: '420px' }}>
-          Hệ thống đang đối chiếu câu trả lời trên máy chủ bảo mật, cập nhật mô hình Bayesian Knowledge Tracing và điều chỉnh lộ trình học.
+          Hệ thống đang đối chiếu câu trả lời với snapshot đề thi, phân tích tỷ lệ chính xác từng cấp độ và lưu hồ sơ năng lực.
         </p>
       </div>
     );
@@ -438,13 +456,13 @@ export const DiagnosticAssessmentPage: React.FC = () => {
             <div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '9999px', backgroundColor: 'rgba(255,255,255,0.15)', fontSize: '12px', fontWeight: 700, marginBottom: '10px' }}>
                 <CheckCircle2 size={14} />
-                <span>Hoàn thành khảo sát HSK</span>
+                <span>Hoàn thành khảo sát HSK Placement Test</span>
               </div>
               <h1 style={{ fontSize: '32px', fontWeight: 900, margin: 0 }}>
-                Trình Độ Ước Tính: HSK {result.estimatedHskLevel}
+                Trình Độ Khuyến Nghị: HSK {result.estimatedHskLevel}
               </h1>
               <p style={{ margin: '8px 0 0 0', color: '#c7d2fe', fontSize: '14px' }}>
-                Độ tin cậy đánh giá BKT: <strong>{Math.round(result.confidenceScore * 100)}%</strong>
+                Độ tin cậy sàng lọc ban đầu: <strong>{Math.round(result.confidenceScore * 100)}% (Mức sơ bộ)</strong>
               </p>
             </div>
 
@@ -468,7 +486,7 @@ export const DiagnosticAssessmentPage: React.FC = () => {
                 }}
               >
                 <RotateCcw size={15} />
-                <span>Làm lại bài</span>
+                <span>Làm lại bài mới</span>
               </button>
 
               <button
@@ -520,6 +538,91 @@ export const DiagnosticAssessmentPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Limitations Notice */}
+        {result.assessmentLimitationsVi && (
+          <div
+            data-testid="diagnostic-limitations-notice"
+            style={{
+              padding: '16px 20px',
+              borderRadius: '16px',
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fde68a',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              color: '#92400e',
+              fontSize: '13px',
+              lineHeight: 1.6,
+            }}
+          >
+            <AlertCircle size={20} style={{ color: '#d97706', flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong style={{ display: 'block', marginBottom: '2px', color: '#78350f' }}>
+                Giới hạn đánh giá & Tính minh bạch kết quả:
+              </strong>
+              {result.assessmentLimitationsVi}
+            </div>
+          </div>
+        )}
+
+        {/* Explicit Target Confirmation Card */}
+        <div
+          data-testid="target-confirmation-card"
+          style={{
+            backgroundColor: 'var(--surface, #ffffff)',
+            border: '1px solid var(--border, #e2e8f0)',
+            borderRadius: '20px',
+            padding: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+          }}
+        >
+          <div>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
+              Cập Nhật Mục Tiêu Học Tập Cá Nhân
+            </h4>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b', maxWidth: '540px', lineHeight: 1.5 }}>
+              Mục tiêu học tập bạn tự chọn ban đầu vẫn được giữ nguyên. Nếu muốn điều chỉnh mục tiêu theo kết quả định vị (HSK {result.estimatedHskLevel}), vui lòng xác nhận bên dưới.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            data-testid="confirm-target-hsk-btn"
+            disabled={confirmingTarget || targetConfirmed}
+            onClick={() => handleConfirmTargetHsk(result.estimatedHskLevel)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '12px',
+              backgroundColor: targetConfirmed ? '#059669' : '#4338ca',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: targetConfirmed ? 'default' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'background-color 0.2s ease',
+            }}
+          >
+            {targetConfirmed ? (
+              <>
+                <CheckCircle2 size={16} />
+                <span>Đã cập nhật mục tiêu HSK {result.estimatedHskLevel}</span>
+              </>
+            ) : (
+              <>
+                <span>{confirmingTarget ? 'Đang cập nhật...' : `Xác nhận đổi mục tiêu sang HSK ${result.estimatedHskLevel}`}</span>
+                <ArrowRight size={15} />
+              </>
+            )}
+          </button>
         </div>
 
         {/* Skill Accuracy Breakdown */}
@@ -904,7 +1007,7 @@ export const DiagnosticAssessmentPage: React.FC = () => {
               </div>
             )}
 
-            {/* Vietnamese instruction / prompt */}
+            {/* Vietnamese instruction / directive (never revealing answer) */}
             {currentQuestion.promptVi && (
               <div style={{ fontSize: '15px', color: '#475569', marginTop: '10px', lineHeight: 1.5 }}>
                 {currentQuestion.promptVi}

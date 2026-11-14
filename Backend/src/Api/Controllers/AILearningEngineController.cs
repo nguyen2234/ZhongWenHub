@@ -289,11 +289,39 @@ public class AILearningEngineController : BaseApiController
             var result = await _diagnosticService.SubmitAssessmentAsync(userId.Value, submission, cancellationToken);
             return Ok(result);
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
         catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("diagnostic/confirm-target")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ConfirmTargetHsk(
+        [FromBody] ConfirmTargetHskDto request,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        try
+        {
+            await _diagnosticService.ApplyConfirmedTargetHskAsync(userId.Value, request.TargetHskLevel, cancellationToken);
+            return Ok(new { success = true, targetHskLevel = request.TargetHskLevel });
+        }
+        catch (ArgumentOutOfRangeException ex)
         {
             return BadRequest(new { message = ex.Message });
         }

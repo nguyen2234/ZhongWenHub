@@ -13,7 +13,9 @@ export interface DiagnosticQuestion {
 
 export interface DiagnosticSessionStart {
   sessionId: string;
+  assessmentType: string;
   totalQuestions: number;
+  maxDurationMinutes: number;
   questions: DiagnosticQuestion[];
   startedAt: string;
 }
@@ -45,6 +47,7 @@ export interface DiagnosticQuestionResult {
 
 export interface DiagnosticResult {
   sessionId: string;
+  assessmentType: string;
   estimatedHskLevel: number;
   confidenceScore: number;
   totalQuestions: number;
@@ -52,6 +55,7 @@ export interface DiagnosticResult {
   accuracyPercent: number;
   timeSpentSeconds: number;
   assessmentSummaryVi: string;
+  assessmentLimitationsVi: string;
   skillAccuracyPercent: Record<string, number>;
   hskLevelAccuracyPercent: Record<string, number>;
   detailedQuestions: DiagnosticQuestionResult[];
@@ -65,4 +69,9 @@ export const diagnosticAssessmentService = {
     httpClient.post<DiagnosticResult>('/ai/diagnostic/submit', payload),
 
   getLatestResult: () => httpClient.get<DiagnosticResult | null>('/ai/diagnostic/latest'),
+
+  confirmTargetHsk: (targetHskLevel: number) =>
+    httpClient.post<{ success: boolean; targetHskLevel: number }>('/ai/diagnostic/confirm-target', {
+      targetHskLevel,
+    }),
 };

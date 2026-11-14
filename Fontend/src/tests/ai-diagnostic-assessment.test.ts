@@ -8,38 +8,43 @@ import {
 } from '../features/ai/services/diagnostic-assessment.service';
 import { STUDENT_MAIN_NAV_ITEMS } from '../config/student-navigation.config';
 
-describe('Phase 2 Adaptive HSK Diagnostic Assessment Frontend Contracts', () => {
-  it('exposes Phase 2 diagnostic assessment service endpoints', () => {
+describe('Phase 2 HSK Diagnostic Placement Test Frontend Contracts', () => {
+  it('exposes Phase 2 placement assessment service endpoints and target confirmation', () => {
     expect(typeof diagnosticAssessmentService.startSession).toBe('function');
     expect(typeof diagnosticAssessmentService.submitSession).toBe('function');
     expect(typeof diagnosticAssessmentService.getLatestResult).toBe('function');
+    expect(typeof diagnosticAssessmentService.confirmTargetHsk).toBe('function');
   });
 
-  it('guarantees zero answer leaks in DiagnosticQuestion contract', () => {
-    const questionSample: DiagnosticQuestion = {
-      id: 'diag-q1',
+  it('guarantees zero answer leaks and no sentence translation in reading/listening contracts', () => {
+    const readingQuestion: DiagnosticQuestion = {
+      id: 'pl-1-rea-01',
       hskLevel: 1,
-      skillCategory: 'grammar',
-      topicTitle: 'Cấu trúc 是...的',
-      promptZh: '他是昨天来___。',
-      promptPinyin: 'Tā shì zuótiān lái ___.',
-      promptVi: 'Điền từ thích hợp vào chỗ trống',
-      options: ['的', '了', '过', '在'],
+      skillCategory: 'reading',
+      topicTitle: 'Đọc hiểu câu đơn',
+      promptZh: '我喝茶，不喝咖啡。',
+      promptVi: 'Người nói muốn uống gì?',
+      options: ['Cà phê', 'Trà', 'Nước ngọt', 'Nước cam'],
     };
 
     // Client question DTO MUST NOT contain correct answer or explanation fields
-    const keys = Object.keys(questionSample);
+    const keys = Object.keys(readingQuestion);
     expect(keys).not.toContain('correctIndex');
     expect(keys).not.toContain('correctAnswer');
     expect(keys).not.toContain('explanationVi');
-    expect(questionSample.options.length).toBe(4);
-    expect(questionSample.hskLevel).toBe(1);
+    expect(readingQuestion.options.length).toBe(4);
+    expect(readingQuestion.hskLevel).toBe(1);
+
+    // Reading instruction MUST NOT translate the Chinese sentence
+    expect(readingQuestion.promptVi).not.toContain('Tôi uống trà, không uống cà phê');
   });
 
-  it('validates DiagnosticSessionStart structure with multiple adaptive questions', () => {
+  it('validates DiagnosticSessionStart structure with placement screening metadata', () => {
     const mockSession: DiagnosticSessionStart = {
       sessionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      assessmentType: 'HSK_PLACEMENT_SCREENING',
       totalQuestions: 12,
+      maxDurationMinutes: 60,
       questions: [
         {
           id: 'q1',
@@ -62,6 +67,8 @@ describe('Phase 2 Adaptive HSK Diagnostic Assessment Frontend Contracts', () => 
     };
 
     expect(mockSession.totalQuestions).toBe(12);
+    expect(mockSession.maxDurationMinutes).toBe(60);
+    expect(mockSession.assessmentType).toBe('HSK_PLACEMENT_SCREENING');
     expect(mockSession.questions.length).toBe(2);
     expect(mockSession.sessionId).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
   });
@@ -82,16 +89,18 @@ describe('Phase 2 Adaptive HSK Diagnostic Assessment Frontend Contracts', () => 
     expect(mockSubmission.answers[2].selectedIndex).toBe(-1);
   });
 
-  it('validates DiagnosticResult schema with BKT confidence, skill breakdown, and server-side explanations', () => {
+  it('validates DiagnosticResult schema with screening psychometrics, limitations disclaimer, and server-side explanations', () => {
     const mockResult: DiagnosticResult = {
       sessionId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+      assessmentType: 'HSK_PLACEMENT_SCREENING',
       estimatedHskLevel: 2,
-      confidenceScore: 0.85,
+      confidenceScore: 0.462,
       totalQuestions: 12,
       correctCount: 9,
       accuracyPercent: 75.0,
       timeSpentSeconds: 310,
-      assessmentSummaryVi: 'Học viên đạt trình độ ước tính HSK 2 với độ tin cậy BKT 85.0%.',
+      assessmentSummaryVi: 'Định vị thành công: Trình độ khuyến nghị là HSK 2. Mục tiêu học tập của bạn được giữ nguyên.',
+      assessmentLimitationsVi: 'Kết quả định vị ban đầu (Screening Placement). Do số lượng câu hỏi sàng lọc là 12 câu, độ tin cậy đạt mức sơ bộ (~46%).',
       skillAccuracyPercent: {
         grammar: 80.0,
         vocabulary: 100.0,
@@ -124,7 +133,8 @@ describe('Phase 2 Adaptive HSK Diagnostic Assessment Frontend Contracts', () => 
     };
 
     expect(mockResult.estimatedHskLevel).toBe(2);
-    expect(mockResult.confidenceScore).toBe(0.85);
+    expect(mockResult.confidenceScore).toBe(0.462);
+    expect(mockResult.assessmentLimitationsVi).toContain('Screening Placement');
     expect(mockResult.accuracyPercent).toBe(75.0);
     expect(mockResult.skillAccuracyPercent.vocabulary).toBe(100.0);
     expect(mockResult.detailedQuestions[0].isCorrect).toBe(true);
