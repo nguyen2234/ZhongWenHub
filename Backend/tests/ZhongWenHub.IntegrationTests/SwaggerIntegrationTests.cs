@@ -150,5 +150,70 @@ public class SwaggerIntegrationTests
         var uiResponse = await client.GetAsync("/swagger/index.html");
         Assert.Equal(HttpStatusCode.NotFound, uiResponse.StatusCode);
     }
+
+    [Fact]
+    public async Task AnalyzeSwaggerEndpointsMetadata()
+    {
+        using var factory = new DevelopmentSwaggerAppFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/swagger/v1/swagger.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var paths = doc.RootElement.GetProperty("paths");
+
+        int totalOperations = 0;
+        int operationsWithSummary = 0;
+        int operationsWithDescription = 0;
+        int operationsWithoutSummary = 0;
+        var tagCounts = new Dictionary<string, int>();
+        var missingSummaryList = new List<string>();
+
+        foreach (var path in paths.EnumerateObject())
+        {
+            var pathKey = path.Name;
+            foreach (var method in path.Value.EnumerateObject())
+            {
+                var httpMethod = method.Name.ToUpperInvariant();
+                totalOperations++;
+
+                var op = method.Value;
+                bool hasSummary = op.TryGetProperty("summary", out var s) && !string.IsNullOrWhiteSpace(s.GetString());
+                bool hasDesc = op.TryGetProperty("description", out var d) && !string.IsNullOrWhiteSpace(d.GetString());
+
+                if (hasSummary) operationsWithSummary++;
+                if (hasDesc) operationsWithDescription++;
+                if (!hasSummary && !hasDesc)
+                {
+                    operationsWithoutSummary++;
+                    missingSummaryList.Add($"{httpMethod} {pathKey}");
+                }
+
+                if (op.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var tag in tags.EnumerateArray())
+                    {
+                        var tagName = tag.GetString() ?? "Unknown";
+                        tagCounts[tagName] = tagCounts.GetValueOrDefault(tagName, 0) + 1;
+                    }
+                }
+            }
+        }
+
+        System.Console.WriteLine($"TOTAL_OPERATIONS:{totalOperations}");
+        System.Console.WriteLine($"WITH_SUMMARY:{operationsWithSummary}");
+        System.Console.WriteLine($"WITH_DESCRIPTION:{operationsWithDescription}");
+        System.Console.WriteLine($"WITHOUT_SUMMARY_OR_DESC:{operationsWithoutSummary}");
+        foreach (var kvp in tagCounts)
+        {
+            System.Console.WriteLine($"TAG:{kvp.Key}={kvp.Value}");
+        }
+        foreach (var item in missingSummaryList.Take(30))
+        {
+            System.Console.WriteLine($"MISSING_META:{item}");
+        }
+    }
 }
 
