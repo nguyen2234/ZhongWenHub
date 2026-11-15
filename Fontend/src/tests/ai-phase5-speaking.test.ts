@@ -26,23 +26,26 @@ describe('Phase 5 AI Speaking Practice & Conversation Contracts', () => {
       hasAcousticToneData: false,
       toneAssessmentNote:
         'Điểm số phản ánh độ khớp văn bản nhận diện (Transcript Alignment). Không suy đoán thanh điệu hoặc ngữ điệu âm học khi chưa có thiết bị đo chuyên biệt.',
-      evaluationFeedbackVi: 'Xuất sắc! Bạn phát âm rất rõ ràng, toàn bộ các âm tiết được nhận diện chính xác.',
+      evaluationFeedbackVi: 'Xuất sắc! Toàn bộ nội dung âm thanh được nhận diện khớp hoàn toàn với văn bản mục tiêu.',
       wordBreakdown: [
         {
           characterOrWord: '苹',
           pinyin: 'píng',
-          status: 'MATCHED',
-          tipVi: 'Phát âm chuẩn xác.',
+          status: 'MATCHED' as const,
+          tipVi: 'Nội dung nhận diện khớp.',
         },
         {
           characterOrWord: '果',
           pinyin: 'guǒ',
-          status: 'MATCHED',
-          tipVi: 'Phát âm chuẩn xác.',
+          status: 'MATCHED' as const,
+          tipVi: 'Nội dung nhận diện khớp.',
         },
       ],
       sttProvider: 'GeminiMultimodalAudioSTT',
       isSttAvailable: true,
+      sttConfidence: null,
+      sttConfidenceStatus: 'UNAVAILABLE',
+      isDirectTextInput: false,
       attemptedAt: '2026-11-16T00:30:00Z',
     };
 
@@ -51,6 +54,42 @@ describe('Phase 5 AI Speaking Practice & Conversation Contracts', () => {
     expect(mockResult.toneAssessmentNote).toContain('Transcript Alignment');
     expect(mockResult.wordBreakdown.length).toBe(2);
     expect(mockResult.wordBreakdown[0].status).toBe('MATCHED');
+    expect(mockResult.sttConfidence).toBeNull();
+    expect(mockResult.sttConfidenceStatus).toBe('UNAVAILABLE');
+    expect(mockResult.isDirectTextInput).toBe(false);
+  });
+
+  it('validates DirectText mode contract and EXTRA word status in breakdown', () => {
+    const directResult = {
+      attemptId: 'c1234567-8d4a-4a25-a7b3-6c8f94d33451',
+      practiceType: 'WORD',
+      hskLevel: 1,
+      targetTextZh: '你好',
+      targetPinyin: 'nǐ hǎo',
+      recognizedTranscriptZh: '你好啊',
+      transcriptAccuracyPercent: 66.7,
+      overallPronunciationScore: 66.7,
+      assessmentMethod: 'TRANSCRIPT_ALIGNMENT',
+      hasAcousticToneData: false,
+      toneAssessmentNote: 'Điểm số phản ánh độ khớp văn bản nhận diện (Transcript Alignment).',
+      evaluationFeedbackVi: 'Khá tốt! [Thử nghiệm DirectText: Không tính vào điểm năng lực Nói hoặc thống kê âm thanh].',
+      wordBreakdown: [
+        { characterOrWord: '你', pinyin: 'nǐ', status: 'MATCHED' as const, tipVi: 'Nội dung nhận diện khớp.' },
+        { characterOrWord: '好', pinyin: 'hǎo', status: 'MATCHED' as const, tipVi: 'Nội dung nhận diện khớp.' },
+        { characterOrWord: '啊', status: 'EXTRA' as const, tipVi: 'Từ thừa trong nhận diện [啊].' },
+      ],
+      sttProvider: 'DirectTextInput',
+      isSttAvailable: true,
+      sttConfidence: null,
+      sttConfidenceStatus: 'UNAVAILABLE',
+      isDirectTextInput: true,
+      attemptedAt: '2026-11-16T00:35:00Z',
+    };
+
+    expect(directResult.isDirectTextInput).toBe(true);
+    expect(directResult.sttProvider).toBe('DirectTextInput');
+    expect(directResult.sttConfidence).toBeNull();
+    expect(directResult.wordBreakdown.some((w) => w.status === 'EXTRA')).toBe(true);
   });
 
   it('validates SpeakingPracticeItem contract supporting WORD, SENTENCE, and SCENARIO', () => {

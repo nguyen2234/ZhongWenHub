@@ -174,7 +174,8 @@ public sealed class GeminiSpeechRecognitionService : ISpeechRecognitionService
                 {
                     IsSuccess = true,
                     RecognizedText = recognized,
-                    Confidence = 0.95,
+                    Confidence = null, // Gemini multimodal generateContent does not provide acoustic confidence
+                    ConfidenceStatus = "UNAVAILABLE",
                     Provider = ProviderName
                 };
             }

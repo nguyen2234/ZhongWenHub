@@ -18,49 +18,79 @@ public sealed class AIPronunciationService : IAIPronunciationService
         int hskLevel,
         string practiceType = "WORD",
         string sttProvider = "GeminiAudioSTT",
-        bool isSttAvailable = true)
+        bool isSttAvailable = true,
+        double? sttConfidence = null,
+        string sttConfidenceStatus = "UNAVAILABLE",
+        bool isDirectTextInput = false)
     {
         var cleanTarget = CleanChineseText(targetZh);
         var cleanRecognized = CleanChineseText(recognizedZh);
 
         var pinyinTokens = TokenizePinyin(targetPinyin, cleanTarget.Length);
 
-        // Perform character alignment using LCS
-        var lcs = ComputeLcs(cleanTarget, cleanRecognized);
-        var breakdown = new List<WordAlignmentDetailDto>();
+        // Perform character alignment using forward LCS (Longest Common Subsequence) dynamic programming
+        // Forward alignment guarantees matching earlier characters first in left-to-right reading order
+        var m = cleanTarget.Length;
+        var n = cleanRecognized.Length;
+        var dp = new int[m + 1, n + 1];
 
-        var matchedCount = 0;
+        for (var i = m - 1; i >= 0; i--)
+        {
+            for (var j = n - 1; j >= 0; j--)
+            {
+                if (cleanTarget[i] == cleanRecognized[j])
+                    dp[i, j] = dp[i + 1, j + 1] + 1;
+                else
+                    dp[i, j] = Math.Max(dp[i + 1, j], dp[i, j + 1]);
+            }
+        }
+
+        var lcsLength = dp[0, 0];
+
+        // Backtrack forward from (0, 0) to extract unique matched character indices preserving order
+        // Guarantee: Each target character is matched to at most one recognized character
+        var matchedTargetIndices = new HashSet<int>();
+        var matchedRecIndices = new HashSet<int>();
+
+        var curI = 0;
+        var curJ = 0;
+        while (curI < m && curJ < n)
+        {
+            if (cleanTarget[curI] == cleanRecognized[curJ])
+            {
+                matchedTargetIndices.Add(curI);
+                matchedRecIndices.Add(curJ);
+                curI++;
+                curJ++;
+            }
+            else if (dp[curI + 1, curJ] >= dp[curI, curJ + 1])
+            {
+                curI++;
+            }
+            else
+            {
+                curJ++;
+            }
+        }
+
+        var breakdown = new List<WordAlignmentDetailDto>();
         var missedList = new List<string>();
 
-        var recIndex = 0;
-        for (var i = 0; i < cleanTarget.Length; i++)
+        // Build target breakdown: MATCHED vs MISSED
+        for (var i = 0; i < m; i++)
         {
             var targetChar = cleanTarget[i].ToString();
             var py = i < pinyinTokens.Count ? pinyinTokens[i] : null;
 
-            if (recIndex < cleanRecognized.Length && cleanTarget[i] == cleanRecognized[recIndex])
+            if (matchedTargetIndices.Contains(i))
             {
                 breakdown.Add(new WordAlignmentDetailDto
                 {
                     CharacterOrWord = targetChar,
                     Pinyin = py,
                     Status = "MATCHED",
-                    TipVi = "Phát âm chuẩn xác."
+                    TipVi = "Nội dung nhận diện khớp."
                 });
-                matchedCount++;
-                recIndex++;
-            }
-            else if (cleanRecognized.Contains(cleanTarget[i]))
-            {
-                // Found elsewhere in recognized string
-                breakdown.Add(new WordAlignmentDetailDto
-                {
-                    CharacterOrWord = targetChar,
-                    Pinyin = py,
-                    Status = "MATCHED",
-                    TipVi = "Nhận diện đúng."
-                });
-                matchedCount++;
             }
             else
             {
@@ -69,40 +99,75 @@ public sealed class AIPronunciationService : IAIPronunciationService
                     CharacterOrWord = targetChar,
                     Pinyin = py,
                     Status = "MISSED",
-                    TipVi = $"Cần chú ý phát âm rõ âm [{py ?? targetChar}]."
+                    TipVi = $"Cần chú ý đọc rõ âm [{py ?? targetChar}]."
                 });
                 missedList.Add(targetChar);
             }
         }
 
-        var totalTargetChars = Math.Max(1, cleanTarget.Length);
-        var accuracyPercent = Math.Round((double)matchedCount / totalTargetChars * 100.0, 1);
-        accuracyPercent = Math.Clamp(accuracyPercent, 0.0, 100.0);
+        // Collect extra characters from recognized transcript that do not match target characters
+        var extraList = new List<string>();
+        for (var j = 0; j < n; j++)
+        {
+            if (!matchedRecIndices.Contains(j))
+            {
+                var extraChar = cleanRecognized[j].ToString();
+                extraList.Add(extraChar);
+                breakdown.Add(new WordAlignmentDetailDto
+                {
+                    CharacterOrWord = extraChar,
+                    Pinyin = null,
+                    Status = "EXTRA",
+                    TipVi = $"Từ thừa trong nhận diện [{extraChar}]."
+                });
+            }
+        }
+
+        // Accuracy percent:
+        // Symmetric normalization based on max(targetLength, recognizedLength)
+        // Treats omissions, insertions, and inversions rigorously without overcounting
+        double accuracyPercent = 0.0;
+        if (m > 0)
+        {
+            var maxLen = Math.Max(m, n);
+            accuracyPercent = Math.Round((double)lcsLength / maxLen * 100.0, 1);
+            accuracyPercent = Math.Clamp(accuracyPercent, 0.0, 100.0);
+        }
 
         var overallScore = accuracyPercent;
 
         string feedbackVi;
         if (accuracyPercent >= 95)
         {
-            feedbackVi = "Xuất sắc! Bạn phát âm rất rõ ràng, toàn bộ các âm tiết được nhận diện chính xác.";
+            feedbackVi = "Xuất sắc! Toàn bộ nội dung âm thanh được nhận diện khớp hoàn toàn với văn bản mục tiêu.";
         }
         else if (accuracyPercent >= 80)
         {
-            feedbackVi = $"Rất tốt! Bạn đã phát âm chuẩn hầu hết các từ. {(missedList.Count > 0 ? "Lưu ý luyện thêm từ: " + string.Join(", ", missedList) : "")}";
+            feedbackVi = $"Rất tốt! Nội dung nhận diện khớp hầu hết các từ trong câu. {(missedList.Count > 0 ? "Cần chú ý đọc rõ các từ: " + string.Join(", ", missedList) : "")}";
         }
         else if (accuracyPercent >= 60)
         {
-            feedbackVi = $"Khá tốt! Bạn đã phát âm đúng được {matchedCount}/{totalTargetChars} chữ. Hãy nghe lại phát âm mẫu và chú ý âm bật hơi hoặc khẩu hình các từ: {string.Join(", ", missedList.Take(3))}.";
+            feedbackVi = $"Khá tốt! Nội dung nhận diện khớp {matchedTargetIndices.Count}/{m} chữ. Hãy nghe lại phát âm mẫu và chú ý đọc rõ các từ chưa khớp: {string.Join(", ", missedList.Take(3))}.";
         }
         else
         {
-            feedbackVi = $"Cần luyện tập thêm. Hệ thống chưa nhận diện rõ các từ: {string.Join(", ", missedList.Take(4))}. Hãy nghe mẫu và đọc chậm từng âm tiết.";
+            feedbackVi = $"Cần luyện tập thêm. Hệ thống nhận diện chưa khớp các từ: {string.Join(", ", missedList.Take(4))}. Hãy nghe mẫu và đọc chậm rõ từng âm tiết.";
+        }
+
+        if (extraList.Count > 0)
+        {
+            feedbackVi += $" (Phát hiện âm thừa trong nhận diện: {string.Join(", ", extraList.Take(3))}).";
+        }
+
+        if (isDirectTextInput)
+        {
+            feedbackVi += " [Thử nghiệm DirectText: Không tính vào điểm năng lực Nói hoặc thống kê âm thanh].";
         }
 
         string? nextSuggestion = null;
         if (missedList.Count > 0)
         {
-            nextSuggestion = $"Luyện tập phát âm từ vựng chứa chữ '{missedList[0]}'";
+            nextSuggestion = $"Luyện tập nhận diện từ vựng chứa chữ '{missedList[0]}'";
         }
 
         return new SpeakingAssessmentResultDto
@@ -123,6 +188,9 @@ public sealed class AIPronunciationService : IAIPronunciationService
             SuggestedNextPractice = nextSuggestion,
             SttProvider = sttProvider,
             IsSttAvailable = isSttAvailable,
+            SttConfidence = sttConfidence,
+            SttConfidenceStatus = sttConfidenceStatus,
+            IsDirectTextInput = isDirectTextInput,
             AttemptedAt = DateTime.UtcNow
         };
     }

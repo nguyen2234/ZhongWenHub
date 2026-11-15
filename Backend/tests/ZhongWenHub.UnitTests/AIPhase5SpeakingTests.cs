@@ -128,10 +128,11 @@ public class AIPhase5SpeakingTests
         Assert.Contains("Transcript Alignment", result.ToneAssessmentNote);
         Assert.True(result.TranscriptAccuracyPercent > 0 && result.TranscriptAccuracyPercent < 100);
 
-        // Verify word breakdown contains matched and missed
-        Assert.Contains(result.WordBreakdown, w => w.Status == "MATCHED" && w.CharacterOrWord == "你");
+        // Verify word breakdown contains matched and missed with pedagogical honesty
+        Assert.Contains(result.WordBreakdown, w => w.Status == "MATCHED" && w.CharacterOrWord == "你" && w.TipVi!.Contains("khớp"));
         Assert.Contains(result.WordBreakdown, w => w.Status == "MISSED" && w.CharacterOrWord == "高");
         Assert.NotEmpty(result.EvaluationFeedbackVi);
+        Assert.DoesNotContain("phát âm chuẩn", result.EvaluationFeedbackVi);
     }
 
     [Fact]
@@ -298,7 +299,7 @@ public class AIPhase5SpeakingTests
         var stt = new MockSpeechRecognitionService
         {
             IsAvailable = true,
-            MockRecognizedText = "老师好"
+            MockRecognizedText = "老师"
         };
         var pron = new AIPronunciationService();
         var service = new AISpeakingService(db, stt, pron, NullLogger<AISpeakingService>.Instance);
@@ -308,7 +309,7 @@ public class AIPhase5SpeakingTests
         Assert.Equal(0, emptyStats.TotalSpeakingAttempts);
         Assert.False(emptyStats.HasAudioAssessedData);
 
-        // Submit one attempt
+        // Submit one DirectText attempt (must NOT be counted in audio stats)
         await service.SubmitPracticeAsync(user.Id, new SubmitSpeakingPracticeDto
         {
             PracticeType = "WORD",
@@ -317,10 +318,157 @@ public class AIPhase5SpeakingTests
             DirectText = "老师"
         }, null, null);
 
+        var statsAfterDirectText = await service.GetStatsAsync(user.Id);
+        Assert.Equal(0, statsAfterDirectText.TotalSpeakingAttempts);
+        Assert.False(statsAfterDirectText.HasAudioAssessedData);
+
+        // Submit one authentic AUDIO attempt
+        using var audioStream = new MemoryStream(Encoding.UTF8.GetBytes("fake audio bytes"));
+        await service.SubmitPracticeAsync(user.Id, new SubmitSpeakingPracticeDto
+        {
+            PracticeType = "WORD",
+            HskLevel = 1,
+            TargetTextZh = "老师",
+            AudioDurationSeconds = 2
+        }, audioStream, "audio/wav");
+
         var populatedStats = await service.GetStatsAsync(user.Id);
         Assert.Equal(1, populatedStats.TotalSpeakingAttempts);
         Assert.Equal(1, populatedStats.CompletedWords);
         Assert.True(populatedStats.HasAudioAssessedData);
+    }
+
+    [Fact]
+    public async Task DirectText_DoesNotCreateSpeakingPracticeAttempt_AndDoesNotIncreaseCompetency()
+    {
+        await using var db = CreateContext();
+        var user = await EnsureTestUserAsync(db, "phase5_direct_text_isolation");
+        var stt = new MockSpeechRecognitionService();
+        var pron = new AIPronunciationService();
+        var service = new AISpeakingService(db, stt, pron, NullLogger<AISpeakingService>.Instance);
+
+        // 1. Submit 100% matched DirectText practice
+        var result = await service.SubmitPracticeAsync(user.Id, new SubmitSpeakingPracticeDto
+        {
+            PracticeType = "WORD",
+            HskLevel = 1,
+            TargetTextZh = "苹果",
+            TargetPinyin = "píngguǒ",
+            DirectText = "苹果"
+        }, null, null);
+
+        Assert.True(result.IsDirectTextInput);
+        Assert.Equal(100.0, result.TranscriptAccuracyPercent);
+        Assert.Contains("DirectText", result.EvaluationFeedbackVi);
+
+        // 2. Verify AiSpeakingAttempt was marked with DIRECT_TEXT
+        var speakingAttempt = await db.AiSpeakingAttempts.FirstOrDefaultAsync(a => a.Id == result.AttemptId);
+        Assert.NotNull(speakingAttempt);
+        Assert.Equal("DIRECT_TEXT", speakingAttempt.AudioStorageStatus);
+        Assert.Equal(0, speakingAttempt.DurationSeconds);
+
+        // 3. Verify NO StudentPracticeAttempt was created with category 'speaking'
+        var practiceAttempt = await db.StudentPracticeAttempts.FirstOrDefaultAsync(a => a.ExerciseId == result.AttemptId.ToString());
+        Assert.Null(practiceAttempt);
+
+        // 4. Verify Competency Profile keeps Speaking as NOT_ASSESSED
+        var competencyService = new CompetencyProfileService(db);
+        var profile = await competencyService.GetCompetencyProfileAsync(user.Id);
+
+        Assert.False(profile.HasSpeakingAudioData, "DirectText must NOT activate HasSpeakingAudioData");
+        Assert.Contains("Chưa có dữ liệu âm thanh hợp lệ", profile.SpeakingAudioNote);
+        var speakingSkill = profile.MacroSkills.FirstOrDefault(s => s.SkillCategory == "speaking");
+        Assert.NotNull(speakingSkill);
+        Assert.Equal(0, speakingSkill.TotalAttempts);
+        Assert.Equal(0.0, speakingSkill.MasteryScore);
+        Assert.Equal("NOT_ASSESSED", speakingSkill.MasteryTier);
+    }
+
+    [Fact]
+    public async Task LcsAlignment_DuplicateCharacters_DoesNotOvercount()
+    {
+        var pron = new AIPronunciationService();
+
+        // Target: 妈妈 (2 chars), Recognized: 妈 (1 char)
+        // With true LCS alignment, only 1 妈 matches. The 2nd 妈 is MISSED.
+        // Old string.Contains() mistakenly matched both (100%). True LCS must be 50%.
+        var result = pron.EvaluatePronunciation(
+            targetZh: "妈妈",
+            targetPinyin: "māma",
+            targetMeaningVi: "Mẹ",
+            recognizedZh: "妈",
+            hskLevel: 1,
+            practiceType: "WORD");
+
+        Assert.Equal(50.0, result.TranscriptAccuracyPercent);
+        Assert.Equal(2, result.WordBreakdown.Count);
+        Assert.Equal("MATCHED", result.WordBreakdown[0].Status);
+        Assert.Equal("MISSED", result.WordBreakdown[1].Status);
+    }
+
+    [Fact]
+    public async Task LcsAlignment_InvertedCharacters_DoesNotCountAsFullMatch()
+    {
+        var pron = new AIPronunciationService();
+
+        // Target: 苹果 (apple), Recognized: 果苹 (inverted order)
+        // Relative order is violated! LCS length is 1 (either 苹 or 果).
+        // Old string.Contains() gave 100%. True LCS must be 50%.
+        var result = pron.EvaluatePronunciation(
+            targetZh: "苹果",
+            targetPinyin: "píngguǒ",
+            targetMeaningVi: "Quả táo",
+            recognizedZh: "果苹",
+            hskLevel: 1,
+            practiceType: "WORD");
+
+        Assert.Equal(50.0, result.TranscriptAccuracyPercent);
+        Assert.Contains(result.WordBreakdown, w => w.Status == "MATCHED");
+        Assert.Contains(result.WordBreakdown, w => w.Status == "MISSED");
+        Assert.Contains(result.WordBreakdown, w => w.Status == "EXTRA");
+    }
+
+    [Fact]
+    public async Task LcsAlignment_ExtraCharacters_PenalizesAccuracy_AndPreservesOrder()
+    {
+        var pron = new AIPronunciationService();
+
+        // Target: 你好 (2 chars), Recognized: 你好啊 (3 chars with extra 啊)
+        // Matched: 2, Extra: 1. Max length: 3. Accuracy: 2 / 3 = 66.7%
+        var result = pron.EvaluatePronunciation(
+            targetZh: "你好",
+            targetPinyin: "nǐ hǎo",
+            targetMeaningVi: "Xin chào",
+            recognizedZh: "你好啊",
+            hskLevel: 1,
+            practiceType: "WORD");
+
+        Assert.Equal(66.7, result.TranscriptAccuracyPercent);
+        Assert.Equal("MATCHED", result.WordBreakdown[0].Status);
+        Assert.Equal("MATCHED", result.WordBreakdown[1].Status);
+        Assert.Contains(result.WordBreakdown, w => w.Status == "EXTRA" && w.CharacterOrWord == "啊");
+    }
+
+    [Fact]
+    public async Task SpeechRecognition_Gemini_ConfidenceIsNull_NeverFaked()
+    {
+        var pron = new AIPronunciationService();
+
+        // Gemini STT result returns Confidence = null and ConfidenceStatus = "UNAVAILABLE"
+        var result = pron.EvaluatePronunciation(
+            targetZh: "你好",
+            targetPinyin: "nǐ hǎo",
+            targetMeaningVi: "Xin chào",
+            recognizedZh: "你好",
+            hskLevel: 1,
+            practiceType: "WORD",
+            sttProvider: "GeminiMultimodalAudioSTT",
+            isSttAvailable: true,
+            sttConfidence: null,
+            sttConfidenceStatus: "UNAVAILABLE");
+
+        Assert.Null(result.SttConfidence);
+        Assert.Equal("UNAVAILABLE", result.SttConfidenceStatus);
     }
 
     private sealed class MockSpeechRecognitionService : ISpeechRecognitionService
@@ -351,7 +499,8 @@ public class AIPhase5SpeakingTests
             {
                 IsSuccess = true,
                 RecognizedText = MockRecognizedText,
-                Confidence = 0.95,
+                Confidence = null, // No fake 0.95 confidence
+                ConfidenceStatus = "UNAVAILABLE",
                 Provider = ProviderName
             });
         }

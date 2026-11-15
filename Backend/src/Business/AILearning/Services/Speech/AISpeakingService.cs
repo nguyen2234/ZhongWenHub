@@ -111,11 +111,14 @@ public sealed class AISpeakingService : IAISpeakingService
         string recognizedText;
         var sttProvider = _sttService.ProviderName;
         var isSttAvailable = _sttService.IsAvailable;
+        var isAudioAttempt = audioStream != null && audioStream.Length > 0;
+        double? sttConfidence = null;
+        string sttConfidenceStatus = "UNAVAILABLE";
 
-        if (audioStream != null && audioStream.Length > 0)
+        if (isAudioAttempt)
         {
             var sttResult = await _sttService.RecognizeSpeechAsync(
-                audioStream,
+                audioStream!,
                 contentType ?? "audio/webm",
                 "zh-CN",
                 cancellationToken);
@@ -142,6 +145,9 @@ public sealed class AISpeakingService : IAISpeakingService
                         WordBreakdown = new List<WordAlignmentDetailDto>(),
                         SttProvider = "None",
                         IsSttAvailable = false,
+                        SttConfidence = null,
+                        SttConfidenceStatus = "UNAVAILABLE",
+                        IsDirectTextInput = false,
                         AttemptedAt = DateTime.UtcNow
                     };
                 }
@@ -151,12 +157,16 @@ public sealed class AISpeakingService : IAISpeakingService
 
             recognizedText = sttResult.RecognizedText;
             sttProvider = sttResult.Provider;
+            sttConfidence = sttResult.Confidence;
+            sttConfidenceStatus = sttResult.ConfidenceStatus;
         }
         else if (!string.IsNullOrWhiteSpace(request.DirectText))
         {
-            // Direct text simulation / fallback flow
+            // Direct text simulation / fallback flow for testing content alignment
             recognizedText = request.DirectText.Trim();
             sttProvider = "DirectTextInput";
+            sttConfidence = null;
+            sttConfidenceStatus = "UNAVAILABLE";
         }
         else
         {
@@ -172,7 +182,10 @@ public sealed class AISpeakingService : IAISpeakingService
             targetHsk,
             practiceType,
             sttProvider,
-            isSttAvailable);
+            isSttAvailable,
+            sttConfidence,
+            sttConfidenceStatus,
+            isDirectTextInput: !isAudioAttempt);
 
         var now = DateTime.UtcNow;
 
@@ -192,8 +205,8 @@ public sealed class AISpeakingService : IAISpeakingService
             HasAcousticToneData = false,
             EvaluationFeedbackVi = evaluation.EvaluationFeedbackVi,
             WordBreakdownJson = JsonSerializer.Serialize(evaluation.WordBreakdown, JsonOptions),
-            DurationSeconds = request.AudioDurationSeconds,
-            AudioStorageStatus = "PROCESSED_DISCARDED", // Discard raw audio immediately
+            DurationSeconds = isAudioAttempt ? Math.Max(1, request.AudioDurationSeconds) : 0,
+            AudioStorageStatus = isAudioAttempt ? "PROCESSED_DISCARDED" : "DIRECT_TEXT",
             AttemptedAt = now,
             CreatedAt = now,
             UpdatedAt = now
@@ -201,25 +214,30 @@ public sealed class AISpeakingService : IAISpeakingService
 
         _dbContext.AiSpeakingAttempts.Add(attemptEntity);
 
-        // Connect speaking results with StudentPracticeAttempts (SkillCategory = "speaking")
-        var isPassed = evaluation.TranscriptAccuracyPercent >= 70.0;
-        var practiceAttempt = new StudentPracticeAttempt
+        // ONLY log StudentPracticeAttempts with category "speaking" for authentic audio practice!
+        // DirectText is strictly for content simulation testing and must NEVER inflate speaking competency.
+        if (isAudioAttempt)
         {
-            UserId = userId,
-            ExerciseId = attemptEntity.Id.ToString(),
-            QuestionId = null,
-            KnowledgePointId = $"speaking_{practiceType.ToLowerInvariant()}_hsk{targetHsk}",
-            TopicTitle = $"Luyện nói {practiceType} HSK {targetHsk}: {request.TargetTextZh.Trim()}",
-            Category = "speaking",
-            HskLevel = targetHsk,
-            UserAnswer = recognizedText,
-            IsCorrect = isPassed,
-            AttemptedAt = now,
-            CreatedAt = now,
-            UpdatedAt = now
-        };
+            var isPassed = evaluation.TranscriptAccuracyPercent >= 70.0;
+            var practiceAttempt = new StudentPracticeAttempt
+            {
+                UserId = userId,
+                ExerciseId = attemptEntity.Id.ToString(),
+                QuestionId = null,
+                KnowledgePointId = $"speaking_{practiceType.ToLowerInvariant()}_hsk{targetHsk}",
+                TopicTitle = $"Luyện nói {practiceType} HSK {targetHsk}: {request.TargetTextZh.Trim()}",
+                Category = "speaking",
+                HskLevel = targetHsk,
+                UserAnswer = recognizedText,
+                IsCorrect = isPassed,
+                AttemptedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
 
-        _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
+            _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return evaluation with { AttemptId = attemptEntity.Id };
@@ -244,6 +262,7 @@ public sealed class AISpeakingService : IAISpeakingService
                 ? JsonSerializer.Deserialize<List<WordAlignmentDetailDto>>(a.WordBreakdownJson, JsonOptions) ?? new()
                 : new List<WordAlignmentDetailDto>();
 
+            var isDirectText = a.AudioStorageStatus == "DIRECT_TEXT" || a.DurationSeconds == 0;
             return new SpeakingAssessmentResultDto
             {
                 AttemptId = a.Id,
@@ -259,8 +278,11 @@ public sealed class AISpeakingService : IAISpeakingService
                 ToneAssessmentNote = "Điểm số phản ánh độ khớp văn bản nhận diện (Transcript Alignment).",
                 EvaluationFeedbackVi = a.EvaluationFeedbackVi ?? string.Empty,
                 WordBreakdown = breakdown,
-                SttProvider = "StoredAttempt",
+                SttProvider = isDirectText ? "DirectTextInput" : "StoredAttempt",
                 IsSttAvailable = true,
+                SttConfidence = null,
+                SttConfidenceStatus = "UNAVAILABLE",
+                IsDirectTextInput = isDirectText,
                 AttemptedAt = a.AttemptedAt
             };
         }).ToList();
@@ -275,7 +297,14 @@ public sealed class AISpeakingService : IAISpeakingService
             .Where(a => a.UserId == userId)
             .ToListAsync(cancellationToken);
 
-        if (attempts.Count == 0)
+        // Filter out DirectText attempts so stats reflect genuine audio speaking practice
+        var audioAttempts = attempts.Where(a =>
+            a.AudioStorageStatus != "DIRECT_TEXT" &&
+            a.AudioStorageStatus != "DIRECT_TEXT_NO_AUDIO" &&
+            a.DurationSeconds > 0
+        ).ToList();
+
+        if (audioAttempts.Count == 0)
         {
             return new SpeakingStatsDto
             {
@@ -289,12 +318,12 @@ public sealed class AISpeakingService : IAISpeakingService
             };
         }
 
-        var total = attempts.Count;
-        var avgAcc = Math.Round(attempts.Average(a => a.TranscriptAccuracyPercent), 1);
-        var words = attempts.Count(a => a.PracticeType == "WORD");
-        var sentences = attempts.Count(a => a.PracticeType == "SENTENCE");
-        var scenarios = attempts.Count(a => a.PracticeType == "SCENARIO");
-        var last = attempts.Max(a => a.AttemptedAt);
+        var total = audioAttempts.Count;
+        var avgAcc = Math.Round(audioAttempts.Average(a => a.TranscriptAccuracyPercent), 1);
+        var words = audioAttempts.Count(a => a.PracticeType == "WORD");
+        var sentences = audioAttempts.Count(a => a.PracticeType == "SENTENCE");
+        var scenarios = audioAttempts.Count(a => a.PracticeType == "SCENARIO");
+        var last = audioAttempts.Max(a => a.AttemptedAt);
 
         return new SpeakingStatsDto
         {

@@ -757,17 +757,34 @@ export const SkillSpeakingPage: React.FC = () => {
                         Kết quả đánh giá phát âm
                       </h3>
                     </div>
-                    <div
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '9999px',
-                        backgroundColor: assessmentResult.transcriptAccuracyPercent >= 80 ? '#dcfce7' : '#fef3c7',
-                        color: assessmentResult.transcriptAccuracyPercent >= 80 ? '#15803d' : '#b45309',
-                        fontSize: '13px',
-                        fontWeight: 800,
-                      }}
-                    >
-                      Độ khớp: {assessmentResult.transcriptAccuracyPercent}%
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {assessmentResult.isDirectTextInput && (
+                        <div
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#475569',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: '1px solid #cbd5e1',
+                          }}
+                        >
+                          Thử nghiệm DirectText (Không tính vào năng lực)
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '9999px',
+                          backgroundColor: assessmentResult.transcriptAccuracyPercent >= 80 ? '#dcfce7' : '#fef3c7',
+                          color: assessmentResult.transcriptAccuracyPercent >= 80 ? '#15803d' : '#b45309',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        Độ khớp: {assessmentResult.transcriptAccuracyPercent}%
+                      </div>
                     </div>
                   </div>
 
@@ -781,6 +798,12 @@ export const SkillSpeakingPage: React.FC = () => {
                       <span style={{ color: assessmentResult.recognizedTranscriptZh ? '#0f172a' : '#94a3b8' }}>
                         {assessmentResult.recognizedTranscriptZh || '(Không nhận diện được âm thanh)'}
                       </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      <strong>Độ tin cậy STT:</strong>{' '}
+                      {assessmentResult.sttConfidence != null
+                        ? `${Math.round(assessmentResult.sttConfidence * 100)}%`
+                        : 'Nhà cung cấp không hỗ trợ (N/A)'}
                     </div>
 
                     {/* Word-by-word Breakdown */}

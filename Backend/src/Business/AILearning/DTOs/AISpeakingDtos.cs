@@ -31,7 +31,7 @@ public sealed class WordAlignmentDetailDto
 {
     public string CharacterOrWord { get; init; } = string.Empty;
     public string? Pinyin { get; init; }
-    public string Status { get; init; } = "MATCHED"; // MATCHED, MISSED, SUBSTITUTED
+    public string Status { get; init; } = "MATCHED"; // MATCHED, MISSED, SUBSTITUTED, EXTRA
     public string? TipVi { get; init; }
 }
 
@@ -53,6 +53,9 @@ public sealed record SpeakingAssessmentResultDto
     public string? SuggestedNextPractice { get; init; }
     public string SttProvider { get; init; } = "GeminiAudioSTT";
     public bool IsSttAvailable { get; init; } = true;
+    public double? SttConfidence { get; init; } = null;
+    public string SttConfidenceStatus { get; init; } = "UNAVAILABLE"; // REAL, UNAVAILABLE
+    public bool IsDirectTextInput { get; init; } = false;
     public DateTime AttemptedAt { get; init; } = DateTime.UtcNow;
 }
 

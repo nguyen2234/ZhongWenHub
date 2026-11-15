@@ -43,9 +43,10 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         var selectedHsk = profile?.SelectedHskLevel is >= 1 and <= 6 ? profile.SelectedHskLevel : 1;
 
         // Fetch recent practice attempts with window cap to prevent unbounded query load
+        // Exclude legacy or direct-text speaking attempts from StudentPracticeAttempts; speaking is strictly loaded from valid audio speaking attempts
         var practiceAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
-            .Where(a => a.UserId == userId && !a.ExerciseId.StartsWith("ai_"))
+            .Where(a => a.UserId == userId && !a.ExerciseId.StartsWith("ai_") && a.Category != "speaking")
             .OrderByDescending(a => a.AttemptedAt)
             .Take(MaxAttemptsWindow)
             .Select(a => new AttemptRecord(
@@ -71,6 +72,26 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
                 a.AttemptedAt))
             .ToListAsync(cancellationToken);
 
+        // Fetch valid authentic audio speaking attempts (exclude DirectText input)
+        var validAudioSpeakingAttempts = await _dbContext.AiSpeakingAttempts
+            .AsNoTracking()
+            .Where(a => a.UserId == userId &&
+                        a.AudioStorageStatus != "DIRECT_TEXT" &&
+                        a.AudioStorageStatus != "DIRECT_TEXT_NO_AUDIO" &&
+                        a.DurationSeconds > 0)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(MaxAttemptsWindow)
+            .ToListAsync(cancellationToken);
+
+        var audioSpeakingRecords = validAudioSpeakingAttempts
+            .Select(a => new AttemptRecord(
+                "speaking",
+                $"Luyện nói {a.PracticeType} HSK {a.HskLevel}",
+                a.HskLevel,
+                a.TranscriptAccuracyPercent >= 70.0,
+                a.AttemptedAt))
+            .ToList();
+
         // Fetch Vocabulary SRS summary with SQL Server aggregation (no entity materialization)
         var vocabStats = await _dbContext.StudentVocabularyProgresses
             .AsNoTracking()
@@ -87,6 +108,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         // Reverse to ascending chronological order for BKT sequence processing
         var allAttempts = practiceAttempts
             .Concat(aiAttempts)
+            .Concat(audioSpeakingRecords)
             .OrderBy(a => a.AttemptedAt)
             .ToList();
 
@@ -311,10 +333,10 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             OverallMasteryPercent = overallMastery,
             TotalEvaluations = totalEvals,
             UnclassifiedEvaluationsCount = unclassifiedCount,
-            HasSpeakingAudioData = allAttempts.Any(a => a.SkillCategory == "speaking"),
-            SpeakingAudioNote = allAttempts.Any(a => a.SkillCategory == "speaking")
-                ? "Dữ liệu kỹ năng nói được tổng hợp từ các lượt phát âm thực tế (Transcript Alignment). Lưu ý: Điểm số phản ánh độ khớp văn bản nhận diện, không suy đoán âm học thanh điệu."
-                : "Chưa có dữ liệu âm thanh được chấm điểm; hệ thống không suy đoán điểm nói.",
+            HasSpeakingAudioData = validAudioSpeakingAttempts.Count > 0,
+            SpeakingAudioNote = validAudioSpeakingAttempts.Count > 0
+                ? "Dữ liệu kỹ năng nói được tổng hợp từ các lượt phát âm âm thanh thực tế (Transcript Alignment). Lưu ý: Điểm số phản ánh độ khớp nội dung nhận diện từ giọng nói, không suy đoán âm học thanh điệu."
+                : "Chưa có dữ liệu âm thanh hợp lệ được ghi nhận; hệ thống không suy đoán điểm nói từ văn bản nhập trực tiếp.",
             MacroSkills = skillDtos,
             TopWeakConcepts = weakConcepts,
             TopStrengths = topStrengths,

@@ -16,7 +16,7 @@ export interface SpeakingPracticeItem {
 export interface WordAlignmentDetail {
   characterOrWord: string;
   pinyin?: string;
-  status: 'MATCHED' | 'MISSED' | 'SUBSTITUTED';
+  status: 'MATCHED' | 'MISSED' | 'SUBSTITUTED' | 'EXTRA';
   tipVi?: string;
 }
 
@@ -37,6 +37,9 @@ export interface SpeakingAssessmentResult {
   suggestedNextPractice?: string;
   sttProvider: string;
   isSttAvailable: boolean;
+  sttConfidence?: number | null;
+  sttConfidenceStatus?: string;
+  isDirectTextInput?: boolean;
   attemptedAt: string;
 }
 

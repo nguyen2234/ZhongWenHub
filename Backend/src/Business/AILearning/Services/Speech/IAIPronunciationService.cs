@@ -13,6 +13,9 @@ public interface IAIPronunciationService
         int hskLevel,
         string practiceType = "WORD",
         string sttProvider = "GeminiAudioSTT",
-        bool isSttAvailable = true);
+        bool isSttAvailable = true,
+        double? sttConfidence = null,
+        string sttConfidenceStatus = "UNAVAILABLE",
+        bool isDirectTextInput = false);
 }
 
