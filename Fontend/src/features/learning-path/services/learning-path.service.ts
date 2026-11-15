@@ -136,3 +136,4 @@ export const learningPathService = {
   getProgress: () =>
     httpClient.get<PersonalizedLearningProgress>('/learning-path/progress'),
 };
+

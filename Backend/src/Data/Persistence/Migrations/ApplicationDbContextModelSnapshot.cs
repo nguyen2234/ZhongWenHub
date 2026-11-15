@@ -231,6 +231,10 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasIndex("AiExerciseId");
 
+                    b.HasIndex("UserId", "AiExerciseId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_ai_exercise_attempts_user_exercise_unique");
+
                     b.HasIndex("UserId", "AttemptedAt")
                         .HasDatabaseName("idx_ai_exercise_attempts_user");
 
@@ -1896,6 +1900,208 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("vocabularies", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.DailyLearningTaskEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CompletionStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationRoute")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("EstimatedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("PlanDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResourceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TargetHskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetSkill")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TaskType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearningPathId")
+                        .HasDatabaseName("idx_daily_learning_tasks_path");
+
+                    b.HasIndex("UserId", "PlanDate")
+                        .HasDatabaseName("idx_daily_learning_tasks_user_date");
+
+                    b.ToTable("daily_learning_tasks", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.LearningPathMilestoneEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EstimatedDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LearningPathId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LessonIdsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PedagogicalGoalVi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StageOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetSkillsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("TopicsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LearningPathId")
+                        .HasDatabaseName("idx_learning_path_milestones_path");
+
+                    b.ToTable("learning_path_milestones", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AiFocusTipsVi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CompletedLessonsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CurrentEstimatedHskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("GoalId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastReplannedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("OverallProgressPercent")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PedagogicalRationaleVi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TargetHskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("TotalEstimatedWeeks")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalLessonsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GoalId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("idx_personalized_learning_paths_user");
+
+                    b.ToTable("personalized_learning_paths", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentDailyActivity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1988,6 +2194,51 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasDatabaseName("idx_student_exam_attempts_exam_user");
 
                     b.ToTable("student_exam_attempts", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentLearningGoalEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DailyStudyMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IntensityMode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PrioritySkillsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StudyDaysPerWeek")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("TargetDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TargetHskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_student_learning_goals_user");
+
+                    b.ToTable("student_learning_goals", (string)null);
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentLearningProfile", b =>
@@ -2717,6 +2968,53 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("Lesson");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.DailyLearningTaskEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", "LearningPath")
+                        .WithMany()
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.LearningPathMilestoneEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", "LearningPath")
+                        .WithMany("Milestones")
+                        .HasForeignKey("LearningPathId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LearningPath");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Learning.StudentLearningGoalEntity", "Goal")
+                        .WithMany()
+                        .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Goal");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentDailyActivity", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
@@ -2743,6 +3041,17 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Exam");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.StudentLearningGoalEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2891,6 +3200,11 @@ namespace ZhongWenHub.Data.Persistence.Migrations
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Content.VocabularyEntity", b =>
                 {
                     b.Navigation("LessonVocabularies");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", b =>
+                {
+                    b.Navigation("Milestones");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>

@@ -126,6 +126,9 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
         AiGeneratedExercise? exercise = null;
 
         // Authoritative resolution from DB if ExerciseId is provided (strict cross-user authorization)
+        string? cacheKey = null;
+        string? normAnswer = null;
+
         if (request.ExerciseId.HasValue && request.ExerciseId.Value != Guid.Empty)
         {
             exercise = await _dbContext.AiGeneratedExercises
@@ -143,31 +146,13 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
 
             isAuthoritative = true;
 
-            // Check cached error analysis in exercise metadata to eliminate duplicate LLM calls on retry
-            if (!string.IsNullOrWhiteSpace(exercise.MetadataJson))
-            {
-                try
-                {
-                    using var metaDoc = JsonDocument.Parse(exercise.MetadataJson);
-                    if (metaDoc.RootElement.TryGetProperty("cachedErrorAnalysis", out var cachedProp) && cachedProp.ValueKind == JsonValueKind.Object)
-                    {
-                        var cached = JsonSerializer.Deserialize<AIErrorAnalysisDetailDto>(cachedProp.GetRawText(), JsonOptions);
-                        if (cached != null)
-                        {
-                            return cached;
-                        }
-                    }
-                }
-                catch (JsonException) { }
-            }
-
             // Always use authoritative DB ground-truth - NEVER trust client-provided CorrectAnswer
             questionText = exercise.PromptZh;
             correctAnswer = exercise.CorrectAnswer ?? string.Empty;
             hskLevel = exercise.HskLevel;
             skillCategory = NormalizeSkill(exercise.SourceType);
 
-            // Fetch actual user answer from database if available
+            // Fetch actual user answer from database if available (prioritize DB over untrusted client payload)
             var attempt = await _dbContext.AiExerciseAttempts
                 .AsNoTracking()
                 .Where(a => a.AiExerciseId == exercise.Id && a.UserId == userId)
@@ -177,6 +162,39 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
             if (attempt != null && !string.IsNullOrWhiteSpace(attempt.UserAnswer))
             {
                 userAnswer = attempt.UserAnswer;
+            }
+
+            normAnswer = NormalizeAnswer(userAnswer);
+            cacheKey = attempt != null ? $"att_{attempt.Id:N}" : $"ans_{normAnswer}";
+
+            // Check cached error analysis in exercise metadata to eliminate duplicate LLM calls on retry
+            // Must strictly verify that cache belongs to the exact attempt or user answer
+            if (!string.IsNullOrWhiteSpace(exercise.MetadataJson))
+            {
+                try
+                {
+                    using var metaDoc = JsonDocument.Parse(exercise.MetadataJson);
+                    if (metaDoc.RootElement.TryGetProperty("cachedErrorAnalyses", out var analysesMap) && analysesMap.ValueKind == JsonValueKind.Object)
+                    {
+                        if (analysesMap.TryGetProperty(cacheKey, out var cachedProp) && cachedProp.ValueKind == JsonValueKind.Object)
+                        {
+                            var cached = JsonSerializer.Deserialize<AIErrorAnalysisDetailDto>(cachedProp.GetRawText(), JsonOptions);
+                            if (cached != null)
+                            {
+                                return cached;
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(normAnswer) && analysesMap.TryGetProperty($"ans_{normAnswer}", out var cachedAnsProp) && cachedAnsProp.ValueKind == JsonValueKind.Object)
+                        {
+                            var cached = JsonSerializer.Deserialize<AIErrorAnalysisDetailDto>(cachedAnsProp.GetRawText(), JsonOptions);
+                            if (cached != null)
+                            {
+                                return cached;
+                            }
+                        }
+                    }
+                }
+                catch (JsonException) { }
             }
         }
 
@@ -211,9 +229,9 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
                 IsAuthoritativeGrading = isAuthoritative
             };
 
-            if (exercise != null)
+            if (exercise != null && cacheKey != null)
             {
-                await CacheAnalysisInMetadataAsync(exercise, correctResult, cancellationToken);
+                await CacheAnalysisInMetadataAsync(exercise, cacheKey, normAnswer ?? string.Empty, correctResult, cancellationToken);
             }
 
             return correctResult;
@@ -285,10 +303,10 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
             }
         }
 
-        // Cache error analysis into exercise metadata so retries do not re-invoke LLM
-        if (exercise != null)
+        // Cache error analysis into exercise metadata keyed by attempt / user answer
+        if (exercise != null && cacheKey != null)
         {
-            await CacheAnalysisInMetadataAsync(exercise, finalAnalysis, cancellationToken);
+            await CacheAnalysisInMetadataAsync(exercise, cacheKey, normAnswer ?? string.Empty, finalAnalysis, cancellationToken);
         }
 
         return finalAnalysis;
@@ -296,6 +314,8 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
 
     private async Task CacheAnalysisInMetadataAsync(
         AiGeneratedExercise exercise,
+        string cacheKey,
+        string normalizedAnswer,
         AIErrorAnalysisDetailDto analysis,
         CancellationToken cancellationToken)
     {
@@ -311,7 +331,27 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
                 catch (JsonException) { }
             }
 
-            dict["cachedErrorAnalysis"] = analysis;
+            var analysesMap = new Dictionary<string, object>();
+            if (dict.TryGetValue("cachedErrorAnalyses", out var existingMapObj) && existingMapObj != null)
+            {
+                try
+                {
+                    var jsonText = existingMapObj is JsonElement je ? je.GetRawText() : existingMapObj.ToString();
+                    if (!string.IsNullOrWhiteSpace(jsonText))
+                    {
+                        analysesMap = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonText, JsonOptions) ?? new();
+                    }
+                }
+                catch (JsonException) { }
+            }
+
+            analysesMap[cacheKey] = analysis;
+            if (!string.IsNullOrWhiteSpace(normalizedAnswer))
+            {
+                analysesMap[$"ans_{normalizedAnswer}"] = analysis;
+            }
+
+            dict["cachedErrorAnalyses"] = analysesMap;
             exercise.MetadataJson = JsonSerializer.Serialize(dict, JsonOptions);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }

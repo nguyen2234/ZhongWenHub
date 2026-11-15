@@ -236,6 +236,7 @@ public sealed class AIExerciseService : IAIExerciseService
                 AttemptedAt = now
             };
 
+            AiExerciseAttempt? committedAttempt = null;
             try
             {
                 if (_dbContext.Database.IsRelational())
@@ -243,6 +244,17 @@ public sealed class AIExerciseService : IAIExerciseService
                     var strategy = _dbContext.Database.CreateExecutionStrategy();
                     await strategy.ExecuteAsync(async () =>
                     {
+                        // Check if attempt was already committed in a previous iteration (e.g. transient failure after commit)
+                        var existingInRetry = await _dbContext.AiExerciseAttempts
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
+
+                        if (existingInRetry != null)
+                        {
+                            committedAttempt = existingInRetry;
+                            return;
+                        }
+
                         await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
                         _dbContext.AiExerciseAttempts.Add(attempt);
                         _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
@@ -260,6 +272,7 @@ public sealed class AIExerciseService : IAIExerciseService
             catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Concurrent duplicate attempt detected for user {UserId} and exercise {ExerciseId}. Reloading existing attempt.", userId, aiExerciseId);
+                _dbContext.ChangeTracker.Clear();
                 var reloadedAttempt = await _dbContext.AiExerciseAttempts
                     .AsNoTracking()
                     .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
@@ -269,6 +282,11 @@ public sealed class AIExerciseService : IAIExerciseService
                     return await BuildIdempotentResultAsync(userId, exercise, reloadedAttempt, cancellationToken);
                 }
                 throw;
+            }
+
+            if (committedAttempt != null)
+            {
+                return await BuildIdempotentResultAsync(userId, exercise, committedAttempt, cancellationToken);
             }
 
             // Update persisted skill statistics deterministically

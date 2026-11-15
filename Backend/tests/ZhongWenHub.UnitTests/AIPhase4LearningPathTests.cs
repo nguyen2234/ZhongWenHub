@@ -338,6 +338,103 @@ public class AIPhase4SqlServerIntegrationTests
         Assert.True(replanned.Tasks.Count >= 1);
     }
 
+    [Fact]
+    public async Task CompleteTask_NeverFakesOfficialLessonProgress_OrQuizScore()
+    {
+        await using var db = CreateContext();
+        var user = await EnsureTestUserAsync(db, "phase4_no_fake_progress");
+        var service = CreateService(db);
+
+        // Ensure user has a daily plan for HSK 1
+        await service.GenerateLearningPathAsync(user.Id, new GenerateLearningPathRequestDto
+        {
+            TargetHskLevel = 1
+        });
+
+        var plan = await service.GetTodayPlanAsync(user.Id);
+        var lessonTask = plan.Tasks.FirstOrDefault(t => t.TaskType == "lesson");
+        Assert.NotNull(lessonTask);
+        Assert.NotNull(lessonTask!.ResourceId);
+
+        // Complete the daily task
+        var response = await service.CompleteTaskAsync(user.Id, lessonTask.TaskId);
+        Assert.True(response.Success);
+
+        // Verify StudentLessonProgress does NOT have a fake 100 score or fake COMPLETED
+        var officialProgress = await db.StudentLessonProgresses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == user.Id && p.LessonId == lessonTask.ResourceId);
+
+        // It must either be null or NOT automatically scored with 100 QuizScore
+        if (officialProgress != null)
+        {
+            Assert.NotEqual(100, officialProgress.QuizScore);
+        }
+
+        // Profile SelectedHskLevel MUST NOT be mutated
+        var profile = await db.StudentLearningProfiles.AsNoTracking().FirstAsync(p => p.UserId == user.Id);
+        Assert.Equal(1, profile.SelectedHskLevel);
+    }
+
+    [Fact]
+    public async Task GenerateLearningPath_WhenTargetHskHasNoLessons_ThrowsInvalidOperationException()
+    {
+        await using var db = CreateContext();
+        var user = await EnsureTestUserAsync(db, "phase4_no_lessons_target");
+        var service = CreateService(db);
+
+        // Request an HSK level with no published lessons in test DB (HSK 5 has 0 published lessons)
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await service.GenerateLearningPathAsync(user.Id, new GenerateLearningPathRequestDto
+            {
+                TargetHskLevel = 5
+            });
+        });
+    }
+
+    [Fact]
+    public async Task GenerateLearningPath_ReplacesPendingTasks_PreservingCompleted()
+    {
+        await using var db = CreateContext();
+        var user = await EnsureTestUserAsync(db, "phase4_path_switch");
+        var service = CreateService(db);
+
+        // Generate Path 1 for HSK 1
+        await service.GenerateLearningPathAsync(user.Id, new GenerateLearningPathRequestDto
+        {
+            TargetHskLevel = 1
+        });
+
+        var plan1 = await service.GetTodayPlanAsync(user.Id);
+        var taskToComplete = plan1.Tasks.First();
+
+        // Complete 1 task from Path 1
+        await service.CompleteTaskAsync(user.Id, taskToComplete.TaskId);
+
+        // Now switch to Path 2 for HSK 2
+        var path2 = await service.GenerateLearningPathAsync(user.Id, new GenerateLearningPathRequestDto
+        {
+            TargetHskLevel = 2
+        });
+        Assert.Equal(2, path2.TargetHskLevel);
+
+        var plan2 = await service.GetTodayPlanAsync(user.Id);
+
+        // Completed task from earlier today MUST be preserved
+        var preservedTask = plan2.Tasks.FirstOrDefault(t => t.TaskId == taskToComplete.TaskId);
+        Assert.NotNull(preservedTask);
+        Assert.Equal("COMPLETED", preservedTask.CompletionStatus);
+
+        // All PENDING tasks must now belong to HSK 2
+        var pendingTasks = plan2.Tasks.Where(t => t.CompletionStatus == "PENDING").ToList();
+        Assert.NotEmpty(pendingTasks);
+        foreach (var pt in pendingTasks)
+        {
+            Assert.Equal(2, pt.TargetHskLevel);
+        }
+    }
+
     private sealed class NoOpUsageLogger : IAIUsageLogger
     {
         public Task LogAsync(Guid userId, string feature, AIProviderResponse? response, bool isSuccess, string? errorCode, CancellationToken cancellationToken = default) => Task.CompletedTask;

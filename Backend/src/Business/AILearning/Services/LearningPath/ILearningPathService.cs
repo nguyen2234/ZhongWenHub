@@ -16,3 +16,4 @@ public interface ILearningPathService
     Task<DailyPlanDto> ReplanTodayAsync(Guid userId, AdaptiveReplanRequestDto? request = null, CancellationToken cancellationToken = default);
     Task<PersonalizedLearningProgressDto> GetProgressAsync(Guid userId, CancellationToken cancellationToken = default);
 }
+

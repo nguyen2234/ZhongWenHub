@@ -22,3 +22,4 @@ public class DailyLearningTaskEntity : BaseEntity
     public virtual ApplicationUser? User { get; set; }
     public virtual PersonalizedLearningPathEntity? LearningPath { get; set; }
 }
+

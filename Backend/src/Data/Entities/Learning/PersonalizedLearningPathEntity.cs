@@ -24,3 +24,4 @@ public class PersonalizedLearningPathEntity : BaseEntity
     public virtual StudentLearningGoalEntity? Goal { get; set; }
     public virtual ICollection<LearningPathMilestoneEntity> Milestones { get; set; } = new List<LearningPathMilestoneEntity>();
 }
+

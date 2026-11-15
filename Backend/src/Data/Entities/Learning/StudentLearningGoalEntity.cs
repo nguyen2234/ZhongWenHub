@@ -14,3 +14,4 @@ public class StudentLearningGoalEntity : BaseEntity
 
     public virtual ApplicationUser? User { get; set; }
 }
+

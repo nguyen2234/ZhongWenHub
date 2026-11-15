@@ -18,3 +18,4 @@ public class LearningPathMilestoneEntity : BaseEntity
 
     public virtual PersonalizedLearningPathEntity? LearningPath { get; set; }
 }
+

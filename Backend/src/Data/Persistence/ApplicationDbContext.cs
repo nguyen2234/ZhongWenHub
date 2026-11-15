@@ -870,6 +870,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .HasForeignKey(x => x.AiExerciseId)
                 .OnDelete(DeleteBehavior.Cascade);
             b.HasIndex(x => new { x.UserId, x.AttemptedAt }).HasDatabaseName("idx_ai_exercise_attempts_user");
+            b.HasIndex(x => new { x.UserId, x.AiExerciseId }).IsUnique().HasDatabaseName("idx_ai_exercise_attempts_user_exercise_unique");
         });
 
         builder.Entity<LearningSkillStatistic>(b =>
@@ -914,7 +915,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            b.HasIndex(x => x.UserId).HasDatabaseName("idx_student_learning_goals_user");
+            b.HasIndex(x => x.UserId).IsUnique().HasDatabaseName("idx_student_learning_goals_user");
         });
 
         builder.Entity<PersonalizedLearningPathEntity>(b =>
@@ -979,7 +980,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(x => x.LearningPath)
+                .WithMany()
+                .HasForeignKey(x => x.LearningPathId)
+                .OnDelete(DeleteBehavior.SetNull);
             b.HasIndex(x => new { x.UserId, x.PlanDate }).HasDatabaseName("idx_daily_learning_tasks_user_date");
+            b.HasIndex(x => x.LearningPathId).HasDatabaseName("idx_daily_learning_tasks_path");
         });
     }
 

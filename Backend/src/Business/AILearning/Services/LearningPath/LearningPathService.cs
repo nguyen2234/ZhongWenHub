@@ -171,14 +171,7 @@ public sealed class LearningPathService : ILearningPathService
 
         if (lessons.Count == 0)
         {
-            // Fallback to lessons with matching Course or any published
-            lessons = await _dbContext.Lessons
-                .AsNoTracking()
-                .Include(l => l.Course)
-                .Where(l => l.Status == "PUBLISHED")
-                .OrderBy(l => l.OrderIndex)
-                .Take(15)
-                .ToListAsync(cancellationToken);
+            throw new InvalidOperationException($"Chưa có giáo trình xuất bản cho cấp độ HSK {targetHsk}. Vui lòng chọn cấp độ khác hoặc liên hệ giáo viên để cập nhật nội dung.");
         }
 
         // Completed lessons check
@@ -267,8 +260,20 @@ public sealed class LearningPathService : ILearningPathService
         _dbContext.PersonalizedLearningPaths.Add(pathEntity);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        // Seed daily tasks for today if not present
-        await SeedDailyTasksIfMissingAsync(userId, pathEntity, cancellationToken);
+        // Clean up pending daily tasks from older paths for today, preserving any tasks already completed today
+        var today = DateTime.UtcNow.Date;
+        var pendingOldTasks = await _dbContext.DailyLearningTasks
+            .Where(t => t.UserId == userId && t.PlanDate == today && t.CompletionStatus != "COMPLETED")
+            .ToListAsync(cancellationToken);
+
+        if (pendingOldTasks.Count > 0)
+        {
+            _dbContext.DailyLearningTasks.RemoveRange(pendingOldTasks);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Seed daily tasks for today for the new active path
+        await SeedDailyTasksAsync(userId, pathEntity, forceSeed: true, customAvailableMinutes: null, cancellationToken);
 
         return MapPathDto(pathEntity, lessons, completedSet);
     }
@@ -317,7 +322,7 @@ public sealed class LearningPathService : ILearningPathService
                 .Include(p => p.Milestones)
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.Status == "ACTIVE", cancellationToken);
 
-            await SeedDailyTasksIfMissingAsync(userId, activePath, cancellationToken);
+            await SeedDailyTasksAsync(userId, activePath, forceSeed: false, customAvailableMinutes: null, cancellationToken);
 
             tasks = await _dbContext.DailyLearningTasks
                 .AsNoTracking()
@@ -353,31 +358,7 @@ public sealed class LearningPathService : ILearningPathService
             task.CompletionStatus = "COMPLETED";
             task.CompletedAt = DateTime.UtcNow;
 
-            // If task is a lesson, ensure StudentLessonProgress is updated properly
-            if (task.TaskType == "lesson" && !string.IsNullOrWhiteSpace(task.ResourceId) && Guid.TryParse(task.ResourceId, out var lessonGuid))
-            {
-                var lessonProg = await _dbContext.StudentLessonProgresses
-                    .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == task.ResourceId, cancellationToken);
-
-                if (lessonProg == null)
-                {
-                    _dbContext.StudentLessonProgresses.Add(new StudentLessonProgress
-                    {
-                        UserId = userId,
-                        LessonId = task.ResourceId,
-                        Status = "COMPLETED",
-                        QuizScore = 100,
-                        CompletedAt = DateTime.UtcNow
-                    });
-                }
-                else
-                {
-                    lessonProg.Status = "COMPLETED";
-                    lessonProg.CompletedAt = DateTime.UtcNow;
-                }
-            }
-
-            // Recalculate milestone & overall path progress if linked to active path
+            // Recalculate milestone & overall path progress if linked to active path based on genuine official lesson progress
             if (task.LearningPathId.HasValue)
             {
                 var path = await _dbContext.PersonalizedLearningPaths
@@ -472,7 +453,7 @@ public sealed class LearningPathService : ILearningPathService
             activePath.LastReplannedAt = DateTime.UtcNow;
         }
 
-        await SeedDailyTasksIfMissingAsync(userId, activePath, cancellationToken);
+        await SeedDailyTasksAsync(userId, activePath, forceSeed: true, customAvailableMinutes: request?.AvailableMinutes, cancellationToken);
 
         var refreshedTasks = await _dbContext.DailyLearningTasks
             .AsNoTracking()
@@ -547,26 +528,74 @@ public sealed class LearningPathService : ILearningPathService
     // HELPER & SEEDING METHODS
     // =========================================================================
 
-    private async Task SeedDailyTasksIfMissingAsync(
+    private async Task SeedDailyTasksAsync(
         Guid userId,
         PersonalizedLearningPathEntity? path,
+        bool forceSeed,
+        int? customAvailableMinutes,
         CancellationToken cancellationToken)
     {
         var today = DateTime.UtcNow.Date;
-        var existingCount = await _dbContext.DailyLearningTasks
-            .CountAsync(t => t.UserId == userId && t.PlanDate == today, cancellationToken);
+        var existingTasks = await _dbContext.DailyLearningTasks
+            .Where(t => t.UserId == userId && t.PlanDate == today)
+            .ToListAsync(cancellationToken);
 
-        if (existingCount > 0) return;
+        var completedTasks = existingTasks.Where(t => t.CompletionStatus == "COMPLETED").ToList();
+        var pendingTasks = existingTasks.Where(t => t.CompletionStatus != "COMPLETED").ToList();
 
-        var targetHsk = path?.TargetHskLevel ?? 1;
+        if (!forceSeed && pendingTasks.Count > 0)
+        {
+            return;
+        }
 
-        // 1. Check SRS due words
-        var now = DateTime.UtcNow;
-        var dueSrsCount = await _dbContext.StudentVocabularyProgresses
+        var goal = await _dbContext.StudentLearningGoals
             .AsNoTracking()
-            .CountAsync(v => v.UserId == userId && v.NextReviewAt <= now, cancellationToken);
+            .FirstOrDefaultAsync(g => g.UserId == userId, cancellationToken);
 
-        // 2. Check uncompleted lesson
+        var targetDailyMinutes = customAvailableMinutes ?? goal?.DailyStudyMinutes ?? 30;
+        var alreadyCompletedMinutes = completedTasks.Sum(t => t.EstimatedMinutes);
+        var budgetMinutes = Math.Max(10, targetDailyMinutes - alreadyCompletedMinutes);
+
+        var completedTaskTypes = completedTasks.Select(t => t.TaskType).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var completedResourceIds = completedTasks.Where(t => !string.IsNullOrWhiteSpace(t.ResourceId)).Select(t => t.ResourceId!).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var targetHsk = path?.TargetHskLevel ?? goal?.TargetHskLevel ?? 1;
+        var now = DateTime.UtcNow;
+        var tasksToSeed = new List<DailyLearningTaskEntity>();
+        var priority = completedTasks.Count + 1;
+
+        // 1. Check SRS due words (if not completed today and words are due)
+        if (!completedTaskTypes.Contains("srs"))
+        {
+            var dueSrsCount = await _dbContext.StudentVocabularyProgresses
+                .AsNoTracking()
+                .CountAsync(v => v.UserId == userId && v.NextReviewAt <= now, cancellationToken);
+
+            if (dueSrsCount > 0 && budgetMinutes >= 5)
+            {
+                var estMin = Math.Min(15, Math.Max(5, dueSrsCount));
+                tasksToSeed.Add(new DailyLearningTaskEntity
+                {
+                    UserId = userId,
+                    LearningPathId = path?.Id,
+                    PlanDate = today,
+                    TaskType = "srs",
+                    Title = $"Ôn tập {Math.Min(dueSrsCount, 20)} từ vựng SRS đến hạn",
+                    Description = "Củng cố trí nhớ dài hạn các từ vựng đến hạn ôn tập theo thuật toán Spaced Repetition.",
+                    EstimatedMinutes = estMin,
+                    Priority = priority++,
+                    TargetSkill = "vocabulary",
+                    TargetHskLevel = targetHsk,
+                    ResourceId = null,
+                    DestinationRoute = "/srs-review",
+                    CompletionStatus = "PENDING",
+                    CreatedAt = now
+                });
+                budgetMinutes -= estMin;
+            }
+        }
+
+        // 2. Core Lesson (if not completed today)
         LessonEntity? nextLesson = null;
         if (path != null)
         {
@@ -585,7 +614,7 @@ public sealed class LearningPathService : ILearningPathService
                     .ToListAsync(cancellationToken);
                 var completedSet = new HashSet<string>(completedIds, StringComparer.OrdinalIgnoreCase);
 
-                var pendingLessonIdStr = lessonIds.FirstOrDefault(id => !completedSet.Contains(id));
+                var pendingLessonIdStr = lessonIds.FirstOrDefault(id => !completedSet.Contains(id) && !completedResourceIds.Contains(id));
                 if (pendingLessonIdStr != null && Guid.TryParse(pendingLessonIdStr, out var pendingGuid))
                 {
                     nextLesson = await _dbContext.Lessons.AsNoTracking().FirstOrDefaultAsync(l => l.Id == pendingGuid, cancellationToken);
@@ -598,43 +627,14 @@ public sealed class LearningPathService : ILearningPathService
             nextLesson = await _dbContext.Lessons
                 .AsNoTracking()
                 .Include(l => l.Course)
-                .Where(l => l.Status == "PUBLISHED" && l.Course != null && l.Course.HskLevel == targetHsk)
+                .Where(l => l.Status == "PUBLISHED" && l.Course != null && l.Course.HskLevel == targetHsk && !completedResourceIds.Contains(l.Id.ToString()))
                 .OrderBy(l => l.OrderIndex)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        // 3. Top weak concept
-        var competency = await _competencyService.GetCompetencyProfileAsync(userId, cancellationToken);
-        var weakConcept = competency.TopWeakConcepts.FirstOrDefault();
-
-        var tasksToSeed = new List<DailyLearningTaskEntity>();
-        var priority = 1;
-
-        // Task 1: SRS Review (if any due, or light maintenance)
-        if (dueSrsCount > 0)
+        if (nextLesson != null && budgetMinutes >= 10)
         {
-            tasksToSeed.Add(new DailyLearningTaskEntity
-            {
-                UserId = userId,
-                LearningPathId = path?.Id,
-                PlanDate = today,
-                TaskType = "srs",
-                Title = $"Ôn tập {Math.Min(dueSrsCount, 20)} từ vựng SRS đến hạn",
-                Description = "Củng cố trí nhớ dài hạn các từ vựng đến hạn ôn tập theo thuật toán Spaced Repetition.",
-                EstimatedMinutes = Math.Min(15, Math.Max(5, dueSrsCount)),
-                Priority = priority++,
-                TargetSkill = "vocabulary",
-                TargetHskLevel = targetHsk,
-                ResourceId = null,
-                DestinationRoute = "/srs-review",
-                CompletionStatus = "PENDING",
-                CreatedAt = now
-            });
-        }
-
-        // Task 2: Core Lesson
-        if (nextLesson != null)
-        {
+            var estMin = nextLesson.DurationMinutes > 0 ? nextLesson.DurationMinutes : 15;
             tasksToSeed.Add(new DailyLearningTaskEntity
             {
                 UserId = userId,
@@ -643,7 +643,7 @@ public sealed class LearningPathService : ILearningPathService
                 TaskType = "lesson",
                 Title = $"Học bài: {nextLesson.TitleZh} ({nextLesson.TitleVi})",
                 Description = $"Tìm hiểu từ vựng, ngữ pháp và hội thoại bài {nextLesson.LessonNumber} giáo trình HSK {targetHsk}.",
-                EstimatedMinutes = nextLesson.DurationMinutes > 0 ? nextLesson.DurationMinutes : 15,
+                EstimatedMinutes = estMin,
                 Priority = priority++,
                 TargetSkill = "reading",
                 TargetHskLevel = targetHsk,
@@ -652,10 +652,14 @@ public sealed class LearningPathService : ILearningPathService
                 CompletionStatus = "PENDING",
                 CreatedAt = now
             });
+            budgetMinutes -= estMin;
         }
 
-        // Task 3: Weakness Review / Grammar Practice
-        if (weakConcept != null)
+        // 3. Weakness Review (if not completed today)
+        var competency = await _competencyService.GetCompetencyProfileAsync(userId, cancellationToken);
+        var weakConcept = competency.TopWeakConcepts.FirstOrDefault();
+
+        if (weakConcept != null && !completedTaskTypes.Contains("weakness") && budgetMinutes >= 10)
         {
             tasksToSeed.Add(new DailyLearningTaskEntity
             {
@@ -674,29 +678,36 @@ public sealed class LearningPathService : ILearningPathService
                 CompletionStatus = "PENDING",
                 CreatedAt = now
             });
+            budgetMinutes -= 10;
         }
 
-        // Task 4: AI Adaptive Exercises
-        tasksToSeed.Add(new DailyLearningTaskEntity
+        // 4. AI Adaptive Exercises (if budget remains or no tasks were created yet)
+        if ((budgetMinutes >= 10 || tasksToSeed.Count == 0) && !completedTaskTypes.Contains("ai-exercise"))
         {
-            UserId = userId,
-            LearningPathId = path?.Id,
-            PlanDate = today,
-            TaskType = "ai-exercise",
-            Title = $"Luyện tập thích ứng AI HSK {targetHsk}",
-            Description = "Hoàn thành 3-5 câu hỏi cá nhân hóa do AI điều chỉnh theo tiến trình làm bài.",
-            EstimatedMinutes = 10,
-            Priority = priority++,
-            TargetSkill = "grammar",
-            TargetHskLevel = targetHsk,
-            ResourceId = null,
-            DestinationRoute = "/ai-exercises",
-            CompletionStatus = "PENDING",
-            CreatedAt = now
-        });
+            tasksToSeed.Add(new DailyLearningTaskEntity
+            {
+                UserId = userId,
+                LearningPathId = path?.Id,
+                PlanDate = today,
+                TaskType = "ai-exercise",
+                Title = $"Luyện tập thích ứng AI HSK {targetHsk}",
+                Description = "Hoàn thành 3-5 câu hỏi cá nhân hóa do AI điều chỉnh theo tiến trình làm bài.",
+                EstimatedMinutes = 10,
+                Priority = priority++,
+                TargetSkill = "grammar",
+                TargetHskLevel = targetHsk,
+                ResourceId = null,
+                DestinationRoute = "/ai-exercises",
+                CompletionStatus = "PENDING",
+                CreatedAt = now
+            });
+        }
 
-        _dbContext.DailyLearningTasks.AddRange(tasksToSeed);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        if (tasksToSeed.Count > 0)
+        {
+            _dbContext.DailyLearningTasks.AddRange(tasksToSeed);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private static List<LearningPathMilestoneEntity> BuildMilestones(

@@ -647,7 +647,7 @@ public class AIPhase3SqlServerIntegrationTests
             // Verify MetadataJson cached the error analysis
             var dbEx = await db.AiGeneratedExercises.AsNoTracking().FirstOrDefaultAsync(e => e.Id == exercise.Id);
             Assert.NotNull(dbEx);
-            Assert.Contains("cachedErrorAnalysis", dbEx!.MetadataJson ?? "");
+            Assert.Contains("cachedErrorAnalyses", dbEx!.MetadataJson ?? "");
 
             // Second submission (idempotent retry) -> must load cached analysis and NOT call AI again
             var res2 = await exerciseService.SubmitAttemptAsync(testUser.Id, exercise.Id, new SubmitAiExerciseAttemptDto { SelectedIndex = 1 });
@@ -662,6 +662,163 @@ public class AIPhase3SqlServerIntegrationTests
             db.AiExerciseAttempts.RemoveRange(aia);
             var stat = await db.LearningSkillStatistics.Where(s => s.UserId == testUser.Id).ToListAsync();
             db.LearningSkillStatistics.RemoveRange(stat);
+            var exs = await db.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
+            db.AiGeneratedExercises.RemoveRange(exs);
+            var u = await db.Users.FirstOrDefaultAsync(x => x.Id == testUser.Id);
+            if (u != null) db.Users.Remove(u);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentSubmissions_FromSeparateDbContexts_GuaranteedIdempotentByUniqueConstraint()
+    {
+        await using var db1 = CreateContext();
+        await using var db2 = CreateContext();
+
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"concurrent_{Guid.NewGuid():N}@test.local",
+            Email = $"concurrent_{Guid.NewGuid():N}@test.local",
+            DisplayName = "Concurrent User",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var exercise = new AiGeneratedExercise
+        {
+            Id = Guid.NewGuid(),
+            UserId = testUser.Id,
+            HskLevel = 2,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            PromptZh = "请选择“书”的意思：",
+            PromptPinyin = "shū",
+            PromptVi = "Chọn nghĩa của từ 书",
+            OptionsJson = JsonSerializer.Serialize(new[] { "Quyển sách", "Cái bút", "Cái bàn", "Cái ghế" }),
+            CorrectIndex = 0,
+            CorrectAnswer = "Quyển sách",
+            ExplanationVi = "书 nghĩa là Quyển sách",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db1.Users.Add(testUser);
+        db1.AiGeneratedExercises.Add(exercise);
+        await db1.SaveChangesAsync();
+
+        try
+        {
+            var ai1 = new MockAIProvider();
+            var ai2 = new MockAIProvider();
+            var errorService1 = new AIErrorAnalysisService(db1, ai1);
+            var errorService2 = new AIErrorAnalysisService(db2, ai2);
+
+            var svc1 = new AIExerciseService(db1, ai1, new NoOpUsageLogger(), errorService1, NullLogger<AIExerciseService>.Instance);
+            var svc2 = new AIExerciseService(db2, ai2, new NoOpUsageLogger(), errorService2, NullLogger<AIExerciseService>.Instance);
+
+            // Run two submissions concurrently on separate DbContexts
+            var task1 = svc1.SubmitAttemptAsync(testUser.Id, exercise.Id, new SubmitAiExerciseAttemptDto { SelectedIndex = 0 });
+            var task2 = svc2.SubmitAttemptAsync(testUser.Id, exercise.Id, new SubmitAiExerciseAttemptDto { SelectedIndex = 0 });
+
+            var results = await Task.WhenAll(task1, task2);
+
+            Assert.NotNull(results[0]);
+            Assert.NotNull(results[1]);
+            Assert.True(results[0].IsCorrect);
+            Assert.True(results[1].IsCorrect);
+            Assert.Equal(results[0].AttemptId, results[1].AttemptId);
+
+            // Verify EXACTLY one row exists in ai_exercise_attempts
+            await using var verifyDb = CreateContext();
+            var attemptsCount = await verifyDb.AiExerciseAttempts.CountAsync(a => a.UserId == testUser.Id && a.AiExerciseId == exercise.Id);
+            Assert.Equal(1, attemptsCount);
+        }
+        finally
+        {
+            await using var cleanDb = CreateContext();
+            var pra = await cleanDb.StudentPracticeAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            cleanDb.StudentPracticeAttempts.RemoveRange(pra);
+            var aia = await cleanDb.AiExerciseAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            cleanDb.AiExerciseAttempts.RemoveRange(aia);
+            var exs = await cleanDb.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
+            cleanDb.AiGeneratedExercises.RemoveRange(exs);
+            var u = await cleanDb.Users.FirstOrDefaultAsync(x => x.Id == testUser.Id);
+            if (u != null) cleanDb.Users.Remove(u);
+            await cleanDb.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ErrorAnalysis_DoesNotReturnCache_WhenUserAnswerIsDifferent()
+    {
+        await using var db = CreateContext();
+
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"cachediff_{Guid.NewGuid():N}@test.local",
+            Email = $"cachediff_{Guid.NewGuid():N}@test.local",
+            DisplayName = "Diff User",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var exercise = new AiGeneratedExercise
+        {
+            Id = Guid.NewGuid(),
+            UserId = testUser.Id,
+            HskLevel = 2,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            PromptZh = "请选择“水”的意思：",
+            PromptPinyin = "shuǐ",
+            PromptVi = "Chọn nghĩa của từ 水",
+            OptionsJson = JsonSerializer.Serialize(new[] { "Nước", "Lửa", "Đất", "Gió" }),
+            CorrectIndex = 0,
+            CorrectAnswer = "Nước",
+            ExplanationVi = "水 là nước",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Users.Add(testUser);
+        db.AiGeneratedExercises.Add(exercise);
+        await db.SaveChangesAsync();
+
+        try
+        {
+            var countingAi = new CountingAIProvider();
+            var errorService = new AIErrorAnalysisService(db, countingAi);
+
+            // 1. Analyze for answer "Lửa"
+            var res1 = await errorService.AnalyzeErrorDetailAsync(testUser.Id, new RequestErrorAnalysisDto
+            {
+                ExerciseId = exercise.Id,
+                UserAnswer = "Lửa"
+            });
+            Assert.NotNull(res1);
+            Assert.Equal(1, countingAi.CallCount);
+
+            // 2. Analyze for DIFFERENT answer "Đất" -> MUST call AI and NOT return "Lửa" cached analysis
+            var res2 = await errorService.AnalyzeErrorDetailAsync(testUser.Id, new RequestErrorAnalysisDto
+            {
+                ExerciseId = exercise.Id,
+                UserAnswer = "Đất"
+            });
+            Assert.NotNull(res2);
+            Assert.Equal(2, countingAi.CallCount); // Incremented because answer is different!
+
+            // 3. Retry same answer "Lửa" -> must hit cache and NOT call AI
+            var res3 = await errorService.AnalyzeErrorDetailAsync(testUser.Id, new RequestErrorAnalysisDto
+            {
+                ExerciseId = exercise.Id,
+                UserAnswer = "Lửa"
+            });
+            Assert.NotNull(res3);
+            Assert.Equal(2, countingAi.CallCount); // Still 2!
+        }
+        finally
+        {
             var exs = await db.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
             db.AiGeneratedExercises.RemoveRange(exs);
             var u = await db.Users.FirstOrDefaultAsync(x => x.Id == testUser.Id);
