@@ -42,12 +42,12 @@ public interface IVideoStorageService
     string ProviderName { get; }
 
     /// <summary>
-    /// Uploads a learning video stream and returns the persisted storage path & public URL.
+    /// Uploads a learning video stream and returns the persisted storage path &amp; public URL.
     /// </summary>
     Task<StorageUploadResult> UploadVideoAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Uploads a video thumbnail image stream and returns the persisted storage path & public URL.
+    /// Uploads a video thumbnail image stream and returns the persisted storage path &amp; public URL.
     /// </summary>
     Task<StorageUploadResult> UploadThumbnailAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
 

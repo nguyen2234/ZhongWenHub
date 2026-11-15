@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.AILearning.DTOs;
 using ZhongWenHub.Business.AILearning.Services.Competency;
@@ -28,6 +30,7 @@ public interface IAIExerciseService
 public sealed class AIExerciseService : IAIExerciseService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> AttemptLocks = new();
 
     private static readonly HashSet<string> AllowedSourceTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -183,21 +186,164 @@ public sealed class AIExerciseService : IAIExerciseService
             throw new KeyNotFoundException("Không tìm thấy bài tập AI này.");
         }
 
-        // Idempotency check: if already attempted, return existing result without duplicate records or re-calling LLM
-        var existingAttempt = await _dbContext.AiExerciseAttempts
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
-
-        if (existingAttempt != null)
+        // Concurrency control: per (UserId, ExerciseId) async lock to prevent duplicate submissions
+        var lockKey = $"{userId:N}_{aiExerciseId:N}";
+        var semaphore = AttemptLocks.GetOrAdd(lockKey, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync(cancellationToken);
+        try
         {
-            AIErrorAnalysisDetailDto? existingAnalysis = null;
-            if (!existingAttempt.IsCorrect)
+            // Idempotency check: if already attempted, return existing result without duplicate records or re-calling LLM
+            var existingAttempt = await _dbContext.AiExerciseAttempts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
+
+            if (existingAttempt != null)
+            {
+                return await BuildIdempotentResultAsync(userId, exercise, existingAttempt, cancellationToken);
+            }
+
+            var isCorrect = EvaluateAttempt(exercise, request);
+            var userAnswerText = !string.IsNullOrWhiteSpace(request.UserAnswer)
+                ? PromptSanitizer.SanitizeUntrustedText(request.UserAnswer, 400)
+                : (request.SelectedIndex?.ToString() ?? string.Empty);
+
+            var skillCategory = MapSkillCategory(exercise.ExerciseType, exercise.SourceType);
+            var now = DateTime.UtcNow;
+
+            var attempt = new AiExerciseAttempt
+            {
+                UserId = userId,
+                AiExerciseId = exercise.Id,
+                UserAnswer = userAnswerText,
+                SelectedIndex = request.SelectedIndex,
+                IsCorrect = isCorrect,
+                SkillCategory = skillCategory,
+                AttemptedAt = now
+            };
+
+            // Record StudentPracticeAttempt with 'ai_' prefix so other services can see student progress without duplicate counts in BKT
+            var practiceAttempt = new StudentPracticeAttempt
+            {
+                UserId = userId,
+                ExerciseId = $"ai_{exercise.Id}",
+                QuestionId = exercise.Id.ToString(),
+                KnowledgePointId = exercise.SourceType,
+                TopicTitle = exercise.PromptZh,
+                Category = skillCategory,
+                HskLevel = exercise.HskLevel,
+                UserAnswer = userAnswerText,
+                IsCorrect = isCorrect,
+                AttemptedAt = now
+            };
+
+            try
+            {
+                if (_dbContext.Database.IsRelational())
+                {
+                    var strategy = _dbContext.Database.CreateExecutionStrategy();
+                    await strategy.ExecuteAsync(async () =>
+                    {
+                        await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                        _dbContext.AiExerciseAttempts.Add(attempt);
+                        _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
+                        await _dbContext.SaveChangesAsync(cancellationToken);
+                        await tx.CommitAsync(cancellationToken);
+                    });
+                }
+                else
+                {
+                    _dbContext.AiExerciseAttempts.Add(attempt);
+                    _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogWarning(ex, "Concurrent duplicate attempt detected for user {UserId} and exercise {ExerciseId}. Reloading existing attempt.", userId, aiExerciseId);
+                var reloadedAttempt = await _dbContext.AiExerciseAttempts
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.AiExerciseId == aiExerciseId && a.UserId == userId, cancellationToken);
+
+                if (reloadedAttempt != null)
+                {
+                    return await BuildIdempotentResultAsync(userId, exercise, reloadedAttempt, cancellationToken);
+                }
+                throw;
+            }
+
+            // Update persisted skill statistics deterministically
+            try
+            {
+                await _errorAnalysisService.RecomputeAndPersistSkillStatsAsync(userId, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error recomputing skill stats after attempt submission.");
+            }
+
+            // Detailed error analysis if student was incorrect
+            AIErrorAnalysisDetailDto? errorAnalysis = null;
+            if (!isCorrect)
+            {
+                try
+                {
+                    errorAnalysis = await _errorAnalysisService.AnalyzeErrorDetailAsync(
+                        userId,
+                        new RequestErrorAnalysisDto
+                        {
+                            ExerciseId = exercise.Id,
+                            QuestionText = exercise.PromptZh,
+                            UserAnswer = userAnswerText,
+                            CorrectAnswer = exercise.CorrectAnswer,
+                            SkillCategory = skillCategory,
+                            HskLevel = exercise.HskLevel
+                        },
+                        cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error analyzing detail after attempt submission for attempt {AttemptId}.", attempt.Id);
+                }
+            }
+
+            var nextSuggestion = BuildNextSuggestion(skillCategory, exercise.HskLevel, isCorrect);
+
+            return new AiExerciseAttemptResultDto
+            {
+                AttemptId = attempt.Id,
+                AiExerciseId = exercise.Id,
+                IsCorrect = isCorrect,
+                CorrectIndex = exercise.CorrectIndex,
+                CorrectAnswer = exercise.CorrectAnswer,
+                ExplanationVi = exercise.ExplanationVi,
+                SkillCategory = skillCategory,
+                AttemptedAt = attempt.AttemptedAt,
+                ErrorAnalysis = errorAnalysis,
+                NextSuggestion = nextSuggestion
+            };
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    private async Task<AiExerciseAttemptResultDto> BuildIdempotentResultAsync(
+        Guid userId,
+        AiGeneratedExercise exercise,
+        AiExerciseAttempt existingAttempt,
+        CancellationToken cancellationToken)
+    {
+        AIErrorAnalysisDetailDto? existingAnalysis = null;
+        if (!existingAttempt.IsCorrect)
+        {
+            try
             {
                 existingAnalysis = await _errorAnalysisService.AnalyzeErrorDetailAsync(
                     userId,
                     new RequestErrorAnalysisDto
                     {
-                        ExerciseId = aiExerciseId,
+                        ExerciseId = exercise.Id,
                         QuestionText = exercise.PromptZh,
                         UserAnswer = existingAttempt.UserAnswer,
                         CorrectAnswer = exercise.CorrectAnswer,
@@ -206,95 +352,24 @@ public sealed class AIExerciseService : IAIExerciseService
                     },
                     cancellationToken);
             }
-
-            return new AiExerciseAttemptResultDto
+            catch (Exception ex)
             {
-                AttemptId = existingAttempt.Id,
-                AiExerciseId = exercise.Id,
-                IsCorrect = existingAttempt.IsCorrect,
-                CorrectIndex = exercise.CorrectIndex,
-                CorrectAnswer = exercise.CorrectAnswer,
-                ExplanationVi = exercise.ExplanationVi,
-                SkillCategory = existingAttempt.SkillCategory,
-                AttemptedAt = existingAttempt.AttemptedAt,
-                ErrorAnalysis = existingAnalysis,
-                NextSuggestion = BuildNextSuggestion(existingAttempt.SkillCategory, exercise.HskLevel, existingAttempt.IsCorrect)
-            };
+                _logger.LogWarning(ex, "Error fetching cached error analysis for existing attempt {AttemptId}.", existingAttempt.Id);
+            }
         }
-
-        var isCorrect = EvaluateAttempt(exercise, request);
-        var userAnswerText = !string.IsNullOrWhiteSpace(request.UserAnswer)
-            ? PromptSanitizer.SanitizeUntrustedText(request.UserAnswer, 400)
-            : (request.SelectedIndex?.ToString() ?? string.Empty);
-
-        var skillCategory = MapSkillCategory(exercise.ExerciseType, exercise.SourceType);
-        var now = DateTime.UtcNow;
-
-        var attempt = new AiExerciseAttempt
-        {
-            UserId = userId,
-            AiExerciseId = exercise.Id,
-            UserAnswer = userAnswerText,
-            SelectedIndex = request.SelectedIndex,
-            IsCorrect = isCorrect,
-            SkillCategory = skillCategory,
-            AttemptedAt = now
-        };
-        _dbContext.AiExerciseAttempts.Add(attempt);
-
-        // Record StudentPracticeAttempt with 'ai_' prefix so other services can see student progress without duplicate counts in BKT
-        var practiceAttempt = new StudentPracticeAttempt
-        {
-            UserId = userId,
-            ExerciseId = $"ai_{exercise.Id}",
-            QuestionId = exercise.Id.ToString(),
-            KnowledgePointId = exercise.SourceType,
-            TopicTitle = exercise.PromptZh,
-            Category = skillCategory,
-            HskLevel = exercise.HskLevel,
-            UserAnswer = userAnswerText,
-            IsCorrect = isCorrect,
-            AttemptedAt = now
-        };
-        _dbContext.StudentPracticeAttempts.Add(practiceAttempt);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        // Update persisted skill statistics deterministically
-        await _errorAnalysisService.RecomputeAndPersistSkillStatsAsync(userId, cancellationToken);
-
-        // Detailed error analysis if student was incorrect
-        AIErrorAnalysisDetailDto? errorAnalysis = null;
-        if (!isCorrect)
-        {
-            errorAnalysis = await _errorAnalysisService.AnalyzeErrorDetailAsync(
-                userId,
-                new RequestErrorAnalysisDto
-                {
-                    ExerciseId = exercise.Id,
-                    QuestionText = exercise.PromptZh,
-                    UserAnswer = userAnswerText,
-                    CorrectAnswer = exercise.CorrectAnswer,
-                    SkillCategory = skillCategory,
-                    HskLevel = exercise.HskLevel
-                },
-                cancellationToken);
-        }
-
-        var nextSuggestion = BuildNextSuggestion(skillCategory, exercise.HskLevel, isCorrect);
 
         return new AiExerciseAttemptResultDto
         {
-            AttemptId = attempt.Id,
+            AttemptId = existingAttempt.Id,
             AiExerciseId = exercise.Id,
-            IsCorrect = isCorrect,
+            IsCorrect = existingAttempt.IsCorrect,
             CorrectIndex = exercise.CorrectIndex,
             CorrectAnswer = exercise.CorrectAnswer,
             ExplanationVi = exercise.ExplanationVi,
-            SkillCategory = skillCategory,
-            AttemptedAt = attempt.AttemptedAt,
-            ErrorAnalysis = errorAnalysis,
-            NextSuggestion = nextSuggestion
+            SkillCategory = existingAttempt.SkillCategory,
+            AttemptedAt = existingAttempt.AttemptedAt,
+            ErrorAnalysis = existingAnalysis,
+            NextSuggestion = BuildNextSuggestion(existingAttempt.SkillCategory, exercise.HskLevel, existingAttempt.IsCorrect)
         };
     }
 
@@ -447,131 +522,345 @@ public sealed class AIExerciseService : IAIExerciseService
         return sessionDto;
     }
 
-    private async Task<AiGeneratedExercise> BuildCuratedFallbackExerciseAsync(
+    private async Task<AiGeneratedExercise?> BuildCuratedFallbackExerciseAsync(
         Guid userId,
         int hskLevel,
         string skill,
         HashSet<string> recentPrompts,
         CancellationToken cancellationToken)
     {
-        // 1. If Grammar: build from published GrammarPoints
+        // 1. Skill: Grammar - build from published GrammarPoints
         if (skill == "grammar")
         {
-            var gp = await _dbContext.GrammarPoints
+            var targetGp = await _dbContext.GrammarPoints
                 .AsNoTracking()
-                .Where(g => g.HskLevel == hskLevel && g.Status == "PUBLISHED" && !recentPrompts.Contains(g.Title))
+                .Where(g => g.HskLevel == hskLevel && g.Status == "PUBLISHED" && !recentPrompts.Contains(g.Title) && !string.IsNullOrWhiteSpace(g.StructureFormula))
                 .OrderBy(g => Guid.NewGuid())
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (gp != null)
-            {
-                var options = new List<string> { gp.StructureFormula, "S + V + O", "S + zài + V", "S + bǎ + O + V" }.Distinct().Take(4).ToList();
-                while (options.Count < 4) options.Add($"Công thức cấu trúc {options.Count + 1}");
+            targetGp ??= await _dbContext.GrammarPoints
+                .AsNoTracking()
+                .Where(g => g.HskLevel == hskLevel && g.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(g.StructureFormula))
+                .OrderBy(g => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
 
-                return new AiGeneratedExercise
+            if (targetGp != null && !string.IsNullOrWhiteSpace(targetGp.StructureFormula))
+            {
+                var distractorFormulas = await _dbContext.GrammarPoints
+                    .AsNoTracking()
+                    .Where(g => g.Id != targetGp.Id && g.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(g.StructureFormula) && g.StructureFormula != targetGp.StructureFormula)
+                    .OrderBy(g => Guid.NewGuid())
+                    .Take(5)
+                    .Select(g => g.StructureFormula)
+                    .ToListAsync(cancellationToken);
+
+                var options = new List<string> { targetGp.StructureFormula };
+                options.AddRange(distractorFormulas);
+                var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+                if (distinctOptions.Count >= 2)
                 {
-                    UserId = userId,
-                    HskLevel = hskLevel,
-                    SourceType = "GRAMMAR",
-                    ExerciseType = "multiple-choice",
-                    OriginTag = "CURATED_QUESTION_BANK",
-                    AcademicStatus = "ACADEMIC_APPROVED",
-                    SourceReviewNote = "Ngân hàng câu hỏi ngữ pháp kiểm duyệt chính thức.",
-                    PromptZh = $"请选择语法点“{gp.Title}”的正确结构：",
-                    PromptVi = $"Chọn cấu trúc đúng của điểm ngữ pháp \"{gp.Title}\":",
-                    OptionsJson = JsonSerializer.Serialize(options, JsonOptions),
-                    CorrectIndex = 0,
-                    CorrectAnswer = options[0],
-                    ExplanationVi = $"Điểm ngữ pháp '{gp.Title}' có cấu trúc chuẩn là: {gp.StructureFormula}. {gp.Explanation}",
-                    CreatedAt = DateTime.UtcNow
-                };
+                    var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, targetGp.StructureFormula);
+                    return new AiGeneratedExercise
+                    {
+                        UserId = userId,
+                        HskLevel = hskLevel,
+                        SourceType = "GRAMMAR",
+                        ExerciseType = "multiple-choice",
+                        OriginTag = "CURATED_FALLBACK",
+                        AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
+                        SourceReviewNote = "Câu hỏi fallback tự sinh từ điểm ngữ pháp hệ thống.",
+                        PromptZh = $"请选择语法点“{targetGp.Title}”的正确结构：",
+                        PromptVi = $"Chọn cấu trúc đúng của điểm ngữ pháp \"{targetGp.Title}\":",
+                        OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                        CorrectIndex = correctIndex,
+                        CorrectAnswer = targetGp.StructureFormula,
+                        ExplanationVi = $"Điểm ngữ pháp '{targetGp.Title}' có cấu trúc chuẩn là: {targetGp.StructureFormula}. {targetGp.Explanation}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                }
             }
         }
 
-        // 2. Default/Vocabulary/Hanzi/Pinyin: build from published Vocabularies
-        var vocabs = await _dbContext.Vocabularies
-            .AsNoTracking()
-            .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED")
-            .OrderBy(v => Guid.NewGuid())
-            .Take(8)
-            .ToListAsync(cancellationToken);
-
-        if (vocabs.Count >= 4)
+        // 2. Skill: Pinyin - build from published Vocabularies
+        if (skill == "pinyin")
         {
-            var target = vocabs[0];
-            var distractors = vocabs.Skip(1).Take(3).ToList();
+            var targetVocab = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !recentPrompts.Contains(v.Hanzi) && !string.IsNullOrWhiteSpace(v.Pinyin))
+                .OrderBy(v => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (skill == "pinyin")
+            targetVocab ??= await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.Pinyin))
+                .OrderBy(v => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (targetVocab != null)
             {
-                var options = new List<string> { target.Pinyin };
-                options.AddRange(distractors.Select(d => d.Pinyin));
-                var distinctOptions = options.Distinct().Take(4).ToList();
-                while (distinctOptions.Count < 4) distinctOptions.Add("pinyin_opt");
+                var distractorPinyins = await _dbContext.Vocabularies
+                    .AsNoTracking()
+                    .Where(v => v.Id != targetVocab.Id && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.Pinyin) && v.Pinyin != targetVocab.Pinyin)
+                    .OrderBy(v => Guid.NewGuid())
+                    .Take(5)
+                    .Select(v => v.Pinyin)
+                    .ToListAsync(cancellationToken);
 
+                var options = new List<string> { targetVocab.Pinyin };
+                options.AddRange(distractorPinyins);
+                var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+                if (distinctOptions.Count >= 2)
+                {
+                    var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, targetVocab.Pinyin);
+                    return new AiGeneratedExercise
+                    {
+                        UserId = userId,
+                        HskLevel = hskLevel,
+                        SourceType = "VOCABULARY",
+                        ExerciseType = "pinyin-match",
+                        OriginTag = "CURATED_FALLBACK",
+                        AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
+                        SourceReviewNote = "Câu hỏi fallback tự sinh từ từ vựng kiểm duyệt.",
+                        PromptZh = $"请选择汉字“{targetVocab.Hanzi}”的正确拼音：",
+                        PromptVi = $"Chọn Pinyin chuẩn của chữ Hán \"{targetVocab.Hanzi}\":",
+                        OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                        CorrectIndex = correctIndex,
+                        CorrectAnswer = targetVocab.Pinyin,
+                        ExplanationVi = $"Chữ Hán '{targetVocab.Hanzi}' có phiên âm Pinyin chuẩn là: {targetVocab.Pinyin} ({targetVocab.MeaningVi}).",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                }
+            }
+        }
+
+        // 3. Skill: Hanzi - build from published Vocabularies
+        if (skill == "hanzi")
+        {
+            var targetVocab = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !recentPrompts.Contains(v.Hanzi) && !string.IsNullOrWhiteSpace(v.Hanzi))
+                .OrderBy(v => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            targetVocab ??= await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.Hanzi))
+                .OrderBy(v => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (targetVocab != null)
+            {
+                var distractorHanzis = await _dbContext.Vocabularies
+                    .AsNoTracking()
+                    .Where(v => v.Id != targetVocab.Id && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.Hanzi) && v.Hanzi != targetVocab.Hanzi)
+                    .OrderBy(v => Guid.NewGuid())
+                    .Take(5)
+                    .Select(v => v.Hanzi)
+                    .ToListAsync(cancellationToken);
+
+                var options = new List<string> { targetVocab.Hanzi };
+                options.AddRange(distractorHanzis);
+                var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+                if (distinctOptions.Count >= 2)
+                {
+                    var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, targetVocab.Hanzi);
+                    return new AiGeneratedExercise
+                    {
+                        UserId = userId,
+                        HskLevel = hskLevel,
+                        SourceType = "VOCABULARY",
+                        ExerciseType = "multiple-choice",
+                        OriginTag = "CURATED_FALLBACK",
+                        AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
+                        SourceReviewNote = "Câu hỏi fallback tự sinh từ từ vựng kiểm duyệt.",
+                        PromptZh = $"请选择拼音“{targetVocab.Pinyin}”对应的汉字：",
+                        PromptPinyin = targetVocab.Pinyin,
+                        PromptVi = $"Chọn chữ Hán đúng tương ứng với Pinyin \"{targetVocab.Pinyin}\" ({targetVocab.MeaningVi}):",
+                        OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                        CorrectIndex = correctIndex,
+                        CorrectAnswer = targetVocab.Hanzi,
+                        ExplanationVi = $"Pinyin '{targetVocab.Pinyin}' tương ứng với chữ Hán '{targetVocab.Hanzi}' có nghĩa là: {targetVocab.MeaningVi}.",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                }
+            }
+        }
+
+        // 4. Skill: Reading - build from published Lessons or Vocabularies
+        if (skill == "reading")
+        {
+            var lesson = await _dbContext.Lessons
+                .AsNoTracking()
+                .Include(l => l.Course)
+                .Where(l => l.Status == "PUBLISHED" && l.DialogueJson != null && (l.Course == null || l.Course.HskLevel == hskLevel))
+                .OrderBy(l => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (lesson?.DialogueJson != null)
+            {
+                var (passageText, _) = ExtractReadingSentencesOnly(lesson.DialogueJson);
+                if (!string.IsNullOrWhiteSpace(passageText))
+                {
+                    var targetVocab = await _dbContext.Vocabularies
+                        .AsNoTracking()
+                        .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi))
+                        .OrderBy(v => Guid.NewGuid())
+                        .FirstOrDefaultAsync(cancellationToken);
+
+                    if (targetVocab != null)
+                    {
+                        var distractorMeanings = await _dbContext.Vocabularies
+                            .AsNoTracking()
+                            .Where(v => v.Id != targetVocab.Id && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi) && v.MeaningVi != targetVocab.MeaningVi)
+                            .OrderBy(v => Guid.NewGuid())
+                            .Take(5)
+                            .Select(v => v.MeaningVi)
+                            .ToListAsync(cancellationToken);
+
+                        var options = new List<string> { targetVocab.MeaningVi };
+                        options.AddRange(distractorMeanings);
+                        var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+                        if (distinctOptions.Count >= 2)
+                        {
+                            var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, targetVocab.MeaningVi);
+                            var shortExcerpt = passageText.Length > 120 ? passageText[..120] + "..." : passageText;
+                            return new AiGeneratedExercise
+                            {
+                                UserId = userId,
+                                HskLevel = hskLevel,
+                                SourceType = "READING",
+                                ExerciseType = "multiple-choice",
+                                OriginTag = "CURATED_FALLBACK",
+                                AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
+                                SourceReviewNote = "Câu hỏi fallback tự sinh từ bài đọc giáo trình.",
+                                PromptZh = $"阅读短文：“{shortExcerpt}”\n请问文中关键词“{targetVocab.Hanzi}”的意思是：",
+                                PromptVi = $"Đọc đoạn văn và chọn nghĩa đúng của từ \"{targetVocab.Hanzi}\":",
+                                OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                                CorrectIndex = correctIndex,
+                                CorrectAnswer = targetVocab.MeaningVi,
+                                ExplanationVi = $"Trong ngữ cảnh bài đọc, từ '{targetVocab.Hanzi}' mang nghĩa tiếng Việt là: {targetVocab.MeaningVi}.",
+                                CreatedAt = DateTime.UtcNow
+                            };
+                        }
+                    }
+                }
+            }
+
+            // Fallback reading question from vocabulary comprehension
+            var readVocab = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi))
+                .OrderBy(v => Guid.NewGuid())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (readVocab != null)
+            {
+                var distractorMeanings = await _dbContext.Vocabularies
+                    .AsNoTracking()
+                    .Where(v => v.Id != readVocab.Id && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi) && v.MeaningVi != readVocab.MeaningVi)
+                    .OrderBy(v => Guid.NewGuid())
+                    .Take(5)
+                    .Select(v => v.MeaningVi)
+                    .ToListAsync(cancellationToken);
+
+                var options = new List<string> { readVocab.MeaningVi };
+                options.AddRange(distractorMeanings);
+                var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+                if (distinctOptions.Count >= 2)
+                {
+                    var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, readVocab.MeaningVi);
+                    return new AiGeneratedExercise
+                    {
+                        UserId = userId,
+                        HskLevel = hskLevel,
+                        SourceType = "READING",
+                        ExerciseType = "multiple-choice",
+                        OriginTag = "CURATED_FALLBACK",
+                        AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
+                        SourceReviewNote = "Câu hỏi fallback đọc hiểu từ vựng kiểm duyệt.",
+                        PromptZh = $"阅读理解：请根据上下文选择词语“{readVocab.Hanzi}”（{readVocab.Pinyin}）的正确释义：",
+                        PromptVi = $"Đọc hiểu: Chọn nghĩa đúng của từ \"{readVocab.Hanzi}\":",
+                        OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                        CorrectIndex = correctIndex,
+                        CorrectAnswer = readVocab.MeaningVi,
+                        ExplanationVi = $"Từ '{readVocab.Hanzi}' có nghĩa tiếng Việt là: {readVocab.MeaningVi}.",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                }
+            }
+        }
+
+        // 5. Skill: Vocabulary (default fallback) - build from published Vocabularies
+        var targetVocabDefault = await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !recentPrompts.Contains(v.Hanzi) && !string.IsNullOrWhiteSpace(v.MeaningVi))
+            .OrderBy(v => Guid.NewGuid())
+            .FirstOrDefaultAsync(cancellationToken);
+
+        targetVocabDefault ??= await _dbContext.Vocabularies
+            .AsNoTracking()
+            .Where(v => v.HskLevel == hskLevel && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi))
+            .OrderBy(v => Guid.NewGuid())
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (targetVocabDefault != null)
+        {
+            var distractorMeanings = await _dbContext.Vocabularies
+                .AsNoTracking()
+                .Where(v => v.Id != targetVocabDefault.Id && v.Status == "PUBLISHED" && !string.IsNullOrWhiteSpace(v.MeaningVi) && v.MeaningVi != targetVocabDefault.MeaningVi)
+                .OrderBy(v => Guid.NewGuid())
+                .Take(5)
+                .Select(v => v.MeaningVi)
+                .ToListAsync(cancellationToken);
+
+            var options = new List<string> { targetVocabDefault.MeaningVi };
+            options.AddRange(distractorMeanings);
+            var distinctOptions = options.Distinct(StringComparer.OrdinalIgnoreCase).Take(4).ToList();
+
+            if (distinctOptions.Count >= 2)
+            {
+                var (shuffled, correctIndex) = ShuffleOptions(distinctOptions, targetVocabDefault.MeaningVi);
                 return new AiGeneratedExercise
                 {
                     UserId = userId,
                     HskLevel = hskLevel,
                     SourceType = "VOCABULARY",
-                    ExerciseType = "pinyin-match",
-                    OriginTag = "CURATED_QUESTION_BANK",
-                    AcademicStatus = "ACADEMIC_APPROVED",
+                    ExerciseType = "multiple-choice",
+                    OriginTag = "CURATED_FALLBACK",
+                    AcademicStatus = "UNAPPROVED_EXPERIMENTAL",
                     SourceReviewNote = "Ngân hàng từ vựng kiểm duyệt chính thức.",
-                    PromptZh = $"请选择汉字“{target.Hanzi}”的正确拼音：",
-                    PromptVi = $"Chọn Pinyin chuẩn của chữ Hán \"{target.Hanzi}\":",
-                    OptionsJson = JsonSerializer.Serialize(distinctOptions, JsonOptions),
-                    CorrectIndex = 0,
-                    CorrectAnswer = distinctOptions[0],
-                    ExplanationVi = $"Chữ Hán '{target.Hanzi}' có phiên âm Pinyin chuẩn là: {target.Pinyin} ({target.MeaningVi}).",
+                    PromptZh = $"请选择“{targetVocabDefault.Hanzi}”的意思：",
+                    PromptPinyin = targetVocabDefault.Pinyin,
+                    PromptVi = $"Chọn nghĩa đúng của từ \"{targetVocabDefault.Hanzi}\":",
+                    OptionsJson = JsonSerializer.Serialize(shuffled, JsonOptions),
+                    CorrectIndex = correctIndex,
+                    CorrectAnswer = targetVocabDefault.MeaningVi,
+                    ExplanationVi = $"Từ '{targetVocabDefault.Hanzi}' ({targetVocabDefault.Pinyin}) có nghĩa tiếng Việt là: {targetVocabDefault.MeaningVi}.",
                     CreatedAt = DateTime.UtcNow
                 };
             }
-
-            // Meaning match
-            var meaningOptions = new List<string> { target.MeaningVi };
-            meaningOptions.AddRange(distractors.Select(d => d.MeaningVi));
-            var distinctMeanings = meaningOptions.Distinct().Take(4).ToList();
-            while (distinctMeanings.Count < 4) distinctMeanings.Add("Ý nghĩa tham chiếu");
-
-            return new AiGeneratedExercise
-            {
-                UserId = userId,
-                HskLevel = hskLevel,
-                SourceType = "VOCABULARY",
-                ExerciseType = "multiple-choice",
-                OriginTag = "CURATED_QUESTION_BANK",
-                AcademicStatus = "ACADEMIC_APPROVED",
-                SourceReviewNote = "Ngân hàng từ vựng kiểm duyệt chính thức.",
-                PromptZh = $"请选择“{target.Hanzi}”的意思：",
-                PromptPinyin = target.Pinyin,
-                PromptVi = $"Chọn nghĩa đúng của từ \"{target.Hanzi}\":",
-                OptionsJson = JsonSerializer.Serialize(distinctMeanings, JsonOptions),
-                CorrectIndex = 0,
-                CorrectAnswer = distinctMeanings[0],
-                ExplanationVi = $"Từ '{target.Hanzi}' ({target.Pinyin}) có nghĩa tiếng Việt là: {target.MeaningVi}.",
-                CreatedAt = DateTime.UtcNow
-            };
         }
 
-        // Generic robust fallback
-        return new AiGeneratedExercise
+        // If insufficient distinct data is available in the database, return null to reflect actual valid counts
+        return null;
+    }
+
+    private static (List<string> Shuffled, int CorrectIndex) ShuffleOptions(List<string> options, string correctAnswer)
+    {
+        var list = new List<string>(options);
+        var rng = Random.Shared;
+        for (int i = list.Count - 1; i > 0; i--)
         {
-            UserId = userId,
-            HskLevel = hskLevel,
-            SourceType = "VOCABULARY",
-            ExerciseType = "multiple-choice",
-            OriginTag = "CURATED_QUESTION_BANK",
-            AcademicStatus = "ACADEMIC_APPROVED",
-            SourceReviewNote = "Ngân hàng câu hỏi kiểm duyệt chuẩn HSK.",
-            PromptZh = "请选择“你好”的意思：",
-            PromptPinyin = "Nǐ hǎo",
-            PromptVi = "Chọn nghĩa đúng của câu chào \"你好\":",
-            OptionsJson = JsonSerializer.Serialize(new List<string> { "Xin chào", "Tạm biệt", "Cảm ơn", "Xin lỗi" }, JsonOptions),
-            CorrectIndex = 0,
-            CorrectAnswer = "Xin chào",
-            ExplanationVi = "你好 (Nǐ hǎo) là lời chào thông dụng nhất trong tiếng Trung, có nghĩa là Xin chào.",
-            CreatedAt = DateTime.UtcNow
-        };
+            int j = rng.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+        int correctIndex = list.IndexOf(correctAnswer);
+        return (list, correctIndex);
     }
 
     private static string PickAdaptiveSlotSkill(int index, List<WeakConceptDto> weakConcepts, bool hasSrsDue)

@@ -54,12 +54,17 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
         _logger = logger;
     }
 
+    private const int MaxAttemptsWindow = 200;
+
     public async Task<ErrorAnalysisReportDto> GetErrorAnalysisAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Exclude AI attempts saved to StudentPracticeAttempts with 'ai_' prefix to avoid double-counting
+        // Cap query with MaxAttemptsWindow to prevent unbounded memory growth
         var practiceAttempts = await _dbContext.StudentPracticeAttempts
             .AsNoTracking()
             .Where(a => a.UserId == userId && !a.ExerciseId.StartsWith("ai_"))
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(MaxAttemptsWindow)
             .Select(a => new AttemptPoint(
                 NormalizeSkill(a.Category),
                 string.IsNullOrWhiteSpace(a.TopicTitle) ? a.KnowledgePointId : a.TopicTitle,
@@ -71,6 +76,8 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
             .AsNoTracking()
             .Include(a => a.AiExercise)
             .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(MaxAttemptsWindow)
             .Select(a => new AttemptPoint(
                 NormalizeSkill(a.SkillCategory),
                 a.AiExercise != null ? $"{a.AiExercise.SourceType} HSK {a.AiExercise.HskLevel}" : "Bài tập AI",
@@ -115,20 +122,61 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
         var correctAnswer = request.CorrectAnswer?.Trim() ?? string.Empty;
         var skillCategory = NormalizeSkill(request.SkillCategory);
         var hskLevel = Math.Clamp(request.HskLevel, 1, 4);
+        var isAuthoritative = false;
+        AiGeneratedExercise? exercise = null;
 
-        // Authoritative resolution from DB if ExerciseId is provided (prevent client spoofing)
+        // Authoritative resolution from DB if ExerciseId is provided (strict cross-user authorization)
         if (request.ExerciseId.HasValue && request.ExerciseId.Value != Guid.Empty)
         {
-            var exercise = await _dbContext.AiGeneratedExercises
-                .AsNoTracking()
+            exercise = await _dbContext.AiGeneratedExercises
                 .FirstOrDefaultAsync(e => e.Id == request.ExerciseId.Value, cancellationToken);
 
-            if (exercise != null)
+            if (exercise == null)
             {
-                questionText = exercise.PromptZh;
-                correctAnswer = exercise.CorrectAnswer ?? string.Empty;
-                hskLevel = exercise.HskLevel;
-                skillCategory = NormalizeSkill(exercise.SourceType);
+                throw new KeyNotFoundException("Không tìm thấy bài tập được yêu cầu.");
+            }
+
+            if (exercise.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập hoặc phân tích bài tập của học viên khác.");
+            }
+
+            isAuthoritative = true;
+
+            // Check cached error analysis in exercise metadata to eliminate duplicate LLM calls on retry
+            if (!string.IsNullOrWhiteSpace(exercise.MetadataJson))
+            {
+                try
+                {
+                    using var metaDoc = JsonDocument.Parse(exercise.MetadataJson);
+                    if (metaDoc.RootElement.TryGetProperty("cachedErrorAnalysis", out var cachedProp) && cachedProp.ValueKind == JsonValueKind.Object)
+                    {
+                        var cached = JsonSerializer.Deserialize<AIErrorAnalysisDetailDto>(cachedProp.GetRawText(), JsonOptions);
+                        if (cached != null)
+                        {
+                            return cached;
+                        }
+                    }
+                }
+                catch (JsonException) { }
+            }
+
+            // Always use authoritative DB ground-truth - NEVER trust client-provided CorrectAnswer
+            questionText = exercise.PromptZh;
+            correctAnswer = exercise.CorrectAnswer ?? string.Empty;
+            hskLevel = exercise.HskLevel;
+            skillCategory = NormalizeSkill(exercise.SourceType);
+
+            // Fetch actual user answer from database if available
+            var attempt = await _dbContext.AiExerciseAttempts
+                .AsNoTracking()
+                .Where(a => a.AiExerciseId == exercise.Id && a.UserId == userId)
+                .OrderByDescending(a => a.AttemptedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (attempt != null && !string.IsNullOrWhiteSpace(attempt.UserAnswer))
+            {
+                userAnswer = attempt.UserAnswer;
             }
         }
 
@@ -144,80 +192,136 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
 
         if (isActuallyCorrect)
         {
-            return new AIErrorAnalysisDetailDto
+            var correctResult = new AIErrorAnalysisDetailDto
             {
                 ErrorType = skillCategory,
                 ErrorTypeLabelVi = GetSkillLabelVi(skillCategory),
-                WhyIncorrectVi = "Câu trả lời của bạn thực tế đã hoàn toàn chính xác hoặc tương đương đáp án chuẩn.",
-                WhyCorrectVi = $"Đáp án '{correctAnswer}' là câu trả lời chuẩn xác cho câu hỏi.",
+                WhyIncorrectVi = isAuthoritative
+                    ? "Câu trả lời của bạn thực tế đã hoàn toàn chính xác hoặc tương đương đáp án chuẩn."
+                    : "Câu trả lời của bạn khớp với văn bản tham chiếu cung cấp (đối chiếu tham khảo).",
+                WhyCorrectVi = isAuthoritative
+                    ? $"Đáp án '{correctAnswer}' là câu trả lời chuẩn xác cho câu hỏi."
+                    : $"Văn bản '{correctAnswer}' là câu trả lời tham chiếu.",
                 KnowledgePointVi = "Bạn đã nắm vững điểm kiến thức này.",
                 Examples = new List<AIErrorExampleDto>(),
                 RecommendedPracticeAction = "Tiếp tục bài tập kế tiếp.",
                 RecommendedRoute = "/ai-exercises",
                 IsAiGenerated = false,
-                IsFallback = false
+                IsFallback = false,
+                IsAuthoritativeGrading = isAuthoritative
             };
+
+            if (exercise != null)
+            {
+                await CacheAnalysisInMetadataAsync(exercise, correctResult, cancellationToken);
+            }
+
+            return correctResult;
         }
+
+        AIErrorAnalysisDetailDto finalAnalysis;
 
         // If no AI Provider configured, immediate pedagogical fallback
         if (_aiProvider == null)
         {
-            return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+            finalAnalysis = BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel, isAuthoritative);
         }
-
-        // Check budget & quota
-        if (_usageLogger != null)
+        else
         {
-            try
-            {
-                await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
-            }
-            catch (AITutorException)
-            {
-                // Quota exceeded: gracefully use offline pedagogical fallback instead of 500/429
-                return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
-            }
-        }
-
-        var systemPrompt = BuildErrorAnalysisSystemPrompt(hskLevel);
-        var userPrompt = BuildErrorAnalysisUserPrompt(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
-
-        AIProviderResponse? aiResponse = null;
-        try
-        {
-            aiResponse = await _aiProvider.GenerateContentAsync(
-                new AIProviderRequest
-                {
-                    Feature = "AI_ERROR_ANALYSIS",
-                    SystemInstruction = systemPrompt,
-                    UserPrompt = userPrompt,
-                    ExpectJson = true,
-                    Temperature = 0.3,
-                    MaxOutputTokens = 1200
-                },
-                cancellationToken);
-
+            // Check budget & quota before calling AI
+            var quotaAvailable = true;
             if (_usageLogger != null)
             {
-                await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", aiResponse, true, null, cancellationToken);
+                try
+                {
+                    await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+                }
+                catch (AITutorException)
+                {
+                    quotaAvailable = false;
+                }
             }
+
+            if (!quotaAvailable)
+            {
+                finalAnalysis = BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel, isAuthoritative);
+            }
+            else
+            {
+                var systemPrompt = BuildErrorAnalysisSystemPrompt(hskLevel);
+                var userPrompt = BuildErrorAnalysisUserPrompt(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+
+                try
+                {
+                    var aiResponse = await _aiProvider.GenerateContentAsync(
+                        new AIProviderRequest
+                        {
+                            Feature = "AI_ERROR_ANALYSIS",
+                            SystemInstruction = systemPrompt,
+                            UserPrompt = userPrompt,
+                            ExpectJson = true,
+                            Temperature = 0.3,
+                            MaxOutputTokens = 1200
+                        },
+                        cancellationToken);
+
+                    if (_usageLogger != null)
+                    {
+                        await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", aiResponse, true, null, cancellationToken);
+                    }
+
+                    var parsed = ParseAndValidateErrorAnalysis(aiResponse.RawText, skillCategory, hskLevel, isAuthoritative);
+                    finalAnalysis = parsed ?? BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel, isAuthoritative);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "AI Error Analysis call failed, falling back to offline pedagogical engine");
+                    if (_usageLogger != null)
+                    {
+                        await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", null, false, ex.Message, cancellationToken);
+                    }
+                    finalAnalysis = BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel, isAuthoritative);
+                }
+            }
+        }
+
+        // Cache error analysis into exercise metadata so retries do not re-invoke LLM
+        if (exercise != null)
+        {
+            await CacheAnalysisInMetadataAsync(exercise, finalAnalysis, cancellationToken);
+        }
+
+        return finalAnalysis;
+    }
+
+    private async Task CacheAnalysisInMetadataAsync(
+        AiGeneratedExercise exercise,
+        AIErrorAnalysisDetailDto analysis,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dict = new Dictionary<string, object>();
+            if (!string.IsNullOrWhiteSpace(exercise.MetadataJson))
+            {
+                try
+                {
+                    dict = JsonSerializer.Deserialize<Dictionary<string, object>>(exercise.MetadataJson, JsonOptions) ?? new();
+                }
+                catch (JsonException) { }
+            }
+
+            dict["cachedErrorAnalysis"] = analysis;
+            exercise.MetadataJson = JsonSerializer.Serialize(dict, JsonOptions);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning(ex, "AI Error Analysis call failed, falling back to offline pedagogical engine");
-            if (_usageLogger != null)
-            {
-                await _usageLogger.LogAsync(userId, "AI_ERROR_ANALYSIS", null, false, ex.Message, cancellationToken);
-            }
-            return BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
+            _logger?.LogWarning(ex, "Could not cache error analysis in exercise metadata");
         }
-
-        // Parse and validate schema
-        var parsed = ParseAndValidateErrorAnalysis(aiResponse.RawText, skillCategory, hskLevel);
-        return parsed ?? BuildPedagogicalOfflineFallback(skillCategory, questionText, userAnswer, correctAnswer, hskLevel);
     }
 
-    public static AIErrorAnalysisDetailDto? ParseAndValidateErrorAnalysis(string rawJson, string skillCategory, int hskLevel)
+    public static AIErrorAnalysisDetailDto? ParseAndValidateErrorAnalysis(string rawJson, string skillCategory, int hskLevel, bool isAuthoritative = true)
     {
         if (string.IsNullOrWhiteSpace(rawJson)) return null;
 
@@ -290,18 +394,27 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
                 ? rr.GetString()?.Trim() ?? $"/ai-exercises?hsk={hskLevel}&source={errorType.ToUpperInvariant()}"
                 : $"/ai-exercises?hsk={hskLevel}&source={errorType.ToUpperInvariant()}";
 
+            var whyCorrectText = whyCorrectVi;
+            var whyIncorrectText = whyIncorrectVi;
+            if (!isAuthoritative)
+            {
+                whyCorrectText = $"{whyCorrectText} (Đối chiếu theo văn bản tham chiếu, không phải kết quả thi chính thức).";
+                whyIncorrectText = $"{whyIncorrectText} (Tham khảo đối chiếu, không phải bài chấm chính thức).";
+            }
+
             return new AIErrorAnalysisDetailDto
             {
                 ErrorType = errorType,
                 ErrorTypeLabelVi = errorTypeLabelVi,
-                WhyIncorrectVi = whyIncorrectVi,
-                WhyCorrectVi = whyCorrectVi,
+                WhyIncorrectVi = whyIncorrectText,
+                WhyCorrectVi = whyCorrectText,
                 KnowledgePointVi = knowledgePointVi ?? "Cần chú ý đối chiếu cấu trúc ngữ nghĩa và ngữ cảnh câu hỏi.",
                 Examples = examples,
                 RecommendedPracticeAction = recommendedPracticeAction,
                 RecommendedRoute = recommendedRoute,
                 IsAiGenerated = true,
-                IsFallback = false
+                IsFallback = false,
+                IsAuthoritativeGrading = isAuthoritative
             };
         }
         catch (JsonException)
@@ -315,7 +428,8 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
         string questionText,
         string userAnswer,
         string correctAnswer,
-        int hskLevel)
+        int hskLevel,
+        bool isAuthoritative = true)
     {
         var category = NormalizeSkill(skillCategory);
         var label = GetSkillLabelVi(category);
@@ -371,6 +485,12 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
                 break;
         }
 
+        if (!isAuthoritative)
+        {
+            whyIncorrect = $"{whyIncorrect} (Tham khảo đối chiếu, không phải bài chấm chính thức).";
+            whyCorrect = $"{whyCorrect} (Đối chiếu theo văn bản tham chiếu, không phải kết quả thi chính thức).";
+        }
+
         return new AIErrorAnalysisDetailDto
         {
             ErrorType = category,
@@ -382,7 +502,8 @@ public sealed class AIErrorAnalysisService : IAIErrorAnalysisService
             RecommendedPracticeAction = $"Luyện tập thêm 3-5 câu thuộc mảng {label} để củng cố phản xạ.",
             RecommendedRoute = $"/ai-exercises?hsk={hskLevel}&source={category.ToUpperInvariant()}",
             IsAiGenerated = false,
-            IsFallback = true
+            IsFallback = true,
+            IsAuthoritativeGrading = isAuthoritative
         };
     }
 

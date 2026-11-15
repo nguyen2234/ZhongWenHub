@@ -206,6 +206,7 @@ public sealed class AIErrorAnalysisDetailDto
     public string RecommendedRoute { get; init; } = "/ai-exercises";
     public bool IsAiGenerated { get; init; } = true;
     public bool IsFallback { get; init; } = false;
+    public bool IsAuthoritativeGrading { get; init; } = true;
 }
 
 public sealed class RequestErrorAnalysisDto

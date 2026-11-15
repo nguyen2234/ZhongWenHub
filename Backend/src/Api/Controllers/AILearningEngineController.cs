@@ -244,7 +244,18 @@ public class AILearningEngineController : BaseApiController
         var userId = _currentUserService.UserId;
         if (!userId.HasValue) return Unauthorized();
 
-        return Ok(await _errorAnalysisService.AnalyzeErrorDetailAsync(userId.Value, request, cancellationToken));
+        try
+        {
+            return Ok(await _errorAnalysisService.AnalyzeErrorDetailAsync(userId.Value, request, cancellationToken));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
     }
 
     [HttpGet("error-analysis")]

@@ -29,6 +29,12 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// Configure Lowercase URLs for consistent REST API routing and documentation
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.LowercaseUrls = true;
+});
+
 // Configure CORS
 var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? new[] { "http://localhost:5173", "http://localhost:3000" };
@@ -113,7 +119,7 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("Database");
 
-// Configure Swagger / OpenAPI with JWT Support
+// Configure Swagger / OpenAPI with JWT Support & XML Documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -121,21 +127,29 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "ZhongWenHub API",
         Version = "v1",
-        Description = "ASP.NET Core Web API cho Nền tảng Học tiếng Trung ZhongWenHub (BE-1 Foundation)",
+        Description = "Tài liệu API và giao diện kiểm thử trực tiếp cho Nền tảng Học tiếng Trung ZhongWenHub tích hợp AI.\n\n" +
+                      "**Hướng dẫn kiểm thử với JWT Authorize:**\n" +
+                      "1. Mở nhóm **Auth**, gọi endpoint `POST /api/v1/auth/login` (hoặc `POST /api/v1/auth/register` nếu chưa có tài khoản).\n" +
+                      "2. Sao chép chuỗi `accessToken` từ response trả về.\n" +
+                      "3. Nhấn nút **Authorize 🔓** ở góc trên bên phải màn hình Swagger UI.\n" +
+                      "4. Dán token vào ô `Value` (Swagger UI sẽ tự động gắn header `Authorization: Bearer {token}`).\n" +
+                      "5. Nhấn **Authorize** rồi **Close**. Lúc này bạn có thể kiểm thử toàn bộ các API yêu cầu đăng nhập và phân quyền.",
         Contact = new OpenApiContact
         {
-            Name = "ZhongWenHub Architecture Team",
+            Name = "ZhongWenHub Engineering Team",
             Email = "support@zhongwenhub.edu.vn"
         }
     });
 
+    // Configure HTTP Bearer JWT Authentication in OpenAPI 3.0 standard
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Nhập JWT Bearer token theo định dạng: Bearer {token}",
         Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Description = "Nhập JWT access token vào đây. Swagger UI sẽ tự động đính kèm header 'Authorization: Bearer {token}'."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -152,6 +166,36 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    // Group endpoints by Controller name for clear structured navigation
+    c.TagActionsBy(api =>
+    {
+        if (api.GroupName != null)
+        {
+            return new[] { api.GroupName };
+        }
+
+        if (api.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor controllerDesc)
+        {
+            return new[] { controllerDesc.ControllerName };
+        }
+
+        return new[] { "General" };
+    });
+    c.DocInclusionPredicate((_, _) => true);
+
+    // Include XML comments from API and Business projects if available
+    var apiXmlPath = Path.Combine(AppContext.BaseDirectory, $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml");
+    if (File.Exists(apiXmlPath))
+    {
+        c.IncludeXmlComments(apiXmlPath);
+    }
+
+    var businessXmlPath = Path.Combine(AppContext.BaseDirectory, "ZhongWenHub.Business.xml");
+    if (File.Exists(businessXmlPath))
+    {
+        c.IncludeXmlComments(businessXmlPath);
+    }
 });
 
 var app = builder.Build();
@@ -249,6 +293,10 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ZhongWenHub API v1");
         c.RoutePrefix = "swagger";
+        c.DocumentTitle = "ZhongWenHub API - Swagger UI";
+        c.DisplayRequestDuration();
+        c.EnablePersistAuthorization();
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
     });
 }
 

@@ -356,6 +356,340 @@ public class AIPhase3SqlServerIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task CrossUserAuthorization_ThrowsUnauthorizedAccessException_WhenAccessingOtherUserExercise()
+    {
+        await using var db = CreateContext();
+
+        var userA = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"user_a_{Guid.NewGuid():N}@test.local",
+            Email = $"user_a_{Guid.NewGuid():N}@test.local",
+            DisplayName = "User A",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+        var userB = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"user_b_{Guid.NewGuid():N}@test.local",
+            Email = $"user_b_{Guid.NewGuid():N}@test.local",
+            DisplayName = "User B",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var exerciseA = new AiGeneratedExercise
+        {
+            Id = Guid.NewGuid(),
+            UserId = userA.Id,
+            HskLevel = 2,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            PromptZh = "请选择“北京”的意思：",
+            PromptVi = "Chọn nghĩa của 北京",
+            OptionsJson = JsonSerializer.Serialize(new[] { "Bắc Kinh", "Thượng Hải" }),
+            CorrectIndex = 0,
+            CorrectAnswer = "Bắc Kinh",
+            ExplanationVi = "北京 là Bắc Kinh",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Users.AddRange(userA, userB);
+        db.AiGeneratedExercises.Add(exerciseA);
+        await db.SaveChangesAsync();
+
+        try
+        {
+            var mockAi = new MockAIProvider();
+            var errorService = new AIErrorAnalysisService(db, mockAi);
+
+            // User B tries to analyze exercise owned by User A -> Must throw UnauthorizedAccessException
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                errorService.AnalyzeErrorDetailAsync(
+                    userB.Id,
+                    new RequestErrorAnalysisDto
+                    {
+                        ExerciseId = exerciseA.Id,
+                        QuestionText = exerciseA.PromptZh,
+                        UserAnswer = "Thượng Hải"
+                    }));
+        }
+        finally
+        {
+            db.AiGeneratedExercises.Remove(exerciseA);
+            db.Users.Remove(userA);
+            db.Users.Remove(userB);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FreeFormAnalysis_WithoutExerciseId_ReturnsAdvisoryNonAuthoritative()
+    {
+        await using var db = CreateContext();
+        var mockAi = new MockAIProvider();
+        var errorService = new AIErrorAnalysisService(db, mockAi);
+
+        var result = await errorService.AnalyzeErrorDetailAsync(
+            Guid.NewGuid(),
+            new RequestErrorAnalysisDto
+            {
+                ExerciseId = null,
+                QuestionText = "这是一个自由提问",
+                UserAnswer = "我写的内容",
+                CorrectAnswer = "参考答案",
+                SkillCategory = "grammar",
+                HskLevel = 2
+            });
+
+        Assert.NotNull(result);
+        Assert.False(result.IsAuthoritativeGrading);
+        Assert.Contains("Tham khảo đối chiếu", result.WhyIncorrectVi);
+    }
+
+    [Fact]
+    public async Task CuratedFallback_FisherYatesShuffle_MatchesCorrectAnswerIndex()
+    {
+        await using var db = CreateContext();
+
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"test_fallback_{Guid.NewGuid():N}@test.local",
+            Email = $"test_fallback_{Guid.NewGuid():N}@test.local",
+            DisplayName = "Test Fallback User",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Users.Add(testUser);
+        await db.SaveChangesAsync();
+
+        try
+        {
+            // Inject a mock that fails content generation to trigger curated fallback
+            var failingAi = new FailingAIProvider();
+            var errorService = new AIErrorAnalysisService(db, failingAi);
+            var exerciseService = new AIExerciseService(db, failingAi, new NoOpUsageLogger(), errorService, NullLogger<AIExerciseService>.Instance);
+
+            var session = await exerciseService.GenerateAdaptiveSessionAsync(
+                testUser.Id,
+                new GenerateAdaptiveSessionRequestDto
+                {
+                    TargetHskLevel = 1,
+                    FocusSkill = "vocabulary",
+                    QuestionCount = 2,
+                    IncludeSrsDue = false
+                });
+
+            Assert.NotNull(session);
+            Assert.NotEmpty(session.Questions);
+
+            foreach (var q in session.Questions)
+            {
+                Assert.Equal("CURATED_FALLBACK", q.OriginTag);
+                Assert.Equal("UNAPPROVED_EXPERIMENTAL", q.AcademicStatus);
+                Assert.NotNull(q.Options);
+                Assert.True(q.Options.Count >= 2);
+
+                // Ensure no fake placeholder strings
+                Assert.DoesNotContain("pinyin_opt", q.Options);
+                Assert.DoesNotContain("Ý nghĩa tham chiếu", q.Options);
+                Assert.DoesNotContain("Công thức cấu trúc", string.Join(" ", q.Options));
+
+                // Verify in database that correct index matches the option value
+                var dbEx = await db.AiGeneratedExercises.FirstOrDefaultAsync(e => e.Id == q.Id);
+                Assert.NotNull(dbEx);
+                var options = JsonSerializer.Deserialize<List<string>>(dbEx!.OptionsJson);
+                Assert.NotNull(options);
+                Assert.True(dbEx.CorrectIndex.HasValue && dbEx.CorrectIndex.Value >= 0 && dbEx.CorrectIndex.Value < options.Count);
+                Assert.Equal(dbEx.CorrectAnswer, options[dbEx.CorrectIndex.Value]);
+            }
+        }
+        finally
+        {
+            var exs = await db.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
+            db.AiGeneratedExercises.RemoveRange(exs);
+            db.Users.Remove(testUser);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentSubmissions_CreateExactlyOneAttempt_AndReturnIdempotentStoredResult()
+    {
+        await using var setupDb = CreateContext();
+
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"concurrent_{Guid.NewGuid():N}@test.local",
+            Email = $"concurrent_{Guid.NewGuid():N}@test.local",
+            DisplayName = "Concurrent User",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var exercise = new AiGeneratedExercise
+        {
+            Id = Guid.NewGuid(),
+            UserId = testUser.Id,
+            HskLevel = 1,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            PromptZh = "请选择“苹果”的意思：",
+            PromptPinyin = "píngguǒ",
+            PromptVi = "Chọn nghĩa của từ 苹果",
+            OptionsJson = JsonSerializer.Serialize(new[] { "Quả táo", "Quả cam", "Quả chuối", "Quả lê" }),
+            CorrectIndex = 0,
+            CorrectAnswer = "Quả táo",
+            ExplanationVi = "苹果 nghĩa là Quả táo.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        setupDb.Users.Add(testUser);
+        setupDb.AiGeneratedExercises.Add(exercise);
+        await setupDb.SaveChangesAsync();
+
+        try
+        {
+            await using var db1 = CreateContext();
+            await using var db2 = CreateContext();
+
+            var mockAi = new MockAIProvider();
+            var srv1 = new AIExerciseService(db1, mockAi, new NoOpUsageLogger(), new AIErrorAnalysisService(db1, mockAi), NullLogger<AIExerciseService>.Instance);
+            var srv2 = new AIExerciseService(db2, mockAi, new NoOpUsageLogger(), new AIErrorAnalysisService(db2, mockAi), NullLogger<AIExerciseService>.Instance);
+
+            var req = new SubmitAiExerciseAttemptDto { SelectedIndex = 1 };
+
+            var task1 = Task.Run(() => srv1.SubmitAttemptAsync(testUser.Id, exercise.Id, req));
+            var task2 = Task.Run(() => srv2.SubmitAttemptAsync(testUser.Id, exercise.Id, req));
+
+            var results = await Task.WhenAll(task1, task2);
+
+            Assert.NotNull(results[0]);
+            Assert.NotNull(results[1]);
+            Assert.Equal(results[0].AttemptId, results[1].AttemptId);
+            Assert.Equal(results[0].IsCorrect, results[1].IsCorrect);
+
+            await using var verifyDb = CreateContext();
+            var aiAttempts = await verifyDb.AiExerciseAttempts.Where(a => a.UserId == testUser.Id && a.AiExerciseId == exercise.Id).ToListAsync();
+            var practiceAttempts = await verifyDb.StudentPracticeAttempts.Where(p => p.UserId == testUser.Id && p.ExerciseId == $"ai_{exercise.Id}").ToListAsync();
+
+            Assert.Single(aiAttempts);
+            Assert.Single(practiceAttempts);
+        }
+        finally
+        {
+            await using var cleanDb = CreateContext();
+            var pra = await cleanDb.StudentPracticeAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            cleanDb.StudentPracticeAttempts.RemoveRange(pra);
+            var aia = await cleanDb.AiExerciseAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            cleanDb.AiExerciseAttempts.RemoveRange(aia);
+            var stat = await cleanDb.LearningSkillStatistics.Where(s => s.UserId == testUser.Id).ToListAsync();
+            cleanDb.LearningSkillStatistics.RemoveRange(stat);
+            var exs = await cleanDb.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
+            cleanDb.AiGeneratedExercises.RemoveRange(exs);
+            var u = await cleanDb.Users.FirstOrDefaultAsync(x => x.Id == testUser.Id);
+            if (u != null) cleanDb.Users.Remove(u);
+            await cleanDb.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ErrorAnalysis_UsesMetadataCache_OnRetry()
+    {
+        await using var db = CreateContext();
+
+        var testUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = $"cache_{Guid.NewGuid():N}@test.local",
+            Email = $"cache_{Guid.NewGuid():N}@test.local",
+            DisplayName = "Cache User",
+            Status = UserStatus.ACTIVE,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var exercise = new AiGeneratedExercise
+        {
+            Id = Guid.NewGuid(),
+            UserId = testUser.Id,
+            HskLevel = 2,
+            SourceType = "VOCABULARY",
+            ExerciseType = "multiple-choice",
+            PromptZh = "请选择“猫”的意思：",
+            PromptPinyin = "māo",
+            PromptVi = "Chọn nghĩa của từ 猫",
+            OptionsJson = JsonSerializer.Serialize(new[] { "Con mèo", "Con chó" }),
+            CorrectIndex = 0,
+            CorrectAnswer = "Con mèo",
+            ExplanationVi = "猫 là con mèo",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Users.Add(testUser);
+        db.AiGeneratedExercises.Add(exercise);
+        await db.SaveChangesAsync();
+
+        try
+        {
+            var countingAi = new CountingAIProvider();
+            var errorService = new AIErrorAnalysisService(db, countingAi);
+            var exerciseService = new AIExerciseService(db, countingAi, new NoOpUsageLogger(), errorService, NullLogger<AIExerciseService>.Instance);
+
+            // First submission (incorrect answer) -> triggers AI call
+            var res1 = await exerciseService.SubmitAttemptAsync(testUser.Id, exercise.Id, new SubmitAiExerciseAttemptDto { SelectedIndex = 1 });
+            Assert.NotNull(res1.ErrorAnalysis);
+            Assert.Equal(1, countingAi.CallCount);
+
+            // Verify MetadataJson cached the error analysis
+            var dbEx = await db.AiGeneratedExercises.AsNoTracking().FirstOrDefaultAsync(e => e.Id == exercise.Id);
+            Assert.NotNull(dbEx);
+            Assert.Contains("cachedErrorAnalysis", dbEx!.MetadataJson ?? "");
+
+            // Second submission (idempotent retry) -> must load cached analysis and NOT call AI again
+            var res2 = await exerciseService.SubmitAttemptAsync(testUser.Id, exercise.Id, new SubmitAiExerciseAttemptDto { SelectedIndex = 1 });
+            Assert.NotNull(res2.ErrorAnalysis);
+            Assert.Equal(1, countingAi.CallCount); // Still exactly 1!
+        }
+        finally
+        {
+            var pra = await db.StudentPracticeAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            db.StudentPracticeAttempts.RemoveRange(pra);
+            var aia = await db.AiExerciseAttempts.Where(a => a.UserId == testUser.Id).ToListAsync();
+            db.AiExerciseAttempts.RemoveRange(aia);
+            var stat = await db.LearningSkillStatistics.Where(s => s.UserId == testUser.Id).ToListAsync();
+            db.LearningSkillStatistics.RemoveRange(stat);
+            var exs = await db.AiGeneratedExercises.Where(e => e.UserId == testUser.Id).ToListAsync();
+            db.AiGeneratedExercises.RemoveRange(exs);
+            var u = await db.Users.FirstOrDefaultAsync(x => x.Id == testUser.Id);
+            if (u != null) db.Users.Remove(u);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    private sealed class FailingAIProvider : IAIProvider
+    {
+        public Task<AIProviderResponse> GenerateContentAsync(AIProviderRequest request, CancellationToken cancellationToken = default)
+        {
+            throw new InvalidOperationException("Simulated AI Provider failure to force curated fallback.");
+        }
+    }
+
+    private sealed class CountingAIProvider : IAIProvider
+    {
+        private readonly MockAIProvider _inner = new();
+        public int CallCount { get; private set; }
+
+        public Task<AIProviderResponse> GenerateContentAsync(AIProviderRequest request, CancellationToken cancellationToken = default)
+        {
+            CallCount++;
+            return _inner.GenerateContentAsync(request, cancellationToken);
+        }
+    }
+
     private sealed class NoOpUsageLogger : IAIUsageLogger
     {
         public Task LogAsync(Guid userId, string feature, AIProviderResponse? response, bool isSuccess, string? errorCode, CancellationToken cancellationToken = default) => Task.CompletedTask;
