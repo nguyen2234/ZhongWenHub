@@ -8,6 +8,7 @@ using ZhongWenHub.Business.AILearning;
 using ZhongWenHub.Business.AILearning.Services.Competency;
 using ZhongWenHub.Business.AILearning.Services.Diagnostic;
 using ZhongWenHub.Business.AILearning.Services.Recommendation;
+using ZhongWenHub.Business.AILearning.Services.Speech;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
@@ -129,6 +130,9 @@ public static class DependencyInjection
         services.AddScoped<IRecommendationEngineV2, RecommendationEngineV2>();
         services.AddScoped<IDiagnosticAssessmentService, DiagnosticAssessmentService>();
         services.AddScoped<ZhongWenHub.Business.AILearning.Services.LearningPath.ILearningPathService, ZhongWenHub.Business.AILearning.Services.LearningPath.LearningPathService>();
+        services.AddScoped<ISpeechRecognitionService, GeminiSpeechRecognitionService>();
+        services.AddScoped<IAIPronunciationService, AIPronunciationService>();
+        services.AddScoped<IAISpeakingService, AISpeakingService>();
 
         return services;
     }

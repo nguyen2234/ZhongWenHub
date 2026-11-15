@@ -160,6 +160,14 @@ public class AIPhase4SqlServerIntegrationTests
             await db.SaveChangesAsync();
         }
 
+        // Clean up any existing tasks for clean test isolation
+        var oldTasks = await db.DailyLearningTasks.Where(t => t.UserId == user.Id).ToListAsync();
+        if (oldTasks.Count > 0)
+        {
+            db.DailyLearningTasks.RemoveRange(oldTasks);
+            await db.SaveChangesAsync();
+        }
+
         return user;
     }
 
@@ -433,6 +441,59 @@ public class AIPhase4SqlServerIntegrationTests
         {
             Assert.Equal(2, pt.TargetHskLevel);
         }
+    }
+
+    [Fact]
+    public async Task DailyPlan_WhenQuotaCompleted_DoesNotForceAdditionalTasks_UnlessVoluntary()
+    {
+        await using var db = CreateContext();
+        var user = await EnsureTestUserAsync(db, "phase4_quota_completed");
+        var service = CreateService(db);
+
+        // Set daily study minutes goal to 15 minutes
+        await service.UpdateLearningGoalAsync(user.Id, new UpdateLearningGoalDto
+        {
+            TargetHskLevel = 1,
+            DailyStudyMinutes = 15,
+            StudyDaysPerWeek = 5,
+            PrioritySkills = new List<string> { "vocabulary" },
+            IntensityMode = "light"
+        });
+
+        await service.GenerateLearningPathAsync(user.Id, new GenerateLearningPathRequestDto
+        {
+            TargetHskLevel = 1
+        });
+
+        var plan = await service.GetTodayPlanAsync(user.Id);
+        Assert.NotEmpty(plan.Tasks);
+
+        // Complete all tasks so that total completed minutes >= daily goal (15m)
+        foreach (var task in plan.Tasks)
+        {
+            await service.CompleteTaskAsync(user.Id, task.TaskId);
+        }
+
+        // Replan without voluntary extra minutes should NOT seed any additional tasks
+        var replannedWithoutVoluntary = await service.ReplanTodayAsync(user.Id, new AdaptiveReplanRequestDto
+        {
+            AvailableMinutes = null
+        });
+
+        // Day percent should be 100% and no extra pending tasks
+        Assert.Equal(100.0, replannedWithoutVoluntary.DayCompletionPercent);
+        Assert.DoesNotContain(replannedWithoutVoluntary.Tasks, t => t.CompletionStatus == "PENDING");
+
+        // If student explicitly requests voluntary extra study minutes (e.g. 15 minutes)
+        var replannedVoluntary = await service.ReplanTodayAsync(user.Id, new AdaptiveReplanRequestDto
+        {
+            AvailableMinutes = 15
+        });
+
+        // Now voluntary tasks can be added
+        var voluntaryPending = replannedVoluntary.Tasks.Where(t => t.CompletionStatus == "PENDING").ToList();
+        Assert.NotEmpty(voluntaryPending);
+        Assert.True(voluntaryPending.Sum(t => t.EstimatedMinutes) <= 15, "Voluntary tasks should not exceed voluntary budget");
     }
 
     private sealed class NoOpUsageLogger : IAIUsageLogger

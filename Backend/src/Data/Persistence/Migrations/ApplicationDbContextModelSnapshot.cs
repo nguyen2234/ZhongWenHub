@@ -381,6 +381,85 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("ai_messages", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiSpeakingAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssessmentMethod")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AudioStorageStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EvaluationFeedbackVi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasAcousticToneData")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("HskLevel")
+                        .HasColumnType("int");
+
+                    b.Property<double>("OverallPronunciationScore")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PracticeType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("RecognizedTranscriptZh")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TargetMeaningVi")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TargetPinyin")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TargetTextZh")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<double>("TranscriptAccuracyPercent")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WordBreakdownJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "PracticeType", "AttemptedAt")
+                        .HasDatabaseName("idx_ai_speaking_attempts_user_type");
+
+                    b.ToTable("ai_speaking_attempts", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiUsageLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2802,6 +2881,17 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiSpeakingAttempt", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.LearningSkillStatistic", b =>

@@ -554,7 +554,19 @@ public sealed class LearningPathService : ILearningPathService
 
         var targetDailyMinutes = customAvailableMinutes ?? goal?.DailyStudyMinutes ?? 30;
         var alreadyCompletedMinutes = completedTasks.Sum(t => t.EstimatedMinutes);
-        var budgetMinutes = Math.Max(10, targetDailyMinutes - alreadyCompletedMinutes);
+
+        // If customAvailableMinutes is explicitly specified (voluntary extra study), honor it directly.
+        // Otherwise calculate remaining budget = targetDailyMinutes - alreadyCompletedMinutes.
+        var isVoluntaryExtra = customAvailableMinutes.HasValue && customAvailableMinutes.Value > 0;
+        var budgetMinutes = isVoluntaryExtra
+            ? customAvailableMinutes!.Value
+            : targetDailyMinutes - alreadyCompletedMinutes;
+
+        // When today's quota is already satisfied and no extra voluntary minutes requested, do not seed more tasks.
+        if (budgetMinutes <= 0)
+        {
+            return;
+        }
 
         var completedTaskTypes = completedTasks.Select(t => t.TaskType).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var completedResourceIds = completedTasks.Where(t => !string.IsNullOrWhiteSpace(t.ResourceId)).Select(t => t.ResourceId!).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -573,7 +585,7 @@ public sealed class LearningPathService : ILearningPathService
 
             if (dueSrsCount > 0 && budgetMinutes >= 5)
             {
-                var estMin = Math.Min(15, Math.Max(5, dueSrsCount));
+                var estMin = Math.Min(budgetMinutes, Math.Min(15, Math.Max(5, dueSrsCount)));
                 tasksToSeed.Add(new DailyLearningTaskEntity
                 {
                     UserId = userId,
@@ -595,7 +607,7 @@ public sealed class LearningPathService : ILearningPathService
             }
         }
 
-        // 2. Core Lesson (if not completed today)
+        // 2. Core Lesson (if not completed today and budget accommodates it)
         LessonEntity? nextLesson = null;
         if (path != null)
         {
@@ -632,34 +644,37 @@ public sealed class LearningPathService : ILearningPathService
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        if (nextLesson != null && budgetMinutes >= 10)
+        if (nextLesson != null)
         {
             var estMin = nextLesson.DurationMinutes > 0 ? nextLesson.DurationMinutes : 15;
-            tasksToSeed.Add(new DailyLearningTaskEntity
+            if (budgetMinutes >= estMin)
             {
-                UserId = userId,
-                LearningPathId = path?.Id,
-                PlanDate = today,
-                TaskType = "lesson",
-                Title = $"Học bài: {nextLesson.TitleZh} ({nextLesson.TitleVi})",
-                Description = $"Tìm hiểu từ vựng, ngữ pháp và hội thoại bài {nextLesson.LessonNumber} giáo trình HSK {targetHsk}.",
-                EstimatedMinutes = estMin,
-                Priority = priority++,
-                TargetSkill = "reading",
-                TargetHskLevel = targetHsk,
-                ResourceId = nextLesson.Id.ToString(),
-                DestinationRoute = $"/lesson/focus?id={nextLesson.Id}",
-                CompletionStatus = "PENDING",
-                CreatedAt = now
-            });
-            budgetMinutes -= estMin;
+                tasksToSeed.Add(new DailyLearningTaskEntity
+                {
+                    UserId = userId,
+                    LearningPathId = path?.Id,
+                    PlanDate = today,
+                    TaskType = "lesson",
+                    Title = $"Học bài: {nextLesson.TitleZh} ({nextLesson.TitleVi})",
+                    Description = $"Tìm hiểu từ vựng, ngữ pháp và hội thoại bài {nextLesson.LessonNumber} giáo trình HSK {targetHsk}.",
+                    EstimatedMinutes = estMin,
+                    Priority = priority++,
+                    TargetSkill = "reading",
+                    TargetHskLevel = targetHsk,
+                    ResourceId = nextLesson.Id.ToString(),
+                    DestinationRoute = $"/lesson/focus?id={nextLesson.Id}",
+                    CompletionStatus = "PENDING",
+                    CreatedAt = now
+                });
+                budgetMinutes -= estMin;
+            }
         }
 
-        // 3. Weakness Review (if not completed today)
+        // 3. Weakness Review (if not completed today and budget accommodates it)
         var competency = await _competencyService.GetCompetencyProfileAsync(userId, cancellationToken);
         var weakConcept = competency.TopWeakConcepts.FirstOrDefault();
 
-        if (weakConcept != null && !completedTaskTypes.Contains("weakness") && budgetMinutes >= 10)
+        if (weakConcept != null && !completedTaskTypes.Contains("weakness") && !completedResourceIds.Contains(weakConcept.ConceptCode) && budgetMinutes >= 10)
         {
             tasksToSeed.Add(new DailyLearningTaskEntity
             {
@@ -681,18 +696,19 @@ public sealed class LearningPathService : ILearningPathService
             budgetMinutes -= 10;
         }
 
-        // 4. AI Adaptive Exercises (if budget remains or no tasks were created yet)
-        if ((budgetMinutes >= 10 || tasksToSeed.Count == 0) && !completedTaskTypes.Contains("ai-exercise"))
+        // 4. AI Adaptive Exercises (if budget remains >= 10, allow voluntary extra or not yet completed today)
+        if (budgetMinutes >= 10 && (!completedTaskTypes.Contains("ai-exercise") || isVoluntaryExtra))
         {
+            var estMin = Math.Min(budgetMinutes, 10);
             tasksToSeed.Add(new DailyLearningTaskEntity
             {
                 UserId = userId,
                 LearningPathId = path?.Id,
                 PlanDate = today,
                 TaskType = "ai-exercise",
-                Title = $"Luyện tập thích ứng AI HSK {targetHsk}",
+                Title = isVoluntaryExtra ? $"Luyện tập nâng cao tự nguyện AI HSK {targetHsk}" : $"Luyện tập thích ứng AI HSK {targetHsk}",
                 Description = "Hoàn thành 3-5 câu hỏi cá nhân hóa do AI điều chỉnh theo tiến trình làm bài.",
-                EstimatedMinutes = 10,
+                EstimatedMinutes = estMin,
                 Priority = priority++,
                 TargetSkill = "grammar",
                 TargetHskLevel = targetHsk,
@@ -701,6 +717,7 @@ public sealed class LearningPathService : ILearningPathService
                 CompletionStatus = "PENDING",
                 CreatedAt = now
             });
+            budgetMinutes -= estMin;
         }
 
         if (tasksToSeed.Count > 0)

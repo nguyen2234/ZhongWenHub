@@ -102,6 +102,10 @@ export const studentRoutes: RouteObject[] = [
         element: <SkillSpeakingPage />,
       },
       {
+        path: 'speaking',
+        element: <SkillSpeakingPage />,
+      },
+      {
         path: 'skills/reading',
         element: <SkillReadingPage />,
       },

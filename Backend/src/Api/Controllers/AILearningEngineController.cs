@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ZhongWenHub.Business.AILearning;
@@ -6,6 +7,7 @@ using ZhongWenHub.Business.AILearning.DTOs;
 using ZhongWenHub.Business.AILearning.Services.Competency;
 using ZhongWenHub.Business.AILearning.Services.Diagnostic;
 using ZhongWenHub.Business.AILearning.Services.Recommendation;
+using ZhongWenHub.Business.AILearning.Services.Speech;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authorization;
 using ZhongWenHub.Business.Users;
@@ -25,6 +27,7 @@ public class AILearningEngineController : BaseApiController
     private readonly ICompetencyProfileService _competencyService;
     private readonly IRecommendationEngineV2 _recommendationEngineV2;
     private readonly IDiagnosticAssessmentService _diagnosticService;
+    private readonly IAISpeakingService _speakingService;
     private readonly ICurrentUserService _currentUserService;
 
     public AILearningEngineController(
@@ -35,6 +38,7 @@ public class AILearningEngineController : BaseApiController
         ICompetencyProfileService competencyService,
         IRecommendationEngineV2 recommendationEngineV2,
         IDiagnosticAssessmentService diagnosticService,
+        IAISpeakingService speakingService,
         ICurrentUserService currentUserService)
     {
         _conversationService = conversationService;
@@ -44,6 +48,7 @@ public class AILearningEngineController : BaseApiController
         _competencyService = competencyService;
         _recommendationEngineV2 = recommendationEngineV2;
         _diagnosticService = diagnosticService;
+        _speakingService = speakingService;
         _currentUserService = currentUserService;
     }
 
@@ -111,6 +116,37 @@ public class AILearningEngineController : BaseApiController
         try
         {
             return Ok(await _conversationService.SendMessageAsync(userId.Value, sessionId, request, cancellationToken));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status404NotFound, "Không tìm thấy phiên hội thoại", ex.Message);
+        }
+        catch (AITutorException ex)
+        {
+            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
+        }
+    }
+
+    [HttpPost("conversations/{sessionId:guid}/messages/audio")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(AiConversationSessionDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SendConversationAudioMessage(
+        Guid sessionId,
+        [FromForm] SendConversationAudioFormRequest form,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        if (form.Audio == null || form.Audio.Length == 0)
+        {
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Yêu cầu không hợp lệ", "Tệp âm thanh ghi âm không được để trống.");
+        }
+
+        try
+        {
+            await using var stream = form.Audio.OpenReadStream();
+            return Ok(await _conversationService.SendAudioMessageAsync(userId.Value, sessionId, stream, form.Audio.ContentType, form.RequestVietnamese, cancellationToken));
         }
         catch (KeyNotFoundException ex)
         {
@@ -379,4 +415,116 @@ public class AILearningEngineController : BaseApiController
         var result = await _diagnosticService.GetLatestResultAsync(userId.Value, cancellationToken);
         return Ok(result);
     }
+
+    // ==================== SPEAKING PRACTICE ====================
+
+    [HttpGet("speaking/items")]
+    [ProducesResponseType(typeof(List<SpeakingPracticeItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSpeakingItems(
+        [FromQuery] int hskLevel = 1,
+        [FromQuery] string type = "WORD",
+        CancellationToken cancellationToken = default)
+    {
+        var items = await _speakingService.GetPracticeItemsAsync(hskLevel, type, cancellationToken);
+        return Ok(items);
+    }
+
+    [HttpPost("speaking/submit")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(SpeakingAssessmentResultDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SubmitSpeakingPractice(
+        [FromForm] SubmitSpeakingPracticeFormRequest form,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        try
+        {
+            Stream? audioStream = null;
+            if (form.Audio != null && form.Audio.Length > 0)
+            {
+                audioStream = form.Audio.OpenReadStream();
+            }
+
+            var dto = new SubmitSpeakingPracticeDto
+            {
+                PracticeType = form.PracticeType,
+                HskLevel = form.HskLevel,
+                TargetTextZh = form.TargetTextZh,
+                TargetPinyin = form.TargetPinyin,
+                TargetMeaningVi = form.TargetMeaningVi,
+                DirectText = form.DirectText,
+                AudioDurationSeconds = form.AudioDurationSeconds
+            };
+
+            var result = await _speakingService.SubmitPracticeAsync(userId.Value, dto, audioStream, form.Audio?.ContentType, cancellationToken);
+            return Ok(result);
+        }
+        catch (AITutorException ex)
+        {
+            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
+        }
+    }
+
+    [HttpPost("speaking/submit-json")]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(SpeakingAssessmentResultDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SubmitSpeakingPracticeJson(
+        [FromBody] SubmitSpeakingPracticeDto request,
+        CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        try
+        {
+            var result = await _speakingService.SubmitPracticeAsync(userId.Value, request, null, null, cancellationToken);
+            return Ok(result);
+        }
+        catch (AITutorException ex)
+        {
+            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
+        }
+    }
+
+    [HttpGet("speaking/history")]
+    [ProducesResponseType(typeof(List<SpeakingAssessmentResultDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSpeakingHistory(
+        [FromQuery] int limit = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _speakingService.GetHistoryAsync(userId.Value, limit, cancellationToken));
+    }
+
+    [HttpGet("speaking/stats")]
+    [ProducesResponseType(typeof(SpeakingStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSpeakingStats(CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (!userId.HasValue) return Unauthorized();
+
+        return Ok(await _speakingService.GetStatsAsync(userId.Value, cancellationToken));
+    }
+}
+
+public sealed class SubmitSpeakingPracticeFormRequest
+{
+    public string PracticeType { get; set; } = "WORD";
+    public int HskLevel { get; set; } = 1;
+    public string TargetTextZh { get; set; } = string.Empty;
+    public string? TargetPinyin { get; set; }
+    public string? TargetMeaningVi { get; set; }
+    public string? DirectText { get; set; }
+    public int AudioDurationSeconds { get; set; }
+    public IFormFile? Audio { get; set; }
+}
+
+public sealed class SendConversationAudioFormRequest
+{
+    public IFormFile Audio { get; set; } = null!;
+    public bool RequestVietnamese { get; set; }
 }

@@ -106,19 +106,24 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             // Transparent handling of speaking/pronunciation
             if (key == "speaking")
             {
-                // Speaking currently has no automated audio tone scorer in production
+                var correctCount = attemptsForSkill.Count(a => a.IsCorrect);
+                var acc = count > 0 ? Math.Round(correctCount * 100.0 / count, 1) : 0.0;
+                var hasRealData = count > 0;
+
                 skillDtos.Add(new SkillCompetencyDto
                 {
                     SkillCategory = key,
                     LabelVi = label,
                     TotalAttempts = count,
-                    CorrectAttempts = attemptsForSkill.Count(a => a.IsCorrect),
-                    AccuracyPercent = count > 0 ? Math.Round(attemptsForSkill.Count(a => a.IsCorrect) * 100.0 / count, 1) : 0.0,
-                    MasteryScore = 0.0,
-                    MasteryPercent = 0.0,
-                    ConfidenceScore = 0.0,
-                    MasteryTier = "NOT_ASSESSED",
-                    IsMeasuredRealData = false,
+                    CorrectAttempts = correctCount,
+                    AccuracyPercent = acc,
+                    MasteryScore = hasRealData ? Math.Clamp(acc / 100.0, 0.0, 1.0) : 0.0,
+                    MasteryPercent = acc,
+                    ConfidenceScore = hasRealData ? Math.Min(1.0, count / 10.0) : 0.0,
+                    MasteryTier = hasRealData
+                        ? (acc >= 85 ? "MASTERED" : acc >= 70 ? "PROFICIENT" : acc >= 50 ? "DEVELOPING" : "BEGINNER")
+                        : "NOT_ASSESSED",
+                    IsMeasuredRealData = hasRealData,
                     WeakTopics = new List<string>()
                 });
                 continue;
@@ -306,8 +311,10 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             OverallMasteryPercent = overallMastery,
             TotalEvaluations = totalEvals,
             UnclassifiedEvaluationsCount = unclassifiedCount,
-            HasSpeakingAudioData = false,
-            SpeakingAudioNote = "Chưa có dữ liệu âm thanh được chấm điểm; hệ thống không suy đoán điểm nói.",
+            HasSpeakingAudioData = allAttempts.Any(a => a.SkillCategory == "speaking"),
+            SpeakingAudioNote = allAttempts.Any(a => a.SkillCategory == "speaking")
+                ? "Dữ liệu kỹ năng nói được tổng hợp từ các lượt phát âm thực tế (Transcript Alignment). Lưu ý: Điểm số phản ánh độ khớp văn bản nhận diện, không suy đoán âm học thanh điệu."
+                : "Chưa có dữ liệu âm thanh được chấm điểm; hệ thống không suy đoán điểm nói.",
             MacroSkills = skillDtos,
             TopWeakConcepts = weakConcepts,
             TopStrengths = topStrengths,

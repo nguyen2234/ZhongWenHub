@@ -58,6 +58,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AiMessage> AiMessages => Set<AiMessage>();
     public DbSet<AiGeneratedExercise> AiGeneratedExercises => Set<AiGeneratedExercise>();
     public DbSet<AiExerciseAttempt> AiExerciseAttempts => Set<AiExerciseAttempt>();
+    public DbSet<AiSpeakingAttempt> AiSpeakingAttempts => Set<AiSpeakingAttempt>();
     public DbSet<LearningSkillStatistic> LearningSkillStatistics => Set<LearningSkillStatistic>();
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
 
@@ -871,6 +872,29 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.Cascade);
             b.HasIndex(x => new { x.UserId, x.AttemptedAt }).HasDatabaseName("idx_ai_exercise_attempts_user");
             b.HasIndex(x => new { x.UserId, x.AiExerciseId }).IsUnique().HasDatabaseName("idx_ai_exercise_attempts_user_exercise_unique");
+        });
+
+        builder.Entity<AiSpeakingAttempt>(b =>
+        {
+            b.ToTable("ai_speaking_attempts");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.PracticeType).HasMaxLength(30).IsRequired();
+            b.Property(x => x.TargetTextZh).HasMaxLength(500).IsRequired();
+            b.Property(x => x.TargetPinyin).HasMaxLength(500);
+            b.Property(x => x.TargetMeaningVi).HasMaxLength(500);
+            b.Property(x => x.RecognizedTranscriptZh).HasMaxLength(1000);
+            b.Property(x => x.AssessmentMethod).HasMaxLength(40).IsRequired();
+            b.Property(x => x.EvaluationFeedbackVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.WordBreakdownJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.AudioStorageStatus).HasMaxLength(30).IsRequired();
+            b.Property(x => x.AttemptedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.PracticeType, x.AttemptedAt }).HasDatabaseName("idx_ai_speaking_attempts_user_type");
         });
 
         builder.Entity<LearningSkillStatistic>(b =>

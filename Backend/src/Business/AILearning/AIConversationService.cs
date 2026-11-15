@@ -1,10 +1,13 @@
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Business.AILearning.Services.Speech;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Business.AILearning;
@@ -16,6 +19,7 @@ public interface IAIConversationService
     Task<AiConversationSessionDto> GetSessionDetailAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default);
     Task<AiConversationSessionDto> StartSessionAsync(Guid userId, StartConversationRequestDto request, CancellationToken cancellationToken = default);
     Task<AiConversationSessionDto> SendMessageAsync(Guid userId, Guid sessionId, SendConversationMessageRequestDto request, CancellationToken cancellationToken = default);
+    Task<AiConversationSessionDto> SendAudioMessageAsync(Guid userId, Guid sessionId, Stream audioStream, string contentType, bool requestVietnamese = false, CancellationToken cancellationToken = default);
     Task<AiConversationSessionDto> UpdatePreferencesAsync(Guid userId, Guid sessionId, UpdateConversationPreferencesDto request, CancellationToken cancellationToken = default);
     Task<AiConversationSessionDto> EndSessionAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default);
 }
@@ -37,17 +41,20 @@ public sealed class AIConversationService : IAIConversationService
     private readonly ApplicationDbContext _dbContext;
     private readonly IAIProvider _aiProvider;
     private readonly IAIUsageLogger _usageLogger;
+    private readonly ISpeechRecognitionService _sttService;
     private readonly ILogger<AIConversationService> _logger;
 
     public AIConversationService(
         ApplicationDbContext dbContext,
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
+        ISpeechRecognitionService sttService,
         ILogger<AIConversationService> logger)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
+        _sttService = sttService;
         _logger = logger;
     }
 
@@ -246,6 +253,36 @@ public sealed class AIConversationService : IAIConversationService
         return MapSessionDto(session, allMessages);
     }
 
+    public async Task<AiConversationSessionDto> SendAudioMessageAsync(
+        Guid userId,
+        Guid sessionId,
+        Stream audioStream,
+        string contentType,
+        bool requestVietnamese = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (audioStream == null || audioStream.Length == 0)
+        {
+            throw AITutorException.BadRequest("Tệp âm thanh ghi âm trống.");
+        }
+
+        var sttResult = await _sttService.RecognizeSpeechAsync(audioStream, contentType, "zh-CN", cancellationToken);
+        if (!sttResult.IsSuccess)
+        {
+            if (sttResult.ErrorCode == "STT_UNAVAILABLE")
+            {
+                throw AITutorException.BadRequest("Dịch vụ nhận diện giọng nói (STT Provider) chưa sẵn sàng hoặc chưa được cấu hình. Bạn có thể nhập tin nhắn văn bản để tiếp tục hội thoại.");
+            }
+            throw AITutorException.BadRequest(sttResult.ErrorMessage ?? "Không thể nhận diện nội dung âm thanh.");
+        }
+
+        return await SendMessageAsync(userId, sessionId, new SendConversationMessageRequestDto
+        {
+            Message = sttResult.RecognizedText,
+            RequestVietnamese = requestVietnamese
+        }, cancellationToken);
+    }
+
     public async Task<AiConversationSessionDto> UpdatePreferencesAsync(
         Guid userId,
         Guid sessionId,
@@ -289,6 +326,28 @@ public sealed class AIConversationService : IAIConversationService
         session.Status = "COMPLETED";
         session.EndedAt = DateTime.UtcNow;
         session.SummaryVi = $"Hoàn thành {userTurns} lượt hội thoại HSK {session.HskLevel} ({session.ScenarioTitle}); phát hiện {errorTurns} điểm cần chỉnh ngữ pháp/từ vựng.";
+
+        if (userTurns > 0)
+        {
+            var isPassed = errorTurns <= (userTurns / 2);
+            var now = DateTime.UtcNow;
+            _dbContext.StudentPracticeAttempts.Add(new StudentPracticeAttempt
+            {
+                UserId = userId,
+                ExerciseId = session.Id.ToString(),
+                QuestionId = null,
+                KnowledgePointId = $"conversation_{session.ScenarioCode}",
+                TopicTitle = $"Hội thoại AI: {session.ScenarioTitle} (HSK {session.HskLevel})",
+                Category = "speaking",
+                HskLevel = session.HskLevel,
+                UserAnswer = $"{userTurns} lượt giao tiếp",
+                IsCorrect = isPassed,
+                AttemptedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return MapSessionDto(session, messages.Select(m => MapMessageDto(m)).ToList());
