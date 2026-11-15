@@ -188,4 +188,11 @@ dotnet ef database update \
 
 ## 10. Commit SHA
 
-_(Sẽ được cập nhật sau khi commit thành công)_
+| | |
+|---|---|
+| **Commit SHA** | `fdfc3ee` |
+| **Branch** | `feature/ai-personalization-phase5` |
+| **Remote** | `origin/feature/ai-personalization-phase5` |
+| **GitHub URL** | https://github.com/nguyen2234/ZhongWenHub/commit/fdfc3ee |
+
+Commit range: `17672e4..fdfc3ee`

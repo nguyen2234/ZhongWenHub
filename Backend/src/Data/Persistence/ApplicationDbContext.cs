@@ -173,6 +173,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(p => p.User).IsRequired(false);
 
             b.HasIndex(p => p.UserId).IsUnique().HasDatabaseName("idx_student_learning_profiles_user_id");
         });
@@ -192,6 +193,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(p => p.User).IsRequired(false);
 
             b.HasIndex(p => new { p.UserId, p.LessonId })
                 .IsUnique()
@@ -217,6 +219,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(p => p.User).IsRequired(false);
 
             b.HasIndex(p => new { p.UserId, p.AttemptedAt })
                 .HasDatabaseName("idx_practice_attempts_user_attempted");
@@ -238,6 +241,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(a => a.User).IsRequired(false);
 
             b.HasIndex(a => new { a.UserId, a.ActivityDate })
                 .IsUnique()
@@ -263,6 +267,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(v => v.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(v => v.User).IsRequired(false);
 
             b.HasIndex(v => new { v.UserId, v.VocabularyId })
                 .IsUnique()
@@ -284,6 +289,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
 
             b.HasIndex(x => new { x.UserId, x.EventId })
                 .IsUnique()
@@ -655,6 +661,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(s => s.User).IsRequired(false);
 
             b.HasIndex(s => new { s.UserId, s.StartedAt })
                 .HasDatabaseName("idx_qb_practice_sessions_user_started");
@@ -674,6 +681,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithOne(u => u.Wallet)
                 .HasForeignKey<UserWallet>(w => w.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(w => w.User).IsRequired(false);
 
             b.HasIndex(w => w.UserId).IsUnique().HasDatabaseName("idx_user_wallets_user_id");
         });
@@ -699,6 +707,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
+            b.Navigation(t => t.User).IsRequired(false);
 
             b.HasIndex(t => t.UserId).HasDatabaseName("idx_wallet_transactions_user_id");
             b.HasIndex(t => t.WalletId).HasDatabaseName("idx_wallet_transactions_wallet_id");
@@ -719,6 +728,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithOne(u => u.Subscription)
                 .HasForeignKey<UserSubscription>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(s => s.User).IsRequired(false);
 
             b.HasIndex(s => s.UserId).IsUnique().HasDatabaseName("idx_user_subscriptions_user_id");
         });
@@ -782,6 +792,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(a => a.User).IsRequired(false);
 
             b.HasOne(a => a.Exam)
                 .WithMany()
@@ -809,6 +820,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasIndex(x => new { x.UserId, x.StartedAt }).HasDatabaseName("idx_ai_sessions_user_started");
         });
 
@@ -854,6 +866,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasIndex(x => new { x.UserId, x.HskLevel, x.CreatedAt }).HasDatabaseName("idx_ai_exercises_user_hsk");
         });
 
@@ -894,6 +907,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasIndex(x => new { x.UserId, x.PracticeType, x.AttemptedAt }).HasDatabaseName("idx_ai_speaking_attempts_user_type");
         });
 
@@ -910,6 +924,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasIndex(x => new { x.UserId, x.SkillCategory }).IsUnique().HasDatabaseName("idx_learning_skill_stats_user_skill");
         });
 
@@ -939,6 +954,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasIndex(x => x.UserId).IsUnique().HasDatabaseName("idx_student_learning_goals_user");
         });
 
@@ -958,6 +974,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasOne(x => x.Goal)
                 .WithMany()
                 .HasForeignKey(x => x.GoalId)
@@ -1004,6 +1021,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.Navigation(x => x.User).IsRequired(false);
             b.HasOne(x => x.LearningPath)
                 .WithMany()
                 .HasForeignKey(x => x.LearningPathId)
