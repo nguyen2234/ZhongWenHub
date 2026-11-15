@@ -83,7 +83,7 @@ public class SwaggerIntegrationTests
 
         // Verify OpenAPI version and Info
         Assert.True(root.TryGetProperty("openapi", out var openapiVer));
-        Assert.StartsWith("3.", openapiVer.GetString());
+        Assert.Equal("3.0.1", openapiVer.GetString());
 
         var info = root.GetProperty("info");
         Assert.Equal("ZhongWenHub API", info.GetProperty("title").GetString());

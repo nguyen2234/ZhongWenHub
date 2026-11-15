@@ -3,12 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Business.Content.Services.Storage;
+
+/// <summary>
+/// Thrown when the cleanup table does not yet exist in the database (pending migration).
+/// The worker can catch this to apply a long backoff instead of retrying every 30 seconds.
+/// </summary>
+public sealed class CleanupTableMissingException : Exception
+{
+    public CleanupTableMissingException(string message, Exception inner)
+        : base(message, inner) { }
+}
 
 public class StorageCleanupService : IStorageCleanupService
 {
@@ -114,9 +125,17 @@ public class StorageCleanupService : IStorageCleanupService
                 .Take(batchSize)
                 .ToListAsync(cancellationToken);
         }
+        catch (Exception ex) when (IsMissingTableException(ex))
+        {
+            // SQL error 208: table does not exist yet — migration is pending.
+            // Throw a typed exception so the worker can apply a long backoff instead
+            // of hammering the database every 30 seconds.
+            throw new CleanupTableMissingException(
+                "Table 'video_storage_cleanup_jobs' does not exist. Apply pending EF migrations to resolve this.", ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Cannot query VideoStorageCleanupJobs. Migration may be pending.");
+            _logger.LogWarning(ex, "Cannot query VideoStorageCleanupJobs. Unexpected error.");
             return 0;
         }
 
@@ -229,10 +248,32 @@ public class StorageCleanupService : IStorageCleanupService
                 .Take(100)
                 .ToListAsync(cancellationToken);
         }
+        catch (Exception ex) when (IsMissingTableException(ex))
+        {
+            throw new CleanupTableMissingException(
+                "Table 'video_storage_cleanup_jobs' does not exist. Apply pending EF migrations to resolve this.", ex);
+        }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Cannot query pending cleanup jobs from database.");
             return Array.Empty<VideoStorageCleanupJob>();
         }
+    }
+
+    /// <summary>
+    /// Returns true when the exception (or any inner exception) is a SqlException with
+    /// error number 208 ("Invalid object name"), which means the table is missing due to
+    /// a pending EF migration.
+    /// </summary>
+    private static bool IsMissingTableException(Exception ex)
+    {
+        var current = ex;
+        while (current != null)
+        {
+            if (current is SqlException sqlEx && sqlEx.Number == 208)
+                return true;
+            current = current.InnerException;
+        }
+        return false;
     }
 }
