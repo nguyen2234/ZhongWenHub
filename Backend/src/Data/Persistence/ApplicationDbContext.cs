@@ -25,6 +25,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<StudentDailyActivity> StudentDailyActivities => Set<StudentDailyActivity>();
     public DbSet<StudentVocabularyProgress> StudentVocabularyProgresses => Set<StudentVocabularyProgress>();
     public DbSet<StudentXpTransaction> StudentXpTransactions => Set<StudentXpTransaction>();
+    public DbSet<StudentLearningGoalEntity> StudentLearningGoals => Set<StudentLearningGoalEntity>();
+    public DbSet<PersonalizedLearningPathEntity> PersonalizedLearningPaths => Set<PersonalizedLearningPathEntity>();
+    public DbSet<LearningPathMilestoneEntity> LearningPathMilestones => Set<LearningPathMilestoneEntity>();
+    public DbSet<DailyLearningTaskEntity> DailyLearningTasks => Set<DailyLearningTaskEntity>();
 
     // Content Management DbSets
     public DbSet<CourseEntity> Courses => Set<CourseEntity>();
@@ -895,6 +899,87 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
             b.HasIndex(x => new { x.UserId, x.CreatedAt }).HasDatabaseName("idx_ai_usage_logs_user_created");
+        });
+
+        // Phase 4 - Personalized Learning Path Entities
+        builder.Entity<StudentLearningGoalEntity>(b =>
+        {
+            b.ToTable("student_learning_goals");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.PrioritySkillsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.IntensityMode).HasMaxLength(50).IsRequired();
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => x.UserId).HasDatabaseName("idx_student_learning_goals_user");
+        });
+
+        builder.Entity<PersonalizedLearningPathEntity>(b =>
+        {
+            b.ToTable("personalized_learning_paths");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Title).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.PedagogicalRationaleVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.AiFocusTipsVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.GeneratedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.LastReplannedAt).HasColumnType("datetime2");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(x => x.Goal)
+                .WithMany()
+                .HasForeignKey(x => x.GoalId)
+                .OnDelete(DeleteBehavior.SetNull);
+            b.HasIndex(x => x.UserId).HasDatabaseName("idx_personalized_learning_paths_user");
+        });
+
+        builder.Entity<LearningPathMilestoneEntity>(b =>
+        {
+            b.ToTable("learning_path_milestones");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Title).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Description).HasColumnType("nvarchar(max)");
+            b.Property(x => x.PedagogicalGoalVi).HasColumnType("nvarchar(max)");
+            b.Property(x => x.TargetSkillsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.TopicsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.LessonIdsJson).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CompletedAt).HasColumnType("datetime2");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.LearningPath)
+                .WithMany(p => p.Milestones)
+                .HasForeignKey(x => x.LearningPathId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => x.LearningPathId).HasDatabaseName("idx_learning_path_milestones_path");
+        });
+
+        builder.Entity<DailyLearningTaskEntity>(b =>
+        {
+            b.ToTable("daily_learning_tasks");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TaskType).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Title).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Description).HasColumnType("nvarchar(max)");
+            b.Property(x => x.TargetSkill).HasMaxLength(50).IsRequired();
+            b.Property(x => x.ResourceId).HasMaxLength(100);
+            b.Property(x => x.DestinationRoute).HasMaxLength(250).IsRequired();
+            b.Property(x => x.CompletionStatus).HasMaxLength(50).IsRequired();
+            b.Property(x => x.PlanDate).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.CompletedAt).HasColumnType("datetime2");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(x => new { x.UserId, x.PlanDate }).HasDatabaseName("idx_daily_learning_tasks_user_date");
         });
     }
 

@@ -2,3 +2,8 @@ export * from './pages/LearningPathPage';
 export * from './components/BeginnerRoadmap';
 export * from './components/BeginnerGuidanceSection';
 export * from './components/HskCurriculumView';
+export * from './components/PersonalizedLearningDashboard';
+export * from './components/TodayPlanSection';
+export * from './components/MyPathSection';
+export * from './components/GoalSetupCard';
+export * from './services/learning-path.service';

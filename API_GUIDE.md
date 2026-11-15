@@ -229,3 +229,4 @@ Kết quả quét tự động trên toàn bộ `198` endpoint/operation hiện 
 1. **Bổ sung XML Comments trên Controller:** Thêm thẻ `<summary>` trên 184 method trong `ContentController.cs`, `AdminUsersController.cs`, `LearningController.cs` và `QuestionBankController.cs` để hiển thị mô tả tiếng Việt chi tiết trên Swagger UI.
 2. **Khai báo `[ProducesResponseType(typeof(T), StatusCodes.Status200OK)]` đồng bộ:** Đối với các endpoint trả về `IActionResult` đơn thuần, khai báo rõ ràng DTO trả về để Swagger UI hiển thị đầy đủ Example Schema cho lập trình viên Frontend và AI Agent.
 3. **Khai báo mã lỗi cụ thể:** Bổ sung `[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]`, `Status401Unauthorized`, `Status403Forbidden` để tài liệu phản ánh chính xác các kịch bản ngoại lệ nghiệp vụ.
+

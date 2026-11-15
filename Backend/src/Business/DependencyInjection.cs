@@ -128,6 +128,7 @@ public static class DependencyInjection
         services.AddScoped<ICompetencyProfileService, CompetencyProfileService>();
         services.AddScoped<IRecommendationEngineV2, RecommendationEngineV2>();
         services.AddScoped<IDiagnosticAssessmentService, DiagnosticAssessmentService>();
+        services.AddScoped<ZhongWenHub.Business.AILearning.Services.LearningPath.ILearningPathService, ZhongWenHub.Business.AILearning.Services.LearningPath.LearningPathService>();
 
         return services;
     }
