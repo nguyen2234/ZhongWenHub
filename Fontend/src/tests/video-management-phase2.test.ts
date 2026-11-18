@@ -226,6 +226,32 @@ describe('Video Learning Phase 2: Management & Cloud Upload Integration Tests', 
       expect(result.storagePath).toContain('video_test123.mp4');
       expect(result.publicUrl).toBe('/uploads/videos/202611/video_test123.mp4');
     });
+
+    it('uploadTranscriptPdfFile sends FormData to /upload-transcript-pdf and returns storage path', async () => {
+      const mockFetch = mock(async (input: RequestInfo | URL, init?: RequestInit) => {
+        expect(String(input)).toContain('/videos/manage/upload-transcript-pdf');
+        expect(init?.method).toBe('POST');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            storagePath: 'local://transcripts/videos/202611/transcript_test123.pdf',
+            publicUrl: '/uploads/transcripts/videos/202611/transcript_test123.pdf',
+            fileSizeBytes: 2048,
+            contentType: 'application/pdf',
+          }),
+          { status: 200 }
+        );
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const fakePdf = new File(['%PDF-1.4-fake-pdf-content'], 'transcript.pdf', { type: 'application/pdf' });
+      const result = await videoManagementService.uploadTranscriptPdfFile(fakePdf);
+
+      expect(result.success).toBe(true);
+      expect(result.storagePath).toContain('transcript_test123.pdf');
+      expect(result.publicUrl).toContain('transcript_test123.pdf');
+    });
   });
 
   describe('3. Routing & Role Protection Contracts', () => {

@@ -38,6 +38,11 @@ public class VideoStorageOptions
     public long MaxThumbnailSizeBytes { get; set; } = 5 * 1024 * 1024;
 
     /// <summary>
+    /// Maximum allowed PDF transcript upload size in bytes (default 20MB).
+    /// </summary>
+    public long MaxPdfSizeBytes { get; set; } = 20 * 1024 * 1024;
+
+    /// <summary>
     /// Allowed video MIME types.
     /// </summary>
     public List<string> AllowedVideoMimeTypes { get; set; } = new()

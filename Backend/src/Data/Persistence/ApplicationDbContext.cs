@@ -581,6 +581,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(v => v.Topic).HasMaxLength(100).IsRequired().HasDefaultValue("Giao tiếp hàng ngày");
             b.Property(v => v.Status).HasMaxLength(50).IsRequired().HasDefaultValue("Draft");
             b.Property(v => v.ViewCount).HasDefaultValue(0);
+            b.Property(v => v.TranscriptPdfPath).HasMaxLength(500);
+            b.Property(v => v.TranscriptPdfName).HasMaxLength(255);
+            b.Property(v => v.TranscriptPdfSizeBytes);
 
             b.HasOne(v => v.Lesson)
                 .WithMany()

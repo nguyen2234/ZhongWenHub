@@ -16,8 +16,9 @@ public static class StoragePathSecurity
     // Strict regex matching legitimate backend-generated storage paths:
     // videos/yyyyMM/video_{guid32}.(mp4|webm|mov)
     // thumbnails/yyyyMM/thumb_{guid32}.(jpg|jpeg|png|webp)
+    // transcripts/videos/yyyyMM/transcript_{guid32}.pdf
     private static readonly Regex ValidRelativePathRegex = new(
-        @"^(?:videos\/\d{6}\/video_[a-fA-F0-9]{32}\.(?:mp4|webm|mov)|thumbnails\/\d{6}\/thumb_[a-fA-F0-9]{32}\.(?:jpg|jpeg|png|webp))$",
+        @"^(?:videos\/\d{6}\/video_[a-fA-F0-9]{32}\.(?:mp4|webm|mov)|thumbnails\/\d{6}\/thumb_[a-fA-F0-9]{32}\.(?:jpg|jpeg|png|webp)|transcripts\/videos\/\d{6}\/transcript_[a-fA-F0-9]{32}\.pdf)$",
         RegexOptions.Compiled);
 
     /// <summary>

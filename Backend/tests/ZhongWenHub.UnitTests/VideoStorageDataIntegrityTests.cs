@@ -42,6 +42,9 @@ public class VideoStorageDataIntegrityTests
         public Task<StorageUploadResult> UploadThumbnailAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default) =>
             Task.FromResult(StorageUploadResult.Succeeded($"thumbnails/{fileName}", $"https://storage/{fileName}", stream.Length, contentType));
 
+        public Task<StorageUploadResult> UploadPdfAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default) =>
+            Task.FromResult(StorageUploadResult.Succeeded($"transcripts/{fileName}", $"https://storage/{fileName}", stream.Length, contentType));
+
         public Task<bool> DeleteFileAsync(string storagePath, CancellationToken cancellationToken = default)
         {
             if (ThrowOnDelete) throw new IOException("Storage connection timeout");

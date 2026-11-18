@@ -255,6 +255,18 @@ public class LearningVideoService : ILearningVideoService
 
         dto.YouTubeVideoId = resolvedYouTubeId;
 
+        // Auto-generate title if empty
+        if (string.IsNullOrWhiteSpace(dto.Title))
+        {
+            dto.Title = $"HSK {dto.HskLevel} - Bài học Video ({resolvedYouTubeId ?? "YouTube"})";
+        }
+
+        // Auto-generate topic if empty
+        if (string.IsNullOrWhiteSpace(dto.Topic))
+        {
+            dto.Topic = "Luyện nghe HSK";
+        }
+
         // Auto-generate high-quality YouTube thumbnail if empty
         if (isYouTube && !string.IsNullOrWhiteSpace(resolvedYouTubeId) && string.IsNullOrWhiteSpace(dto.ThumbnailUrl))
         {
@@ -326,21 +338,33 @@ public class LearningVideoService : ILearningVideoService
             }
         }
 
+        // Claim PDF Transcript asset if provided via upload
+        string? resolvedTranscriptPdfPath = dto.TranscriptPdfPath?.Trim();
+        if (dto.TranscriptUploadId.HasValue)
+        {
+            var claimedPdfAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
+                dto.TranscriptUploadId.Value, currentUserId, isAdmin, videoId, cancellationToken);
+            resolvedTranscriptPdfPath = claimedPdfAsset.StoragePath;
+        }
+
         var entity = new LearningVideo
         {
             Id = videoId,
-            Title = dto.Title.Trim(),
+            Title = (dto.Title ?? string.Empty).Trim(),
             Description = dto.Description?.Trim(),
             SourceType = isYouTube ? "YouTube" : "Uploaded",
             YouTubeVideoId = isYouTube ? resolvedYouTubeId : null,
             StoragePath = resolvedStoragePath,
-            ThumbnailUrl = dto.ThumbnailUrl.Trim(),
+            ThumbnailUrl = (dto.ThumbnailUrl ?? string.Empty).Trim(),
             DurationSeconds = Math.Max(0, dto.DurationSeconds),
             HskLevel = Math.Clamp(dto.HskLevel, 1, 6),
-            Topic = dto.Topic.Trim(),
+            Topic = (dto.Topic ?? "Luyện nghe HSK").Trim(),
             Status = normalizedStatus,
             ViewCount = 0,
             LessonId = dto.LessonId,
+            TranscriptPdfPath = resolvedTranscriptPdfPath,
+            TranscriptPdfName = dto.TranscriptPdfName?.Trim(),
+            TranscriptPdfSizeBytes = dto.TranscriptPdfSizeBytes,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -410,10 +434,18 @@ public class LearningVideoService : ILearningVideoService
 
         dto.YouTubeVideoId = resolvedYouTubeId;
 
-        if (isYouTube && !string.IsNullOrWhiteSpace(resolvedYouTubeId) && string.IsNullOrWhiteSpace(dto.ThumbnailUrl))
-        {
-            dto.ThumbnailUrl = YouTubeUrlParser.GenerateHqThumbnailUrl(resolvedYouTubeId);
-        }
+        // Auto fallback for Title, Topic, Thumbnail
+        var finalTitle = !string.IsNullOrWhiteSpace(dto.Title) ? dto.Title.Trim() : entity.Title;
+        var finalTopic = !string.IsNullOrWhiteSpace(dto.Topic) ? dto.Topic.Trim() : entity.Topic;
+        var finalThumbnail = !string.IsNullOrWhiteSpace(dto.ThumbnailUrl)
+            ? dto.ThumbnailUrl.Trim()
+            : (isYouTube && !string.IsNullOrWhiteSpace(resolvedYouTubeId)
+                ? YouTubeUrlParser.GenerateHqThumbnailUrl(resolvedYouTubeId)
+                : entity.ThumbnailUrl);
+
+        dto.Title = finalTitle;
+        dto.Topic = finalTopic;
+        dto.ThumbnailUrl = finalThumbnail;
 
         // Validate DTO
         var validationContext = new ValidationContext(dto);
@@ -491,6 +523,33 @@ public class LearningVideoService : ILearningVideoService
             throw new InvalidOperationException("Không thể xuất bản video khi chưa có tệp lưu trữ hợp lệ.");
         }
 
+        // PDF Transcript update logic
+        var oldPdfPath = entity.TranscriptPdfPath;
+        string? newPdfPath = oldPdfPath;
+        string? newPdfName = entity.TranscriptPdfName;
+        long? newPdfSize = entity.TranscriptPdfSizeBytes;
+
+        if (dto.ClearTranscriptPdf)
+        {
+            newPdfPath = null;
+            newPdfName = null;
+            newPdfSize = null;
+        }
+        else if (dto.TranscriptUploadId.HasValue)
+        {
+            var claimedPdf = await _uploadAssetService.ValidateAndClaimAssetAsync(
+                dto.TranscriptUploadId.Value, currentUserId, isAdmin, entity.Id, cancellationToken);
+            newPdfPath = claimedPdf.StoragePath;
+            newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
+            newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.TranscriptPdfPath))
+        {
+            newPdfPath = dto.TranscriptPdfPath.Trim();
+            newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
+            newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
+        }
+
         entity.Title = dto.Title.Trim();
         entity.Description = dto.Description?.Trim();
         entity.SourceType = isYouTube ? "YouTube" : "Uploaded";
@@ -502,6 +561,9 @@ public class LearningVideoService : ILearningVideoService
         entity.Topic = dto.Topic.Trim();
         entity.Status = normalizedStatus;
         entity.LessonId = dto.LessonId;
+        entity.TranscriptPdfPath = newPdfPath;
+        entity.TranscriptPdfName = newPdfName;
+        entity.TranscriptPdfSizeBytes = newPdfSize;
         entity.UpdatedAt = DateTime.UtcNow;
 
         // Transactional Outbox: atomic commit of video change + cleanup outbox job insertion
@@ -524,6 +586,21 @@ public class LearningVideoService : ILearningVideoService
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.VideoStorageCleanupJobs.Add(cleanupJob);
+            }
+
+            if (!string.IsNullOrWhiteSpace(oldPdfPath) &&
+                !string.Equals(oldPdfPath, newPdfPath, StringComparison.OrdinalIgnoreCase))
+            {
+                var pdfCleanupJob = new VideoStorageCleanupJob
+                {
+                    Id = Guid.NewGuid(),
+                    StoragePath = oldPdfPath,
+                    StorageProvider = _storageService.ProviderName,
+                    Status = VideoStorageCleanupStatus.Pending,
+                    Reason = "TranscriptPdfReplaced",
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.VideoStorageCleanupJobs.Add(pdfCleanupJob);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -609,6 +686,7 @@ public class LearningVideoService : ILearningVideoService
         }
 
         var storagePath = entity.StoragePath;
+        var transcriptPdfPath = entity.TranscriptPdfPath;
 
         // Transactional Outbox Pattern: Atomic deletion + Cleanup job registration
         var isRelational = false;
@@ -629,6 +707,20 @@ public class LearningVideoService : ILearningVideoService
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.VideoStorageCleanupJobs.Add(cleanupJob);
+            }
+
+            if (!string.IsNullOrWhiteSpace(transcriptPdfPath))
+            {
+                var pdfCleanupJob = new VideoStorageCleanupJob
+                {
+                    Id = Guid.NewGuid(),
+                    StoragePath = transcriptPdfPath,
+                    StorageProvider = _storageService.ProviderName,
+                    Status = VideoStorageCleanupStatus.Pending,
+                    Reason = "VideoTranscriptPdfDeleted",
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.VideoStorageCleanupJobs.Add(pdfCleanupJob);
             }
 
             var linkedAssets = await _context.VideoUploadAssets
@@ -687,6 +779,10 @@ public class LearningVideoService : ILearningVideoService
             ? _storageService.GetPublicUrl(v.StoragePath)
             : null;
 
+        var pdfUrl = !string.IsNullOrWhiteSpace(v.TranscriptPdfPath)
+            ? _storageService.GetPublicUrl(v.TranscriptPdfPath)
+            : null;
+
         return new LearningVideoDto
         {
             Id = v.Id,
@@ -703,6 +799,10 @@ public class LearningVideoService : ILearningVideoService
             Topic = v.Topic,
             Status = v.Status,
             ViewCount = v.ViewCount,
+            TranscriptPdfPath = isPublicView ? null : v.TranscriptPdfPath,
+            TranscriptPdfName = v.TranscriptPdfName,
+            TranscriptPdfSizeBytes = v.TranscriptPdfSizeBytes,
+            TranscriptPdfUrl = pdfUrl,
             LessonId = v.LessonId,
             LessonTitle = v.Lesson != null ? v.Lesson.TitleZh : null,
             CreatedAt = v.CreatedAt,

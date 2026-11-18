@@ -25,6 +25,10 @@ public class LearningVideoDto
     public string Topic { get; set; } = "Giao tiếp hàng ngày";
     public string Status { get; set; } = "Draft";
     public int ViewCount { get; set; }
+    public string? TranscriptPdfPath { get; set; }
+    public string? TranscriptPdfName { get; set; }
+    public long? TranscriptPdfSizeBytes { get; set; }
+    public string? TranscriptPdfUrl { get; set; }
     public Guid? LessonId { get; set; }
     public string? LessonTitle { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -101,9 +105,8 @@ public class CreateLearningVideoDto : IValidatableObject
 
     public Guid? UploadId { get; set; }
 
-    [Required(ErrorMessage = "Ảnh đại diện (ThumbnailUrl) là bắt buộc.")]
     [StringLength(1000, ErrorMessage = "Thumbnail URL không được vượt quá 1000 ký tự.")]
-    public string ThumbnailUrl { get; set; } = string.Empty;
+    public string? ThumbnailUrl { get; set; }
 
     [Range(0, 86400, ErrorMessage = "Thời lượng video phải từ 0 đến 86400 giây (24 giờ).")]
     public int DurationSeconds { get; set; }
@@ -111,12 +114,21 @@ public class CreateLearningVideoDto : IValidatableObject
     [Range(1, 6, ErrorMessage = "Cấp độ HSK phải từ 1 đến 6.")]
     public int HskLevel { get; set; } = 1;
 
-    [Required(ErrorMessage = "Chủ đề video là bắt buộc.")]
     [StringLength(100, ErrorMessage = "Chủ đề không được vượt quá 100 ký tự.")]
-    public string Topic { get; set; } = "Giao tiếp hàng ngày";
+    public string? Topic { get; set; } = "Luyện nghe HSK";
 
-    public string Status { get; set; } = "Draft";
+    public string Status { get; set; } = "Published";
     public Guid? LessonId { get; set; }
+
+    [StringLength(500, ErrorMessage = "Đường dẫn tài liệu PDF không được vượt quá 500 ký tự.")]
+    public string? TranscriptPdfPath { get; set; }
+
+    [StringLength(255, ErrorMessage = "Tên tệp tài liệu PDF không được vượt quá 255 ký tự.")]
+    public string? TranscriptPdfName { get; set; }
+
+    public long? TranscriptPdfSizeBytes { get; set; }
+
+    public Guid? TranscriptUploadId { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -178,9 +190,8 @@ public class UpdateLearningVideoDto : IValidatableObject
 
     public Guid? UploadId { get; set; }
 
-    [Required(ErrorMessage = "Ảnh đại diện (ThumbnailUrl) là bắt buộc.")]
     [StringLength(1000, ErrorMessage = "Thumbnail URL không được vượt quá 1000 ký tự.")]
-    public string ThumbnailUrl { get; set; } = string.Empty;
+    public string? ThumbnailUrl { get; set; }
 
     [Range(0, 86400, ErrorMessage = "Thời lượng video phải từ 0 đến 86400 giây (24 giờ).")]
     public int DurationSeconds { get; set; }
@@ -188,12 +199,23 @@ public class UpdateLearningVideoDto : IValidatableObject
     [Range(1, 6, ErrorMessage = "Cấp độ HSK phải từ 1 đến 6.")]
     public int HskLevel { get; set; } = 1;
 
-    [Required(ErrorMessage = "Chủ đề video là bắt buộc.")]
     [StringLength(100, ErrorMessage = "Chủ đề không được vượt quá 100 ký tự.")]
-    public string Topic { get; set; } = "Giao tiếp hàng ngày";
+    public string? Topic { get; set; }
 
-    public string Status { get; set; } = "Draft";
+    public string Status { get; set; } = "Published";
     public Guid? LessonId { get; set; }
+
+    [StringLength(500, ErrorMessage = "Đường dẫn tài liệu PDF không được vượt quá 500 ký tự.")]
+    public string? TranscriptPdfPath { get; set; }
+
+    [StringLength(255, ErrorMessage = "Tên tệp tài liệu PDF không được vượt quá 255 ký tự.")]
+    public string? TranscriptPdfName { get; set; }
+
+    public long? TranscriptPdfSizeBytes { get; set; }
+
+    public Guid? TranscriptUploadId { get; set; }
+
+    public bool ClearTranscriptPdf { get; set; } = false;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

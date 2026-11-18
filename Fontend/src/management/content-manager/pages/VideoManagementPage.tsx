@@ -6,7 +6,6 @@ import {
   Play,
   Edit3,
   Trash2,
-  Clock,
   RotateCcw,
   CheckCircle2,
   AlertCircle,
@@ -14,7 +13,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  UploadCloud,
+  FileText,
 } from 'lucide-react';
 import { videoManagementService } from '../services/video-management.service';
 import type { LearningVideoItem } from '../types/video.types';
@@ -141,11 +140,12 @@ export const VideoManagementPage: React.FC = () => {
     setIsDeleting(true);
 
     try {
-      const success = await videoManagementService.deleteVideo(deleteConfirmVideo.id);
+      const success = await videoManagementService.deleteVideoApi(deleteConfirmVideo.id);
       if (success) {
         setVideos((prev) => prev.filter((v) => v.id !== deleteConfirmVideo.id));
         setTotalItems((prev) => Math.max(0, prev - 1));
         showToast(`Đã xóa video "${deleteConfirmVideo.title}" thành công.`, 'success');
+        loadVideos();
       } else {
         showToast('Không tìm thấy video để xóa.', 'error');
       }
@@ -557,17 +557,15 @@ export const VideoManagementPage: React.FC = () => {
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
                   <th style={{ padding: '12px 16px', width: '90px' }}>Thumbnail</th>
-                  <th style={{ padding: '12px 16px' }}>Tiêu đề & Chủ đề</th>
-                  <th style={{ padding: '12px 16px', width: '110px' }}>Nguồn</th>
-                  <th style={{ padding: '12px 16px', width: '80px' }}>Cấp độ</th>
-                  <th style={{ padding: '12px 16px', width: '100px' }}>Thời lượng</th>
-                  <th style={{ padding: '12px 16px', width: '140px' }}>Trạng thái</th>
-                  <th style={{ padding: '12px 16px', width: '130px', textAlign: 'right' }}>Thao tác</th>
+                  <th style={{ padding: '12px 16px' }}>Tiêu đề</th>
+                  <th style={{ padding: '12px 16px', width: '90px' }}>Cấp độ</th>
+                  <th style={{ padding: '12px 16px', width: '220px' }}>Tài liệu PDF Transcript</th>
+                  <th style={{ padding: '12px 16px', width: '130px' }}>Trạng thái</th>
+                  <th style={{ padding: '12px 16px', width: '120px', textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {videos.map((v) => {
-                  const isYt = v.sourceType?.toLowerCase() === 'youtube';
                   const isPub = v.status === 'Published';
                   const isDraft = v.status === 'Draft';
 
@@ -615,13 +613,15 @@ export const VideoManagementPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Title & Topic */}
+                      {/* Title */}
                       <td style={{ padding: '12px 16px' }}>
                         <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>
                           {v.title}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#64748b' }}>
-                          <span>{v.topic}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748b' }}>
+                          <span style={{ color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <YoutubeIcon size={11} /> {v.youtubeVideoId || 'YouTube'}
+                          </span>
                           {v.lessonTitle && (
                             <>
                               <span>•</span>
@@ -631,33 +631,13 @@ export const VideoManagementPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Source */}
-                      <td style={{ padding: '12px 16px' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            backgroundColor: isYt ? '#fee2e2' : '#dbeafe',
-                            color: isYt ? '#dc2626' : '#2563eb',
-                          }}
-                        >
-                          {isYt ? <YoutubeIcon size={12} /> : <UploadCloud size={12} />}
-                          <span>{isYt ? 'YouTube' : 'Uploaded'}</span>
-                        </span>
-                      </td>
-
                       {/* HSK Level */}
                       <td style={{ padding: '12px 16px' }}>
                         <span
                           style={{
                             fontSize: '11px',
                             fontWeight: 800,
-                            padding: '2px 8px',
+                            padding: '3px 8px',
                             borderRadius: '6px',
                             backgroundColor: '#fff1f2',
                             color: 'var(--primary, #E60012)',
@@ -667,12 +647,62 @@ export const VideoManagementPage: React.FC = () => {
                         </span>
                       </td>
 
-                      {/* Duration */}
-                      <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={12} />
-                          <span>{v.durationFormatted || '00:00'}</span>
-                        </div>
+                      {/* PDF Transcript */}
+                      <td style={{ padding: '12px 16px' }}>
+                        {v.transcriptPdfName || v.transcriptPdfPath ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '6px',
+                                backgroundColor: '#fee2e2',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#dc2626',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <FileText size={15} />
+                            </div>
+                            <div style={{ minWidth: 0, maxWidth: '170px' }}>
+                              <div
+                                style={{
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  color: '#1e293b',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={v.transcriptPdfName || 'Transcript.pdf'}
+                              >
+                                {v.transcriptPdfName || 'Transcript.pdf'}
+                              </div>
+                              {v.transcriptPdfUrl && (
+                                <a
+                                  href={v.transcriptPdfUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    fontSize: '10.5px',
+                                    fontWeight: 700,
+                                    color: 'var(--primary, #E60012)',
+                                    textDecoration: 'none',
+                                    display: 'inline-block',
+                                  }}
+                                >
+                                  Mở xem PDF ↗
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '11.5px', color: '#94a3b8', fontStyle: 'italic' }}>
+                            Chưa có PDF
+                          </span>
+                        )}
                       </td>
 
                       {/* Status Selector */}
@@ -841,14 +871,8 @@ export const VideoManagementPage: React.FC = () => {
           setEditingVideo(null);
         }}
         onSaved={(saved) => {
-          if (editingVideo) {
-            setVideos((prev) => prev.map((v) => (v.id === saved.id ? saved : v)));
-            showToast(`Đã cập nhật video "${saved.title}".`, 'success');
-          } else {
-            setVideos((prev) => [saved, ...prev]);
-            setTotalItems((p) => p + 1);
-            showToast(`Đã tạo mới video "${saved.title}".`, 'success');
-          }
+          loadVideos();
+          showToast(`Đã lưu video "${saved.title}" thành công.`, 'success');
         }}
       />
 

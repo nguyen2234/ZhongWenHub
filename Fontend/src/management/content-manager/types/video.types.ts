@@ -35,6 +35,10 @@ export interface LearningVideoItem {
   viewCount: number;
   lessonId: string | null;
   lessonTitle: string | null;
+  transcriptPdfPath?: string | null;
+  transcriptPdfName?: string | null;
+  transcriptPdfSizeBytes?: number | null;
+  transcriptPdfUrl?: string | null;
   createdAt: string;
   updatedAt: string | null;
   duration?: number;
@@ -69,9 +73,9 @@ export interface PagedAdminVideoResponse {
 }
 
 export interface CreateVideoPayload {
-  title: string;
+  title?: string;
   description?: string;
-  sourceType: 'YouTube' | 'Uploaded';
+  sourceType?: 'YouTube' | 'Uploaded';
   youtubeUrl?: string;
   youtubeVideoId?: string;
   storagePath?: string;
@@ -79,12 +83,18 @@ export interface CreateVideoPayload {
   thumbnailUrl?: string;
   durationSeconds?: number;
   hskLevel: number;
-  topic: string;
-  status: 'Draft' | 'Published' | 'Hidden';
+  topic?: string;
+  status?: 'Draft' | 'Published' | 'Hidden';
   lessonId?: string | null;
+  transcriptPdfPath?: string | null;
+  transcriptPdfName?: string | null;
+  transcriptPdfSizeBytes?: number | null;
+  transcriptUploadId?: string | null;
 }
 
-export interface UpdateVideoPayload extends Partial<CreateVideoPayload> {}
+export interface UpdateVideoPayload extends Partial<CreateVideoPayload> {
+  clearTranscriptPdf?: boolean;
+}
 
 // Backward-compatibility DTOs
 export interface CreateVideoDTO {

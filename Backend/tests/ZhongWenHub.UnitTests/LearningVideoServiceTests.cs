@@ -168,5 +168,43 @@ public class LearningVideoServiceTests
 
         Assert.Contains("\"youtubeVideoId\":\"dQw4w9WgXcQ\"", json);
     }
+
+    [Fact]
+    public void CreateLearningVideoDto_WithPdfTranscript_PreservesPdfMetadata()
+    {
+        var dto = new CreateLearningVideoDto
+        {
+            Title = "HSK 2 - Video đàm thoại mua sắm",
+            SourceType = "YouTube",
+            YouTubeVideoId = "dQw4w9WgXcQ",
+            HskLevel = 2,
+            TranscriptPdfPath = "transcripts/videos/202611/transcript_123.pdf",
+            TranscriptPdfName = "HoiThoai_MuaSam.pdf",
+            TranscriptPdfSizeBytes = 1048576,
+        };
+
+        var errors = ValidateDto(dto);
+        Assert.Empty(errors);
+        Assert.Equal("transcripts/videos/202611/transcript_123.pdf", dto.TranscriptPdfPath);
+        Assert.Equal("HoiThoai_MuaSam.pdf", dto.TranscriptPdfName);
+        Assert.Equal(1048576, dto.TranscriptPdfSizeBytes);
+    }
+
+    [Fact]
+    public void UpdateLearningVideoDto_ClearTranscriptPdf_SetsFlag()
+    {
+        var dto = new UpdateLearningVideoDto
+        {
+            Title = "HSK 3 - Video du lịch",
+            SourceType = "YouTube",
+            YouTubeVideoId = "4lHwBZr66so",
+            HskLevel = 3,
+            ClearTranscriptPdf = true,
+        };
+
+        var errors = ValidateDto(dto);
+        Assert.Empty(errors);
+        Assert.True(dto.ClearTranscriptPdf);
+    }
 }
 

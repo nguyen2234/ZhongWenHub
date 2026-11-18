@@ -52,6 +52,11 @@ public interface IVideoStorageService
     Task<StorageUploadResult> UploadThumbnailAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Uploads a PDF transcript stream and returns the persisted storage path &amp; public URL.
+    /// </summary>
+    Task<StorageUploadResult> UploadPdfAsync(Stream stream, string fileName, string contentType, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Deletes a file from storage given its path.
     /// </summary>
     Task<bool> DeleteFileAsync(string storagePath, CancellationToken cancellationToken = default);

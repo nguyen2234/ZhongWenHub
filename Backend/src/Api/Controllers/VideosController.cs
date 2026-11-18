@@ -332,6 +332,51 @@ public class VideosController : BaseApiController
     }
 
     /// <summary>
+    /// Tải lên tệp tài liệu PDF transcript (hỗ trợ PDF - tối đa 20MB)
+    /// </summary>
+    [HttpPost("manage/upload-transcript-pdf")]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(20971520)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 20971520)]
+    [ProducesResponseType(typeof(StorageUploadResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UploadTranscriptPdfFile(
+        IFormFile file,
+        CancellationToken cancellationToken)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Vui lòng chọn tệp tài liệu PDF hợp lệ để tải lên." });
+        }
+
+        await using var stream = file.OpenReadStream();
+        var result = await _storageService.UploadPdfAsync(stream, file.FileName, file.ContentType, cancellationToken);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value
+            ?? User.Identity?.Name
+            ?? "system";
+
+        var asset = await _uploadAssetService.RegisterUploadAsync(
+            result.StoragePath!,
+            _storageService.ProviderName,
+            userId,
+            file.ContentType,
+            file.Length,
+            assetType: "PdfTranscript",
+            cancellationToken: cancellationToken);
+
+        result.UploadId = asset.Id;
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Lấy thông tin cấu hình và giới hạn lưu trữ video hiện tại
     /// </summary>
     [HttpGet("manage/storage-status")]

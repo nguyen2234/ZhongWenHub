@@ -151,6 +151,48 @@ public class VideoStorageService : IVideoStorageService
         return await UploadInternalAsync(stream, relativePath, cleanMime, cancellationToken);
     }
 
+    public async Task<StorageUploadResult> UploadPdfAsync(
+        Stream stream,
+        string fileName,
+        string contentType,
+        CancellationToken cancellationToken = default)
+    {
+        if (stream == null || stream.Length == 0)
+        {
+            return StorageUploadResult.Failed("Tệp tài liệu PDF rỗng hoặc không có nội dung.");
+        }
+
+        if (stream.Length > _options.MaxPdfSizeBytes)
+        {
+            var maxMb = _options.MaxPdfSizeBytes / (1024 * 1024);
+            return StorageUploadResult.Failed($"Dung lượng tài liệu PDF vượt quá giới hạn cho phép ({maxMb} MB).");
+        }
+
+        var cleanMime = (contentType ?? string.Empty).Split(';')[0].Trim().ToLowerInvariant();
+        if (cleanMime != "application/pdf")
+        {
+            return StorageUploadResult.Failed($"Định dạng tệp '{cleanMime}' không hợp lệ. Chỉ chấp nhận tệp tài liệu PDF.");
+        }
+
+        var ext = Path.GetExtension(fileName).ToLowerInvariant();
+        if (ext != ".pdf")
+        {
+            return StorageUploadResult.Failed($"Phần mở rộng tệp '{ext}' không hợp lệ. Chỉ chấp nhận tệp có đuôi .pdf.");
+        }
+
+        // Validate Magic Bytes to prevent MIME-spoofing
+        if (!FileSignatureValidator.ValidateSignature(stream, cleanMime, out var detectedFormat))
+        {
+            _logger.LogWarning("MIME spoofing detected on PDF upload: Claimed={Claimed}, Detected={Detected}", cleanMime, detectedFormat);
+            return StorageUploadResult.Failed($"Chữ ký tệp (magic bytes) không khớp với định dạng PDF chuẩn (%PDF-). Phát hiện: {detectedFormat}.");
+        }
+
+        var safeFileName = $"transcript_{Guid.NewGuid():N}.pdf";
+        var relativePath = $"transcripts/videos/{DateTime.UtcNow:yyyyMM}/{safeFileName}";
+
+        return await UploadInternalAsync(stream, relativePath, cleanMime, cancellationToken);
+    }
+
     private async Task<StorageUploadResult> UploadInternalAsync(
         Stream stream,
         string relativePath,

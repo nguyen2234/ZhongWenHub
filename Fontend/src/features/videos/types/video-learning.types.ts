@@ -15,6 +15,10 @@ export interface LearningVideo {
   viewCount: number;
   lessonId: string | null;
   lessonTitle: string | null;
+  transcriptPdfPath?: string | null;
+  transcriptPdfName?: string | null;
+  transcriptPdfSizeBytes?: number | null;
+  transcriptPdfUrl?: string | null;
   createdAt: string;
   updatedAt: string | null;
 }

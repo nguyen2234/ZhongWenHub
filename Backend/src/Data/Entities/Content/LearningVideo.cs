@@ -68,6 +68,23 @@ public class LearningVideo : BaseEntity
     public int ViewCount { get; set; } = 0;
 
     /// <summary>
+    /// File path in storage for the speech/dialogue PDF transcript (e.g. "transcripts/videos/202611/abc.pdf")
+    /// </summary>
+    [MaxLength(500)]
+    public string? TranscriptPdfPath { get; set; }
+
+    /// <summary>
+    /// Original file name of the uploaded PDF transcript
+    /// </summary>
+    [MaxLength(255)]
+    public string? TranscriptPdfName { get; set; }
+
+    /// <summary>
+    /// Size in bytes of the uploaded PDF transcript
+    /// </summary>
+    public long? TranscriptPdfSizeBytes { get; set; }
+
+    /// <summary>
     /// Optional foreign key to related LessonEntity
     /// </summary>
     public Guid? LessonId { get; set; }

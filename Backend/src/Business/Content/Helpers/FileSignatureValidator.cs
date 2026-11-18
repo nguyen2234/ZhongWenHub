@@ -75,6 +75,13 @@ public static class FileSignatureValidator
             return cleanMime is "image/webp";
         }
 
+        // PDF: Starts with "%PDF-" (0x25, 0x50, 0x44, 0x46)
+        if (header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46)
+        {
+            detectedFormat = "application/pdf";
+            return cleanMime is "application/pdf";
+        }
+
         return false;
     }
 }
