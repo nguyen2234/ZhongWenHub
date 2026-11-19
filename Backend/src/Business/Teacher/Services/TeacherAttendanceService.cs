@@ -124,13 +124,13 @@ public class TeacherAttendanceService : ITeacherAttendanceService
         {
             if (!memberSet.Contains(item.StudentId))
             {
-                continue; // Skip students not in class
+                throw new ArgumentException($"Học viên {item.StudentId} không thuộc lớp hoặc không còn hoạt động.");
             }
 
-            var status = item.Status.ToUpperInvariant();
-            if (!validStatuses.Contains(status))
+            var status = item.Status?.Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(status) || !validStatuses.Contains(status))
             {
-                status = "PRESENT";
+                throw new ArgumentException($"Trạng thái điểm danh không hợp lệ: {item.Status}");
             }
 
             if (existingMap.TryGetValue(item.StudentId, out var existing))
