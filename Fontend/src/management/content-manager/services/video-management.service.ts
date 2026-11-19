@@ -322,21 +322,36 @@ export class VideoManagementService {
       headers: getAuthHeaders(),
     });
 
+    if (response.status === 401) {
+      throw new Error('Yêu cầu đăng nhập quản trị (401)');
+    }
+    if (response.status === 403) {
+      throw new Error('Bạn không có quyền quản lý video này (403)');
+    }
     if (!response.ok) {
       throw new Error(`Lỗi tải danh sách video quản trị (${response.status}): ${response.statusText}`);
     }
 
     const data = await response.json();
-    const rawItems: any[] = data.items || [];
-    const items: LearningVideoItem[] = rawItems.map((item) => ({
-      ...item,
-      youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
-      durationFormatted: item.durationFormatted ?? '00:00',
-    }));
+    if (!data || typeof data !== 'object' || !Array.isArray(data.items)) {
+      throw new Error('Dữ liệu danh sách video quản trị từ máy chủ không hợp lệ.');
+    }
+
+    const rawItems: any[] = data.items;
+    const items: LearningVideoItem[] = rawItems.map((item) => {
+      if (!item || typeof item !== 'object' || !item.id || typeof item.title !== 'string') {
+        throw new Error('Cấu trúc video quản trị trong danh sách không hợp lệ.');
+      }
+      return {
+        ...item,
+        youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+        durationFormatted: item.durationFormatted ?? '00:00',
+      };
+    });
 
     return {
       items,
-      totalItems: data.totalItems ?? 0,
+      totalItems: typeof data.totalItems === 'number' ? data.totalItems : items.length,
       page: data.page ?? data.pageNumber ?? 1,
       pageSize: data.pageSize ?? 12,
       totalPages: Math.max(1, data.totalPages ?? 1),
@@ -346,27 +361,37 @@ export class VideoManagementService {
   }
 
   public async fetchVideoById(id: string): Promise<LearningVideoItem | null> {
-    try {
-      const response = await fetch(getApiUrl(`/videos/manage/${id}`), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-
-      if (response.status === 404) return null;
-      if (!response.ok) {
-        throw new Error(`Lỗi tải video (${response.status})`);
-      }
-
-      const item = (await response.json()) as any;
-      return {
-        ...item,
-        youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
-        durationFormatted: item.durationFormatted ?? '00:00',
-      };
-    } catch (err) {
-      console.warn('[VideoManagementService] Error fetching video:', err);
+    const cleanId = id?.trim();
+    if (!cleanId) {
       return null;
     }
+
+    const response = await fetch(getApiUrl(`/videos/manage/${encodeURIComponent(cleanId)}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (response.status === 404) return null;
+    if (response.status === 401) {
+      throw new Error('Yêu cầu đăng nhập quản trị (401)');
+    }
+    if (response.status === 403) {
+      throw new Error('Bạn không có quyền quản lý video này (403)');
+    }
+    if (!response.ok) {
+      throw new Error(`Lỗi máy chủ khi tải video quản trị (${response.status})`);
+    }
+
+    const item = (await response.json()) as any;
+    if (!item || typeof item !== 'object' || !item.id || typeof item.title !== 'string') {
+      throw new Error('Dữ liệu video quản trị từ máy chủ không hợp lệ.');
+    }
+
+    return {
+      ...item,
+      youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+      durationFormatted: item.durationFormatted ?? '00:00',
+    };
   }
 
   public async createVideoApi(payload: CreateVideoPayload): Promise<LearningVideoItem> {
