@@ -44,6 +44,9 @@ interface SelectedQuestionFormItem {
   promptHanzi?: string;
   promptPinyin?: string;
   promptVietnamese?: string;
+  options?: string[];
+  correctAnswer?: string;
+  explanation?: string;
 }
 
 interface TargetClassFormItem {
@@ -265,15 +268,27 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
     const newEntries: SelectedQuestionFormItem[] = [];
     pickedItems.forEach((p) => {
       if (!existingIds.has(String(p.id))) {
+        let derivedCorrectAnswer = 'A';
+        if (p.correctOptionIndex !== undefined) {
+          derivedCorrectAnswer = String.fromCharCode(65 + p.correctOptionIndex);
+        } else if (p.correctSentence) {
+          derivedCorrectAnswer = p.correctSentence;
+        } else if (p.acceptableAnswers && p.acceptableAnswers.length > 0) {
+          derivedCorrectAnswer = p.acceptableAnswers[0];
+        }
+
         newEntries.push({
           questionBankId: p.id,
           orderIndex: selectedQuestions.length + newEntries.length,
           points: 5, // Default 5 points
-          title: p.title,
-          exerciseType: p.type,
+          title: p.title || p.promptHanzi || `Câu hỏi #${p.id}`,
+          exerciseType: p.type || 'multiple-choice',
           promptHanzi: p.promptHanzi,
           promptPinyin: p.promptPinyin,
           promptVietnamese: p.promptVietnamese,
+          options: p.options,
+          correctAnswer: derivedCorrectAnswer,
+          explanation: p.explanation,
         });
       }
     });
@@ -388,7 +403,12 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
       const payloadQuestions = selectedQuestions.map((q, idx) => ({
         questionBankId: q.questionBankId,
         orderIndex: idx,
-        points: Number(q.points),
+        points: Number(q.points) || 10,
+        prompt: q.promptHanzi || q.title || `Câu hỏi #${idx + 1}`,
+        questionType: (q.exerciseType || 'single-choice').toUpperCase().replace('-', '_'),
+        options: q.options || [],
+        correctAnswer: q.correctAnswer || 'A',
+        explanation: q.explanation || '',
       }));
 
       const parsedTimeLimit = timeLimitMinutes.trim() ? parseInt(timeLimitMinutes, 10) : undefined;

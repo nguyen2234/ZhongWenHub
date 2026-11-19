@@ -6,6 +6,7 @@ import {
   Calendar,
   CheckSquare,
   BarChart3,
+  BookOpen,
   ArrowLeft,
   AlertCircle,
   RefreshCw,
@@ -16,6 +17,7 @@ import type { Course, HskLevel } from '../../admin/content/types';
 import { ConfirmDialog } from '../../shared/components';
 import {
   ClassAssignmentsTab,
+  ClassCurriculumTab,
   ClassDetailHeader,
   ClassFormDrawer,
   ClassOverviewTab,
@@ -31,7 +33,7 @@ import type {
   UpdateTeachingClassDTO,
 } from '../types';
 
-type ActiveTab = 'overview' | 'students' | 'schedule' | 'assignments' | 'performance';
+type ActiveTab = 'overview' | 'students' | 'schedule' | 'curriculum' | 'assignments' | 'performance';
 
 export const TeacherClassDetailPage: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
@@ -215,6 +217,16 @@ export const TeacherClassDetailPage: React.FC = () => {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === 'curriculum'}
+          onClick={() => setActiveTab('curriculum')}
+          className={`tp-tab-item ${activeTab === 'curriculum' ? 'active' : ''}`}
+        >
+          <BookOpen size={16} /> Giáo Trình
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === 'assignments'}
           onClick={() => setActiveTab('assignments')}
           className={`tp-tab-item ${activeTab === 'assignments' ? 'active' : ''}`}
@@ -250,6 +262,12 @@ export const TeacherClassDetailPage: React.FC = () => {
           className={detail.classInfo.name}
           members={members}
           onAttendanceSaved={loadClassDetail}
+        />
+      )}
+      {activeTab === 'curriculum' && (
+        <ClassCurriculumTab
+          classId={classId!}
+          className={detail.classInfo.name}
         />
       )}
       {activeTab === 'assignments' && (
