@@ -151,6 +151,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 .Where(c => targetClassIds.Contains(c.Id) && !c.IsArchived)
                 .ToListAsync(cancellationToken);
 
+            if (classes.Count != targetClassIds.Count)
+            {
+                throw new ArgumentException("Một hoặc nhiều lớp được giao không tồn tại hoặc đã lưu trữ.");
+            }
+
             if (!isAdmin && classes.Any(c => c.TeacherId != currentUserId))
             {
                 throw new UnauthorizedAccessException("Bạn chỉ được giao bài tập cho các lớp học do bạn phụ trách.");
@@ -280,6 +285,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 var classes = await _context.TeachingClasses
                     .Where(c => targetClassIds.Contains(c.Id) && !c.IsArchived)
                     .ToListAsync(cancellationToken);
+
+                if (classes.Count != targetClassIds.Count)
+                {
+                    throw new ArgumentException("Một hoặc nhiều lớp được giao không tồn tại hoặc đã lưu trữ.");
+                }
 
                 if (!isAdmin && classes.Any(c => c.TeacherId != currentUserId))
                 {
