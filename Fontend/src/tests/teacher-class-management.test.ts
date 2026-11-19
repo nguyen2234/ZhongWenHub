@@ -783,4 +783,26 @@ describe('Teacher Class Management Phase 1 - Real API & Contracts', () => {
     const checkInUserBSession = teacherPortalService.getClassBasicInfo('cls-user-a-delayed');
     expect(checkInUserBSession).toBeUndefined();
   });
+
+  it('26. Server trả HTTP 200 nhưng schema không phải là mảng StudentEnrolledClassDTO[] thì ném lỗi rõ ràng (Không trả [] giả)', async () => {
+    authTokenService.setSession({ accessToken: 'token-schema-test' });
+
+    // Mock response returning an object instead of an array
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({ ok: true, unexpected: 'object' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    // getMyEnrolledClasses must throw rather than swallow or return []
+    await expect(teacherPortalService.getMyEnrolledClasses()).rejects.toThrow(
+      'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách'
+    );
+
+    // getActiveClassIdsForStudentAsync also propagates the error rather than returning []
+    await expect(teacherPortalService.getActiveClassIdsForStudentAsync('any-student')).rejects.toThrow(
+      'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách'
+    );
+  });
 });

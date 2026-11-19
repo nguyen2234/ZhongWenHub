@@ -537,6 +537,12 @@ class TeacherPortalService {
 
     const data: StudentEnrolledClassDTO[] = await res.json();
 
+    if (!Array.isArray(data)) {
+      throw new Error(
+        'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách (StudentEnrolledClassDTO[]).'
+      );
+    }
+
     // RACE CONDITION & TOKEN CHANGE GUARD:
     // If the token or session epoch changed while the request was in-flight,
     // do NOT write into the new/stale cache.
@@ -591,6 +597,12 @@ class TeacherPortalService {
     }
 
     const data: StudentEnrolledClassDTO = await res.json();
+
+    if (!data || typeof data !== 'object' || !('id' in data)) {
+      throw new Error(
+        'Dữ liệu chi tiết lớp học từ máy chủ không đúng định dạng (StudentEnrolledClassDTO).'
+      );
+    }
 
     // RACE CONDITION & TOKEN CHANGE GUARD:
     const currentToken = authTokenService.getAccessToken();

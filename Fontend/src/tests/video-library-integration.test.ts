@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, afterAll, mock } from 'bun:test';
 import {
   VideoLearningService,
   videoLearningService,
@@ -13,6 +13,14 @@ describe('Video Learning Library Integration & Architecture Contract', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  afterAll(() => {
     globalThis.fetch = originalFetch;
   });
 

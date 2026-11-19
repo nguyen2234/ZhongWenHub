@@ -169,7 +169,7 @@ export const INITIAL_ASSIGNMENT_TARGETS: AssignmentTarget[] = [
   { id: 'at-001', assignmentId: 'asgn-001', classId: 'cls-002', dueDate: '2026-10-20', closeDate: '2026-10-22' },
 
   // asgn-002 giao cho lớp HSK 3 (cls-001)
-  { id: 'at-002', assignmentId: 'asgn-002', classId: 'cls-001', dueDate: '2026-10-25' },
+  { id: 'at-002', assignmentId: 'asgn-002', classId: 'cls-001', dueDate: '2028-12-31' },
 
   // asgn-004 (CLOSED) giao cho lớp HSK 1 (cls-004)
   { id: 'at-004', assignmentId: 'asgn-004', classId: 'cls-004', dueDate: '2026-09-30', closeDate: '2026-10-01' },
