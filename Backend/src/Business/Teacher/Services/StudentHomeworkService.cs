@@ -230,6 +230,29 @@ public class StudentHomeworkService : IStudentHomeworkService
         }
 
         var assignment = submission.Assignment;
+        if (assignment.Status != "PUBLISHED")
+        {
+            throw new InvalidOperationException("Bài tập không còn mở để nộp.");
+        }
+
+        var target = assignment.Targets.FirstOrDefault(t => t.ClassId == submission.ClassId);
+        if (target == null)
+        {
+            throw new InvalidOperationException("Lớp học không còn được giao bài tập này.");
+        }
+
+        if (assignment.TimeLimitMinutes > 0 &&
+            DateTime.UtcNow > submission.StartedAt.AddMinutes(assignment.TimeLimitMinutes))
+        {
+            throw new InvalidOperationException("Đã hết thời gian làm bài.");
+        }
+
+        var submittedAnswers = dto.Answers ?? new List<StudentAnswerItemDto>();
+        if (submittedAnswers.GroupBy(a => a.QuestionId).Any(g => g.Count() > 1))
+        {
+            throw new ArgumentException("Danh sách câu trả lời chứa mã câu hỏi trùng lặp.");
+        }
+
         submission.SubmittedAt = DateTime.UtcNow;
         submission.TimeSpentSeconds = Math.Max(0, dto.TimeSpentSeconds);
         submission.StudentAnswersJson = JsonSerializer.Serialize(dto.Answers ?? new List<StudentAnswerItemDto>());
@@ -239,8 +262,7 @@ public class StudentHomeworkService : IStudentHomeworkService
         double maxScore = 0;
         bool hasEssay = false;
 
-        var answerMap = (dto.Answers ?? new List<StudentAnswerItemDto>())
-            .ToDictionary(a => a.QuestionId, a => a);
+        var answerMap = submittedAnswers.ToDictionary(a => a.QuestionId, a => a);
 
         foreach (var q in assignment.Questions)
         {
@@ -264,7 +286,6 @@ public class StudentHomeworkService : IStudentHomeworkService
         }
 
         // Check late penalty
-        var target = assignment.Targets.FirstOrDefault(t => t.ClassId == submission.ClassId);
         bool isLate = target?.DueDate.HasValue == true && submission.SubmittedAt.Value > target.DueDate.Value;
 
         double finalScore = maxScore > 0 ? (totalEarned / maxScore) * 100.0 : 0.0;
@@ -301,9 +322,15 @@ public class StudentHomeworkService : IStudentHomeworkService
 
         if (member != null)
         {
-            var count = await _context.StudentAssignmentSubmissions
-                .CountAsync(s => s.ClassId == submission.ClassId && s.StudentId == studentId && (s.Status == "SUBMITTED" || s.Status == "GRADED"), cancellationToken);
-            member.CompletedAssignmentsCount = count + 1;
+            var completedAssignmentIds = await _context.StudentAssignmentSubmissions
+                .Where(s => s.ClassId == submission.ClassId && s.StudentId == studentId &&
+                    (s.Status == "SUBMITTED" || s.Status == "GRADED" || s.Status == "GRADING"))
+                .Select(s => s.AssignmentId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+            member.CompletedAssignmentsCount = completedAssignmentIds.Contains(assignment.Id)
+                ? completedAssignmentIds.Count
+                : completedAssignmentIds.Count + 1;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
