@@ -864,12 +864,20 @@ class AssignmentService {
    */
   async gradeSubmission(
     submissionId: string,
-    dto: { score?: number; feedbackNote?: string; isPassed?: boolean }
+    dto: { score?: number; customScore?: number; feedbackNote?: string; teacherFeedback?: string; isPassed?: boolean }
   ): Promise<any> {
+    const finalScore = dto.customScore ?? dto.score;
+    const finalFeedback = dto.feedbackNote ?? dto.teacherFeedback;
     const res = await fetch(getApiUrl(`/teacher/submissions/${submissionId}/grade`), {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ customScore: dto.score, feedbackNote: dto.feedbackNote }),
+      body: JSON.stringify({
+        customScore: finalScore,
+        score: finalScore,
+        feedbackNote: finalFeedback,
+        teacherFeedback: finalFeedback,
+        isPassed: dto.isPassed,
+      }),
     });
     if (!res.ok) {
       const detail = await extractErrorDetail(res, 'Không thể lưu kết quả chấm bài.');

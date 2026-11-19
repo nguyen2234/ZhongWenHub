@@ -300,7 +300,7 @@ class StudentAttemptService {
       attempt.submittedAt = result.submittedAt || new Date().toISOString();
       attempt.timeSpentSeconds = result.timeSpentSeconds || finalTimeSpentSeconds || 0;
       attempt.totalScore = result.score ?? result.earnedPoints;
-      attempt.isPassed = result.isPassed;
+      attempt.isPassed = result.isPassed ?? result.passed;
       this.syncToStorage(attempt);
       return { ...attempt };
     }
