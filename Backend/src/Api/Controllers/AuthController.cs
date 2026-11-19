@@ -213,6 +213,69 @@ public class AuthController : BaseApiController
         return Ok(updatedUser);
     }
 
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("LoginRateLimit")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Dữ liệu không hợp lệ", "Vui lòng kiểm tra lại thông tin yêu cầu.", errors);
+        }
+
+        var ip = GetClientIpAddress();
+        var (success, message, resetTokenForDev) = await _authService.ForgotPasswordAsync(request, ip, cancellationToken);
+
+        return Ok(new
+        {
+            success,
+            message,
+            resetToken = resetTokenForDev
+        });
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Dữ liệu không hợp lệ", "Vui lòng kiểm tra lại thông tin đặt lại mật khẩu.", errors);
+        }
+
+        var ip = GetClientIpAddress();
+        var (success, message) = await _authService.ResetPasswordAsync(request, ip, cancellationToken);
+
+        if (!success)
+        {
+            return ProblemDetailsResult(StatusCodes.Status400BadRequest, "Đặt lại mật khẩu thất bại", message);
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message
+        });
+    }
+
     private void SetRefreshTokenCookie(string token, DateTime expiresAt)
     {
         var cookieOptions = new CookieOptions

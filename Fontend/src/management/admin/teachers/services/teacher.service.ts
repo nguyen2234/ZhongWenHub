@@ -251,39 +251,38 @@ class AdminTeacherService {
 
   public async createTeacher(dto: CreateTeacherDTO): Promise<TeacherDetail> {
     const token = authTokenService.getAccessToken();
-    let backendId: string | null = null;
-
-    if (token) {
-      const res = await fetch(getApiUrl('admin/users'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          password: 'Teacher12345!',
-          roles: ['TEACHER'],
-          initialHsk: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
-          status: 'ACTIVE',
-          notes: dto.bio || dto.qualifications || 'Giáo viên Tiếng Trung',
-          phone: dto.phone,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản giáo viên trên máy chủ.');
-      }
-
-      const createdUser = await res.json();
-      backendId = createdUser.id;
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để tạo tài khoản giáo viên.');
     }
 
+    const res = await fetch(getApiUrl('admin/users'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        password: 'Teacher12345!',
+        roles: ['TEACHER'],
+        initialHsk: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
+        status: 'ACTIVE',
+        notes: dto.bio || dto.qualifications || 'Giáo viên Tiếng Trung',
+        phone: dto.phone,
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản giáo viên trên máy chủ.');
+    }
+
+    const createdUser = await res.json();
+    const id = createdUser.id;
+
     const now = new Date();
-    const id = backendId || `t-${Date.now().toString().slice(-4)}`;
     const joinedAt = now.toLocaleDateString('vi-VN');
     const joinedDateRaw = now.toISOString();
 
@@ -340,29 +339,31 @@ class AdminTeacherService {
     }
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          phone: dto.phone,
-          notes: dto.bio || dto.notes,
-          hskLevel: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
-          status: dto.accountStatus || 'ACTIVE',
-          roles: ['TEACHER'],
-        }),
-      });
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để cập nhật giáo viên.');
+    }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật thông tin giáo viên.');
-      }
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        phone: dto.phone,
+        notes: dto.bio || dto.notes,
+        hskLevel: dto.teachingLevels && dto.teachingLevels[0] ? dto.teachingLevels[0] : 'HSK 1',
+        status: dto.accountStatus || 'ACTIVE',
+        roles: ['TEACHER'],
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật thông tin giáo viên.');
     }
 
     const current = this.teachers[index];
@@ -406,20 +407,22 @@ class AdminTeacherService {
 
     const lockReason = reason || 'Tài khoản bị tạm khóa bởi quản trị viên hệ thống.';
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ reason: lockReason }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản giáo viên.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ reason: lockReason }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản giáo viên.');
     }
 
     const current = this.teachers[index];
@@ -450,18 +453,20 @@ class AdminTeacherService {
     if (index === -1) throw new Error(`Không tìm thấy giáo viên.`);
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản giáo viên.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản giáo viên.');
     }
 
     const current = this.teachers[index];
@@ -489,18 +494,20 @@ class AdminTeacherService {
 
   public async deleteTeacher(id: string): Promise<void> {
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản giáo viên.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản giáo viên.');
     }
 
     this.teachers = this.teachers.filter((t) => t.id !== id);

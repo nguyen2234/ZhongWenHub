@@ -238,38 +238,37 @@ class AdminSupportStaffService {
 
   public async createStaff(dto: CreateSupportStaffDTO): Promise<SupportStaffDetail> {
     const token = authTokenService.getAccessToken();
-    let backendId: string | null = null;
-
-    if (token) {
-      const res = await fetch(getApiUrl('admin/users'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          password: 'Support12345!',
-          roles: ['SUPPORT'],
-          status: 'ACTIVE',
-          notes: `Ca làm việc: ${dto.shift}`,
-          phone: dto.phone,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản nhân viên hỗ trợ trên máy chủ.');
-      }
-
-      const createdUser = await res.json();
-      backendId = createdUser.id;
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để tạo tài khoản nhân viên hỗ trợ.');
     }
 
+    const res = await fetch(getApiUrl('admin/users'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        password: 'Support12345!',
+        roles: ['SUPPORT'],
+        status: 'ACTIVE',
+        notes: `Ca làm việc: ${dto.shift}`,
+        phone: dto.phone,
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể tạo tài khoản nhân viên hỗ trợ trên máy chủ.');
+    }
+
+    const createdUser = await res.json();
+    const id = createdUser.id;
+
     const now = new Date();
-    const id = backendId || `sp-${Date.now().toString().slice(-4)}`;
     const joinedAt = now.toLocaleDateString('vi-VN');
     const joinedDateRaw = now.toISOString();
 
@@ -314,27 +313,29 @@ class AdminSupportStaffService {
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: dto.name.trim(),
-          email: dto.email.trim().toLowerCase(),
-          phone: dto.phone,
-          notes: dto.notes,
-          roles: ['SUPPORT'],
-        }),
-      });
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để cập nhật nhân viên hỗ trợ.');
+    }
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật nhân viên hỗ trợ.');
-      }
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: dto.name.trim(),
+        email: dto.email.trim().toLowerCase(),
+        phone: dto.phone,
+        notes: dto.notes,
+        roles: ['SUPPORT'],
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể cập nhật nhân viên hỗ trợ.');
     }
 
     const current = this.staffList[index];
@@ -399,20 +400,22 @@ class AdminSupportStaffService {
 
     const lockReason = reason || 'Tài khoản bị tạm khóa bởi Quản trị viên';
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-        body: JSON.stringify({ reason: lockReason }),
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản nhân viên hỗ trợ.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/lock`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ reason: lockReason }),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể khóa tài khoản nhân viên hỗ trợ.');
     }
 
     const current = this.staffList[index];
@@ -442,18 +445,20 @@ class AdminSupportStaffService {
     if (index === -1) throw new Error(`Staff with id ${id} not found.`);
 
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản nhân viên hỗ trợ.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}/unlock`), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể mở khóa tài khoản nhân viên hỗ trợ.');
     }
 
     const current = this.staffList[index];
@@ -480,18 +485,20 @@ class AdminSupportStaffService {
 
   public async deleteStaff(id: string): Promise<void> {
     const token = authTokenService.getAccessToken();
-    if (token && id.length > 20) {
-      const res = await fetch(getApiUrl(`admin/users/${id}`), {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản nhân viên.');
-      }
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/${id}`), {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể xóa / vô hiệu hóa tài khoản nhân viên.');
     }
 
     this.staffList = this.staffList.filter((s) => s.id !== id);

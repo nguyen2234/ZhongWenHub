@@ -8,6 +8,15 @@ function getApiUrl(endpoint: string): string {
   return `${cleanBase}/${cleanEndpoint}`;
 }
 
+export interface AdminActivityItem {
+  id: string;
+  actionText: string;
+  targetName: string;
+  actorName: string;
+  timeAgo: string;
+  timestamp: string;
+}
+
 export interface AdminDashboardStats {
   totalStudents: number;
   totalTeachers: number;
@@ -18,6 +27,15 @@ export interface AdminDashboardStats {
   activeUsers: number;
   lockedUsers: number;
   newUsers30d: number;
+  totalVocabularies?: number;
+  totalGrammarPoints?: number;
+  totalCharacters?: number;
+  totalLessons?: number;
+  totalExercises?: number;
+  totalVideos?: number;
+  totalExams?: number;
+  pendingModerationCount?: number;
+  recentActivities?: AdminActivityItem[];
 }
 
 class AdminDashboardService {

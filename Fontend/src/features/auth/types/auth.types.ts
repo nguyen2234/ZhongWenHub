@@ -1,6 +1,6 @@
 /**
  * Authentication Type Definitions for ZhongWenHub
- * Prepared for eventual Spring Boot REST API integration.
+ * Prepared for ASP.NET Core 10 REST API integration.
  */
 
 export interface LoginRequest {
@@ -19,6 +19,13 @@ export interface RegisterRequest {
 
 export interface ForgotPasswordRequest {
   email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  token: string;
+  newPassword: string;
+  confirmPassword?: string;
 }
 
 export interface AuthUser {

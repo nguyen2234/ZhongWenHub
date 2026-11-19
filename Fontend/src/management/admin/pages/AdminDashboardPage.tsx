@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '../../shared/components';
-import type { DateRangeOption, RecentUser, StatMetricItem } from '../types/dashboard.types';
+import type { DateRangeOption, RecentActivity, RecentUser, StatMetricItem } from '../types/dashboard.types';
 import {
   ActionPriorityBanner,
   DashboardDateRangeSelect,
@@ -98,13 +98,13 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'total-classes',
         title: 'Tổng số lớp học',
-        currentTotal: realStats?.totalClasses ?? 'Chưa triển khai',
+        currentTotal: realStats?.totalClasses ?? (isLoading ? '...' : 0),
         totalLabel: 'Lớp học đang mở',
         deltaInRange: {
-          value: 0,
-          percentageText: 'Chưa triển khai',
+          value: realStats?.totalClasses ?? 0,
+          percentageText: realStats?.totalClasses != null ? `${realStats.totalClasses} lớp` : '0 lớp',
           trend: 'neutral',
-          timeContext: 'Dành cho Giai đoạn 3 (Teacher)',
+          timeContext: 'lớp học phân công giảng dạy',
         },
         deltaLabel: 'Lớp học',
         iconType: 'classes',
@@ -112,13 +112,13 @@ export const AdminDashboardPage: React.FC = () => {
       {
         id: 'pending-tickets',
         title: 'Hỗ trợ chưa xử lý',
-        currentTotal: realStats?.pendingSupportTickets ?? 'Chưa triển khai',
+        currentTotal: realStats?.pendingSupportTickets ?? 0,
         totalLabel: 'Ticket cần phản hồi',
         deltaInRange: {
           value: 0,
-          percentageText: 'Chưa triển khai',
+          percentageText: realStats?.pendingSupportTickets != null ? `${realStats.pendingSupportTickets} yêu cầu` : '0 yêu cầu',
           trend: 'neutral',
-          timeContext: 'Dành cho Giai đoạn 4 (Support)',
+          timeContext: 'yêu cầu hỗ trợ học viên',
         },
         deltaLabel: 'Hỗ trợ',
         iconType: 'support',
@@ -127,10 +127,25 @@ export const AdminDashboardPage: React.FC = () => {
   }, [realStats, isLoading]);
 
   const pendingModerationCount = useMemo(() => {
-    return contentModerationService.getModerationItems({ status: 'PENDING_REVIEW' }).length;
-  }, []);
+    return realStats?.pendingModerationCount ?? contentModerationService.getModerationItems({ status: 'PENDING_REVIEW' }).length;
+  }, [realStats]);
 
   const urgentTicketsCount = realStats?.pendingSupportTickets ?? 0;
+
+  const activities: RecentActivity[] = useMemo(() => {
+    if (!realStats?.recentActivities || realStats.recentActivities.length === 0) {
+      return [];
+    }
+    return realStats.recentActivities.map((act) => ({
+      id: act.id,
+      actorName: act.actorName,
+      actorRole: 'Hệ thống',
+      actionText: act.actionText,
+      targetName: act.targetName,
+      timestamp: act.timeAgo || act.timestamp,
+      category: 'system' as const,
+    }));
+  }, [realStats]);
 
   return (
     <div className="admin-dashboard">
@@ -195,11 +210,11 @@ export const AdminDashboardPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
           <ContentScaleCard
             contentScale={{
-              vocabulary: { key: 'vocab', label: 'Từ vựng', totalCount: 0, addedInRange: 0, unit: 'từ' },
-              grammar: { key: 'grammar', label: 'Ngữ pháp', totalCount: 0, addedInRange: 0, unit: 'điểm' },
-              characters: { key: 'chars', label: 'Chữ Hán', totalCount: 0, addedInRange: 0, unit: 'chữ' },
-              lessons: { key: 'lessons', label: 'Bài học', totalCount: 0, addedInRange: 0, unit: 'bài' },
-              exercises: { key: 'exercises', label: 'Bài tập', totalCount: 0, addedInRange: 0, unit: 'câu' },
+              vocabulary: { key: 'vocab', label: 'Từ vựng', totalCount: realStats?.totalVocabularies ?? 0, addedInRange: 0, unit: 'từ' },
+              grammar: { key: 'grammar', label: 'Ngữ pháp', totalCount: realStats?.totalGrammarPoints ?? 0, addedInRange: 0, unit: 'điểm' },
+              characters: { key: 'chars', label: 'Chữ Hán', totalCount: realStats?.totalCharacters ?? 0, addedInRange: 0, unit: 'chữ' },
+              lessons: { key: 'lessons', label: 'Bài học', totalCount: realStats?.totalLessons ?? 0, addedInRange: 0, unit: 'bài' },
+              exercises: { key: 'exercises', label: 'Bài tập', totalCount: realStats?.totalExercises ?? 0, addedInRange: 0, unit: 'câu' },
             }}
             rangeLabel={range}
           />
@@ -216,7 +231,7 @@ export const AdminDashboardPage: React.FC = () => {
             resolvedRate: 100,
             urgentTickets: [],
           }} />
-          <RecentActivityFeed activities={[]} />
+          <RecentActivityFeed activities={activities} />
         </div>
       </div>
     </div>

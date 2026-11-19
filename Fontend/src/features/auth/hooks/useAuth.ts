@@ -1,7 +1,7 @@
 import { useAuthContext } from '../context/AuthContext';
 import { useState, useCallback } from 'react';
 import { authService } from '../services/authService';
-import type { LoginRequest, RegisterRequest, AuthUser } from '../types/auth.types';
+import type { LoginRequest, RegisterRequest, ResetPasswordRequest, AuthUser } from '../types/auth.types';
 
 export function useAuth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,6 +108,28 @@ export function useAuth() {
     []
   );
 
+  const resetPassword = useCallback(
+    async (request: ResetPasswordRequest, onSuccess: () => void) => {
+      setIsSubmitting(true);
+      setApiError(null);
+      setApiSuccess(null);
+
+      try {
+        const response = await authService.resetPassword(request);
+        if (response.success) {
+          setApiSuccess(response.message);
+          onSuccess();
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Không thể đặt lại mật khẩu.';
+        setApiError(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    []
+  );
+
   return {
     isSubmitting,
     apiError,
@@ -116,6 +138,7 @@ export function useAuth() {
     register,
     loginWithGoogle,
     forgotPassword,
+    resetPassword,
     clearMessages,
   };
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield,
   Palette,
@@ -7,7 +7,9 @@ import {
   AlertTriangle,
   Lock,
   Globe,
+  Loader2,
 } from 'lucide-react';
+import { adminOperationsService } from '../../services/admin-operations.service';
 
 export const AdminSystemSettingsView: React.FC = () => {
   const [platformName, setPlatformName] = useState('ZhongWenHub (中文社)');
@@ -33,12 +35,32 @@ export const AdminSystemSettingsView: React.FC = () => {
 
   // Save feedback
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    adminOperationsService.getSystemSettings().then((s) => {
+      if (s) {
+        if (s.platformName) setPlatformName(s.platformName);
+        if (s.contactEmail) setContactEmail(s.contactEmail);
+        if (s.slogan) setSlogan(s.slogan);
+        if (s.defaultLanguage) setDefaultLanguage(s.defaultLanguage);
+        if (s.timezone) setTimezone(s.timezone);
+        if (s.maxLoginAttempts) setMaxAttempts(s.maxLoginAttempts);
+        if (s.sessionTimeoutMinutes) setSessionTimeoutMin(s.sessionTimeoutMinutes);
+        if (s.require2FA !== undefined) setRequire2FA(s.require2FA);
+        if (s.systemNotice) setSystemNotice(s.systemNotice);
+        if (s.isMaintenanceMode !== undefined) setIsMaintenanceMode(s.isMaintenanceMode);
+      }
+    });
+  }, []);
 
   const handleFieldChange = (setter: any, value: any) => {
     setter(value);
     setHasChanges(true);
     setIsSaved(false);
+    setSaveError(null);
   };
 
   const handleMaintenanceToggle = (checked: boolean) => {
@@ -51,13 +73,36 @@ export const AdminSystemSettingsView: React.FC = () => {
     setShowConfirmModal(false);
     setHasChanges(true);
     setIsSaved(false);
+    setSaveError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setHasChanges(false);
-    setTimeout(() => setIsSaved(false), 4000);
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      await adminOperationsService.updateSystemSettings({
+        platformName,
+        contactEmail,
+        slogan,
+        defaultLanguage,
+        timezone,
+        maxLoginAttempts: maxAttempts,
+        sessionTimeoutMinutes: sessionTimeoutMin,
+        require2FA,
+        systemNotice,
+        isMaintenanceMode,
+      });
+
+      setIsSaved(true);
+      setHasChanges(false);
+      setTimeout(() => setIsSaved(false), 4000);
+    } catch (err: any) {
+      setSaveError(err?.message || 'Không thể lưu cấu hình lên máy chủ.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -79,7 +124,7 @@ export const AdminSystemSettingsView: React.FC = () => {
       >
         <Shield size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
         <div>
-          <strong>Cấu hình mô phỏng (Demo Configuration):</strong> Mọi thiết lập trên trang này có giá trị minh họa giao diện quản trị trong phiên làm việc của trình duyệt. Không áp dụng thay đổi vật lý lên tường lửa máy chủ Linux hoặc cơ sở dữ liệu PostgreSQL.
+          <strong>Cấu hình hệ thống tập trung:</strong> Mọi thiết lập trên trang này được đồng bộ và lưu trữ trực tiếp trên hệ thống Backend ASP.NET Core & Cơ sở dữ liệu.
         </div>
       </div>
 
@@ -479,12 +524,17 @@ export const AdminSystemSettingsView: React.FC = () => {
           <div>
             {hasChanges && (
               <span style={{ fontSize: '12.5px', color: '#b45309', fontWeight: 600 }}>
-                Bạn có thay đổi chưa lưu trong phiên này.
+                Bạn có thay đổi chưa lưu.
+              </span>
+            )}
+            {saveError && (
+              <span style={{ fontSize: '12.5px', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangle size={15} /> {saveError}
               </span>
             )}
             {isSaved && (
               <span style={{ fontSize: '12.5px', color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <CheckCircle2 size={15} /> Đã áp dụng thiết lập demo thành công trong phiên hiện tại!
+                <CheckCircle2 size={15} /> Cấu hình hệ thống đã được lưu thành công vào cơ sở dữ liệu!
               </span>
             )}
           </div>
@@ -492,10 +542,12 @@ export const AdminSystemSettingsView: React.FC = () => {
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="submit"
+              disabled={isSaving}
               className="ds-btn ds-btn-primary"
               style={{ gap: '6px' }}
             >
-              <CheckCircle2 size={16} /> Lưu & Áp dụng thiết lập
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+              {isSaving ? 'Đang lưu...' : 'Lưu & Áp dụng thiết lập'}
             </button>
           </div>
         </div>
@@ -548,14 +600,14 @@ export const AdminSystemSettingsView: React.FC = () => {
                 <AlertTriangle size={20} />
               </div>
               <h3 id="maint-dialog-title" style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--foreground)' }}>
-                {pendingMaintenanceState ? 'Xác nhận BẬT chế độ bảo trì mô phỏng?' : 'Xác nhận TẮT chế độ bảo trì?'}
+                {pendingMaintenanceState ? 'Xác nhận BẬT chế độ bảo trì hệ thống?' : 'Xác nhận TẮT chế độ bảo trì?'}
               </h3>
             </div>
 
             <p style={{ margin: 0, fontSize: '13px', color: 'var(--muted)', lineHeight: 1.5 }}>
               {pendingMaintenanceState
-                ? 'Trong chế độ bảo trì mô phỏng, giao diện sẽ kích hoạt cờ bảo trì trên toàn bộ các route học viên và giáo viên trong phiên thử nghiệm này.'
-                : 'Thao tác này sẽ đưa cổng thông tin trở lại trạng thái hoạt động bình thường.'}
+                ? 'Trong chế độ bảo trì, chỉ quản trị viên được phép truy cập. Các học viên và giảng viên sẽ nhận được thông báo bảo trì nâng cấp.'
+                : 'Thao tác này sẽ mở lại toàn bộ cổng học tập và phân hệ giảng dạy bình thường.'}
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>

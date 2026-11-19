@@ -5,6 +5,7 @@ import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
+import { defaultApiConfig } from '../../../core/api/client/api-config';
 import type {
   StudentAssignmentRunnerDTO,
   StudentAssignmentAttempt,
@@ -40,9 +41,10 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
+        setRunnerData(null);
+        setAttempt(null);
 
-        const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentStudent.id);
-        if (isRealUser && !authTokenService.isAuthenticated()) {
+        if (!authTokenService.isAuthenticated() && !defaultApiConfig.useMock) {
           throw new Error('Vui lòng đăng nhập với tài khoản học viên để tham gia làm bài tập.');
         }
 
@@ -95,12 +97,17 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [assignmentId]);
+  }, [assignmentId, currentStudent.id, navigate]);
 
   // Submission handler
   const handleFinalSubmit = useCallback(
     async (finalAnswers: Record<string, StudentQuestionAnswer>) => {
       if (!attempt || !assignmentId) return;
+
+      if (attempt.studentId !== currentStudent.id) {
+        alert('Phiên làm bài này thuộc về tài khoản học viên khác. Vui lòng đăng nhập đúng tài khoản để nộp bài.');
+        return;
+      }
 
       try {
         setIsSubmitting(true);

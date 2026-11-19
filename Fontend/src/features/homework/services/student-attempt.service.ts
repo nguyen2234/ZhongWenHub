@@ -287,6 +287,38 @@ class StudentAttemptService {
       answeredCount,
     };
   }
+
+  /**
+   * Cleans up in-memory attempts and localStorage drafts when switching users or logging out.
+   */
+  clearUserCache(studentId?: string): void {
+    if (studentId) {
+      this.attemptsStore = this.attemptsStore.filter((a) => a.studentId !== studentId);
+    } else {
+      this.attemptsStore = [];
+    }
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const keys = Object.keys(window.localStorage).filter((k) => k.startsWith(STORAGE_PREFIX));
+        keys.forEach((key) => {
+          if (!studentId) {
+            window.localStorage.removeItem(key);
+          } else {
+            const item = window.localStorage.getItem(key);
+            if (item) {
+              const parsed = JSON.parse(item) as StudentAssignmentAttempt;
+              if (parsed && parsed.studentId === studentId) {
+                window.localStorage.removeItem(key);
+              }
+            }
+          }
+        });
+      } catch {
+        // ignore
+      }
+    }
+  }
 }
 
 export const studentAttemptService = new StudentAttemptService();
