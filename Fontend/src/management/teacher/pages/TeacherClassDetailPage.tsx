@@ -15,11 +15,11 @@ import { hskRepositoryService } from '../../admin/content/services/hsk-repositor
 import type { Course, HskLevel } from '../../admin/content/types';
 import { ConfirmDialog } from '../../shared/components';
 import {
-  ClassAssignmentsPlaceholderTab,
+  ClassAssignmentsTab,
   ClassDetailHeader,
   ClassFormDrawer,
   ClassOverviewTab,
-  ClassPerformancePlaceholderTab,
+  ClassPerformanceTab,
   ClassScheduleTab,
   ClassStudentsTab,
 } from '../components';
@@ -219,7 +219,7 @@ export const TeacherClassDetailPage: React.FC = () => {
           onClick={() => setActiveTab('assignments')}
           className={`tp-tab-item ${activeTab === 'assignments' ? 'active' : ''}`}
         >
-          <CheckSquare size={16} /> Bài Tập (Phase 2)
+          <CheckSquare size={16} /> Bài Tập
         </button>
 
         <button
@@ -229,7 +229,7 @@ export const TeacherClassDetailPage: React.FC = () => {
           onClick={() => setActiveTab('performance')}
           className={`tp-tab-item ${activeTab === 'performance' ? 'active' : ''}`}
         >
-          <BarChart3 size={16} /> Hiệu Suất (Phase 2)
+          <BarChart3 size={16} /> Hiệu Suất
         </button>
       </div>
 
@@ -243,9 +243,26 @@ export const TeacherClassDetailPage: React.FC = () => {
           onMemberRemoved={loadClassDetail}
         />
       )}
-      {activeTab === 'schedule' && <ClassScheduleTab schedules={detail.schedules} />}
-      {activeTab === 'assignments' && <ClassAssignmentsPlaceholderTab />}
-      {activeTab === 'performance' && <ClassPerformancePlaceholderTab />}
+      {activeTab === 'schedule' && (
+        <ClassScheduleTab
+          schedules={detail.schedules}
+          classId={classId}
+          className={detail.classInfo.name}
+          members={members}
+          onAttendanceSaved={loadClassDetail}
+        />
+      )}
+      {activeTab === 'assignments' && (
+        <ClassAssignmentsTab
+          classId={classId!}
+          className={detail.classInfo.name}
+        />
+      )}
+      {activeTab === 'performance' && (
+        <ClassPerformanceTab
+          classId={classId!}
+        />
+      )}
 
       {/* Edit Drawer */}
       <ClassFormDrawer

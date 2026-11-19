@@ -31,7 +31,7 @@ public class QuestionBankController : BaseApiController
     // =========================================================================
 
     [HttpGet]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.QuestionBankReadAccess)]
     [ProducesResponseType(typeof(PagedResponse<QuestionBankItemDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetQuestionBank(
         [FromQuery] int? hskLevel,
@@ -67,7 +67,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.QuestionBankReadAccess)]
     [ProducesResponseType(typeof(QuestionBankItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken = default)

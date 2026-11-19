@@ -26,6 +26,11 @@ import type {
   TeacherClassStatsDTO,
   TeachingClass,
   UpdateTeachingClassDTO,
+  ClassAttendanceRecord,
+  RecordClassAttendancePayload,
+  ClassAttendanceSummaryDTO,
+  ClassCurriculumDTO,
+  ClassPerformanceDTO,
 } from '../types/class.types';
 import { DAY_OF_WEEK_LABELS } from '../types/class.types';
 import type {
@@ -503,6 +508,85 @@ class TeacherPortalService {
       code: cls.code,
       hskLevelId: cls.hskLevelId,
     };
+  }
+
+  /* ==========================================================================
+     6. CURRICULUM, PERFORMANCE & ATTENDANCE
+     ========================================================================== */
+
+  async getClassCurriculum(classId: string): Promise<ClassCurriculumDTO> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/curriculum`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải giáo trình lớp học.');
+      throw new Error(detail);
+    }
+    return res.json();
+  }
+
+  async setClassCurriculum(classId: string, courseId: string): Promise<boolean> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/curriculum`), {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ courseId }),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể cập nhật giáo trình lớp học.');
+      throw new Error(detail);
+    }
+    return true;
+  }
+
+  async getClassPerformance(classId: string): Promise<ClassPerformanceDTO> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/performance`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải báo cáo hiệu suất lớp học.');
+      throw new Error(detail);
+    }
+    return res.json();
+  }
+
+  async getClassAttendance(classId: string, date?: string): Promise<ClassAttendanceRecord[]> {
+    const url = date ? `/teacher/classes/${classId}/attendance?date=${encodeURIComponent(date)}` : `/teacher/classes/${classId}/attendance`;
+    const res = await fetch(getApiUrl(url), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải dữ liệu điểm danh.');
+      throw new Error(detail);
+    }
+    return res.json();
+  }
+
+  async recordClassAttendance(classId: string, payload: RecordClassAttendancePayload): Promise<ClassAttendanceRecord[]> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/attendance`), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể lưu bản ghi điểm danh.');
+      throw new Error(detail);
+    }
+    return res.json();
+  }
+
+  async getClassAttendanceSummary(classId: string): Promise<ClassAttendanceSummaryDTO> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/attendance/summary`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải thống kê chuyên cần.');
+      throw new Error(detail);
+    }
+    return res.json();
   }
 
   /* ==========================================================================

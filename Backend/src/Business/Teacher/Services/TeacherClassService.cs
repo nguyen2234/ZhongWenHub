@@ -12,6 +12,7 @@ using ZhongWenHub.Business.Teacher.DTOs;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Teacher;
 using ZhongWenHub.Data.Persistence;
 
@@ -727,6 +728,58 @@ public class TeacherClassService : ITeacherClassService
             new() { Id = "qa-submissions", Label = "Chấm bài tập về nhà", Description = "Xem bài nộp của học viên", Path = "/management/teacher/assignments", IconName = "submissions" }
         };
 
+        // Query pending submissions
+        IQueryable<StudentAssignmentSubmission> pendingQuery = _dbContext.StudentAssignmentSubmissions
+            .AsNoTracking()
+            .Include(s => s.Student)
+            .Include(s => s.Assignment)
+            .Include(s => s.TeachingClass)
+            .Where(s => s.Status == "SUBMITTED" || s.Status == "GRADING");
+
+        if (!isAdmin)
+        {
+            pendingQuery = pendingQuery.Where(s => s.Assignment.TeacherId == userId);
+        }
+
+        var pendingCount = await pendingQuery.CountAsync(cancellationToken);
+        var pendingList = await pendingQuery
+            .OrderByDescending(s => s.SubmittedAt ?? s.CreatedAt)
+            .Take(5)
+            .ToListAsync(cancellationToken);
+
+        var pendingSubmissions = pendingList.Select(s =>
+        {
+            var studentName = string.IsNullOrWhiteSpace(s.Student?.DisplayName)
+                ? (s.Student?.UserName ?? "Học viên")
+                : s.Student.DisplayName;
+
+            return new DemoSubmissionItemDto
+            {
+                Id = s.Id.ToString(),
+                AssignmentTitle = s.Assignment.Title,
+                ClassId = s.ClassId.ToString(),
+                ClassName = s.TeachingClass?.Name ?? "Lớp học",
+                StudentId = s.StudentId.ToString(),
+                StudentName = studentName,
+                StudentAvatarUrl = s.Student?.AvatarUrl,
+                SubmittedAt = (s.SubmittedAt ?? s.CreatedAt).ToString("yyyy-MM-dd HH:mm"),
+                SubmittedTimeAgo = FormatTimeAgo(s.SubmittedAt ?? s.CreatedAt),
+                Status = s.Status,
+                Score = s.Score
+            };
+        }).ToList();
+
+        var recentActivities = pendingList.Select(s => new RecentClassActivityDto
+        {
+            Id = $"act-sub-{s.Id}",
+            Timestamp = (s.SubmittedAt ?? s.CreatedAt).ToString("yyyy-MM-dd HH:mm"),
+            TimeAgo = FormatTimeAgo(s.SubmittedAt ?? s.CreatedAt),
+            Type = "SUBMISSION",
+            Title = "Bài nộp mới",
+            Description = $"{(string.IsNullOrWhiteSpace(s.Student?.DisplayName) ? (s.Student?.UserName ?? "Học viên") : s.Student.DisplayName)} đã nộp bài '{s.Assignment.Title}'",
+            ClassId = s.ClassId.ToString()
+        }).ToList();
+
         return new TeacherDashboardDto
         {
             TeacherId = userId,
@@ -736,13 +789,13 @@ public class TeacherClassService : ITeacherClassService
             {
                 ActiveClassesCount = activeClasses.Count,
                 TotalEnrolledStudents = totalEnrolledStudents,
-                PendingSubmissionsCount = 0,
+                PendingSubmissionsCount = pendingCount,
                 WeeklyTeachingHours = Math.Round(weeklyHours, 1)
             },
             UpcomingSessions = upcomingSessions,
             ActiveClasses = activeSummaries,
-            PendingSubmissions = new List<DemoSubmissionItemDto>(),
-            RecentActivities = new List<RecentClassActivityDto>(),
+            PendingSubmissions = pendingSubmissions,
+            RecentActivities = recentActivities,
             QuickActions = quickActions
         };
     }
@@ -810,6 +863,219 @@ public class TeacherClassService : ITeacherClassService
             .ToListAsync(cancellationToken);
 
         return enrolled;
+    }
+
+    public async Task<ClassCurriculumDto> GetClassCurriculumAsync(Guid classId, CancellationToken cancellationToken = default)
+    {
+        var (userId, isAdmin) = GetCurrentUserInfo();
+        var cls = await _dbContext.TeachingClasses
+            .AsNoTracking()
+            .Include(c => c.Course)
+            .FirstOrDefaultAsync(c => c.Id == classId, cancellationToken);
+
+        if (cls == null)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy lớp học với mã '{classId}'.");
+        }
+
+        if (!isAdmin && cls.TeacherId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền xem giáo trình của lớp học này.");
+        }
+
+        var result = new ClassCurriculumDto
+        {
+            ClassId = cls.Id,
+            ClassName = cls.Name,
+            CourseId = cls.CourseId,
+            CourseTitle = cls.Course?.Title,
+            HskLevelId = cls.HskLevelId,
+            Units = new List<ClassCurriculumUnitDto>()
+        };
+
+        if (cls.CourseId.HasValue)
+        {
+            var units = await _dbContext.Units
+                .AsNoTracking()
+                .Include(u => u.Lessons.OrderBy(l => l.LessonNumber))
+                .Where(u => u.CourseId == cls.CourseId.Value)
+                .OrderBy(u => u.UnitNumber)
+                .ToListAsync(cancellationToken);
+
+            result.Units = units.Select(u => new ClassCurriculumUnitDto
+            {
+                Id = u.Id,
+                UnitNumber = u.UnitNumber,
+                Title = string.IsNullOrWhiteSpace(u.TitleVi) ? u.TitleZh : $"{u.TitleZh} - {u.TitleVi}",
+                Lessons = u.Lessons.Select(l => new ClassCurriculumLessonDto
+                {
+                    Id = l.Id,
+                    LessonNumber = l.LessonNumber,
+                    Title = l.TitleZh,
+                    PinyinTitle = l.Pinyin ?? string.Empty,
+                    VietnameseTitle = l.TitleVi,
+                    IsPublished = l.Status == "PUBLISHED"
+                }).ToList()
+            }).ToList();
+        }
+
+        return result;
+    }
+
+    public async Task<bool> SetClassCurriculumAsync(Guid classId, SetClassCurriculumDto dto, CancellationToken cancellationToken = default)
+    {
+        var (userId, isAdmin) = GetCurrentUserInfo();
+        var cls = await _dbContext.TeachingClasses
+            .FirstOrDefaultAsync(c => c.Id == classId, cancellationToken);
+
+        if (cls == null)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy lớp học với mã '{classId}'.");
+        }
+
+        if (!isAdmin && cls.TeacherId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền cập nhật giáo trình của lớp học này.");
+        }
+
+        var courseExists = await _dbContext.Courses
+            .AnyAsync(c => c.Id == dto.CourseId, cancellationToken);
+
+        if (!courseExists)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy khóa học với mã '{dto.CourseId}'.");
+        }
+
+        cls.CourseId = dto.CourseId;
+        cls.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<ClassPerformanceDto> GetClassPerformanceAsync(Guid classId, CancellationToken cancellationToken = default)
+    {
+        var (userId, isAdmin) = GetCurrentUserInfo();
+        var cls = await _dbContext.TeachingClasses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == classId, cancellationToken);
+
+        if (cls == null)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy lớp học với mã '{classId}'.");
+        }
+
+        if (!isAdmin && cls.TeacherId != userId)
+        {
+            throw new UnauthorizedAccessException("Bạn không có quyền xem thống kê của lớp học này.");
+        }
+
+        var members = await _dbContext.TeachingClassMembers
+            .AsNoTracking()
+            .Include(m => m.Student)
+            .Where(m => m.ClassId == classId && m.Status == "ACTIVE")
+            .ToListAsync(cancellationToken);
+
+        var totalStudents = members.Count;
+        var avgAttendance = totalStudents > 0 ? members.Average(m => m.AttendanceRate) : 0.0;
+
+        var targetAssignmentIds = await _dbContext.AssignmentTargets
+            .AsNoTracking()
+            .Where(t => t.ClassId == classId)
+            .Select(t => t.AssignmentId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var totalAssignmentsAssigned = targetAssignmentIds.Count;
+
+        var studentIds = members.Select(m => m.StudentId).ToList();
+        var submissions = await _dbContext.StudentAssignmentSubmissions
+            .AsNoTracking()
+            .Where(s => targetAssignmentIds.Contains(s.AssignmentId) && studentIds.Contains(s.StudentId))
+            .ToListAsync(cancellationToken);
+
+        var studentSubmissions = submissions
+            .GroupBy(s => s.StudentId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var studentSummaries = new List<StudentPerformanceSummaryDto>();
+        var allScores = new List<double>();
+        var gradeDist = new GradeDistributionDto();
+
+        foreach (var member in members)
+        {
+            studentSubmissions.TryGetValue(member.StudentId, out var subList);
+            subList ??= new List<StudentAssignmentSubmission>();
+
+            var completedCount = subList
+                .Where(s => s.Status == "SUBMITTED" || s.Status == "GRADED")
+                .Select(s => s.AssignmentId)
+                .Distinct()
+                .Count();
+
+            var validScores = subList
+                .Where(s => s.Status == "SUBMITTED" || s.Status == "GRADED")
+                .GroupBy(s => s.AssignmentId)
+                .Select(g => g.OrderByDescending(s => s.AttemptNumber).First().Score)
+                .ToList();
+
+            var avgScore = validScores.Count > 0 ? Math.Round(validScores.Average(), 1) : 0.0;
+            if (validScores.Count > 0)
+            {
+                allScores.Add(avgScore);
+                if (avgScore >= 85) gradeDist.ExcellentCount++;
+                else if (avgScore >= 70) gradeDist.GoodCount++;
+                else if (avgScore >= 50) gradeDist.AverageCount++;
+                else gradeDist.PoorCount++;
+            }
+
+            var studentName = string.IsNullOrWhiteSpace(member.Student?.DisplayName)
+                ? (member.Student?.UserName ?? "Học viên")
+                : member.Student.DisplayName;
+
+            studentSummaries.Add(new StudentPerformanceSummaryDto
+            {
+                StudentId = member.StudentId,
+                StudentName = studentName,
+                StudentEmail = member.Student?.Email ?? string.Empty,
+                StudentAvatarUrl = member.Student?.AvatarUrl,
+                AttendanceRate = Math.Round(member.AttendanceRate, 1),
+                AssignmentsCompleted = completedCount,
+                TotalAssignments = totalAssignmentsAssigned,
+                AverageScore = avgScore,
+                Status = member.Status
+            });
+        }
+
+        var avgAssignmentScore = allScores.Count > 0 ? Math.Round(allScores.Average(), 1) : 0.0;
+        var totalPossibleSubmissions = totalStudents * totalAssignmentsAssigned;
+        var totalActualCompleted = studentSummaries.Sum(s => s.AssignmentsCompleted);
+        var submissionRate = totalPossibleSubmissions > 0
+            ? Math.Round((double)totalActualCompleted / totalPossibleSubmissions * 100.0, 1)
+            : 0.0;
+
+        return new ClassPerformanceDto
+        {
+            ClassId = cls.Id,
+            ClassName = cls.Name,
+            ClassCode = cls.Code,
+            TotalStudents = totalStudents,
+            AverageAttendanceRate = Math.Round(avgAttendance, 1),
+            TotalAssignmentsAssigned = totalAssignmentsAssigned,
+            AverageAssignmentScore = avgAssignmentScore,
+            SubmissionRate = submissionRate,
+            GradeDistribution = gradeDist,
+            StudentSummaries = studentSummaries.OrderByDescending(s => s.AverageScore).ToList()
+        };
+    }
+
+    private static string FormatTimeAgo(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalMinutes < 1) return "Vừa xong";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} phút trước";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} giờ trước";
+        return $"{(int)diff.TotalDays} ngày trước";
     }
 
     private static DayOfWeek ParseDayOfWeek(string day)

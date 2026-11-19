@@ -62,4 +62,6 @@ public class TeachingClass : BaseEntity
     // Navigation collections
     public ICollection<TeachingClassMember> Members { get; set; } = new List<TeachingClassMember>();
     public ICollection<TeachingClassSchedule> Schedules { get; set; } = new List<TeachingClassSchedule>();
+    public ICollection<TeachingClassAttendance> Attendances { get; set; } = new List<TeachingClassAttendance>();
+    public ICollection<AssignmentTarget> AssignmentTargets { get; set; } = new List<AssignmentTarget>();
 }

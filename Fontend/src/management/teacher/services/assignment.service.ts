@@ -1,6 +1,7 @@
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
 import type { SharedExerciseItem } from '../../../features/exercise-engine/types';
 import type { PaginatedResponse } from '../../shared/types';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { CURRENT_TEACHER_ID, INITIAL_TEACHING_CLASSES } from '../data/mockTeacherPortalData';
 import { MOCK_QUESTION_CATALOG } from '../data/mockQuestionCatalog';
 import {
@@ -37,6 +38,24 @@ import type {
 let assignmentsStore: Assignment[] = [...INITIAL_ASSIGNMENTS];
 let questionsStore: AssignmentQuestion[] = [...INITIAL_ASSIGNMENT_QUESTIONS];
 let targetsStore: AssignmentTarget[] = [...INITIAL_ASSIGNMENT_TARGETS];
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+function getAuthHeaders(): HeadersInit {
+  const token = authTokenService.getAccessToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 /**
  * Returns a shallow copy of the question catalog.
@@ -162,9 +181,39 @@ class AssignmentService {
 
   /**
    * Returns the shared question catalog (SharedExerciseItem[]).
-   * Sourced from the exercise-engine mock data; never exposes answer keys to student DTOs.
+   * Sourced from the real question bank API when authenticated, falling back to mock catalog.
    */
   async getQuestionCatalog(): Promise<SharedExerciseItem[]> {
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      try {
+        const res = await fetch(getApiUrl('/question-bank?reviewStatus=Approved&pageSize=100'), {
+          headers: getAuthHeaders(),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const items = json.items || [];
+          if (items.length > 0) {
+            return items.map((qb: any) => ({
+              id: qb.id,
+              exerciseType: (qb.type || 'multiple-choice').toLowerCase().replace('_', '-'),
+              points: qb.points || 10,
+              title: qb.title || qb.prompt,
+              promptHanzi: qb.prompt,
+              promptPinyin: qb.pinyin || '',
+              promptVietnamese: qb.explanation || qb.title || '',
+              options: qb.optionsJson ? JSON.parse(qb.optionsJson) : (qb.options || []),
+              correctAnswer: qb.correctAnswer,
+              explanation: qb.explanation,
+              hskLevel: qb.hskLevel || 1,
+              difficulty: qb.difficulty || 'MEDIUM',
+            }));
+          }
+        }
+      } catch {
+        // Fall back to local catalog
+      }
+    }
     return getCatalog();
   }
 
@@ -180,6 +229,67 @@ class AssignmentService {
     pagination: { page: number; pageSize: number },
     sort: AssignmentSort = { field: 'createdAt', direction: 'desc' }
   ): Promise<PaginatedResponse<AssignmentSummaryDTO>> {
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      try {
+        const params = new URLSearchParams({
+          page: String(pagination.page),
+          pageSize: String(pagination.pageSize),
+        });
+        if (filters.search) params.append('search', filters.search);
+        if (filters.hskLevelId && filters.hskLevelId !== 'ALL') params.append('hskLevelId', filters.hskLevelId);
+        if (filters.classId && filters.classId !== 'ALL') params.append('classId', filters.classId);
+        if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+        if (sort) {
+          params.append('sortField', sort.field);
+          params.append('sortDirection', sort.direction);
+        }
+
+        const res = await fetch(getApiUrl(`/teacher/assignments?${params.toString()}`), {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          const items: AssignmentSummaryDTO[] = (json.items || []).map((a: any) => {
+            const level = hskRepositoryService.getLevelById(a.hskLevelId);
+            return {
+              id: a.id,
+              title: a.title,
+              description: a.description || '',
+              hskLevelId: a.hskLevelId,
+              hskLevelName: level?.name || a.hskLevelName || 'HSK',
+              hskLevelColor: level?.colorToken || a.hskLevelColor || 'var(--primary)',
+              targetClassCount: (a.assignedClassNames || []).length,
+              targetClassNames: a.assignedClassNames || [],
+              questionCount: a.questionsCount ?? 0,
+              totalPoints: a.totalPoints ?? 0,
+              timeLimitMinutes: a.timeLimitMinutes ?? 0,
+              maxAttempts: a.maxAttempts ?? 1,
+              passingPoints: a.passingPoints ?? 60,
+              status: a.status,
+              earliestDueDate: a.firstDueDate,
+              publishedAt: a.publishedAt,
+              createdAt: a.createdAt,
+              updatedAt: a.updatedAt || a.createdAt,
+            };
+          });
+
+          return {
+            items,
+            totalItems: json.totalItems || 0,
+            currentPage: json.pageNumber || pagination.page,
+            page: json.pageNumber || pagination.page,
+            totalPages: Math.ceil((json.totalItems || 0) / pagination.pageSize) || 1,
+            pageSize: pagination.pageSize,
+          };
+        }
+      } catch {
+        // Fall back to local store
+      }
+    }
+
     await new Promise((r) => setTimeout(r, 60)); // simulate async
 
     let result = assignmentsStore.filter((a) => a.teacherId === CURRENT_TEACHER_ID);
@@ -555,6 +665,58 @@ class AssignmentService {
    * Excludes DRAFT and ARCHIVED assignments.
    */
   async getAssignmentsForStudent(studentId: string): Promise<StudentHomeworkSummaryDTO[]> {
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      try {
+        const res = await fetch(getApiUrl('/student/homework'), {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            return list.map((item: any) => {
+              const hskMeta = resolveHskLevelMeta(item.hskLevelId);
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const isOverdue = Boolean(item.dueDate && todayStr > item.dueDate);
+              const isClosed = item.status === 'CLOSED';
+              return {
+                assignmentId: item.assignmentId,
+                title: item.title,
+                description: item.description,
+                classId: item.classId,
+                className: item.className,
+                classCode: item.className,
+                hskLevelId: hskMeta.id,
+                hskLevelName: hskMeta.name,
+                hskLevelColor: hskMeta.colorToken,
+                status: item.status,
+                dueDate: item.dueDate,
+                closeDate: item.dueDate,
+                timeLimitMinutes: item.timeLimitMinutes,
+                maxAttempts: item.maxAttempts,
+                passingPoints: 60,
+                totalPoints: item.maxScore || 100,
+                questionCount: 0,
+                allowLateSubmission: true,
+                latePenaltyPercent: 0,
+                retakePolicy: 'HIGHEST_SCORE',
+                isOverdue,
+                isClosed,
+                canStartAttempt: !isClosed,
+                attemptsUsed: item.attemptsUsed || 0,
+                bestScore: item.bestScore,
+                lastSubmissionId: item.lastSubmissionId,
+                isPassed: item.isPassed,
+              };
+            });
+          }
+        }
+      } catch {
+        // Fall back to local store
+      }
+    }
+
     await new Promise((r) => setTimeout(r, 40));
 
     const activeClassIds = await teacherPortalService.getActiveClassIdsForStudentAsync(studentId);

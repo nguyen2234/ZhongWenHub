@@ -270,3 +270,114 @@ export interface StudentEnrolledClassDTO {
   memberStatus: string;
 }
 
+/**
+ * Kiểu trạng thái điểm danh
+ */
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
+
+export interface ClassAttendanceRecord {
+  id: string;
+  classId: string;
+  scheduleId?: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  attendanceDate: string;
+  status: AttendanceStatus;
+  notes?: string;
+  recordedByTeacherId: string;
+  createdAt: string;
+}
+
+export interface RecordAttendanceItem {
+  studentId: string;
+  status: AttendanceStatus;
+  notes?: string;
+}
+
+export interface RecordClassAttendancePayload {
+  attendanceDate: string;
+  scheduleId?: string;
+  records: RecordAttendanceItem[];
+}
+
+export interface StudentAttendanceSummary {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  totalSessions: number;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  excusedCount: number;
+  attendanceRate: number;
+}
+
+export interface ClassAttendanceSummaryDTO {
+  classId: string;
+  className: string;
+  totalSessionsHeld: number;
+  averageAttendanceRate: number;
+  students: StudentAttendanceSummary[];
+}
+
+export interface ClassCurriculumLessonDTO {
+  id: string;
+  lessonNumber: number;
+  title: string;
+  pinyinTitle: string;
+  vietnameseTitle: string;
+  isPublished: boolean;
+}
+
+export interface ClassCurriculumUnitDTO {
+  id: string;
+  unitNumber: number;
+  title: string;
+  lessons: ClassCurriculumLessonDTO[];
+}
+
+export interface ClassCurriculumDTO {
+  classId: string;
+  className: string;
+  courseId?: string;
+  courseTitle?: string;
+  hskLevelId: string;
+  units: ClassCurriculumUnitDTO[];
+}
+
+export interface StudentPerformanceSummaryDTO {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  attendanceRate: number;
+  assignmentsCompleted: number;
+  totalAssignments: number;
+  averageScore: number;
+  status: string;
+}
+
+export interface GradeDistributionDTO {
+  excellentCount: number;
+  goodCount: number;
+  averageCount: number;
+  poorCount: number;
+}
+
+export interface ClassPerformanceDTO {
+  classId: string;
+  className: string;
+  classCode: string;
+  totalStudents: number;
+  averageAttendanceRate: number;
+  totalAssignmentsAssigned: number;
+  averageAssignmentScore: number;
+  submissionRate: number;
+  gradeDistribution: GradeDistributionDTO;
+  studentSummaries: StudentPerformanceSummaryDTO[];
+}
+
+

@@ -9,4 +9,5 @@ public static class PolicyConstants
     public const string StudentAccess = "StudentAccess";
     public const string SystemSettingsManage = "SystemSettingsManage";
     public const string UserManagementAccess = "UserManagementAccess";
+    public const string QuestionBankReadAccess = "QuestionBankReadAccess";
 }

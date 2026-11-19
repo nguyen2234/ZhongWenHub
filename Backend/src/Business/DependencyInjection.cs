@@ -94,6 +94,9 @@ public static class DependencyInjection
 
             options.AddPolicy(PolicyConstants.UserManagementAccess, policy =>
                 policy.RequireRole(RoleConstants.Admin));
+
+            options.AddPolicy(PolicyConstants.QuestionBankReadAccess, policy =>
+                policy.RequireRole(RoleConstants.Admin, RoleConstants.ContentManager, RoleConstants.Teacher));
         });
 
         // Business Services
@@ -107,6 +110,9 @@ public static class DependencyInjection
         services.AddScoped<IExamService, ExamService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
         services.AddScoped<ITeacherClassService, TeacherClassService>();
+        services.AddScoped<ITeacherAttendanceService, TeacherAttendanceService>();
+        services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
+        services.AddScoped<IStudentHomeworkService, StudentHomeworkService>();
         services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
         services.AddHttpClient<VideoStorageService>();
         services.AddScoped<IVideoStorageService, VideoStorageService>();

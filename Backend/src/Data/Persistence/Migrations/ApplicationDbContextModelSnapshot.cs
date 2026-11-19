@@ -2668,6 +2668,277 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentQuestion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrectAnswer")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("OptionsJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Points")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid?>("QuestionBankItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("SINGLE_CHOICE");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignmentId", "OrderIndex")
+                        .HasDatabaseName("idx_assignment_questions_assignment_order");
+
+                    b.ToTable("assignment_questions", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentTarget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId")
+                        .HasDatabaseName("idx_assignment_targets_class");
+
+                    b.HasIndex("AssignmentId", "ClassId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_assignment_targets_assignment_class_unique");
+
+                    b.ToTable("assignment_targets", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.StudentAssignmentSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FeedbackNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("GradedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("GradedByTeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("MaxScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("IN_PROGRESS");
+
+                    b.Property<string>("StudentAnswersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TimeSpentSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GradedByTeacherId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_student_submissions_status");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("idx_student_submissions_student");
+
+                    b.HasIndex("ClassId", "Status")
+                        .HasDatabaseName("idx_student_submissions_class_status");
+
+                    b.HasIndex("AssignmentId", "StudentId", "AttemptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("idx_student_submissions_assignment_student_attempt_unique");
+
+                    b.ToTable("student_assignment_submissions", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AllowLateSubmission")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("HskLevelId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("level-hsk-1");
+
+                    b.Property<int>("LatePenaltyPercent")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<double>("PassingPoints")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RetakePolicy")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("HIGHEST_SCORE");
+
+                    b.Property<bool>("ShowCorrectAnswers")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShuffleQuestions")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("DRAFT");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TimeLimitMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HskLevelId")
+                        .HasDatabaseName("idx_teaching_assignments_hsk_level");
+
+                    b.HasIndex("LessonId")
+                        .HasDatabaseName("idx_teaching_assignments_lesson");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_teaching_assignments_status");
+
+                    b.HasIndex("TeacherId")
+                        .HasDatabaseName("idx_teaching_assignments_teacher");
+
+                    b.ToTable("teaching_assignments", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2768,6 +3039,63 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasDatabaseName("idx_teaching_classes_teacher");
 
                     b.ToTable("teaching_classes", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassAttendance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AttendanceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("RecordedByTeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ScheduleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PRESENT");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByTeacherId");
+
+                    b.HasIndex("ScheduleId");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("idx_teaching_class_attendances_student");
+
+                    b.HasIndex("ClassId", "AttendanceDate")
+                        .HasDatabaseName("idx_teaching_class_attendances_class_date");
+
+                    b.HasIndex("ClassId", "StudentId", "AttendanceDate")
+                        .IsUnique()
+                        .HasDatabaseName("idx_teaching_class_attendances_class_student_date_unique");
+
+                    b.ToTable("teaching_class_attendances", (string)null);
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassMember", b =>
@@ -3418,6 +3746,86 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentQuestion", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", "Assignment")
+                        .WithMany("Questions")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentTarget", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", "Assignment")
+                        .WithMany("Targets")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClass", "TeachingClass")
+                        .WithMany("AssignmentTargets")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+
+                    b.Navigation("TeachingClass");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.StudentAssignmentSubmission", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", "Assignment")
+                        .WithMany("Submissions")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClass", "TeachingClass")
+                        .WithMany()
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "GradedByTeacher")
+                        .WithMany()
+                        .HasForeignKey("GradedByTeacherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Assignment");
+
+                    b.Navigation("GradedByTeacher");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("TeachingClass");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.LessonEntity", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Teacher");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Content.CourseEntity", "Course")
@@ -3434,6 +3842,38 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassAttendance", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClass", "TeachingClass")
+                        .WithMany("Attendances")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "RecordedByTeacher")
+                        .WithMany()
+                        .HasForeignKey("RecordedByTeacherId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClassSchedule", "Schedule")
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("RecordedByTeacher");
+
+                    b.Navigation("Schedule");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("TeachingClass");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassMember", b =>
@@ -3559,8 +3999,21 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("Milestones");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("Submissions");
+
+                    b.Navigation("Targets");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
                 {
+                    b.Navigation("AssignmentTargets");
+
+                    b.Navigation("Attendances");
+
                     b.Navigation("Members");
 
                     b.Navigation("Schedules");

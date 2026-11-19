@@ -67,6 +67,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<TeachingClass> TeachingClasses => Set<TeachingClass>();
     public DbSet<TeachingClassMember> TeachingClassMembers => Set<TeachingClassMember>();
     public DbSet<TeachingClassSchedule> TeachingClassSchedules => Set<TeachingClassSchedule>();
+    public DbSet<TeachingClassAttendance> TeachingClassAttendances => Set<TeachingClassAttendance>();
+    public DbSet<TeachingAssignment> TeachingAssignments => Set<TeachingAssignment>();
+    public DbSet<AssignmentQuestion> AssignmentQuestions => Set<AssignmentQuestion>();
+    public DbSet<AssignmentTarget> AssignmentTargets => Set<AssignmentTarget>();
+    public DbSet<StudentAssignmentSubmission> StudentAssignmentSubmissions => Set<StudentAssignmentSubmission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -1110,6 +1115,143 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.HasIndex(x => x.ClassId).HasDatabaseName("idx_teaching_class_schedules_class");
+        });
+
+        builder.Entity<TeachingClassAttendance>(b =>
+        {
+            b.ToTable("teaching_class_attendances");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("PRESENT");
+            b.Property(x => x.Notes).HasMaxLength(500);
+
+            b.HasOne(x => x.TeachingClass)
+                .WithMany(c => c.Attendances)
+                .HasForeignKey(x => x.ClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Schedule)
+                .WithMany()
+                .HasForeignKey(x => x.ScheduleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.RecordedByTeacher)
+                .WithMany()
+                .HasForeignKey(x => x.RecordedByTeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.Navigation(x => x.Student).IsRequired(false);
+            b.Navigation(x => x.RecordedByTeacher).IsRequired(false);
+
+            b.HasIndex(x => new { x.ClassId, x.StudentId, x.AttendanceDate }).IsUnique().HasDatabaseName("idx_teaching_class_attendances_class_student_date_unique");
+            b.HasIndex(x => new { x.ClassId, x.AttendanceDate }).HasDatabaseName("idx_teaching_class_attendances_class_date");
+            b.HasIndex(x => x.StudentId).HasDatabaseName("idx_teaching_class_attendances_student");
+        });
+
+        builder.Entity<TeachingAssignment>(b =>
+        {
+            b.ToTable("teaching_assignments");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(2000).HasDefaultValue(string.Empty);
+            b.Property(x => x.HskLevelId).HasMaxLength(50).IsRequired().HasDefaultValue("level-hsk-1");
+            b.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("DRAFT");
+            b.Property(x => x.RetakePolicy).HasMaxLength(30).IsRequired().HasDefaultValue("HIGHEST_SCORE");
+
+            b.HasOne(x => x.Teacher)
+                .WithMany()
+                .HasForeignKey(x => x.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.Lesson)
+                .WithMany()
+                .HasForeignKey(x => x.LessonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.Navigation(x => x.Teacher).IsRequired(false);
+
+            b.HasIndex(x => x.TeacherId).HasDatabaseName("idx_teaching_assignments_teacher");
+            b.HasIndex(x => x.Status).HasDatabaseName("idx_teaching_assignments_status");
+            b.HasIndex(x => x.HskLevelId).HasDatabaseName("idx_teaching_assignments_hsk_level");
+            b.HasIndex(x => x.LessonId).HasDatabaseName("idx_teaching_assignments_lesson");
+        });
+
+        builder.Entity<AssignmentQuestion>(b =>
+        {
+            b.ToTable("assignment_questions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Prompt).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.QuestionType).HasMaxLength(30).IsRequired().HasDefaultValue("SINGLE_CHOICE");
+            b.Property(x => x.OptionsJson).HasMaxLength(4000);
+            b.Property(x => x.CorrectAnswer).HasMaxLength(2000).IsRequired();
+            b.Property(x => x.Explanation).HasMaxLength(2000);
+
+            b.HasOne(x => x.Assignment)
+                .WithMany(a => a.Questions)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => new { x.AssignmentId, x.OrderIndex }).HasDatabaseName("idx_assignment_questions_assignment_order");
+        });
+
+        builder.Entity<AssignmentTarget>(b =>
+        {
+            b.ToTable("assignment_targets");
+            b.HasKey(x => x.Id);
+
+            b.HasOne(x => x.Assignment)
+                .WithMany(a => a.Targets)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.TeachingClass)
+                .WithMany(c => c.AssignmentTargets)
+                .HasForeignKey(x => x.ClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => new { x.AssignmentId, x.ClassId }).IsUnique().HasDatabaseName("idx_assignment_targets_assignment_class_unique");
+            b.HasIndex(x => x.ClassId).HasDatabaseName("idx_assignment_targets_class");
+        });
+
+        builder.Entity<StudentAssignmentSubmission>(b =>
+        {
+            b.ToTable("student_assignment_submissions");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("IN_PROGRESS");
+            b.Property(x => x.StudentAnswersJson).HasColumnType("nvarchar(max)").IsRequired();
+            b.Property(x => x.FeedbackNote).HasMaxLength(2000);
+
+            b.HasOne(x => x.Assignment)
+                .WithMany(a => a.Submissions)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.TeachingClass)
+                .WithMany()
+                .HasForeignKey(x => x.ClassId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.GradedByTeacher)
+                .WithMany()
+                .HasForeignKey(x => x.GradedByTeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.Navigation(x => x.Student).IsRequired(false);
+            b.Navigation(x => x.GradedByTeacher).IsRequired(false);
+
+            b.HasIndex(x => new { x.AssignmentId, x.StudentId, x.AttemptNumber }).IsUnique().HasDatabaseName("idx_student_submissions_assignment_student_attempt_unique");
+            b.HasIndex(x => new { x.ClassId, x.Status }).HasDatabaseName("idx_student_submissions_class_status");
+            b.HasIndex(x => x.StudentId).HasDatabaseName("idx_student_submissions_student");
+            b.HasIndex(x => x.Status).HasDatabaseName("idx_student_submissions_status");
         });
     }
 

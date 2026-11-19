@@ -434,4 +434,91 @@ public class TeacherClassesController : BaseApiController
             return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy danh sách lớp học của học viên.");
         }
     }
+
+    /// <summary>
+    /// Lấy cấu trúc giáo trình bài học của lớp học (Course, Units, Lessons)
+    /// </summary>
+    [HttpGet("classes/{classId:guid}/curriculum")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
+    [ProducesResponseType(typeof(ClassCurriculumDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClassCurriculum(Guid classId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var curriculum = await _teacherClassService.GetClassCurriculumAsync(classId, cancellationToken);
+            return Ok(curriculum);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status404NotFound, "Not Found", ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy giáo trình lớp {ClassId}", classId);
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy giáo trình lớp học.");
+        }
+    }
+
+    /// <summary>
+    /// Gán hoặc cập nhật khóa học/giáo trình cho lớp học
+    /// </summary>
+    [HttpPut("classes/{classId:guid}/curriculum")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetClassCurriculum(Guid classId, [FromBody] SetClassCurriculumDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _teacherClassService.SetClassCurriculumAsync(classId, dto, cancellationToken);
+            return Ok(new { success = result, message = "Đã cập nhật giáo trình cho lớp học thành công." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status404NotFound, "Not Found", ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gán giáo trình lớp {ClassId}", classId);
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi gán giáo trình lớp học.");
+        }
+    }
+
+    /// <summary>
+    /// Lấy báo cáo hiệu suất học tập và điểm số của lớp học
+    /// </summary>
+    [HttpGet("classes/{classId:guid}/performance")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
+    [ProducesResponseType(typeof(ClassPerformanceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClassPerformance(Guid classId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var performance = await _teacherClassService.GetClassPerformanceAsync(classId, cancellationToken);
+            return Ok(performance);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status404NotFound, "Not Found", ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy báo cáo hiệu suất lớp {ClassId}", classId);
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi tải dữ liệu hiệu suất lớp học.");
+        }
+    }
 }

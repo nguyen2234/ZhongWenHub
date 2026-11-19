@@ -42,6 +42,8 @@ data/hsk20/patches/*backup*
 # Python
 __pycache__/
 *.pyc
+.venv/
+temp_*/
 
 # Copyrighted source materials & textbooks (Do NOT commit to git)
 resources/
