@@ -63,7 +63,10 @@
   - Nếu `DeleteFileAsync` trả về `false`, gọi `FileExistsAsync(job.StoragePath)`: Nếu tệp thực tế đã không còn tồn tại trên storage provider, đánh dấu hoàn thành `Completed` thay vì retry thất bại 5 lần.
   - Nếu tệp vẫn tồn tại nhưng xóa lỗi: Tăng `RetryCount`, kích hoạt exponential backoff và chuyển sang `Failed` nếu chạm ngưỡng 5 lần.
 
-### 2.3. Khắc phục `LearningVideoService` (Quyền sở hữu & Tương thích ngược)
+### 2.3. Khắc phục `LearningVideoService` (Quyền sở hữu, Fail-Closed Security & Tương thích ngược)
+- **Sửa `GetCurrentUserInfo()` theo nguyên tắc Fail-Closed:**
+  - Code cũ: `var isAdmin = _currentUserService?.Roles?.Contains(RoleConstants.Admin) ?? true;` (fail-open: nếu thiếu user context hoặc `_currentUserService == null`, mặc định cấp quyền Admin!).
+  - Code mới: Đảm bảo chặt chẽ `isAdmin` chỉ nhận `true` khi người dùng đã xác thực (`IsAuthenticated == true`) VÀ có vai trò `Admin`. Nếu thiếu user context, chưa xác thực, hoặc là giáo viên/học viên, luôn trả về `(string.Empty, false)`.
 - **Khi tạo video (`CreateVideoAsync`):**
   - Claim video asset với `expectedAssetType: "Video"`.
   - Nếu có `dto.TranscriptUploadId`: Claim PDF asset với `expectedAssetType: "PdfTranscript"`.
@@ -99,6 +102,10 @@ Tại `Backend/tests/ZhongWenHub.UnitTests/VideoStorageDataIntegrityTests.cs`:
 12. `LearningVideoService_UpdateVideo_WithDirectTranscriptPdfPath_MaliciousTraversal_ThrowsArgumentException`: Xác minh chặn path traversal khi cập nhật video.
 13. `LearningVideoService_UpdateVideo_WithDirectTranscriptPdfPath_OwnedByOtherUser_ThrowsUnauthorizedAccessException`: Xác minh chặn chiếm quyền PDF của người khác khi cập nhật video.
 14. `LearningVideoService_UpdateVideo_ReplacedTranscriptPdf_EnqueuesCleanupJobAndMarksAssetDeleted`: Xác minh thay thế PDF cũ tạo cleanup job và cập nhật trạng thái asset chuẩn xác.
+15. `LearningVideoService_MissingUserContext_DefaultsToNonAdmin_ThrowsUnauthorizedAccessException`: Xác minh khi thiếu user context (`currentUserService == null`), hệ thống fail-closed không cấp quyền admin và từ chối raw path.
+16. `LearningVideoService_UnauthenticatedUser_DefaultsToNonAdmin_ThrowsUnauthorizedAccessException`: Xác minh người dùng chưa xác thực (`IsAuthenticated == false`) không thể bypass phân quyền dù token có chứa claim Admin.
+17. `LearningVideoService_TeacherUser_CanClaimOwnAsset_CannotClaimRawPath`: Xác minh giáo viên có thể claim asset của mình nhưng bị từ chối khi cố tình chỉ định raw path không có asset.
+18. `LearningVideoService_AdminUser_CanAssignVerifiedRawPath`: Xác minh Admin có đủ quyền hạn chỉ định đường dẫn lưu trữ hợp lệ trực tiếp.
 
 ---
 
@@ -107,7 +114,7 @@ Tại `Backend/tests/ZhongWenHub.UnitTests/VideoStorageDataIntegrityTests.cs`:
 ### 4.1. Backend Unit Tests
 - **Lệnh chạy:** `dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj`
 - **Exit Code:** `0`
-- **Kết quả:** `Passed! - Failed: 0, Passed: 305, Skipped: 0, Total: 305`
+- **Kết quả:** `Passed! - Failed: 0, Passed: 309, Skipped: 0, Total: 309`
 
 ### 4.2. Backend Integration Tests
 - **Lệnh chạy:** `dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj`

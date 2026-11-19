@@ -1099,4 +1099,203 @@ public class VideoStorageDataIntegrityTests
         Assert.Equal(VideoUploadAssetStatus.Linked, updatedNewAsset.UploadStatus);
         Assert.Equal(video.Id, updatedNewAsset.LinkedVideoId);
     }
+
+    // =========================================================================
+    // 5. FAIL-CLOSED USER CONTEXT & ROLE REGRESSION TESTS
+    // =========================================================================
+
+    [Fact]
+    public async Task LearningVideoService_MissingUserContext_DefaultsToNonAdmin_ThrowsUnauthorizedAccessException()
+    {
+        using var context = CreateInMemoryDbContext();
+        var fakeStorage = new FakeVideoStorageService();
+        var cleanupService = new StorageCleanupService(context, fakeStorage, NullLogger<StorageCleanupService>.Instance);
+        var uploadAssetService = new UploadAssetService(context, NullLogger<UploadAssetService>.Instance);
+
+        // Explicitly null currentUserService (missing context)
+        var videoService = new LearningVideoService(
+            context,
+            fakeStorage,
+            cleanupService,
+            uploadAssetService,
+            Options.Create(new VideoStorageOptions()),
+            NullLogger<LearningVideoService>.Instance,
+            currentUserService: null);
+
+        var dto = new CreateLearningVideoDto
+        {
+            Title = "Video không có user context",
+            SourceType = "Uploaded",
+            StoragePath = "videos/202611/video_11111111111111111111111111111111.mp4",
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            DurationSeconds = 120,
+            HskLevel = 1,
+            Topic = "Giao tiếp hàng ngày",
+            Status = "Draft"
+        };
+
+        // Fail-closed: Must NOT default to admin, must reject unverified storage path
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            videoService.CreateVideoAsync(dto));
+
+        Assert.Contains("Bạn không có quyền", ex.Message);
+    }
+
+    [Fact]
+    public async Task LearningVideoService_UnauthenticatedUser_DefaultsToNonAdmin_ThrowsUnauthorizedAccessException()
+    {
+        using var context = CreateInMemoryDbContext();
+        var fakeStorage = new FakeVideoStorageService();
+        var cleanupService = new StorageCleanupService(context, fakeStorage, NullLogger<StorageCleanupService>.Instance);
+        var uploadAssetService = new UploadAssetService(context, NullLogger<UploadAssetService>.Instance);
+
+        // Unauthenticated user claiming Admin role in token payload
+        var unauthenticatedUser = new FakeCurrentUserService
+        {
+            Username = "anonymous",
+            IsAuthenticated = false,
+            Roles = new List<string> { RoleConstants.Admin } // Token forged / unauthenticated
+        };
+
+        var videoService = new LearningVideoService(
+            context,
+            fakeStorage,
+            cleanupService,
+            uploadAssetService,
+            Options.Create(new VideoStorageOptions()),
+            NullLogger<LearningVideoService>.Instance,
+            unauthenticatedUser);
+
+        var dto = new CreateLearningVideoDto
+        {
+            Title = "Video chưa xác thực",
+            SourceType = "YouTube",
+            YouTubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            TranscriptPdfPath = "transcripts/videos/202611/transcript_11111111111111111111111111111111.pdf",
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            DurationSeconds = 180,
+            HskLevel = 2,
+            Topic = "HSK 2",
+            Status = "Draft"
+        };
+
+        // Fail-closed: IsAuthenticated=false forces isAdmin=false, rejecting unverified PDF path
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            videoService.CreateVideoAsync(dto));
+
+        Assert.Contains("Bạn không có quyền", ex.Message);
+    }
+
+    [Fact]
+    public async Task LearningVideoService_TeacherUser_CanClaimOwnAsset_CannotClaimRawPath()
+    {
+        using var context = CreateInMemoryDbContext();
+        var fakeStorage = new FakeVideoStorageService();
+        var cleanupService = new StorageCleanupService(context, fakeStorage, NullLogger<StorageCleanupService>.Instance);
+        var uploadAssetService = new UploadAssetService(context, NullLogger<UploadAssetService>.Instance);
+
+        var teacherUser = new FakeCurrentUserService
+        {
+            Username = "teacher-verified",
+            IsAuthenticated = true,
+            Roles = new List<string> { RoleConstants.Teacher }
+        };
+
+        var videoService = new LearningVideoService(
+            context,
+            fakeStorage,
+            cleanupService,
+            uploadAssetService,
+            Options.Create(new VideoStorageOptions()),
+            NullLogger<LearningVideoService>.Instance,
+            teacherUser);
+
+        // 1. Teacher can claim their own upload asset
+        var ownPdfPath = "transcripts/videos/202611/transcript_own_teacher.pdf";
+        var ownAsset = await uploadAssetService.RegisterUploadAsync(
+            storagePath: ownPdfPath,
+            provider: "FakeStorage",
+            userId: "teacher-verified",
+            contentType: "application/pdf",
+            fileSize: 1024,
+            assetType: "PdfTranscript");
+
+        var validDto = new CreateLearningVideoDto
+        {
+            Title = "Video của giáo viên",
+            SourceType = "YouTube",
+            YouTubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            TranscriptUploadId = ownAsset.Id,
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            DurationSeconds = 180,
+            HskLevel = 2,
+            Topic = "HSK 2",
+            Status = "Draft"
+        };
+
+        var created = await videoService.CreateVideoAsync(validDto);
+        Assert.NotNull(created);
+        Assert.Equal(ownPdfPath, created.TranscriptPdfPath);
+
+        // 2. Teacher CANNOT use arbitrary raw storage path without an asset
+        var rawPathDto = new CreateLearningVideoDto
+        {
+            Title = "Video giáo viên dùng raw path",
+            SourceType = "Uploaded",
+            StoragePath = "videos/202611/video_44444444444444444444444444444444.mp4",
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            DurationSeconds = 120,
+            HskLevel = 1,
+            Topic = "Giao tiếp hàng ngày",
+            Status = "Draft"
+        };
+
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            videoService.CreateVideoAsync(rawPathDto));
+
+        Assert.Contains("Bạn không có quyền", ex.Message);
+    }
+
+    [Fact]
+    public async Task LearningVideoService_AdminUser_CanAssignVerifiedRawPath()
+    {
+        using var context = CreateInMemoryDbContext();
+        var fakeStorage = new FakeVideoStorageService();
+        var cleanupService = new StorageCleanupService(context, fakeStorage, NullLogger<StorageCleanupService>.Instance);
+        var uploadAssetService = new UploadAssetService(context, NullLogger<UploadAssetService>.Instance);
+
+        var adminUser = new FakeCurrentUserService
+        {
+            Username = "super-admin",
+            IsAuthenticated = true,
+            Roles = new List<string> { RoleConstants.Admin }
+        };
+
+        var videoService = new LearningVideoService(
+            context,
+            fakeStorage,
+            cleanupService,
+            uploadAssetService,
+            Options.Create(new VideoStorageOptions()),
+            NullLogger<LearningVideoService>.Instance,
+            adminUser);
+
+        var adminPath = "videos/202611/video_33333333333333333333333333333333.mp4";
+        var dto = new CreateLearningVideoDto
+        {
+            Title = "Video do Admin gán đường dẫn",
+            SourceType = "Uploaded",
+            StoragePath = adminPath,
+            ThumbnailUrl = "https://example.com/thumb.jpg",
+            DurationSeconds = 300,
+            HskLevel = 4,
+            Topic = "Du lịch & Đời sống",
+            Status = "Draft"
+        };
+
+        // Admin has permission to assign valid backend storage path directly
+        var created = await videoService.CreateVideoAsync(dto);
+        Assert.NotNull(created);
+        Assert.Equal(adminPath, created.StoragePath);
+    }
 }

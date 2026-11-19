@@ -58,10 +58,18 @@ public class LearningVideoService : ILearningVideoService
 
     private (string userId, bool isAdmin) GetCurrentUserInfo()
     {
-        var userId = _currentUserService?.UserId?.ToString()
-            ?? _currentUserService?.Username
-            ?? "system";
-        var isAdmin = _currentUserService?.Roles?.Contains(RoleConstants.Admin) ?? true;
+        if (_currentUserService == null || !_currentUserService.IsAuthenticated)
+        {
+            return (string.Empty, false);
+        }
+
+        var userId = _currentUserService.UserId?.ToString()
+            ?? _currentUserService.Username
+            ?? string.Empty;
+
+        var isAdmin = _currentUserService.Roles != null &&
+                      _currentUserService.Roles.Contains(RoleConstants.Admin);
+
         return (userId, isAdmin);
     }
 
