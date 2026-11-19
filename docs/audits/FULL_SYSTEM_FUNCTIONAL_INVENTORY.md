@@ -31,14 +31,14 @@ Theo phản hồi từ đợt Review độc lập Phase A, **sự tồn tại c�
 | **2. Student Core & Learning State** | 6 | 6 | 0 | 0 | 0 | 0 | 0 | 100.0% |
 | **3. Skills & Practice** | 8 | 4 | 1 | 1 | 2 | 0 | 0 | 62.5% |
 | **4. Student Classes & Homework** | 5 | 0 | 0 | 0 | 5 | 0 | 0 | 0.0% *(Blocker P1)* |
-| **5. Video Learning** | 2 | 0 | 1 | 0 | 0 | 1 | 0 | 50.0% *(Blocker P1)* |
+| **5. Video Learning** | 2 | 0 | 2 | 0 | 0 | 0 | 0 | 100.0% *(Đã sửa xong P1 Fail-Closed)* |
 | **6. AI Suite (Tutor, Live, Diagnostic...)** | 8 | 5 | 1 | 0 | 2 | 0 | 0 | 75.0% |
 | **7. Gamification & Personalization** | 6 | 2 | 0 | 0 | 3 | 0 | 1 | 33.3% |
 | **8. Teacher Portal** | 5 | 2 | 0 | 1 | 2 | 0 | 0 | 40.0% *(Blocker P1)* |
 | **9. Content Manager Workspace** | 13 | 6 | 1 | 1 | 5 | 0 | 0 | 53.8% |
 | **10. Admin Management Console** | 11 | 4 | 2 | 1 | 4 | 0 | 0 | 54.5% |
 | **11. Support Portal** | 2 | 0 | 0 | 0 | 2 | 0 | 0 | 0.0% *(P2)* |
-| **TỔNG TOÀN HỆ THỐNG** | **70** | **31 (44.3%)** | **6 (8.6%)** | **4 (5.7%)** | **25 (35.7%)** | **1 (1.4%)** | **3 (4.3%)** | **52.9%** |
+| **TỔNG TOÀN HỆ THỐNG** | **70** | **31 (44.3%)** | **7 (10.0%)** | **4 (5.7%)** | **25 (35.7%)** | **0 (0.0%)** | **3 (4.3%)** | **54.3%** |
 
 ---
 
@@ -76,7 +76,7 @@ Theo phản hồi từ đợt Review độc lập Phase A, **sự tồn tại c�
 
 ### 5. Phân hệ Học qua Video *(BLOCKER P1)*
 * `/videos` (**`API_WIRED`**): `VideoLibraryPage.tsx` gọi `VideosController.GetVideos`. Đã có test DTO nhưng chưa có SQL Server integration test thực tế cho video query.
-* `/videos/:videoId` (**`BROKEN`**): `VideoDetailPage.tsx` nuốt lỗi 500/mạng qua `video-learning.service.ts` và tự động fallback sang `DEMO_VIDEOS` với metadata bịa đặt (`durationFormatted: '03:00'`, `transcriptPdfName: 'HSK_BaiDoc_Mau.pdf'`).
+* `/videos/:videoId` (**`API_WIRED`**): `VideoDetailPage.tsx` gọi `VideosController.GetVideoById`. Đã loại bỏ hoàn toàn fallback `DEMO_VIDEOS`, xử lý fail-closed: 404 (Not Found/Empty), 500/network error/401/403 (Error + Retry), kiểm tra cấu trúc schema API, có 22 regression tests trong `video-library-integration.test.ts`. (Sẵn sàng live DB test).
 
 ### 6. Phân hệ Trợ lý AI (AI Suite)
 * `/ai-tutor` (**`RUNTIME_VERIFIED`**): `AITutorWorkspacePage.tsx` ➔ `POST /api/v1/ai-tutor/chat` ➔ `AITutorController` ➔ `GeminiProvider`, log `AiUsageLog`. Test: `ai-tutor-real-api.test.ts`, `AITutorIntegrationTests.cs`, `AITutorServiceTests.cs`.

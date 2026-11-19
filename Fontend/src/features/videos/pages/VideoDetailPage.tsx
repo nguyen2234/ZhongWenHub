@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -7,10 +7,10 @@ import {
   FileText,
   Download,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { videoLearningService } from '../services/video-learning.service';
 import type { LearningVideo } from '../types/video-learning.types';
-import { DEMO_VIDEOS } from '../data/demoVideos';
 import { HSKLevel } from '../../../design-system';
 import '../videos.css';
 
@@ -21,75 +21,48 @@ export const VideoDetailPage: React.FC = () => {
   const [video, setVideo] = useState<LearningVideo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNotFound, setIsNotFound] = useState<boolean>(false);
 
   // Mobile Tabs State: 'video' | 'pdf'
   const [activeMobileTab, setActiveMobileTab] = useState<'video' | 'pdf'>('video');
 
   // Load video from Backend API
-  useEffect(() => {
-    let isMounted = true;
+  const loadVideo = useCallback(async () => {
+    if (!videoId || !videoId.trim()) {
+      setIsNotFound(true);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setIsNotFound(false);
 
-    const loadVideo = async () => {
-      if (!videoId) {
-        setError('Không tìm thấy mã bài học video.');
-        setLoading(false);
-        return;
+    try {
+      const data = await videoLearningService.fetchVideoById(videoId);
+      if (data) {
+        setVideo(data);
+        setIsNotFound(false);
+        setError(null);
+      } else {
+        setVideo(null);
+        setIsNotFound(true);
+        setError(null);
       }
-
-      try {
-        const data = await videoLearningService.fetchVideoById(videoId);
-        if (!isMounted) return;
-
-        if (data) {
-          setVideo(data);
-        } else {
-          // Fallback check for demo fixture (backward-compatibility)
-          const fallback = DEMO_VIDEOS.find((v) => v.id === videoId);
-          if (fallback) {
-            setVideo({
-              id: fallback.id,
-              title: fallback.title,
-              description: fallback.description || '',
-              sourceType: fallback.videoSourceType === 'youtube' ? 'YouTube' : 'Uploaded',
-              youtubeVideoId: fallback.youtubeVideoId || null,
-              storagePath: fallback.videoUrl || null,
-              thumbnailUrl: fallback.thumbnailUrl || '',
-              durationSeconds: fallback.durationSeconds || 180,
-              durationFormatted: videoLearningService.constructor.prototype ? '03:00' : '03:00',
-              hskLevel: fallback.hskLevel || 1,
-              topic: fallback.topic || 'Luyện nghe HSK',
-              status: 'Published',
-              viewCount: fallback.viewCount || 100,
-              lessonId: null,
-              lessonTitle: null,
-              transcriptPdfPath: null,
-              transcriptPdfName: 'HSK_BaiDoc_Mau.pdf',
-              transcriptPdfSizeBytes: 1048576,
-              transcriptPdfUrl: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: null,
-            });
-          } else {
-            setError('Không tìm thấy video bài học hoặc video đã bị ẩn.');
-          }
-        }
-      } catch (err: unknown) {
-        if (!isMounted) return;
-        const msg = err instanceof Error ? err.message : 'Lỗi kết nối khi tải video bài học.';
-        setError(msg);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadVideo();
-
-    return () => {
-      isMounted = false;
-    };
+    } catch (err: unknown) {
+      setVideo(null);
+      setIsNotFound(false);
+      const msg = err instanceof Error ? err.message : 'Lỗi kết nối khi tải video bài học.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }, [videoId]);
+
+  useEffect(() => {
+    loadVideo();
+  }, [loadVideo]);
 
   const formatFileSize = (bytes?: number | null) => {
     if (!bytes || bytes <= 0) return '';
@@ -108,14 +81,15 @@ export const VideoDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !video) {
+  // Not Found / Empty State (HTTP 404 or missing ID)
+  if (isNotFound || (!video && !error)) {
     return (
       <div className="video-detail-root student-content-container" style={{ padding: '36px 20px', maxWidth: '600px', margin: '0 auto' }}>
         <div
           style={{
             backgroundColor: '#ffffff',
             borderRadius: '16px',
-            border: '1px solid #fee2e2',
+            border: '1px solid #e2e8f0',
             padding: '36px 24px',
             textAlign: 'center',
             display: 'flex',
@@ -126,23 +100,23 @@ export const VideoDetailPage: React.FC = () => {
         >
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '48px',
+              height: '48px',
               borderRadius: '50%',
-              backgroundColor: '#fee2e2',
+              backgroundColor: '#f1f5f9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#dc2626',
+              color: '#64748b',
             }}
           >
-            <AlertCircle size={24} />
+            <AlertCircle size={26} />
           </div>
           <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Không thể tải bài học video
+            Không tìm thấy video bài học
           </h3>
-          <p style={{ fontSize: '13.5px', color: '#64748b', margin: 0 }}>
-            {error || 'Bài học này không tồn tại hoặc đã được gỡ bỏ.'}
+          <p style={{ fontSize: '13.5px', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+            Bài học này không tồn tại hoặc đã được gỡ bỏ khỏi hệ thống.
           </p>
           <button
             type="button"
@@ -170,9 +144,93 @@ export const VideoDetailPage: React.FC = () => {
     );
   }
 
+  // Error State (HTTP 500, Network error, 401, 403, etc. with Retry button)
+  if (error || !video) {
+    return (
+      <div className="video-detail-root student-content-container" style={{ padding: '36px 20px', maxWidth: '600px', margin: '0 auto' }}>
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #fee2e2',
+            padding: '36px 24px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: '#fee2e2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#dc2626',
+            }}
+          >
+            <AlertCircle size={26} />
+          </div>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            Không thể tải bài học video
+          </h3>
+          <p style={{ fontSize: '13.5px', color: '#dc2626', margin: 0, lineHeight: 1.5 }}>
+            {error || 'Đã có lỗi xảy ra khi tải bài học video.'}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              type="button"
+              onClick={() => loadVideo()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: 'var(--primary, #E60012)',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <RefreshCw size={14} />
+              <span>Thử lại</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/videos')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 18px',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                color: '#475569',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Quay lại thư viện video</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const ytId = video.youtubeVideoId || video.youTubeVideoId || null;
   const pdfUrl = video.transcriptPdfUrl || null;
-  const pdfName = video.transcriptPdfName || 'Transcript_TaiLieu.pdf';
+  const pdfName = video.transcriptPdfName || (pdfUrl ? `${video.title}_Transcript.pdf` : null);
 
   return (
     <div className="video-detail-root student-content-container" style={{ padding: '20px 24px', maxWidth: '1440px', margin: '0 auto' }}>
@@ -217,7 +275,7 @@ export const VideoDetailPage: React.FC = () => {
           {pdfUrl && (
             <a
               href={pdfUrl}
-              download={pdfName}
+              download={pdfName || 'Transcript.pdf'}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -307,6 +365,20 @@ export const VideoDetailPage: React.FC = () => {
                   border: 'none',
                 }}
               />
+            ) : video.videoUrl ? (
+              <video
+                src={video.videoUrl}
+                controls
+                poster={video.thumbnailUrl || undefined}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: '#000',
+                }}
+              />
             ) : (
               <div
                 style={{
@@ -323,7 +395,7 @@ export const VideoDetailPage: React.FC = () => {
               >
                 <AlertCircle size={32} color="#f87171" />
                 <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#94a3b8' }}>
-                  Không tìm thấy nguồn video YouTube hợp lệ.
+                  Không tìm thấy nguồn video phát hợp lệ.
                 </p>
               </div>
             )}
@@ -349,7 +421,13 @@ export const VideoDetailPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748b' }}>
                 <span>Cấp độ: <strong>HSK {video.hskLevel}</strong></span>
                 <span>•</span>
-                <span>{video.viewCount} lượt xem</span>
+                <span>{video.viewCount ?? 0} lượt xem</span>
+                {video.durationFormatted && (
+                  <>
+                    <span>•</span>
+                    <span>{video.durationFormatted}</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -435,12 +513,14 @@ export const VideoDetailPage: React.FC = () => {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}
-                  title={pdfName}
+                  title={pdfName || 'Tài liệu học tập'}
                 >
-                  {pdfName}
+                  {pdfName || 'Tài liệu học tập'}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b' }}>
-                  {formatFileSize(video.transcriptPdfSizeBytes)} • Tài liệu lời thoại &amp; bài đọc
+                  {pdfUrl
+                    ? `${formatFileSize(video.transcriptPdfSizeBytes) ? `${formatFileSize(video.transcriptPdfSizeBytes)} • ` : ''}Tài liệu lời thoại & bài đọc`
+                    : 'Chưa đính kèm tệp PDF'}
                 </div>
               </div>
             </div>
@@ -448,7 +528,7 @@ export const VideoDetailPage: React.FC = () => {
             {pdfUrl && (
               <a
                 href={pdfUrl}
-                download={pdfName}
+                download={pdfName || 'Transcript.pdf'}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
