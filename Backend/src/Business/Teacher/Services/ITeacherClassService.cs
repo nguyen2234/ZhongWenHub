@@ -20,4 +20,6 @@ public interface ITeacherClassService
     Task<IReadOnlyList<ClassScheduleDto>> GetClassSchedulesAsync(Guid classId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ClassScheduleDto>> UpdateClassSchedulesAsync(Guid classId, List<ClassScheduleDto> schedules, CancellationToken cancellationToken = default);
     Task<TeacherDashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default);
+    Task<TeacherClassStatsDto> GetClassStatsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<StudentEnrolledClassDto>> GetMyEnrolledClassesAsync(CancellationToken cancellationToken = default);
 }

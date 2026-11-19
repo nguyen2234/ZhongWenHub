@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -9,6 +11,7 @@ using ZhongWenHub.Business.Teacher.Services;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.Teacher;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;
@@ -30,6 +33,35 @@ public class TeacherClassServiceTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         return new ApplicationDbContext(options);
+    }
+
+    private static async Task EnsureStudentRoleAsync(ApplicationDbContext dbContext, params ApplicationUser[] students)
+    {
+        var role = await dbContext.Roles.FirstOrDefaultAsync(r => r.NormalizedName == "STUDENT" || r.Name == "STUDENT");
+        if (role == null)
+        {
+            role = new ApplicationRole("STUDENT")
+            {
+                Id = Guid.NewGuid(),
+                NormalizedName = "STUDENT"
+            };
+            dbContext.Roles.Add(role);
+            await dbContext.SaveChangesAsync();
+        }
+
+        foreach (var student in students)
+        {
+            var hasRole = await dbContext.UserRoles.AnyAsync(ur => ur.UserId == student.Id && ur.RoleId == role.Id);
+            if (!hasRole)
+            {
+                dbContext.UserRoles.Add(new IdentityUserRole<Guid>
+                {
+                    UserId = student.Id,
+                    RoleId = role.Id
+                });
+            }
+        }
+        await dbContext.SaveChangesAsync();
     }
 
     [Fact]
@@ -214,6 +246,7 @@ public class TeacherClassServiceTests
         };
         dbContext.Users.AddRange(teacherUser, studentUser);
         await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, studentUser);
 
         var createdClass = await service.CreateClassAsync(new CreateTeachingClassDto
         {
@@ -253,6 +286,7 @@ public class TeacherClassServiceTests
         };
         dbContext.Users.Add(student2);
         await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, student2);
 
         await service.AddMemberAsync(createdClass.Id, new AddClassMemberDto { StudentIdentifier = "thuthao@gmail.com" });
 
@@ -266,6 +300,7 @@ public class TeacherClassServiceTests
         };
         dbContext.Users.Add(student3);
         await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, student3);
 
         var exCap = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.AddMemberAsync(createdClass.Id, new AddClassMemberDto { StudentIdentifier = "duc.pham@gmail.com" }));
@@ -327,6 +362,7 @@ public class TeacherClassServiceTests
         var student2 = new ApplicationUser { Id = Guid.NewGuid(), UserName = "st2", Email = "st2@mail.com" };
         dbContext.Users.AddRange(student1, student2);
         await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, student1, student2);
 
         await service.AddMemberAsync(activeClass.Id, new AddClassMemberDto { StudentIdentifier = "st1@mail.com" });
         await service.AddMemberAsync(activeClass.Id, new AddClassMemberDto { StudentIdentifier = "st2@mail.com" });
@@ -340,5 +376,301 @@ public class TeacherClassServiceTests
         Assert.Equal(4.0, dashboard.Metrics.WeeklyTeachingHours); // 2 hours + 2 hours
         Assert.NotEmpty(dashboard.UpcomingSessions);
         Assert.Single(dashboard.ActiveClasses);
+    }
+
+    [Fact]
+    public async Task AddMemberAsync_UserWithoutStudentRole_ThrowsInvalidOperationException()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var cls = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp Kiểm Tra Vai Trò",
+            Code = "CLS-ROLE-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow
+        });
+
+        var nonStudentUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = "teacher_guest",
+            Email = "guest@zhongwenhub.edu.vn"
+        };
+        dbContext.Users.Add(nonStudentUser);
+        await dbContext.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.AddMemberAsync(cls.Id, new AddClassMemberDto { StudentIdentifier = "guest@zhongwenhub.edu.vn" }));
+        Assert.Contains("không phải là học viên", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddMemberAsync_ArchivedOrCompletedClass_ThrowsInvalidOperationException()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var cls = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp Lưu Trữ",
+            Code = "CLS-ARC-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow
+        });
+
+        // Archive the class
+        await service.ArchiveClassAsync(cls.Id);
+
+        var student = new ApplicationUser { Id = Guid.NewGuid(), UserName = "std_arc", Email = "std_arc@mail.com" };
+        dbContext.Users.Add(student);
+        await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, student);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.AddMemberAsync(cls.Id, new AddClassMemberDto { StudentIdentifier = "std_arc@mail.com" }));
+        Assert.Contains("Không thể ghi danh vào lớp học đã kết thúc hoặc đã lưu trữ", ex.Message);
+    }
+
+    [Fact]
+    public async Task ValidateSchedules_OverlappingSameDay_ThrowsArgumentException()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var dto = new CreateTeachingClassDto
+        {
+            Name = "Lớp Trùng Giờ",
+            Code = "CLS-OVL-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow,
+            Schedules = new List<ClassScheduleDto>
+            {
+                new() { DayOfWeek = "MONDAY", StartTime = "19:00", EndTime = "20:30" },
+                new() { DayOfWeek = "MONDAY", StartTime = "20:00", EndTime = "21:00" } // Overlaps 20:00 < 20:30
+            }
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateClassAsync(dto));
+        Assert.Contains("bị trùng lặp", ex.Message);
+    }
+
+    [Fact]
+    public async Task ValidateSchedules_AdjacentIntervalsSameDay_Accepted()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var dto = new CreateTeachingClassDto
+        {
+            Name = "Lớp Liền Kề Hợp Lệ",
+            Code = "CLS-ADJ-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow,
+            Schedules = new List<ClassScheduleDto>
+            {
+                new() { DayOfWeek = "MONDAY", StartTime = "19:00", EndTime = "20:00" },
+                new() { DayOfWeek = "MONDAY", StartTime = "20:00", EndTime = "21:00" } // Adjacent, not overlapping
+            }
+        };
+
+        var created = await service.CreateClassAsync(dto);
+        Assert.NotNull(created);
+        var schedules = await service.GetClassSchedulesAsync(created.Id);
+        Assert.Equal(2, schedules.Count);
+    }
+
+    [Fact]
+    public async Task ValidateSchedules_InvalidTimeFormat_ThrowsArgumentException()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var dto = new CreateTeachingClassDto
+        {
+            Name = "Lớp Sai Format",
+            Code = "CLS-FMT-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow,
+            Schedules = new List<ClassScheduleDto>
+            {
+                new() { DayOfWeek = "MONDAY", StartTime = "25:00", EndTime = "20:00" }
+            }
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.CreateClassAsync(dto));
+        Assert.Contains("không hợp lệ", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetClassStatsAsync_AggregatesCountsCorrectly()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        // 1. ACTIVE class with 2 students
+        var activeClass = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp 1",
+            Code = "CLS-ST-01",
+            HskLevelId = "level-hsk-1",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow
+        });
+        var c1 = await dbContext.TeachingClasses.FindAsync(activeClass.Id);
+        c1!.Status = "ACTIVE";
+
+        var s1 = new ApplicationUser { Id = Guid.NewGuid(), UserName = "s1", Email = "s1@mail.com" };
+        var s2 = new ApplicationUser { Id = Guid.NewGuid(), UserName = "s2", Email = "s2@mail.com" };
+        dbContext.Users.AddRange(s1, s2);
+        await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, s1, s2);
+        await service.AddMemberAsync(activeClass.Id, new AddClassMemberDto { StudentIdentifier = "s1@mail.com" });
+        await service.AddMemberAsync(activeClass.Id, new AddClassMemberDto { StudentIdentifier = "s2@mail.com" });
+
+        // 2. UPCOMING class
+        await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp 2",
+            Code = "CLS-ST-02",
+            HskLevelId = "level-hsk-2",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow.AddDays(10)
+        });
+
+        // 3. ARCHIVED class
+        var arcClass = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp 3",
+            Code = "CLS-ST-03",
+            HskLevelId = "level-hsk-3",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow.AddDays(-30)
+        });
+        await service.ArchiveClassAsync(arcClass.Id);
+
+        var stats = await service.GetClassStatsAsync();
+
+        Assert.Equal(3, stats.TotalClasses);
+        Assert.Equal(1, stats.ActiveCount);
+        Assert.Equal(1, stats.UpcomingCount);
+        Assert.Equal(1, stats.ArchivedCount);
+        Assert.Equal(2, stats.TotalStudents);
+    }
+
+    [Fact]
+    public async Task GetClassesAsync_PaginationLargeDataset_SupportsMoreThan100Classes()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var classes = new List<TeachingClass>();
+        for (int i = 1; i <= 105; i++)
+        {
+            classes.Add(new TeachingClass
+            {
+                Id = Guid.NewGuid(),
+                TeacherId = teacherId,
+                Name = $"Lớp HSK {i}",
+                Code = $"CLS-PAG-{i:D3}",
+                HskLevelId = "level-hsk-1",
+                Capacity = 30,
+                StartDate = DateTime.UtcNow.AddDays(i),
+                Status = "UPCOMING",
+                LocationType = "ONLINE",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        dbContext.TeachingClasses.AddRange(classes);
+        await dbContext.SaveChangesAsync();
+
+        // Page 1: pageSize 50
+        var p1 = await service.GetClassesAsync(new ClassFilterDto { Page = 1, PageSize = 50 });
+        Assert.Equal(105, p1.TotalItems);
+        Assert.Equal(50, p1.Items.Count);
+        Assert.Equal(3, p1.TotalPages);
+
+        // Page 3: pageSize 50 -> should have 5 items
+        var p3 = await service.GetClassesAsync(new ClassFilterDto { Page = 3, PageSize = 50 });
+        Assert.Equal(5, p3.Items.Count);
+    }
+
+    [Fact]
+    public async Task GetMyEnrolledClassesAsync_StudentGetsOnlyEnrolledActiveClasses()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var studentId = Guid.NewGuid();
+
+        var teacherUser = new ApplicationUser { Id = teacherId, UserName = "teacher1", Email = "t1@mail.com", DisplayName = "Cô Giáo" };
+        var studentUser = new ApplicationUser { Id = studentId, UserName = "student1", Email = "student1@mail.com" };
+        dbContext.Users.AddRange(teacherUser, studentUser);
+        await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, studentUser);
+
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var teacherService = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        // Class 1 (enrolled)
+        var class1 = await teacherService.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp HSK 1 Cho Người Mới",
+            Code = "CLS-MY-01",
+            HskLevelId = "level-hsk-1",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow
+        });
+        var c1 = await dbContext.TeachingClasses.FindAsync(class1.Id);
+        c1!.Status = "ACTIVE";
+        await dbContext.SaveChangesAsync();
+        await teacherService.AddMemberAsync(class1.Id, new AddClassMemberDto { StudentIdentifier = "student1@mail.com" });
+
+        // Class 2 (NOT enrolled)
+        await teacherService.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp HSK 5 Chuyên Sâu",
+            Code = "CLS-MY-02",
+            HskLevelId = "level-hsk-5",
+            Capacity = 20,
+            StartDate = DateTime.UtcNow
+        });
+
+        // Query as student
+        var fakeStudentUser = new FakeCurrentUserService
+        {
+            UserId = studentId,
+            Roles = new[] { RoleConstants.Student },
+            Username = "student1",
+            Email = "student1@mail.com"
+        };
+        var studentService = new TeacherClassService(dbContext, fakeStudentUser, NullLogger<TeacherClassService>.Instance);
+
+        var myClasses = await studentService.GetMyEnrolledClassesAsync();
+
+        Assert.Single(myClasses);
+        Assert.Equal("CLS-MY-01", myClasses[0].Code);
+        Assert.Equal("Cô Giáo", myClasses[0].TeacherName);
+        Assert.Equal("ACTIVE", myClasses[0].Status);
     }
 }

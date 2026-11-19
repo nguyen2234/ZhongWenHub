@@ -7,6 +7,8 @@ import {
   CheckSquare,
   BarChart3,
   ArrowLeft,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { curriculumService } from '../../admin/content/services/curriculum.service';
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
@@ -44,6 +46,7 @@ export const TeacherClassDetailPage: React.FC = () => {
   const [hskLevels, setHskLevels] = useState<HskLevel[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Dialog & Drawer
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
@@ -52,6 +55,7 @@ export const TeacherClassDetailPage: React.FC = () => {
   const loadClassDetail = useCallback(async () => {
     if (!classId) return;
     setLoading(true);
+    setError(null);
     try {
       const data = await teacherPortalService.getClassById(classId);
       if (data) {
@@ -63,6 +67,9 @@ export const TeacherClassDetailPage: React.FC = () => {
       }
       setHskLevels(hskRepositoryService.getLevels());
       setCourses(curriculumService.getCourses());
+    } catch (err: any) {
+      setError(err?.message || 'Đã xảy ra lỗi khi tải thông tin lớp học.');
+      setDetail(null);
     } finally {
       setLoading(false);
     }
@@ -89,6 +96,48 @@ export const TeacherClassDetailPage: React.FC = () => {
     return (
       <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--muted)' }}>
         Đang tải thông tin lớp học...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: 'var(--space-12)',
+          textAlign: 'center',
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-xl)',
+        }}
+      >
+        <div style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+          <AlertCircle size={36} />
+        </div>
+        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '8px' }}>
+          Không thể tải thông tin lớp học
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-4)' }}>
+          {error}
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={loadClassDetail}
+            className="ds-btn ds-btn-primary ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/management/teacher/classes')}
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <ArrowLeft size={14} /> Quay lại danh sách lớp
+          </button>
+        </div>
       </div>
     );
   }
@@ -204,6 +253,7 @@ export const TeacherClassDetailPage: React.FC = () => {
         onClose={() => setIsEditDrawerOpen(false)}
         onSubmit={handleUpdateClass}
         editingClass={detail.classInfo}
+        initialSchedules={detail.schedules}
         hskLevels={hskLevels}
         courses={courses}
       />

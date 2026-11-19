@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, RefreshCw, Layers, Users, Archive, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, RefreshCw, Layers, Users, Archive, CheckCircle, AlertCircle } from 'lucide-react';
 import { curriculumService } from '../../admin/content/services/curriculum.service';
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
 import type { Course, HskLevel } from '../../admin/content/types';
@@ -49,6 +49,10 @@ export const TeacherClassesPage: React.FC = () => {
   const [editingClass, setEditingClass] = useState<ClassSummaryDTO | null>(null);
   const [archivingClass, setArchivingClass] = useState<ClassSummaryDTO | null>(null);
 
+  // Loading & Error State
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Summary KPIs state
   const [summaryKPIs, setSummaryKPIs] = useState({
     totalClasses: 0,
@@ -60,29 +64,31 @@ export const TeacherClassesPage: React.FC = () => {
 
   // Load Data
   const loadClasses = useCallback(async () => {
-    const res = await teacherPortalService.getClasses(filters, pagination, sort);
-    setClassResponse({
-      items: res.items,
-      totalItems: res.totalItems,
-      totalPages: res.totalPages,
-    });
+    setLoading(true);
+    setError(null);
+    try {
+      const [res, stats] = await Promise.all([
+        teacherPortalService.getClasses(filters, pagination, sort),
+        teacherPortalService.getClassStats(),
+      ]);
 
-    const levels = hskRepositoryService.getLevels();
-    const courseList = curriculumService.getCourses();
-    setHskLevels(levels);
-    setCourses(courseList);
+      setClassResponse({
+        items: res.items,
+        totalItems: res.totalItems,
+        totalPages: res.totalPages,
+      });
 
-    // Load full summary strip KPIs
-    const allRes = await teacherPortalService.getClasses(
-      { search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' },
-      { page: 1, pageSize: 999 }
-    );
-    const all = allRes.items;
-    const activeCount = all.filter((c) => c.status === 'ACTIVE').length;
-    const upcomingCount = all.filter((c) => c.status === 'UPCOMING').length;
-    const archivedCount = all.filter((c) => c.status === 'ARCHIVED').length;
-    const totalStudents = all.reduce((sum, c) => sum + c.derivedEnrollmentCount, 0);
-    setSummaryKPIs({ totalClasses: all.length, activeCount, upcomingCount, archivedCount, totalStudents });
+      setSummaryKPIs(stats);
+
+      const levels = hskRepositoryService.getLevels();
+      const courseList = curriculumService.getCourses();
+      setHskLevels(levels);
+      setCourses(courseList);
+    } catch (err: any) {
+      setError(err?.message || 'Đã xảy ra lỗi khi tải danh sách lớp học.');
+    } finally {
+      setLoading(false);
+    }
   }, [filters, pagination, sort]);
 
   useEffect(() => {
@@ -302,8 +308,72 @@ export const TeacherClassesPage: React.FC = () => {
         onCreateClassClick={handleOpenCreate}
       />
 
-      {/* Class Content (Table or Card Grid) */}
-      {viewMode === 'table' ? (
+      {/* Class Content (Table, Card Grid, Loading, Error, or Empty State) */}
+      {loading ? (
+        <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--muted)' }}>
+          Đang tải danh sách lớp học...
+        </div>
+      ) : error ? (
+        <div
+          style={{
+            padding: 'var(--space-12)',
+            textAlign: 'center',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            margin: 'var(--space-4) 0',
+          }}
+        >
+          <div style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+            <AlertCircle size={36} />
+          </div>
+          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '8px' }}>
+            Không thể tải danh sách lớp học
+          </h2>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-4)' }}>
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={loadClasses}
+            className="ds-btn ds-btn-primary ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+        </div>
+      ) : classResponse.items.length === 0 ? (
+        <div
+          style={{
+            padding: 'var(--space-12)',
+            textAlign: 'center',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            margin: 'var(--space-4) 0',
+          }}
+        >
+          <div style={{ color: 'var(--muted)', marginBottom: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+            <Layers size={36} />
+          </div>
+          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '8px' }}>
+            Không tìm thấy lớp học nào
+          </h2>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-4)' }}>
+            {filters.search || filters.hskLevelId !== 'ALL' || filters.status !== 'ALL' || filters.locationType !== 'ALL'
+              ? 'Không có lớp học nào phù hợp với bộ lọc hiện tại.'
+              : 'Bạn chưa tạo lớp học nào. Hãy bấm "Tạo Lớp Mới" để bắt đầu giảng dạy.'}
+          </p>
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="ds-btn ds-btn-primary ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <Plus size={14} /> Tạo Lớp Mới
+          </button>
+        </div>
+      ) : viewMode === 'table' ? (
         <ClassTable
           classes={classResponse.items}
           onEdit={handleOpenEdit}

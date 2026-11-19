@@ -12,7 +12,6 @@ import {
   INITIAL_QUICK_ACTIONS,
   INITIAL_RECENT_ACTIVITIES,
   INITIAL_TEACHING_CLASSES,
-  MOCK_STUDENTS_STORE,
 } from '../data/mockTeacherPortalData';
 import type {
   ClassDetailDTO,
@@ -23,7 +22,8 @@ import type {
   ClassSort,
   ClassSummaryDTO,
   CreateTeachingClassDTO,
-  DayOfWeek,
+  StudentEnrolledClassDTO,
+  TeacherClassStatsDTO,
   TeachingClass,
   UpdateTeachingClassDTO,
 } from '../types/class.types';
@@ -51,12 +51,21 @@ function getAuthHeaders(): HeadersInit {
   return headers;
 }
 
-// Mutable in-memory store for fallback / legacy compatibility
-let classesStore: TeachingClass[] = [...INITIAL_TEACHING_CLASSES];
-let membersStore: ClassMember[] = [...INITIAL_CLASS_MEMBERS];
-let schedulesStore: ClassSchedule[] = [...INITIAL_CLASS_SCHEDULES];
-let submissionsStore = [...INITIAL_DEMO_SUBMISSIONS];
-let activitiesStore = [...INITIAL_RECENT_ACTIVITIES];
+async function extractErrorDetail(res: Response, fallbackMessage: string): Promise<string> {
+  try {
+    const json = await res.json();
+    return json.detail || json.title || json.message || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+}
+
+// In-memory test store for test fixtures and backwards-compatibility
+const classesStore: TeachingClass[] = [...INITIAL_TEACHING_CLASSES];
+const membersStore: ClassMember[] = [...INITIAL_CLASS_MEMBERS];
+const schedulesStore: ClassSchedule[] = [...INITIAL_CLASS_SCHEDULES];
+const submissionsStore = [...INITIAL_DEMO_SUBMISSIONS];
+const activitiesStore = [...INITIAL_RECENT_ACTIVITIES];
 
 class TeacherPortalService {
   getCurrentTeacherId(): string {
@@ -68,19 +77,27 @@ class TeacherPortalService {
      ========================================================================== */
 
   async getDashboard(): Promise<TeacherDashboardDTO> {
-    try {
-      const res = await fetch(getApiUrl('/teacher/dashboard'), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data as TeacherDashboardDTO;
-      }
-    } catch (err) {
-      console.warn('[TeacherPortalService] API error fetching dashboard, using fallback:', err);
+    const res = await fetch(getApiUrl('/teacher/dashboard'), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
     }
-    return this.getMockDashboard();
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền truy cập trang tổng quan Giảng viên (yêu cầu vai trò Teacher hoặc Admin).');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Đã xảy ra lỗi khi tải dữ liệu bảng điều khiển giảng viên.');
+      throw new Error(detail);
+    }
+
+    const data = await res.json();
+    return data as TeacherDashboardDTO;
   }
 
   /* ==========================================================================
@@ -92,79 +109,124 @@ class TeacherPortalService {
     pagination: { page: number; pageSize: number },
     sort?: ClassSort
   ): Promise<PaginatedResponse<ClassSummaryDTO>> {
-    try {
-      const params = new URLSearchParams({
-        page: String(pagination.page),
-        pageSize: String(pagination.pageSize),
-      });
-      if (filters.search) params.append('search', filters.search);
-      if (filters.hskLevelId && filters.hskLevelId !== 'ALL') params.append('hskLevelId', filters.hskLevelId);
-      if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
-      if (filters.locationType && filters.locationType !== 'ALL') params.append('locationType', filters.locationType);
-      if (sort) {
-        params.append('sortField', sort.field);
-        params.append('sortDirection', sort.direction);
-      }
-
-      const res = await fetch(getApiUrl(`/teacher/classes?${params.toString()}`), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        return {
-          items: json.items || [],
-          totalItems: json.totalItems || 0,
-          page: json.pageNumber || json.page || pagination.page,
-          pageSize: json.pageSize || pagination.pageSize,
-          totalPages: json.totalPages || Math.ceil((json.totalItems || 0) / pagination.pageSize) || 1,
-        };
-      }
-    } catch (err) {
-      console.warn('[TeacherPortalService] API error fetching classes, using fallback:', err);
+    const params = new URLSearchParams({
+      page: String(pagination.page),
+      pageSize: String(pagination.pageSize),
+    });
+    if (filters.search) params.append('search', filters.search);
+    if (filters.hskLevelId && filters.hskLevelId !== 'ALL') params.append('hskLevelId', filters.hskLevelId);
+    if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+    if (filters.locationType && filters.locationType !== 'ALL') params.append('locationType', filters.locationType);
+    if (sort) {
+      params.append('sortField', sort.field);
+      params.append('sortDirection', sort.direction);
     }
-    return this.getMockClasses(filters, pagination, sort);
+
+    const res = await fetch(getApiUrl(`/teacher/classes?${params.toString()}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem danh sách lớp học (yêu cầu vai trò Teacher hoặc Admin).');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải danh sách lớp học.');
+      throw new Error(detail);
+    }
+
+    const json = await res.json();
+    const pageNumber = json.pageNumber || json.page || pagination.page;
+    return {
+      items: json.items || [],
+      totalItems: json.totalItems || 0,
+      currentPage: pageNumber,
+      page: pageNumber,
+      pageSize: json.pageSize || pagination.pageSize,
+      totalPages: json.totalPages || Math.ceil((json.totalItems || 0) / pagination.pageSize) || 1,
+    };
   }
 
-  async getClassById(id: string): Promise<ClassDetailDTO | undefined> {
-    try {
-      const res = await fetch(getApiUrl(`/teacher/classes/${id}`), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const detail = await res.json();
-        const level = hskRepositoryService.getLevelById(detail.classInfo?.hskLevelId);
-        const course = detail.classInfo?.courseId ? curriculumService.getCourseById(detail.classInfo.courseId) : undefined;
-        return {
-          classInfo: detail.classInfo,
-          hskLevel: level,
-          course: course,
-          derivedEnrollmentCount: detail.derivedEnrollmentCount ?? 0,
-          derivedAttendanceAverage: detail.derivedAttendanceAverage ?? 100.0,
-          schedules: (detail.schedules || []).map((s: any) => ({
-            id: s.id,
-            classId: s.classId || detail.classInfo.id,
-            dayOfWeek: s.dayOfWeek,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            timezone: s.timezone || 'Asia/Ho_Chi_Minh',
-            locationType: s.locationType || 'ONLINE',
-            meetingUrl: s.meetingUrl,
-            roomLocation: s.roomLocation,
-          })),
-          membersSummary: detail.membersSummary || {
-            total: detail.derivedEnrollmentCount || 0,
-            active: detail.derivedEnrollmentCount || 0,
-            paused: 0,
-            dropped: 0,
-          },
-        };
-      }
-    } catch (err) {
-      console.warn('[TeacherPortalService] API error fetching class by id, using fallback:', err);
+  async getClassStats(): Promise<TeacherClassStatsDTO> {
+    const res = await fetch(getApiUrl('/teacher/classes/stats'), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
     }
-    return this.getMockClassById(id);
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem thống kê lớp học.');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải thống kê lớp học.');
+      throw new Error(detail);
+    }
+
+    return await res.json();
+  }
+
+  async getClassById(id: string): Promise<ClassDetailDTO> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${id}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    }
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem chi tiết lớp học này.');
+    }
+
+    if (res.status === 404) {
+      throw new Error(`Không tìm thấy lớp học với mã '${id}'.`);
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải chi tiết lớp học.');
+      throw new Error(detail);
+    }
+
+    const detail = await res.json();
+    const level = hskRepositoryService.getLevelById(detail.classInfo?.hskLevelId);
+    const course = detail.classInfo?.courseId ? curriculumService.getCourseById(detail.classInfo.courseId) : undefined;
+    return {
+      classInfo: detail.classInfo,
+      hskLevel: level,
+      course: course,
+      derivedEnrollmentCount: detail.derivedEnrollmentCount ?? 0,
+      derivedAttendanceAverage: detail.derivedAttendanceAverage ?? 100.0,
+      schedules: (detail.schedules || []).map((s: any) => ({
+        id: s.id,
+        classId: s.classId || detail.classInfo.id,
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        timezone: s.timezone || 'Asia/Ho_Chi_Minh',
+        locationType: s.locationType || 'ONLINE',
+        meetingUrl: s.meetingUrl,
+        roomLocation: s.roomLocation,
+      })),
+      membersSummary: detail.membersSummary || {
+        total: detail.derivedEnrollmentCount || 0,
+        active: detail.derivedEnrollmentCount || 0,
+        paused: 0,
+        dropped: 0,
+      },
+    };
   }
 
   async createClass(payload: CreateTeachingClassDTO): Promise<TeachingClass> {
@@ -173,10 +235,17 @@ class TeacherPortalService {
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể tạo lớp học.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tạo lớp học.');
+      throw new Error(detail);
+    }
+
     const created = await res.json();
     classesStore.unshift(created);
     return created;
@@ -188,10 +257,17 @@ class TeacherPortalService {
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể cập nhật thông tin lớp học.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể cập nhật thông tin lớp học.');
+      throw new Error(detail);
+    }
+
     const updated = await res.json();
     const idx = classesStore.findIndex((c) => c.id === id);
     if (idx >= 0) {
@@ -205,10 +281,17 @@ class TeacherPortalService {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể lưu trữ lớp học.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể lưu trữ lớp học.');
+      throw new Error(detail);
+    }
+
     const idx = classesStore.findIndex((c) => c.id === id);
     if (idx >= 0) {
       classesStore[idx].status = 'ARCHIVED';
@@ -225,22 +308,34 @@ class TeacherPortalService {
     search?: string,
     status?: string
   ): Promise<ClassMemberViewDTO[]> {
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (status && status !== 'ALL') params.append('status', status);
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status && status !== 'ALL') params.append('status', status);
 
-      const res = await fetch(getApiUrl(`/teacher/classes/${classId}/members?${params.toString()}`), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch (err) {
-      console.warn('[TeacherPortalService] API error fetching class members, using fallback:', err);
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/members?${params.toString()}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
-    return this.getMockClassMembers(classId, search, status as any);
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem danh sách học viên của lớp này.');
+    }
+
+    if (res.status === 404) {
+      throw new Error('Không tìm thấy lớp học.');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải danh sách học viên.');
+      throw new Error(detail);
+    }
+
+    return await res.json();
   }
 
   async addStudentToClass(
@@ -253,10 +348,17 @@ class TeacherPortalService {
       headers: getAuthHeaders(),
       body: JSON.stringify({ studentIdentifier, notes }),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể ghi danh học viên.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể ghi danh học viên.');
+      throw new Error(detail);
+    }
+
     return await res.json();
   }
 
@@ -265,10 +367,17 @@ class TeacherPortalService {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể xóa học viên khỏi lớp học.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể xóa học viên khỏi lớp học.');
+      throw new Error(detail);
+    }
+
     return true;
   }
 
@@ -276,10 +385,31 @@ class TeacherPortalService {
      4. SCHEDULES
      ========================================================================== */
 
-  getClassSchedules(classId: string): ClassSchedule[] {
-    return schedulesStore
-      .filter((s) => s.classId === classId)
-      .map((s) => ({ ...s }));
+  async getClassSchedules(classId: string): Promise<ClassSchedule[]> {
+    const res = await fetch(getApiUrl(`/teacher/classes/${classId}/schedules`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
+    }
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem thời khóa biểu lớp này.');
+    }
+
+    if (res.status === 404) {
+      throw new Error('Không tìm thấy lớp học.');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải thời khóa biểu.');
+      throw new Error(detail);
+    }
+
+    return await res.json();
   }
 
   async updateClassSchedules(classId: string, schedules: ClassSchedule[]): Promise<ClassSchedule[]> {
@@ -288,15 +418,45 @@ class TeacherPortalService {
       headers: getAuthHeaders(),
       body: JSON.stringify(schedules),
     });
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.title || 'Không thể cập nhật thời khóa biểu.');
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
     }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể cập nhật thời khóa biểu.');
+      throw new Error(detail);
+    }
+
     return await res.json();
   }
 
   /* ==========================================================================
-     5. STUDENT INTEGRATION (STRICT COMPATIBILITY)
+     5. STUDENT ENROLLED CLASSES (REAL BACKEND INTEGRATION)
+     ========================================================================== */
+
+  async getMyEnrolledClasses(): Promise<StudentEnrolledClassDTO[]> {
+    const res = await fetch(getApiUrl('/teacher/my-enrolled-classes'), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải danh sách lớp học của bạn.');
+      throw new Error(detail);
+    }
+
+    return await res.json();
+  }
+
+  /* ==========================================================================
+     6. LEGACY / DEMO ADAPTER HELPERS (STRICT COMPATIBILITY)
      ========================================================================== */
 
   getActiveClassIdsForStudent(studentId: string): string[] {
@@ -317,10 +477,10 @@ class TeacherPortalService {
   }
 
   /* ==========================================================================
-     6. MOCK FALLBACK IMPLEMENTATIONS
+     7. TEST FIXTURES / MOCK FACTORIES (ISOLATED FROM PRODUCTION FLOWS)
      ========================================================================== */
 
-  private getMockDashboard(): TeacherDashboardDTO {
+  getMockDashboardForTest(): TeacherDashboardDTO {
     const teacherId = CURRENT_TEACHER_ID;
     const teacherClasses = classesStore.filter((c) => c.teacherId === teacherId);
     const activeClasses = teacherClasses.filter((c) => c.status === 'ACTIVE');
@@ -341,8 +501,8 @@ class TeacherPortalService {
       if (durationHours > 0) weeklyTeachingHours += durationHours;
     });
 
-    const upcomingSessions = this.buildUpcomingSessions(activeClasses);
-    const activeClassSummaries = activeClasses.map((cls) => this.toClassSummaryDTO(cls));
+    const upcomingSessions = this.buildUpcomingSessionsForTest(activeClasses);
+    const activeClassSummaries = activeClasses.map((cls) => this.toClassSummaryDTOForTest(cls));
 
     return {
       teacherId,
@@ -362,148 +522,7 @@ class TeacherPortalService {
     };
   }
 
-  private getMockClasses(
-    filters: ClassFilters,
-    pagination: { page: number; pageSize: number },
-    sort?: ClassSort
-  ): PaginatedResponse<ClassSummaryDTO> {
-    const teacherId = CURRENT_TEACHER_ID;
-    let list = classesStore.filter((c) => c.teacherId === teacherId);
-
-    if (filters.search.trim()) {
-      const q = filters.search.trim().toLowerCase();
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.code.toLowerCase().includes(q) ||
-          c.description.toLowerCase().includes(q)
-      );
-    }
-    if (filters.hskLevelId !== 'ALL') {
-      list = list.filter((c) => c.hskLevelId === filters.hskLevelId);
-    }
-    if (filters.status !== 'ALL') {
-      list = list.filter((c) => c.status === filters.status);
-    } else {
-      list = list.filter((c) => c.status !== 'ARCHIVED');
-    }
-    if (filters.locationType !== 'ALL') {
-      list = list.filter((c) => c.locationType === filters.locationType);
-    }
-
-    if (sort) {
-      list.sort((a, b) => {
-        let cmp = 0;
-        switch (sort.field) {
-          case 'name':
-            cmp = a.name.localeCompare(b.name);
-            break;
-          case 'code':
-            cmp = a.code.localeCompare(b.code);
-            break;
-          case 'startDate':
-            cmp = a.startDate.localeCompare(b.startDate);
-            break;
-          case 'status':
-            cmp = a.status.localeCompare(b.status);
-            break;
-          default:
-            cmp = 0;
-        }
-        return sort.direction === 'asc' ? cmp : -cmp;
-      });
-    }
-
-    const totalItems = list.length;
-    const totalPages = Math.ceil(totalItems / pagination.pageSize) || 1;
-    const start = (pagination.page - 1) * pagination.pageSize;
-    const paginatedClasses = list.slice(start, start + pagination.pageSize);
-    const items = paginatedClasses.map((cls) => this.toClassSummaryDTO(cls));
-
-    return {
-      items,
-      totalItems,
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-      totalPages,
-    };
-  }
-
-  private getMockClassById(id: string): ClassDetailDTO | undefined {
-    const cls = classesStore.find((c) => c.id === id);
-    if (!cls) return undefined;
-
-    const level = hskRepositoryService.getLevelById(cls.hskLevelId);
-    const course = cls.courseId ? curriculumService.getCourseById(cls.courseId) : undefined;
-    const schedules = schedulesStore.filter((s) => s.classId === cls.id);
-    const classMembers = membersStore.filter((m) => m.classId === cls.id);
-
-    const activeMembers = classMembers.filter((m) => m.status === 'ACTIVE');
-    const pausedMembers = classMembers.filter((m) => m.status === 'PAUSED');
-    const droppedMembers = classMembers.filter((m) => m.status === 'DROPPED');
-
-    const avgAttendance =
-      activeMembers.length > 0
-        ? activeMembers.reduce((sum, m) => sum + m.attendanceRate, 0) / activeMembers.length
-        : 100;
-
-    return {
-      classInfo: { ...cls },
-      hskLevel: level,
-      course,
-      derivedEnrollmentCount: activeMembers.length,
-      derivedAttendanceAverage: Math.round(avgAttendance * 10) / 10,
-      schedules,
-      membersSummary: {
-        total: classMembers.length,
-        active: activeMembers.length,
-        paused: pausedMembers.length,
-        dropped: droppedMembers.length,
-      },
-    };
-  }
-
-  private getMockClassMembers(
-    classId: string,
-    search?: string,
-    statusFilter?: ClassMember['status']
-  ): ClassMemberViewDTO[] {
-    const rawMembers = membersStore.filter((m) => m.classId === classId);
-
-    let viewList: ClassMemberViewDTO[] = rawMembers.map((m) => {
-      const studentProfile = MOCK_STUDENTS_STORE.find((s) => s.id === m.studentId);
-      return {
-        id: m.id,
-        classId: m.classId,
-        studentId: m.studentId,
-        studentName: studentProfile?.name || 'Học viên ẩn danh',
-        studentEmail: studentProfile?.email || 'student@zhongwenhub.edu.vn',
-        studentAvatarUrl: studentProfile?.avatarUrl,
-        enrolledAt: m.enrolledAt,
-        status: m.status,
-        attendanceRate: m.attendanceRate,
-        completedAssignmentsCount: m.completedAssignmentsCount,
-        notes: m.notes,
-      };
-    });
-
-    if (statusFilter && statusFilter !== ('ALL' as any)) {
-      viewList = viewList.filter((v) => v.status === statusFilter);
-    }
-
-    if (search && search.trim()) {
-      const query = search.trim().toLowerCase();
-      viewList = viewList.filter(
-        (v) =>
-          v.studentName.toLowerCase().includes(query) ||
-          v.studentEmail.toLowerCase().includes(query)
-      );
-    }
-
-    return viewList;
-  }
-
-  private toClassSummaryDTO(cls: TeachingClass): ClassSummaryDTO {
+  private toClassSummaryDTOForTest(cls: TeachingClass): ClassSummaryDTO {
     const level = hskRepositoryService.getLevelById(cls.hskLevelId);
     const hskLevelName = level ? level.name : 'HSK';
     const hskLevelColor = level?.colorToken || 'var(--primary)';
@@ -545,7 +564,7 @@ class TeacherPortalService {
     };
   }
 
-  private buildUpcomingSessions(activeClasses: TeachingClass[]): UpcomingTeachingSession[] {
+  private buildUpcomingSessionsForTest(activeClasses: TeachingClass[]): UpcomingTeachingSession[] {
     const list: UpcomingTeachingSession[] = [];
 
     activeClasses.forEach((cls) => {

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.Common.DTOs;
 using ZhongWenHub.Business.Teacher.DTOs;
@@ -423,6 +425,12 @@ public class TeacherClassService : ITeacherClassService
             throw new UnauthorizedAccessException("Bạn không có quyền quản lý thành viên lớp học này.");
         }
 
+        // Check class status: do not allow enrollment into ARCHIVED or COMPLETED classes
+        if (classEntity.IsArchived || string.Equals(classEntity.Status, "ARCHIVED", StringComparison.OrdinalIgnoreCase) || string.Equals(classEntity.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Không thể ghi danh vào lớp học đã kết thúc hoặc đã lưu trữ.");
+        }
+
         // Capacity check
         var activeCount = await _dbContext.TeachingClassMembers
             .CountAsync(m => m.ClassId == classId && m.Status == "ACTIVE", cancellationToken);
@@ -444,6 +452,17 @@ public class TeacherClassService : ITeacherClassService
         if (student == null)
         {
             throw new KeyNotFoundException($"Không tìm thấy tài khoản học viên với thông tin '{dto.StudentIdentifier}'.");
+        }
+
+        // Role verification: Only accounts with STUDENT role can be enrolled
+        var isStudent = await (from ur in _dbContext.UserRoles
+                               join r in _dbContext.Roles on ur.RoleId equals r.Id
+                               where ur.UserId == student.Id && (r.NormalizedName == "STUDENT" || r.Name == "STUDENT")
+                               select ur).AnyAsync(cancellationToken);
+
+        if (!isStudent)
+        {
+            throw new InvalidOperationException($"Tài khoản '{student.UserName}' không phải là học viên (yêu cầu vai trò STUDENT).");
         }
 
         // Check duplicate enrollment
@@ -701,11 +720,107 @@ public class TeacherClassService : ITeacherClassService
         };
     }
 
+    public async Task<TeacherClassStatsDto> GetClassStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var (userId, isAdmin) = GetCurrentUserInfo();
+
+        IQueryable<TeachingClass> baseQuery = _dbContext.TeachingClasses.AsNoTracking();
+        if (!isAdmin)
+        {
+            baseQuery = baseQuery.Where(c => c.TeacherId == userId);
+        }
+
+        var totalClasses = await baseQuery.CountAsync(cancellationToken);
+        var activeCount = await baseQuery.CountAsync(c => c.Status == "ACTIVE" && !c.IsArchived, cancellationToken);
+        var upcomingCount = await baseQuery.CountAsync(c => c.Status == "UPCOMING" && !c.IsArchived, cancellationToken);
+        var archivedCount = await baseQuery.CountAsync(c => c.IsArchived || c.Status == "ARCHIVED", cancellationToken);
+
+        var classIds = baseQuery.Select(c => c.Id);
+        var totalStudents = await _dbContext.TeachingClassMembers
+            .AsNoTracking()
+            .Where(m => classIds.Contains(m.ClassId) && m.Status == "ACTIVE")
+            .CountAsync(cancellationToken);
+
+        return new TeacherClassStatsDto
+        {
+            TotalClasses = totalClasses,
+            ActiveCount = activeCount,
+            UpcomingCount = upcomingCount,
+            ArchivedCount = archivedCount,
+            TotalStudents = totalStudents
+        };
+    }
+
+    public async Task<IReadOnlyList<StudentEnrolledClassDto>> GetMyEnrolledClassesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
+        {
+            throw new UnauthorizedAccessException("Người dùng chưa được xác thực.");
+        }
+
+        var studentId = _currentUserService.UserId.Value;
+
+        var enrolled = await _dbContext.TeachingClassMembers
+            .AsNoTracking()
+            .Include(m => m.TeachingClass)
+                .ThenInclude(c => c.Teacher)
+            .Where(m => m.StudentId == studentId && m.Status == "ACTIVE" && !m.TeachingClass.IsArchived)
+            .OrderByDescending(m => m.EnrolledAt)
+            .Select(m => new StudentEnrolledClassDto
+            {
+                Id = m.TeachingClass.Id,
+                Name = m.TeachingClass.Name,
+                Code = m.TeachingClass.Code,
+                HskLevelId = m.TeachingClass.HskLevelId,
+                TeacherName = m.TeachingClass.Teacher != null
+                    ? (string.IsNullOrWhiteSpace(m.TeachingClass.Teacher.DisplayName) ? (m.TeachingClass.Teacher.UserName ?? "Giáo viên") : m.TeachingClass.Teacher.DisplayName)
+                    : "Giáo viên",
+                StartDate = m.TeachingClass.StartDate,
+                LocationType = m.TeachingClass.LocationType,
+                Status = m.TeachingClass.Status,
+                EnrolledAt = m.EnrolledAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return enrolled;
+    }
+
+    private static DayOfWeek ParseDayOfWeek(string day)
+    {
+        return day.ToUpperInvariant() switch
+        {
+            "MONDAY" => DayOfWeek.Monday,
+            "TUESDAY" => DayOfWeek.Tuesday,
+            "WEDNESDAY" => DayOfWeek.Wednesday,
+            "THURSDAY" => DayOfWeek.Thursday,
+            "FRIDAY" => DayOfWeek.Friday,
+            "SATURDAY" => DayOfWeek.Saturday,
+            "SUNDAY" => DayOfWeek.Sunday,
+            _ => DayOfWeek.Monday
+        };
+    }
+
     private List<UpcomingTeachingSessionDto> BuildUpcomingSessions(List<TeachingClass> activeClasses, Dictionary<Guid, int> memberCounts)
     {
-        var list = new List<UpcomingTeachingSessionDto>();
-        var now = DateTime.UtcNow;
-        var todayDayOfWeek = now.DayOfWeek.ToString().ToUpperInvariant();
+        var list = new List<(DateTime StartDateTime, UpcomingTeachingSessionDto Dto)>();
+
+        TimeZoneInfo tz;
+        try
+        {
+            tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        }
+        catch
+        {
+            try
+            {
+                tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+            }
+            catch
+            {
+                tz = TimeZoneInfo.Local;
+            }
+        }
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
 
         foreach (var cls in activeClasses)
         {
@@ -714,10 +829,27 @@ public class TeacherClassService : ITeacherClassService
 
             foreach (var sch in cls.Schedules)
             {
-                var isToday = string.Equals(sch.DayOfWeek, todayDayOfWeek, StringComparison.OrdinalIgnoreCase);
-                var dayText = FormatDayOfWeek(sch.DayOfWeek, isToday);
+                if (!TimeSpan.TryParse(sch.StartTime, out var startTs) || !TimeSpan.TryParse(sch.EndTime, out var endTs))
+                {
+                    continue;
+                }
 
-                list.Add(new UpcomingTeachingSessionDto
+                var targetDay = ParseDayOfWeek(sch.DayOfWeek);
+                int daysAhead = ((int)targetDay - (int)localNow.DayOfWeek + 7) % 7;
+
+                if (daysAhead == 0 && localNow.TimeOfDay > endTs)
+                {
+                    daysAhead = 7;
+                }
+
+                var sessionDate = localNow.Date.AddDays(daysAhead);
+                var sessionStartDateTime = sessionDate.Add(startTs);
+                bool isToday = (sessionDate == localNow.Date);
+                bool isTomorrow = (sessionDate == localNow.Date.AddDays(1));
+
+                string dayText = isToday ? "Hôm nay" : (isTomorrow ? "Ngày mai" : FormatDayOfWeek(sch.DayOfWeek, false));
+
+                var dto = new UpcomingTeachingSessionDto
                 {
                     Id = $"session-{sch.Id}",
                     ClassId = cls.Id,
@@ -726,7 +858,7 @@ public class TeacherClassService : ITeacherClassService
                     HskLevelName = hskName,
                     HskLevelColor = hskColor,
                     DayOfWeekText = dayText,
-                    DateFormatted = now.ToString("dd/MM/yyyy"),
+                    DateFormatted = sessionDate.ToString("dd/MM/yyyy"),
                     TimeRange = $"{sch.StartTime} – {sch.EndTime}",
                     LocationType = sch.LocationType,
                     MeetingUrl = sch.MeetingUrl ?? cls.MeetingUrl,
@@ -734,29 +866,69 @@ public class TeacherClassService : ITeacherClassService
                     EnrolledStudentsCount = studentCount,
                     LessonTopicPreview = $"Lớp {cls.Code}: Giảng dạy chuẩn {hskName}",
                     IsToday = isToday
-                });
+                };
+
+                list.Add((sessionStartDateTime, dto));
             }
         }
 
-        return list.OrderByDescending(s => s.IsToday).ThenBy(s => s.TimeRange).Take(5).ToList();
+        return list.OrderBy(x => x.StartDateTime).Take(5).Select(x => x.Dto).ToList();
     }
+
+    private static readonly Regex TimeFormatRegex = new(@"^([01][0-9]|2[0-3]):[0-5][0-9]$", RegexOptions.Compiled);
+    private static readonly HashSet<string> ValidDaysOfWeek = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+    };
 
     private static void ValidateSchedules(IEnumerable<ClassScheduleDto>? schedules)
     {
         if (schedules == null) return;
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var s in schedules)
+        var scheduleList = schedules.ToList();
+        if (scheduleList.Count == 0) return;
+
+        foreach (var s in scheduleList)
         {
-            if (string.Compare(s.StartTime, s.EndTime, StringComparison.Ordinal) >= 0)
+            if (string.IsNullOrWhiteSpace(s.DayOfWeek) || !ValidDaysOfWeek.Contains(s.DayOfWeek.Trim()))
+            {
+                throw new ArgumentException($"Ngày trong tuần '{s.DayOfWeek}' không hợp lệ (yêu cầu từ MONDAY đến SUNDAY).");
+            }
+
+            if (string.IsNullOrWhiteSpace(s.StartTime) || !TimeFormatRegex.IsMatch(s.StartTime.Trim()))
+            {
+                throw new ArgumentException($"Định dạng giờ bắt đầu '{s.StartTime}' không hợp lệ (yêu cầu định dạng HH:mm, ví dụ 19:00).");
+            }
+
+            if (string.IsNullOrWhiteSpace(s.EndTime) || !TimeFormatRegex.IsMatch(s.EndTime.Trim()))
+            {
+                throw new ArgumentException($"Định dạng giờ kết thúc '{s.EndTime}' không hợp lệ (yêu cầu định dạng HH:mm, ví dụ 20:30).");
+            }
+
+            var startTs = TimeSpan.Parse(s.StartTime.Trim());
+            var endTs = TimeSpan.Parse(s.EndTime.Trim());
+
+            if (startTs >= endTs)
             {
                 throw new ArgumentException($"Khung giờ không hợp lệ ({s.StartTime} - {s.EndTime}): Giờ bắt đầu phải nhỏ hơn giờ kết thúc.");
             }
-            var key = $"{s.DayOfWeek}_{s.StartTime}";
-            if (seen.Contains(key))
+        }
+
+        // Overlap detection on same day
+        var dayGroups = scheduleList.GroupBy(s => s.DayOfWeek.Trim().ToUpperInvariant());
+        foreach (var group in dayGroups)
+        {
+            var sorted = group.OrderBy(s => TimeSpan.Parse(s.StartTime.Trim())).ToList();
+            for (int i = 0; i < sorted.Count - 1; i++)
             {
-                throw new ArgumentException($"Đã có lịch học trùng ngày và giờ: {s.DayOfWeek} lúc {s.StartTime}.");
+                var curEnd = TimeSpan.Parse(sorted[i].EndTime.Trim());
+                var nextStart = TimeSpan.Parse(sorted[i + 1].StartTime.Trim());
+
+                // Overlap occurs strictly when curEnd > nextStart
+                if (curEnd > nextStart)
+                {
+                    throw new ArgumentException($"Khung giờ học trên cùng ngày {group.Key} bị trùng lặp: Buổi học {sorted[i].StartTime}–{sorted[i].EndTime} đè lên buổi học {sorted[i + 1].StartTime}–{sorted[i + 1].EndTime}.");
+                }
             }
-            seen.Add(key);
         }
     }
 

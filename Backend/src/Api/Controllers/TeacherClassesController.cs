@@ -15,7 +15,7 @@ namespace ZhongWenHub.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/teacher")]
-[Authorize(Policy = PolicyConstants.TeacherAccess)]
+[Authorize]
 public class TeacherClassesController : BaseApiController
 {
     private readonly ITeacherClassService _teacherClassService;
@@ -33,6 +33,7 @@ public class TeacherClassesController : BaseApiController
     /// Lấy toàn bộ dữ liệu tổng hợp cho Teacher Dashboard (KPIs, lịch dạy sắp tới, lớp đang dạy)
     /// </summary>
     [HttpGet("dashboard")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(TeacherDashboardDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
     {
@@ -53,9 +54,34 @@ public class TeacherClassesController : BaseApiController
     }
 
     /// <summary>
+    /// Lấy thống kê tổng quan các lớp học (KPI strip) mà không cần tải toàn bộ danh sách lớp
+    /// </summary>
+    [HttpGet("classes/stats")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
+    [ProducesResponseType(typeof(TeacherClassStatsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetClassStats(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var stats = await _teacherClassService.GetClassStatsAsync(cancellationToken);
+            return Ok(stats);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy thống kê lớp giảng dạy.");
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy thống kê lớp học.");
+        }
+    }
+
+    /// <summary>
     /// Lấy danh sách lớp học có phân trang, bộ lọc và sắp xếp
     /// </summary>
     [HttpGet("classes")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(PagedResponse<ClassSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClasses([FromQuery] ClassFilterDto filter, CancellationToken cancellationToken)
     {
@@ -79,6 +105,7 @@ public class TeacherClassesController : BaseApiController
     /// Xem thông tin chi tiết một lớp học
     /// </summary>
     [HttpGet("classes/{classId:guid}")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(ClassDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetClassById(Guid classId, CancellationToken cancellationToken)
@@ -107,6 +134,7 @@ public class TeacherClassesController : BaseApiController
     /// Tạo lớp giảng dạy mới
     /// </summary>
     [HttpPost("classes")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(TeachingClassDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateClass([FromBody] CreateTeachingClassDto dto, CancellationToken cancellationToken)
@@ -144,6 +172,7 @@ public class TeacherClassesController : BaseApiController
     /// Cập nhật thông tin lớp giảng dạy
     /// </summary>
     [HttpPut("classes/{classId:guid}")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(TeachingClassDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
@@ -187,6 +216,7 @@ public class TeacherClassesController : BaseApiController
     /// </summary>
     [HttpDelete("classes/{classId:guid}")]
     [HttpPost("classes/{classId:guid}/archive")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ArchiveClass(Guid classId, CancellationToken cancellationToken)
@@ -215,6 +245,7 @@ public class TeacherClassesController : BaseApiController
     /// Lấy danh sách thành viên trong lớp học
     /// </summary>
     [HttpGet("classes/{classId:guid}/members")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(IReadOnlyList<ClassMemberViewDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClassMembers(
         Guid classId,
@@ -246,6 +277,7 @@ public class TeacherClassesController : BaseApiController
     /// Ghi danh học viên vào lớp học
     /// </summary>
     [HttpPost("classes/{classId:guid}/members")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(ClassMemberViewDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
@@ -287,6 +319,7 @@ public class TeacherClassesController : BaseApiController
     /// Xóa học viên khỏi lớp học
     /// </summary>
     [HttpDelete("classes/{classId:guid}/members/{studentId:guid}")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveMember(
@@ -318,6 +351,7 @@ public class TeacherClassesController : BaseApiController
     /// Lấy thời khóa biểu tuần của lớp học
     /// </summary>
     [HttpGet("classes/{classId:guid}/schedules")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(IReadOnlyList<ClassScheduleDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetClassSchedules(Guid classId, CancellationToken cancellationToken)
     {
@@ -345,6 +379,7 @@ public class TeacherClassesController : BaseApiController
     /// Cập nhật / thay thế thời khóa biểu tuần của lớp học
     /// </summary>
     [HttpPut("classes/{classId:guid}/schedules")]
+    [Authorize(Policy = PolicyConstants.TeacherAccess)]
     [ProducesResponseType(typeof(IReadOnlyList<ClassScheduleDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateClassSchedules(
@@ -373,6 +408,30 @@ public class TeacherClassesController : BaseApiController
         {
             _logger.LogError(ex, "Lỗi khi cập nhật thời khóa biểu lớp {ClassId}", classId);
             return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi cập nhật thời khóa biểu.");
+        }
+    }
+
+    /// <summary>
+    /// Lấy danh sách các lớp học mà học viên hiện tại đang được ghi danh tham gia
+    /// </summary>
+    [HttpGet("my-enrolled-classes")]
+    [Authorize(Policy = PolicyConstants.StudentAccess)]
+    [ProducesResponseType(typeof(IReadOnlyList<StudentEnrolledClassDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyEnrolledClasses(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var classes = await _teacherClassService.GetMyEnrolledClassesAsync(cancellationToken);
+            return Ok(classes);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy danh sách lớp học của học viên.");
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy danh sách lớp học của học viên.");
         }
     }
 }

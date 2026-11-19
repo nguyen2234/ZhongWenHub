@@ -335,4 +335,104 @@ describe('Teacher Class Management Phase 1 - Real API & Contracts', () => {
       expect(typeof basicInfo.code).toBe('string');
     }
   });
+
+  it('9. getDashboard throws on 401 and clears auth tokens (Fail-Closed, No Mock Fallback)', async () => {
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify({ title: 'Unauthorized' }), { status: 401 });
+    });
+
+    expect(authTokenService.getAccessToken()).toBe('test-teacher-token-xyz');
+    await expect(teacherPortalService.getDashboard()).rejects.toThrow('Phiên đăng nhập đã hết hạn');
+    expect(authTokenService.getAccessToken()).toBeNull();
+  });
+
+  it('10. getClasses throws on 403 and 500 without mock fallback', async () => {
+    // 403
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify({ title: 'Forbidden' }), { status: 403 });
+    });
+    await expect(
+      teacherPortalService.getClasses({ search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' }, { page: 1, pageSize: 10 })
+    ).rejects.toThrow('Bạn không có quyền');
+
+    // 500
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify({ detail: 'Internal database error' }), { status: 500 });
+    });
+    await expect(
+      teacherPortalService.getClasses({ search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' }, { page: 1, pageSize: 10 })
+    ).rejects.toThrow('Internal database error');
+  });
+
+  it('11. getClassById throws on 404 without mock fallback', async () => {
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify({ title: 'Not Found' }), { status: 404 });
+    });
+    await expect(teacherPortalService.getClassById('non-existent-id')).rejects.toThrow('Không tìm thấy lớp học');
+  });
+
+  it('12. getClassMembers throws on 403 and 404 without mock fallback', async () => {
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify({ title: 'Forbidden' }), { status: 403 });
+    });
+    await expect(teacherPortalService.getClassMembers('cls-100')).rejects.toThrow('Bạn không có quyền xem danh sách học viên');
+  });
+
+  it('13. getClassStats calls GET /api/v1/teacher/classes/stats and returns KPI strip data', async () => {
+    let capturedUrl = '';
+    globalThis.fetch = mock(async (url: any) => {
+      capturedUrl = String(url);
+      return new Response(
+        JSON.stringify({
+          totalClasses: 12,
+          activeCount: 8,
+          upcomingCount: 3,
+          archivedCount: 1,
+          totalStudents: 156,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const stats = await teacherPortalService.getClassStats();
+    expect(capturedUrl).toContain('/teacher/classes/stats');
+    expect(stats.totalClasses).toBe(12);
+    expect(stats.activeCount).toBe(8);
+    expect(stats.totalStudents).toBe(156);
+  });
+
+  it('14. getMyEnrolledClasses calls GET /api/v1/teacher/my-enrolled-classes', async () => {
+    let capturedUrl = '';
+    globalThis.fetch = mock(async (url: any) => {
+      capturedUrl = String(url);
+      return new Response(
+        JSON.stringify([
+          {
+            id: 'cls-100',
+            name: 'Lớp HSK 3 Online',
+            code: 'CLS-HSK3-001',
+            hskLevelId: 'level-hsk-3',
+            hskLevelName: 'HSK 3',
+            hskLevelColor: '#4338ca',
+            teacherId: 'tch-1',
+            teacherName: 'Cô Trương',
+            teacherEmail: 'truong@zhongwenhub.edu.vn',
+            status: 'ACTIVE',
+            locationType: 'ONLINE',
+            startDate: '2026-09-01',
+            schedulesSummary: 'T2, T4 (19:00–20:30)',
+            enrolledAt: '2026-09-02T00:00:00Z',
+            memberStatus: 'ACTIVE',
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const enrolled = await teacherPortalService.getMyEnrolledClasses();
+    expect(capturedUrl).toContain('/teacher/my-enrolled-classes');
+    expect(enrolled.length).toBe(1);
+    expect(enrolled[0].name).toBe('Lớp HSK 3 Online');
+    expect(enrolled[0].teacherName).toBe('Cô Trương');
+  });
 });

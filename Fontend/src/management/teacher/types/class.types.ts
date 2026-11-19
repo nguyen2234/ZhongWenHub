@@ -234,3 +234,39 @@ export interface ClassSort {
   field: ClassSortField;
   direction: SortDirection;
 }
+
+/**
+ * Thống kê tổng hợp số lượng lớp học theo trạng thái (KPI strip)
+ */
+export interface TeacherClassStatsDTO {
+  totalClasses: number;
+  activeCount: number;
+  upcomingCount: number;
+  archivedCount: number;
+  totalStudents: number;
+}
+
+/**
+ * Lớp học mà học viên đã ghi danh
+ */
+export interface StudentEnrolledClassDTO {
+  id: string;
+  name: string;
+  code: string;
+  hskLevelId: string;
+  hskLevelName: string;
+  hskLevelColor: string;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  status: string;
+  locationType: LocationType;
+  meetingUrl?: string;
+  roomLocation?: string;
+  startDate: string;
+  endDate?: string;
+  schedulesSummary: string;
+  enrolledAt: string;
+  memberStatus: string;
+}
+
