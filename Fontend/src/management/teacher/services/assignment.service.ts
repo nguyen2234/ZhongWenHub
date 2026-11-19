@@ -869,7 +869,7 @@ class AssignmentService {
     const res = await fetch(getApiUrl(`/teacher/submissions/${submissionId}/grade`), {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(dto),
+      body: JSON.stringify({ customScore: dto.score, feedbackNote: dto.feedbackNote }),
     });
     if (!res.ok) {
       const detail = await extractErrorDetail(res, 'Không thể lưu kết quả chấm bài.');
