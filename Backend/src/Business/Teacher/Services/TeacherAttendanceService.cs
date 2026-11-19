@@ -110,6 +110,16 @@ public class TeacherAttendanceService : ITeacherAttendanceService
             .Select(m => m.StudentId)
             .ToListAsync(cancellationToken);
 
+        if (dto.Records == null)
+        {
+            throw new ArgumentException("Danh sách điểm danh không được để trống.");
+        }
+
+        if (dto.Records.GroupBy(r => r.StudentId).Any(g => g.Count() > 1))
+        {
+            throw new ArgumentException("Danh sách điểm danh chứa học viên trùng lặp.");
+        }
+
         var memberSet = new HashSet<Guid>(memberStudentIds);
 
         // Fetch existing attendance records for this class and date
@@ -120,19 +130,25 @@ public class TeacherAttendanceService : ITeacherAttendanceService
         var existingMap = existingRecords.ToDictionary(a => a.StudentId, a => a);
         var validStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "PRESENT", "ABSENT", "LATE", "EXCUSED" };
 
+        // Validate the complete request before modifying any tracked entities.
         foreach (var item in dto.Records)
         {
             if (!memberSet.Contains(item.StudentId))
             {
-                continue; // Skip students not in class
+                throw new ArgumentException($"Học viên {item.StudentId} không thuộc lớp hoặc không còn hoạt động.");
             }
 
-            var status = item.Status.ToUpperInvariant();
-            if (!validStatuses.Contains(status))
+            var status = item.Status?.Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(status) || !validStatuses.Contains(status))
             {
-                status = "PRESENT";
+                throw new ArgumentException($"Trạng thái điểm danh không hợp lệ: {item.Status}");
             }
 
+        }
+
+        foreach (var item in dto.Records)
+        {
+            var status = item.Status!.Trim().ToUpperInvariant();
             if (existingMap.TryGetValue(item.StudentId, out var existing))
             {
                 existing.Status = status;

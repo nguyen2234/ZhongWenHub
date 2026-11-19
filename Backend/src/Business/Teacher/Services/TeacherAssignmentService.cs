@@ -151,6 +151,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 .Where(c => targetClassIds.Contains(c.Id) && !c.IsArchived)
                 .ToListAsync(cancellationToken);
 
+            if (classes.Count != targetClassIds.Count)
+            {
+                throw new ArgumentException("Một hoặc nhiều lớp được giao không tồn tại hoặc đã lưu trữ.");
+            }
+
             if (!isAdmin && classes.Any(c => c.TeacherId != currentUserId))
             {
                 throw new UnauthorizedAccessException("Bạn chỉ được giao bài tập cho các lớp học do bạn phụ trách.");
@@ -221,6 +226,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         var currentUserId = GetCurrentUserIdOrThrow();
         var isAdmin = _currentUserService.Roles.Contains(RoleConstants.Admin);
 
+        if (assignment.Status != "DRAFT")
+        {
+            throw new InvalidOperationException("Chỉ có thể chỉnh sửa bài tập ở trạng thái bản nháp.");
+        }
+
         // Check if assignment already has submissions
         var hasSubmissions = await _context.StudentAssignmentSubmissions
             .AnyAsync(s => s.AssignmentId == assignmentId, cancellationToken);
@@ -275,6 +285,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 var classes = await _context.TeachingClasses
                     .Where(c => targetClassIds.Contains(c.Id) && !c.IsArchived)
                     .ToListAsync(cancellationToken);
+
+                if (classes.Count != targetClassIds.Count)
+                {
+                    throw new ArgumentException("Một hoặc nhiều lớp được giao không tồn tại hoặc đã lưu trữ.");
+                }
 
                 if (!isAdmin && classes.Any(c => c.TeacherId != currentUserId))
                 {
@@ -334,6 +349,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     {
         var assignment = await GetAuthorizedAssignmentAsync(assignmentId, cancellationToken);
 
+        if (assignment.Status != "DRAFT")
+        {
+            throw new InvalidOperationException("Chỉ có thể xuất bản bài tập ở trạng thái bản nháp.");
+        }
+
         if (assignment.Questions.Count == 0)
         {
             throw new InvalidOperationException("Bài tập phải có ít nhất 1 câu hỏi trước khi xuất bản.");
@@ -354,6 +374,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     public async Task<AssignmentDetailDto> CloseAssignmentAsync(Guid assignmentId, CancellationToken cancellationToken = default)
     {
         var assignment = await GetAuthorizedAssignmentAsync(assignmentId, cancellationToken);
+
+        if (assignment.Status != "PUBLISHED")
+        {
+            throw new InvalidOperationException("Chỉ có thể đóng bài tập đang được xuất bản.");
+        }
 
         assignment.Status = "CLOSED";
         assignment.ClosedAt = DateTime.UtcNow;
@@ -540,9 +565,15 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         if (member != null)
         {
-            var completedCount = await _context.StudentAssignmentSubmissions
-                .CountAsync(s => s.ClassId == submission.ClassId && s.StudentId == submission.StudentId && (s.Status == "SUBMITTED" || s.Status == "GRADED"), cancellationToken);
-            member.CompletedAssignmentsCount = completedCount;
+            var completedAssignmentIds = await _context.StudentAssignmentSubmissions
+                .Where(s => s.ClassId == submission.ClassId && s.StudentId == submission.StudentId &&
+                    (s.Status == "SUBMITTED" || s.Status == "GRADED" || s.Status == "GRADING"))
+                .Select(s => s.AssignmentId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+            member.CompletedAssignmentsCount = completedAssignmentIds.Contains(submission.AssignmentId)
+                ? completedAssignmentIds.Count
+                : completedAssignmentIds.Count + 1;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
