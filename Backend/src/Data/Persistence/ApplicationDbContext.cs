@@ -5,6 +5,7 @@ using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Data.Entities.Teacher;
 
 namespace ZhongWenHub.Data.Persistence;
 
@@ -61,6 +62,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AiSpeakingAttempt> AiSpeakingAttempts => Set<AiSpeakingAttempt>();
     public DbSet<LearningSkillStatistic> LearningSkillStatistics => Set<LearningSkillStatistic>();
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
+
+    // Teacher & Class Management DbSets
+    public DbSet<TeachingClass> TeachingClasses => Set<TeachingClass>();
+    public DbSet<TeachingClassMember> TeachingClassMembers => Set<TeachingClassMember>();
+    public DbSet<TeachingClassSchedule> TeachingClassSchedules => Set<TeachingClassSchedule>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -1031,6 +1037,79 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.SetNull);
             b.HasIndex(x => new { x.UserId, x.PlanDate }).HasDatabaseName("idx_daily_learning_tasks_user_date");
             b.HasIndex(x => x.LearningPathId).HasDatabaseName("idx_daily_learning_tasks_path");
+        });
+
+        // Teacher & Class Management Entity Configurations
+        builder.Entity<TeachingClass>(b =>
+        {
+            b.ToTable("teaching_classes");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Code).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(2000).HasDefaultValue(string.Empty);
+            b.Property(x => x.HskLevelId).HasMaxLength(50).IsRequired().HasDefaultValue("level-hsk-1");
+            b.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("UPCOMING");
+            b.Property(x => x.LocationType).HasMaxLength(20).IsRequired().HasDefaultValue("ONLINE");
+            b.Property(x => x.MeetingUrl).HasMaxLength(500);
+            b.Property(x => x.RoomLocation).HasMaxLength(200);
+
+            b.HasOne(x => x.Teacher)
+                .WithMany()
+                .HasForeignKey(x => x.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(x => x.Code).IsUnique().HasDatabaseName("idx_teaching_classes_code_unique");
+            b.HasIndex(x => x.TeacherId).HasDatabaseName("idx_teaching_classes_teacher");
+            b.HasIndex(x => x.Status).HasDatabaseName("idx_teaching_classes_status");
+            b.HasIndex(x => x.HskLevelId).HasDatabaseName("idx_teaching_classes_hsk_level");
+            b.HasIndex(x => x.IsArchived).HasDatabaseName("idx_teaching_classes_archived");
+        });
+
+        builder.Entity<TeachingClassMember>(b =>
+        {
+            b.ToTable("teaching_class_members");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("ACTIVE");
+            b.Property(x => x.Notes).HasMaxLength(500);
+
+            b.HasOne(x => x.TeachingClass)
+                .WithMany(c => c.Members)
+                .HasForeignKey(x => x.ClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(x => x.Student)
+                .WithMany()
+                .HasForeignKey(x => x.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(x => new { x.ClassId, x.StudentId }).IsUnique().HasDatabaseName("idx_teaching_class_members_class_student_unique");
+            b.HasIndex(x => x.StudentId).HasDatabaseName("idx_teaching_class_members_student");
+            b.HasIndex(x => x.Status).HasDatabaseName("idx_teaching_class_members_status");
+        });
+
+        builder.Entity<TeachingClassSchedule>(b =>
+        {
+            b.ToTable("teaching_class_schedules");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.DayOfWeek).HasMaxLength(20).IsRequired().HasDefaultValue("MONDAY");
+            b.Property(x => x.StartTime).HasMaxLength(10).IsRequired().HasDefaultValue("19:00");
+            b.Property(x => x.EndTime).HasMaxLength(10).IsRequired().HasDefaultValue("20:30");
+            b.Property(x => x.Timezone).HasMaxLength(50).IsRequired().HasDefaultValue("Asia/Ho_Chi_Minh");
+            b.Property(x => x.LocationType).HasMaxLength(20).IsRequired().HasDefaultValue("ONLINE");
+            b.Property(x => x.MeetingUrl).HasMaxLength(500);
+            b.Property(x => x.RoomLocation).HasMaxLength(200);
+
+            b.HasOne(x => x.TeachingClass)
+                .WithMany(c => c.Schedules)
+                .HasForeignKey(x => x.ClassId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(x => x.ClassId).HasDatabaseName("idx_teaching_class_schedules_class");
         });
     }
 

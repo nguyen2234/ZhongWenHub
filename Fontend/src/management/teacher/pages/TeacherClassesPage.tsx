@@ -49,9 +49,18 @@ export const TeacherClassesPage: React.FC = () => {
   const [editingClass, setEditingClass] = useState<ClassSummaryDTO | null>(null);
   const [archivingClass, setArchivingClass] = useState<ClassSummaryDTO | null>(null);
 
+  // Summary KPIs state
+  const [summaryKPIs, setSummaryKPIs] = useState({
+    totalClasses: 0,
+    activeCount: 0,
+    upcomingCount: 0,
+    archivedCount: 0,
+    totalStudents: 0,
+  });
+
   // Load Data
-  const loadClasses = useCallback(() => {
-    const res = teacherPortalService.getClasses(filters, pagination, sort);
+  const loadClasses = useCallback(async () => {
+    const res = await teacherPortalService.getClasses(filters, pagination, sort);
     setClassResponse({
       items: res.items,
       totalItems: res.totalItems,
@@ -62,6 +71,18 @@ export const TeacherClassesPage: React.FC = () => {
     const courseList = curriculumService.getCourses();
     setHskLevels(levels);
     setCourses(courseList);
+
+    // Load full summary strip KPIs
+    const allRes = await teacherPortalService.getClasses(
+      { search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' },
+      { page: 1, pageSize: 999 }
+    );
+    const all = allRes.items;
+    const activeCount = all.filter((c) => c.status === 'ACTIVE').length;
+    const upcomingCount = all.filter((c) => c.status === 'UPCOMING').length;
+    const archivedCount = all.filter((c) => c.status === 'ARCHIVED').length;
+    const totalStudents = all.reduce((sum, c) => sum + c.derivedEnrollmentCount, 0);
+    setSummaryKPIs({ totalClasses: all.length, activeCount, upcomingCount, archivedCount, totalStudents });
   }, [filters, pagination, sort]);
 
   useEffect(() => {
@@ -83,35 +104,20 @@ export const TeacherClassesPage: React.FC = () => {
   // Handle Submit from Drawer
   const handleFormSubmit = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
     if (editingClass) {
-      teacherPortalService.updateClass(editingClass.id, dto as UpdateTeachingClassDTO);
+      await teacherPortalService.updateClass(editingClass.id, dto as UpdateTeachingClassDTO);
     } else {
-      teacherPortalService.createClass(dto as CreateTeachingClassDTO);
+      await teacherPortalService.createClass(dto as CreateTeachingClassDTO);
     }
-    loadClasses();
+    await loadClasses();
   };
 
   // Handle Confirm Archive
-  const handleConfirmArchive = () => {
+  const handleConfirmArchive = async () => {
     if (!archivingClass) return;
-    teacherPortalService.archiveClass(archivingClass.id);
+    await teacherPortalService.archiveClass(archivingClass.id);
     setArchivingClass(null);
-    loadClasses();
+    await loadClasses();
   };
-
-  // Aggregated Summary Strip KPIs
-  const summaryKPIs = useMemo(() => {
-    const all = teacherPortalService.getClasses(
-      { search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' },
-      { page: 1, pageSize: 999 }
-    ).items;
-
-    const activeCount = all.filter((c) => c.status === 'ACTIVE').length;
-    const upcomingCount = all.filter((c) => c.status === 'UPCOMING').length;
-    const archivedCount = all.filter((c) => c.status === 'ARCHIVED').length;
-    const totalStudents = all.reduce((sum, c) => sum + c.derivedEnrollmentCount, 0);
-
-    return { totalClasses: all.length, activeCount, upcomingCount, archivedCount, totalStudents };
-  }, [classResponse]);
 
   return (
     <div>

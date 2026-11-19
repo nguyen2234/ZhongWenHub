@@ -17,6 +17,7 @@ using ZhongWenHub.Business.Content;
 using ZhongWenHub.Business.Exams;
 using ZhongWenHub.Business.QuestionBank;
 using ZhongWenHub.Business.Learning;
+using ZhongWenHub.Business.Teacher.Services;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
 
@@ -105,6 +106,7 @@ public static class DependencyInjection
         services.AddScoped<IContentService, ContentService>();
         services.AddScoped<IExamService, ExamService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
+        services.AddScoped<ITeacherClassService, TeacherClassService>();
         services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
         services.AddHttpClient<VideoStorageService>();
         services.AddScoped<IVideoStorageService, VideoStorageService>();

@@ -1418,6 +1418,17 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasDefaultValue("Giao tiếp hàng ngày");
 
+                    b.Property<string>("TranscriptPdfName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("TranscriptPdfPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("TranscriptPdfSizeBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -2657,6 +2668,227 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid?>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasDefaultValue("");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HskLevelId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("level-hsk-1");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LocationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("ONLINE");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RoomLocation")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("UPCOMING");
+
+                    b.Property<Guid>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("idx_teaching_classes_code_unique");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("HskLevelId")
+                        .HasDatabaseName("idx_teaching_classes_hsk_level");
+
+                    b.HasIndex("IsArchived")
+                        .HasDatabaseName("idx_teaching_classes_archived");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_teaching_classes_status");
+
+                    b.HasIndex("TeacherId")
+                        .HasDatabaseName("idx_teaching_classes_teacher");
+
+                    b.ToTable("teaching_classes", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("AttendanceRate")
+                        .HasColumnType("float");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CompletedAssignmentsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("ACTIVE");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_teaching_class_members_status");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("idx_teaching_class_members_student");
+
+                    b.HasIndex("ClassId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("idx_teaching_class_members_class_student_unique");
+
+                    b.ToTable("teaching_class_members", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClassId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DayOfWeek")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("MONDAY");
+
+                    b.Property<string>("EndTime")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("20:30");
+
+                    b.Property<string>("LocationType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("ONLINE");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RoomLocation")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("19:00");
+
+                    b.Property<string>("Timezone")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Asia/Ho_Chi_Minh");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassId")
+                        .HasDatabaseName("idx_teaching_class_schedules_class");
+
+                    b.ToTable("teaching_class_schedules", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.UserSubscription", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2844,8 +3076,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -2866,8 +3097,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -2888,8 +3118,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -2899,8 +3128,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3021,8 +3249,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3068,8 +3295,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("LearningPath");
 
@@ -3097,8 +3323,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Goal");
 
@@ -3110,8 +3335,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3127,8 +3351,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Exam");
 
@@ -3140,8 +3363,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3151,8 +3373,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3162,8 +3383,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3173,8 +3393,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3184,8 +3403,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3195,10 +3413,57 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Content.CourseEntity", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Teacher")
+                        .WithMany()
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassMember", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClass", "TeachingClass")
+                        .WithMany("Members")
+                        .HasForeignKey("ClassId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+
+                    b.Navigation("TeachingClass");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClassSchedule", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClass", "TeachingClass")
+                        .WithMany("Schedules")
+                        .HasForeignKey("ClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TeachingClass");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.UserSubscription", b =>
@@ -3206,8 +3471,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithOne("Subscription")
                         .HasForeignKey("ZhongWenHub.Data.Entities.UserSubscription", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3217,8 +3481,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithOne("Wallet")
                         .HasForeignKey("ZhongWenHub.Data.Entities.UserWallet", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -3228,8 +3491,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("ZhongWenHub.Data.Entities.UserWallet", "Wallet")
                         .WithMany("Transactions")
@@ -3295,6 +3557,13 @@ namespace ZhongWenHub.Data.Persistence.Migrations
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", b =>
                 {
                     b.Navigation("Milestones");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingClass", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Schedules");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.UserWallet", b =>

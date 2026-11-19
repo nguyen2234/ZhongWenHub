@@ -29,10 +29,10 @@ export const TeacherDashboardPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
 
   // Load dashboard data from service abstraction
-  const loadDashboardData = useCallback(() => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = teacherPortalService.getDashboard();
+      const data = await teacherPortalService.getDashboard();
       const levels = hskRepositoryService.getLevels();
       const courseList = curriculumService.getCourses();
 
@@ -50,8 +50,8 @@ export const TeacherDashboardPage: React.FC = () => {
 
   // Handle Create Class
   const handleCreateClass = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
-    teacherPortalService.createClass(dto as CreateTeachingClassDTO);
-    loadDashboardData();
+    await teacherPortalService.createClass(dto as CreateTeachingClassDTO);
+    await loadDashboardData();
   };
 
   if (loading || !dashboardData) {

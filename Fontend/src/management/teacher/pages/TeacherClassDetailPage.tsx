@@ -49,14 +49,14 @@ export const TeacherClassDetailPage: React.FC = () => {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
-  const loadClassDetail = useCallback(() => {
+  const loadClassDetail = useCallback(async () => {
     if (!classId) return;
     setLoading(true);
     try {
-      const data = teacherPortalService.getClassById(classId);
+      const data = await teacherPortalService.getClassById(classId);
       if (data) {
         setDetail(data);
-        const memberList = teacherPortalService.getClassMembers(classId);
+        const memberList = await teacherPortalService.getClassMembers(classId);
         setMembers(memberList);
       } else {
         setDetail(null);
@@ -74,13 +74,13 @@ export const TeacherClassDetailPage: React.FC = () => {
 
   const handleUpdateClass = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
     if (!classId) return;
-    teacherPortalService.updateClass(classId, dto as UpdateTeachingClassDTO);
-    loadClassDetail();
+    await teacherPortalService.updateClass(classId, dto as UpdateTeachingClassDTO);
+    await loadClassDetail();
   };
 
-  const handleConfirmArchive = () => {
+  const handleConfirmArchive = async () => {
     if (!classId) return;
-    teacherPortalService.archiveClass(classId);
+    await teacherPortalService.archiveClass(classId);
     setIsArchiveDialogOpen(false);
     navigate('/management/teacher/classes');
   };
@@ -186,7 +186,14 @@ export const TeacherClassDetailPage: React.FC = () => {
 
       {/* Tab Panels */}
       {activeTab === 'overview' && <ClassOverviewTab detail={detail} />}
-      {activeTab === 'students' && <ClassStudentsTab members={members} />}
+      {activeTab === 'students' && (
+        <ClassStudentsTab
+          classId={classId}
+          members={members}
+          onMemberAdded={loadClassDetail}
+          onMemberRemoved={loadClassDetail}
+        />
+      )}
       {activeTab === 'schedule' && <ClassScheduleTab schedules={detail.schedules} />}
       {activeTab === 'assignments' && <ClassAssignmentsPlaceholderTab />}
       {activeTab === 'performance' && <ClassPerformancePlaceholderTab />}
