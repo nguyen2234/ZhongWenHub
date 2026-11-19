@@ -170,15 +170,18 @@ public class StorageCleanupService : IStorageCleanupService
         {
             // Cross-reference safety check: is file still referenced anywhere?
             var isReferencedInVideos = await _context.LearningVideos
-                .AnyAsync(v => v.StoragePath == job.StoragePath, cancellationToken);
+                .AnyAsync(v => v.StoragePath == job.StoragePath || v.TranscriptPdfPath == job.StoragePath, cancellationToken);
 
             var isReferencedInAssets = await _context.VideoUploadAssets
-                .AnyAsync(a => a.StoragePath == job.StoragePath && a.UploadStatus == VideoUploadAssetStatus.Linked, cancellationToken);
+                .AnyAsync(a => a.StoragePath == job.StoragePath &&
+                               (a.UploadStatus == VideoUploadAssetStatus.Linked ||
+                               (a.UploadStatus == VideoUploadAssetStatus.Completed && a.ExpiresAt > now)),
+                          cancellationToken);
 
             if (isReferencedInVideos || isReferencedInAssets)
             {
                 _logger.LogInformation(
-                    "Skipping physical file deletion for {Path}: still referenced by active video or linked asset. Marking job completed.",
+                    "Skipping physical file deletion for {Path}: still referenced by active video or active upload asset. Marking job completed.",
                     job.StoragePath);
 
                 job.Status = VideoStorageCleanupStatus.Completed;
@@ -203,14 +206,28 @@ public class StorageCleanupService : IStorageCleanupService
                 }
                 else
                 {
-                    // File may be already gone or not found (idempotent retry with backoff)
-                    job.RetryCount++;
-                    job.LastError = "Storage provider returned false on delete attempt.";
-                    var delaySec = Math.Min(3600, (int)Math.Pow(2, job.RetryCount) * 10);
-                    job.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySec);
-                    job.Status = job.RetryCount >= 5 ? VideoStorageCleanupStatus.Failed : VideoStorageCleanupStatus.Pending;
-                    job.LeaseOwner = null;
-                    job.LeaseExpiresAt = null;
+                    // Check if file already does not exist (idempotent handling)
+                    var exists = await _storageService.FileExistsAsync(job.StoragePath, cancellationToken);
+                    if (!exists)
+                    {
+                        job.Status = VideoStorageCleanupStatus.Completed;
+                        job.ProcessedAt = DateTime.UtcNow;
+                        job.LastError = "File already deleted or not found in storage.";
+                        job.LeaseOwner = null;
+                        job.LeaseExpiresAt = null;
+                        processedCount++;
+                    }
+                    else
+                    {
+                        // File exists but storage provider returned false -> retry with backoff
+                        job.RetryCount++;
+                        job.LastError = "Storage provider returned false on delete attempt.";
+                        var delaySec = Math.Min(3600, (int)Math.Pow(2, job.RetryCount) * 10);
+                        job.NextRetryAt = DateTime.UtcNow.AddSeconds(delaySec);
+                        job.Status = job.RetryCount >= 5 ? VideoStorageCleanupStatus.Failed : VideoStorageCleanupStatus.Pending;
+                        job.LeaseOwner = null;
+                        job.LeaseExpiresAt = null;
+                    }
                 }
             }
             catch (Exception ex)

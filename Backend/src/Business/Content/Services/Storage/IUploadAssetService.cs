@@ -21,6 +21,7 @@ public interface IUploadAssetService
         string userId,
         bool isAdmin,
         Guid videoId,
+        string? expectedAssetType = null,
         CancellationToken cancellationToken = default);
 
     Task<VideoUploadAsset?> GetAssetByIdAsync(

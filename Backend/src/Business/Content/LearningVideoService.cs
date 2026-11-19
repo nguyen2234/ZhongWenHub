@@ -303,7 +303,7 @@ public class LearningVideoService : ILearningVideoService
             if (dto.UploadId.HasValue)
             {
                 claimedAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                    dto.UploadId.Value, currentUserId, isAdmin, videoId, cancellationToken);
+                    dto.UploadId.Value, currentUserId, isAdmin, videoId, expectedAssetType: "Video", cancellationToken);
                 resolvedStoragePath = claimedAsset.StoragePath;
             }
             else if (!string.IsNullOrWhiteSpace(dto.StoragePath))
@@ -319,7 +319,7 @@ public class LearningVideoService : ILearningVideoService
                 if (matchingAsset != null)
                 {
                     claimedAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                        matchingAsset.Id, currentUserId, isAdmin, videoId, cancellationToken);
+                        matchingAsset.Id, currentUserId, isAdmin, videoId, expectedAssetType: "Video", cancellationToken);
                     resolvedStoragePath = claimedAsset.StoragePath;
                 }
                 else
@@ -338,13 +338,38 @@ public class LearningVideoService : ILearningVideoService
             }
         }
 
-        // Claim PDF Transcript asset if provided via upload
-        string? resolvedTranscriptPdfPath = dto.TranscriptPdfPath?.Trim();
+        // Claim PDF Transcript asset if provided via upload or path
+        string? resolvedTranscriptPdfPath = null;
         if (dto.TranscriptUploadId.HasValue)
         {
             var claimedPdfAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                dto.TranscriptUploadId.Value, currentUserId, isAdmin, videoId, cancellationToken);
+                dto.TranscriptUploadId.Value, currentUserId, isAdmin, videoId, expectedAssetType: "PdfTranscript", cancellationToken);
             resolvedTranscriptPdfPath = claimedPdfAsset.StoragePath;
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.TranscriptPdfPath))
+        {
+            var trimmedPdfPath = dto.TranscriptPdfPath.Trim();
+            if (!StoragePathSecurity.IsValidStoragePath(trimmedPdfPath))
+            {
+                throw new ArgumentException("Đường dẫn tài liệu PDF (TranscriptPdfPath) không hợp lệ hoặc chứa ký tự nguy hiểm.");
+            }
+
+            var matchingAsset = await _context.VideoUploadAssets
+                .FirstOrDefaultAsync(a => a.StoragePath == trimmedPdfPath, cancellationToken);
+            if (matchingAsset != null)
+            {
+                var claimedPdfAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
+                    matchingAsset.Id, currentUserId, isAdmin, videoId, expectedAssetType: "PdfTranscript", cancellationToken);
+                resolvedTranscriptPdfPath = claimedPdfAsset.StoragePath;
+            }
+            else
+            {
+                if (!isAdmin)
+                {
+                    throw new UnauthorizedAccessException("Bạn không có quyền sử dụng tài liệu PDF chưa được xác thực quyền sở hữu.");
+                }
+                resolvedTranscriptPdfPath = trimmedPdfPath;
+            }
         }
 
         var entity = new LearningVideo
@@ -476,7 +501,7 @@ public class LearningVideoService : ILearningVideoService
             if (dto.UploadId.HasValue)
             {
                 claimedAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                    dto.UploadId.Value, currentUserId, isAdmin, entity.Id, cancellationToken);
+                    dto.UploadId.Value, currentUserId, isAdmin, entity.Id, expectedAssetType: "Video", cancellationToken);
                 newStoragePath = claimedAsset.StoragePath;
             }
             else if (!string.IsNullOrWhiteSpace(dto.StoragePath))
@@ -498,7 +523,7 @@ public class LearningVideoService : ILearningVideoService
                     if (matchingAsset != null)
                     {
                         claimedAsset = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                            matchingAsset.Id, currentUserId, isAdmin, entity.Id, cancellationToken);
+                            matchingAsset.Id, currentUserId, isAdmin, entity.Id, expectedAssetType: "Video", cancellationToken);
                         newStoragePath = claimedAsset.StoragePath;
                     }
                     else
@@ -538,16 +563,46 @@ public class LearningVideoService : ILearningVideoService
         else if (dto.TranscriptUploadId.HasValue)
         {
             var claimedPdf = await _uploadAssetService.ValidateAndClaimAssetAsync(
-                dto.TranscriptUploadId.Value, currentUserId, isAdmin, entity.Id, cancellationToken);
+                dto.TranscriptUploadId.Value, currentUserId, isAdmin, entity.Id, expectedAssetType: "PdfTranscript", cancellationToken);
             newPdfPath = claimedPdf.StoragePath;
             newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
             newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
         }
         else if (!string.IsNullOrWhiteSpace(dto.TranscriptPdfPath))
         {
-            newPdfPath = dto.TranscriptPdfPath.Trim();
-            newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
-            newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
+            var trimmedPdfPath = dto.TranscriptPdfPath.Trim();
+            if (string.Equals(trimmedPdfPath, oldPdfPath, StringComparison.OrdinalIgnoreCase))
+            {
+                newPdfPath = oldPdfPath;
+                newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
+                newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
+            }
+            else
+            {
+                if (!StoragePathSecurity.IsValidStoragePath(trimmedPdfPath))
+                {
+                    throw new ArgumentException("Đường dẫn tài liệu PDF (TranscriptPdfPath) không hợp lệ hoặc chứa ký tự nguy hiểm.");
+                }
+
+                var matchingAsset = await _context.VideoUploadAssets
+                    .FirstOrDefaultAsync(a => a.StoragePath == trimmedPdfPath, cancellationToken);
+                if (matchingAsset != null)
+                {
+                    var claimedPdf = await _uploadAssetService.ValidateAndClaimAssetAsync(
+                        matchingAsset.Id, currentUserId, isAdmin, entity.Id, expectedAssetType: "PdfTranscript", cancellationToken);
+                    newPdfPath = claimedPdf.StoragePath;
+                }
+                else
+                {
+                    if (!isAdmin)
+                    {
+                        throw new UnauthorizedAccessException("Bạn không có quyền thay đổi sang tài liệu PDF chưa xác minh quyền sở hữu.");
+                    }
+                    newPdfPath = trimmedPdfPath;
+                }
+                newPdfName = dto.TranscriptPdfName ?? entity.TranscriptPdfName;
+                newPdfSize = dto.TranscriptPdfSizeBytes ?? entity.TranscriptPdfSizeBytes;
+            }
         }
 
         entity.Title = dto.Title.Trim();
@@ -586,6 +641,14 @@ public class LearningVideoService : ILearningVideoService
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.VideoStorageCleanupJobs.Add(cleanupJob);
+
+                var oldVideoAssets = await _context.VideoUploadAssets
+                    .Where(a => a.LinkedVideoId == entity.Id && a.StoragePath == oldStoragePath)
+                    .ToListAsync(cancellationToken);
+                foreach (var asset in oldVideoAssets)
+                {
+                    asset.UploadStatus = VideoUploadAssetStatus.Deleted;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(oldPdfPath) &&
@@ -601,6 +664,14 @@ public class LearningVideoService : ILearningVideoService
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.VideoStorageCleanupJobs.Add(pdfCleanupJob);
+
+                var oldPdfAssets = await _context.VideoUploadAssets
+                    .Where(a => a.LinkedVideoId == entity.Id && a.StoragePath == oldPdfPath)
+                    .ToListAsync(cancellationToken);
+                foreach (var asset in oldPdfAssets)
+                {
+                    asset.UploadStatus = VideoUploadAssetStatus.Deleted;
+                }
             }
 
             await _context.SaveChangesAsync(cancellationToken);

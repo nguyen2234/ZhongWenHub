@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ZhongWenHub.Business.Content.Helpers;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
@@ -60,6 +61,7 @@ public class UploadAssetService : IUploadAssetService
         string userId,
         bool isAdmin,
         Guid videoId,
+        string? expectedAssetType = null,
         CancellationToken cancellationToken = default)
     {
         var asset = await _context.VideoUploadAssets
@@ -80,6 +82,21 @@ public class UploadAssetService : IUploadAssetService
         if (!isAdmin && !string.Equals(asset.UploadedByUserId, userId, StringComparison.OrdinalIgnoreCase))
         {
             throw new UnauthorizedAccessException("Bạn không có quyền sử dụng tệp tải lên thuộc quyền sở hữu của người dùng khác.");
+        }
+
+        // Check asset type if specified
+        if (!string.IsNullOrWhiteSpace(expectedAssetType) &&
+            !string.Equals(asset.AssetType, expectedAssetType, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Loại tệp không khớp. Yêu cầu: {expectedAssetType}, thực tế: {asset.AssetType}.");
+        }
+
+        // Basic storage path security check against traversal
+        if (string.IsNullOrWhiteSpace(asset.StoragePath) ||
+            asset.StoragePath.Contains("..", StringComparison.Ordinal) ||
+            asset.StoragePath.Contains('\\', StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Đường dẫn lưu trữ của tệp tải lên không hợp lệ hoặc chứa ký tự nguy hiểm.");
         }
 
         // Check concurrency & double linking
