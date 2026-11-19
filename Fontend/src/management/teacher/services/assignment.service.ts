@@ -485,8 +485,8 @@ class AssignmentService {
           latePenaltyPercent: dto.latePenaltyPercent || 0,
           shuffleQuestions: dto.shuffleQuestions || false,
           showCorrectAnswers: dto.showCorrectAnswers ?? true,
-          classIds: (dto.targets || dto.classAssignments || []).map((t: any) => t.classId),
-          dueDate: (dto.targets || dto.classAssignments || []).find((t: any) => t.dueDate)?.dueDate,
+          classIds: (dto.targets || []).map((t: any) => t.classId),
+          dueDate: (dto.targets || []).find((t: any) => t.dueDate)?.dueDate,
           questions: dto.questions.map((q, idx) => ({
             questionBankItemId:
               typeof q.questionBankId === 'string' && q.questionBankId.length === 36 ? q.questionBankId : null,
@@ -583,8 +583,8 @@ class AssignmentService {
           latePenaltyPercent: dto.latePenaltyPercent || 0,
           shuffleQuestions: dto.shuffleQuestions || false,
           showCorrectAnswers: dto.showCorrectAnswers ?? true,
-          classIds: (dto.targets || dto.classAssignments || []).map((t: any) => t.classId),
-          dueDate: (dto.targets || dto.classAssignments || []).find((t: any) => t.dueDate)?.dueDate,
+          classIds: (dto.targets || []).map((t: any) => t.classId),
+          dueDate: (dto.targets || []).find((t: any) => t.dueDate)?.dueDate,
           questions: dto.questions.map((q, idx) => ({
             questionBankItemId:
               typeof q.questionBankId === 'string' && q.questionBankId.length === 36 ? q.questionBankId : null,
@@ -869,7 +869,7 @@ class AssignmentService {
     const res = await fetch(getApiUrl(`/teacher/submissions/${submissionId}/grade`), {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(dto),
+      body: JSON.stringify({ customScore: dto.score, feedbackNote: dto.feedbackNote }),
     });
     if (!res.ok) {
       const detail = await extractErrorDetail(res, 'Không thể lưu kết quả chấm bài.');

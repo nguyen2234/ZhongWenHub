@@ -19,12 +19,14 @@ export const PendingSubmissionsQueue: React.FC<PendingSubmissionsQueueProps> = (
   const [feedbackNote, setFeedbackNote] = useState<string>('Bài làm rất tốt, các câu dịch sát nghĩa và cấu trúc ngữ pháp chuẩn xác.');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleOpenGradeModal = (item: DemoSubmissionItem) => {
     setSelectedSubmission(item);
     setGradeScore(85);
     setFeedbackNote('Bài làm tốt, cấu trúc ngữ pháp chuẩn xác và từ vựng phong phú.');
     setSaveSuccess(false);
+    setSaveError(null);
   };
 
   const handleSaveGrade = async () => {
@@ -46,14 +48,10 @@ export const PendingSubmissionsQueue: React.FC<PendingSubmissionsQueueProps> = (
         setSelectedSubmission(null);
         setSaveSuccess(false);
       }, 1200);
-    } catch {
-      // If offline or in demo mode, update local queue gracefully
-      setSaveSuccess(true);
-      setQueueItems((prev) => prev.filter((s) => s.id !== selectedSubmission.id));
-      setTimeout(() => {
-        setSelectedSubmission(null);
-        setSaveSuccess(false);
-      }, 1200);
+    } catch (error) {
+      // Do not claim success or remove the submission if the backend rejected the grade.
+      setSaveSuccess(false);
+      setSaveError(error instanceof Error ? error.message : 'Không thể lưu kết quả chấm bài. Vui lòng thử lại.');
     } finally {
       setSaving(false);
     }
@@ -241,6 +239,11 @@ export const PendingSubmissionsQueue: React.FC<PendingSubmissionsQueueProps> = (
               </div>
             </div>
 
+            {saveError && (
+              <p role="alert" style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                {saveError}
+              </p>
+            )}
             {saveSuccess ? (
               <div
                 style={{
