@@ -8,8 +8,7 @@ import type {
 
 /**
  * Service for Student Portal Assignment and Homework access.
- * Directly delegates to the authoritative single-source-of-truth assignmentService
- * without creating duplicate mock stores.
+ * Directly communicates with the authoritative backend through assignmentService.
  */
 class StudentHomeworkService {
   /**
@@ -21,7 +20,7 @@ class StudentHomeworkService {
   }
 
   /**
-   * Fetches assignment detail for a specific assignment, ensuring student has enrollment rights.
+   * Fetches assignment detail for a specific assignment.
    */
   async getAssignmentDetail(
     assignmentId: string,
@@ -33,7 +32,7 @@ class StudentHomeworkService {
 
   /**
    * Fetches sanitized question runner package for the student exam runner.
-   * Strips all solutions and answers.
+   * Strictly strips all solutions and answers.
    */
   async getAssignmentRunner(
     assignmentId: string,
@@ -41,6 +40,27 @@ class StudentHomeworkService {
   ): Promise<StudentAssignmentRunnerDTO | undefined> {
     const activeStudentId = studentId || getCurrentStudentIdentity().id;
     return assignmentService.getStudentAssignmentRunner(assignmentId, activeStudentId);
+  }
+
+  /**
+   * Starts a real homework attempt and receives submissionId.
+   */
+  async startAttempt(assignmentId: string): Promise<any> {
+    return assignmentService.startStudentHomework(assignmentId);
+  }
+
+  /**
+   * Submits answers and receives immediate grading and feedback.
+   */
+  async submitHomework(submissionId: string, answers: any[], timeSpentSeconds: number): Promise<any> {
+    return assignmentService.submitStudentHomework(submissionId, answers, timeSpentSeconds);
+  }
+
+  /**
+   * Retrieves results and teacher feedback for a completed submission.
+   */
+  async getResult(submissionId: string): Promise<any> {
+    return assignmentService.getStudentHomeworkResult(submissionId);
   }
 }
 

@@ -180,6 +180,11 @@ export interface CreateAssignmentDTO {
     questionBankId: string | number;
     orderIndex: number;
     points: number;
+    prompt?: string;
+    questionType?: string;
+    options?: string[];
+    correctAnswer?: string;
+    explanation?: string;
   }>;
   targets: Array<{
     classId: string;
@@ -204,6 +209,11 @@ export interface UpdateDraftAssignmentDTO {
     questionBankId: string | number;
     orderIndex: number;
     points: number;
+    prompt?: string;
+    questionType?: string;
+    options?: string[];
+    correctAnswer?: string;
+    explanation?: string;
   }>;
   targets: Array<{
     classId: string;
