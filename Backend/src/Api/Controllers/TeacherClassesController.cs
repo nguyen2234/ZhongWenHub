@@ -434,4 +434,35 @@ public class TeacherClassesController : BaseApiController
             return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy danh sách lớp học của học viên.");
         }
     }
+
+    /// <summary>
+    /// Lấy metadata lớp học mà học viên hiện tại đang được ghi danh tham gia.
+    /// Dành riêng cho học viên (StudentAccess), chỉ cho phép truy cập các lớp mình đang được ghi danh.
+    /// Không bao gồm danh sách thành viên hoặc dữ liệu quản trị lớp học.
+    /// </summary>
+    [HttpGet("my-enrolled-classes/{classId:guid}")]
+    [Authorize(Policy = PolicyConstants.StudentAccess)]
+    [ProducesResponseType(typeof(StudentEnrolledClassDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyEnrolledClassById(Guid classId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var enrolledClass = await _teacherClassService.GetMyEnrolledClassByIdAsync(classId, cancellationToken);
+            if (enrolledClass == null)
+            {
+                return ProblemDetailsResult(StatusCodes.Status404NotFound, "Not Found", $"Bạn không được ghi danh hoặc không tìm thấy lớp học '{classId}'.");
+            }
+            return Ok(enrolledClass);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return ProblemDetailsResult(StatusCodes.Status403Forbidden, "Forbidden", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi lấy thông tin chi tiết lớp học {ClassId} của học viên.", classId);
+            return ProblemDetailsResult(StatusCodes.Status500InternalServerError, "Internal Server Error", "Đã xảy ra lỗi khi lấy thông tin lớp học.");
+        }
+    }
 }

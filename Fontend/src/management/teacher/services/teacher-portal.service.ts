@@ -68,6 +68,40 @@ const submissionsStore = [...INITIAL_DEMO_SUBMISSIONS];
 const activitiesStore = [...INITIAL_RECENT_ACTIVITIES];
 
 class TeacherPortalService {
+  private enrolledClassesCacheByUser = new Map<string, Map<string, StudentEnrolledClassDTO>>();
+
+  constructor() {
+    authTokenService.onExpired(() => {
+      this.clearEnrolledClassesCache();
+    });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zh_student_identity_changed', () => {
+        this.clearEnrolledClassesCache();
+      });
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'zhongwenhub_auth_session' || e.key === 'zh_active_student_id') {
+          this.clearEnrolledClassesCache();
+        }
+      });
+    }
+  }
+
+  clearEnrolledClassesCache(userId?: string): void {
+    if (userId) {
+      this.enrolledClassesCacheByUser.delete(userId);
+    } else {
+      this.enrolledClassesCacheByUser.clear();
+    }
+  }
+
+  private getUserCache(userId?: string): Map<string, StudentEnrolledClassDTO> {
+    const key = userId || 'current_session';
+    if (!this.enrolledClassesCacheByUser.has(key)) {
+      this.enrolledClassesCacheByUser.set(key, new Map());
+    }
+    return this.enrolledClassesCacheByUser.get(key)!;
+  }
+
   getCurrentTeacherId(): string {
     return CURRENT_TEACHER_ID;
   }
@@ -436,9 +470,7 @@ class TeacherPortalService {
      5. STUDENT ENROLLED CLASSES (REAL BACKEND INTEGRATION)
      ========================================================================== */
 
-  private enrolledClassesCache = new Map<string, StudentEnrolledClassDTO>();
-
-  async getMyEnrolledClasses(): Promise<StudentEnrolledClassDTO[]> {
+  async getMyEnrolledClasses(studentId?: string): Promise<StudentEnrolledClassDTO[]> {
     const res = await fetch(getApiUrl('/teacher/my-enrolled-classes'), {
       method: 'GET',
       headers: getAuthHeaders(),
@@ -455,9 +487,40 @@ class TeacherPortalService {
     }
 
     const data: StudentEnrolledClassDTO[] = await res.json();
+    const cache = this.getUserCache(studentId);
     for (const c of data) {
-      this.enrolledClassesCache.set(c.id, c);
+      cache.set(c.id, c);
     }
+    return data;
+  }
+
+  async getMyEnrolledClassById(classId: string, studentId?: string): Promise<StudentEnrolledClassDTO> {
+    const res = await fetch(getApiUrl(`/teacher/my-enrolled-classes/${classId}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
+    }
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem thông tin lớp học này.');
+    }
+
+    if (res.status === 404) {
+      throw new Error(`Không tìm thấy lớp học '${classId}' hoặc bạn chưa được ghi danh.`);
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải thông tin lớp học.');
+      throw new Error(detail);
+    }
+
+    const data: StudentEnrolledClassDTO = await res.json();
+    const cache = this.getUserCache(studentId);
+    cache.set(data.id, data);
     return data;
   }
 
@@ -467,18 +530,11 @@ class TeacherPortalService {
 
   async getActiveClassIdsForStudentAsync(studentId: string): Promise<string[]> {
     if (authTokenService.getAccessToken()) {
-      try {
-        const enrolled = await this.getMyEnrolledClasses();
-        // Return real enrolled class IDs directly (fail-closed, no mock fallback)
-        return enrolled.map((c) => c.id);
-      } catch (err) {
-        console.warn('[TeacherPortalService] Failed to load real enrolled classes for student:', err);
-        // Fail-closed for real authenticated sessions: do not inject fake mock classes
-        const isRealGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
-        if (isRealGuid) {
-          return [];
-        }
-      }
+      // Must query real student-scoped API.
+      // If student has 0 classes enrolled, returns [] (Empty State).
+      // If API fails (500, network error), throws error so callers can render Error State!
+      const enrolled = await this.getMyEnrolledClasses(studentId);
+      return enrolled.map((c) => c.id);
     }
     // Only in unauthenticated dev/demo mode, fallback to in-memory membersStore
     return this.getActiveClassIdsForStudent(studentId);
@@ -490,8 +546,17 @@ class TeacherPortalService {
       .map((m) => m.classId);
   }
 
-  getClassBasicInfo(classId: string): { id: string; name: string; code: string; hskLevelId: string } | undefined {
-    const cached = this.enrolledClassesCache.get(classId);
+  getClassBasicInfo(classId: string, studentId?: string): { id: string; name: string; code: string; hskLevelId: string } | undefined {
+    let cached: StudentEnrolledClassDTO | undefined;
+    if (studentId) {
+      cached = this.getUserCache(studentId).get(classId);
+    } else {
+      for (const cache of this.enrolledClassesCacheByUser.values()) {
+        cached = cache.get(classId);
+        if (cached) break;
+      }
+    }
+
     if (cached) {
       return {
         id: cached.id,
@@ -514,41 +579,29 @@ class TeacherPortalService {
     };
   }
 
-  async getClassBasicInfoAsync(classId: string): Promise<{ id: string; name: string; code: string; hskLevelId: string } | undefined> {
-    const cached = this.getClassBasicInfo(classId);
+  async getClassBasicInfoAsync(classId: string, studentId?: string): Promise<{ id: string; name: string; code: string; hskLevelId: string } | undefined> {
+    const cached = this.getClassBasicInfo(classId, studentId);
     if (cached) return cached;
 
     if (authTokenService.getAccessToken()) {
       try {
-        const detail = await this.getClassById(classId);
-        if (detail && detail.classInfo) {
-          const info = {
-            id: detail.classInfo.id,
-            name: detail.classInfo.name,
-            code: detail.classInfo.code,
-            hskLevelId: detail.classInfo.hskLevelId,
+        // Students fetch class metadata from student-scoped endpoint, NEVER teacher management endpoint!
+        const enrolled = await this.getMyEnrolledClassById(classId, studentId);
+        if (enrolled) {
+          return {
+            id: enrolled.id,
+            name: enrolled.name,
+            code: enrolled.code,
+            hskLevelId: enrolled.hskLevelId,
           };
-          this.enrolledClassesCache.set(classId, {
-            id: info.id,
-            name: info.name,
-            code: info.code,
-            hskLevelId: info.hskLevelId,
-            hskLevelName: detail.hskLevel?.name || info.hskLevelId,
-            hskLevelColor: detail.hskLevel?.colorToken || '#4338ca',
-            teacherId: detail.classInfo.teacherId,
-            teacherName: '',
-            teacherEmail: '',
-            status: detail.classInfo.status,
-            locationType: detail.classInfo.locationType,
-            startDate: detail.classInfo.startDate,
-            schedulesSummary: '',
-            enrolledAt: '',
-            memberStatus: 'ACTIVE',
-          });
-          return info;
         }
-      } catch (err) {
-        console.warn(`[TeacherPortalService] Failed to fetch class basic info for ${classId}:`, err);
+      } catch (err: any) {
+        // If 404 or 403 (student not enrolled in this class), return undefined without mock fallback
+        if (err?.message?.includes('404') || err?.message?.includes('403') || err?.message?.includes('chưa được ghi danh') || err?.message?.includes('không có quyền')) {
+          return undefined;
+        }
+        // If 500 or network error, throw so caller handles error state!
+        throw err;
       }
     }
     return undefined;

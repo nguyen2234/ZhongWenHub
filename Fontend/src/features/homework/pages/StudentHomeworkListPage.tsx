@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, BookOpen, AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import { Search, BookOpen, AlertCircle, RefreshCw, CheckCircle2, Clock, ShieldAlert } from 'lucide-react';
 import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import type { StudentHomeworkSummaryDTO, StudentAssignmentAttempt } from '../types/student-homework.types';
 import { HomeworkFilterTabs, type HomeworkFilterStatus } from '../components/list/HomeworkFilterTabs';
 import { HomeworkCard } from '../components/list/HomeworkCard';
@@ -22,7 +23,15 @@ export const StudentHomeworkListPage: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'dueSoon' | 'dueLate'>('dueSoon');
 
+  const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentStudent.id);
+  const isAuth = authTokenService.isAuthenticated();
+  const isUnauthenticated = isRealUser && !isAuth;
+
   const loadData = async () => {
+    if (isUnauthenticated) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -433,8 +442,55 @@ export const StudentHomeworkListPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Authentication State */}
+      {isUnauthenticated && (
+        <div
+          data-testid="student-homework-auth-state"
+          style={{
+            padding: 'var(--space-12) var(--space-6)',
+            borderRadius: 'var(--radius-xl)',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+          }}
+        >
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'rgba(79, 70, 229, 0.1)',
+              color: 'var(--primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ShieldAlert size={26} />
+          </div>
+          <h3 style={{ margin: 0, fontSize: 'var(--text-base)', fontWeight: 700, color: 'var(--foreground)' }}>
+            Yêu cầu đăng nhập học viên
+          </h3>
+          <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--muted)', maxWidth: '360px', lineHeight: 1.5 }}>
+            Vui lòng đăng nhập với tài khoản học viên để truy cập danh sách bài tập được giao và thực hiện nộp bài.
+          </p>
+          <button
+            type="button"
+            onClick={() => { window.location.href = '/login'; }}
+            className="ds-btn ds-btn-primary"
+            style={{ height: '36px', fontSize: 'var(--text-xs)', marginTop: 'var(--space-2)' }}
+          >
+            Đăng nhập ngay
+          </button>
+        </div>
+      )}
+
       {/* Loading State */}
-      {loading && (
+      {!isUnauthenticated && loading && (
         <div
           style={{
             padding: 'var(--space-12)',
@@ -456,7 +512,7 @@ export const StudentHomeworkListPage: React.FC = () => {
       )}
 
       {/* Error State */}
-      {!loading && error && (
+      {!isUnauthenticated && !loading && error && (
         <div
           style={{
             padding: 'var(--space-6)',
@@ -487,7 +543,7 @@ export const StudentHomeworkListPage: React.FC = () => {
       )}
 
       {/* Empty State */}
-      {!loading && !error && filteredAssignments.length === 0 && (
+      {!isUnauthenticated && !loading && !error && filteredAssignments.length === 0 && (
         <div
           style={{
             padding: 'var(--space-12) var(--space-6)',
@@ -542,7 +598,7 @@ export const StudentHomeworkListPage: React.FC = () => {
       )}
 
       {/* Homework Grid */}
-      {!loading && !error && filteredAssignments.length > 0 && (
+      {!isUnauthenticated && !loading && !error && filteredAssignments.length > 0 && (
         <div
           style={{
             display: 'grid',

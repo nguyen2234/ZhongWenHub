@@ -4,6 +4,7 @@ import { Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import type {
   StudentAssignmentRunnerDTO,
   StudentAssignmentAttempt,
@@ -39,6 +40,11 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
+
+        const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentStudent.id);
+        if (isRealUser && !authTokenService.isAuthenticated()) {
+          throw new Error('Vui lòng đăng nhập với tài khoản học viên để tham gia làm bài tập.');
+        }
 
         // 1. Fetch runner question package
         const data = await studentHomeworkService.getAssignmentRunner(assignmentId, currentStudent.id);

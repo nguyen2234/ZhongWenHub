@@ -733,4 +733,109 @@ public class TeacherClassServiceTests
         var finalCount = await dbContext.TeachingClassMembers.CountAsync(m => m.ClassId == cls.Id && m.Status == "ACTIVE");
         Assert.Equal(1, finalCount); // NEVER exceeds capacity 1
     }
+
+    [Fact]
+    public async Task GetMyEnrolledClassByIdAsync_WhenStudentIsEnrolled_ReturnsClassMetadataWithSchedules()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var studentId = Guid.NewGuid();
+
+        var teacherUser = new ApplicationUser { Id = teacherId, UserName = "teacher_linh", DisplayName = "Cô Linh", Email = "linh@test.com" };
+        var studentUser = new ApplicationUser { Id = studentId, UserName = "student_an", DisplayName = "Nguyễn Văn An", Email = "an@test.com" };
+        dbContext.Users.AddRange(teacherUser, studentUser);
+        await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, studentUser);
+
+        var teachingClass = new TeachingClass
+        {
+            Id = Guid.NewGuid(),
+            Name = "Lớp HSK 3 Chuẩn",
+            Code = "CLS-HSK3-CH01",
+            HskLevelId = "level-hsk-3",
+            TeacherId = teacherId,
+            Status = "ACTIVE",
+            Capacity = 20,
+            LocationType = "ONLINE",
+            StartDate = DateTime.UtcNow,
+            Schedules = new List<TeachingClassSchedule>
+            {
+                new TeachingClassSchedule { Id = Guid.NewGuid(), DayOfWeek = "MONDAY", StartTime = "19:00", EndTime = "20:30" }
+            }
+        };
+        dbContext.TeachingClasses.Add(teachingClass);
+
+        var membership = new TeachingClassMember
+        {
+            Id = Guid.NewGuid(),
+            ClassId = teachingClass.Id,
+            StudentId = studentId,
+            Status = "ACTIVE",
+            EnrolledAt = DateTime.UtcNow
+        };
+        dbContext.TeachingClassMembers.Add(membership);
+        await dbContext.SaveChangesAsync();
+
+        var fakeStudent = new FakeCurrentUserService
+        {
+            UserId = studentId,
+            Roles = new[] { RoleConstants.Student },
+            IsAuthenticated = true
+        };
+        var service = new TeacherClassService(dbContext, fakeStudent, NullLogger<TeacherClassService>.Instance);
+
+        var result = await service.GetMyEnrolledClassByIdAsync(teachingClass.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal(teachingClass.Id, result.Id);
+        Assert.Equal("Lớp HSK 3 Chuẩn", result.Name);
+        Assert.Equal("CLS-HSK3-CH01", result.Code);
+        Assert.Equal("Cô Linh", result.TeacherName);
+        Assert.Contains("T2", result.SchedulesSummary);
+    }
+
+    [Fact]
+    public async Task GetMyEnrolledClassByIdAsync_WhenStudentIsNotEnrolled_ReturnsNull()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var studentId = Guid.NewGuid();
+
+        var teachingClass = new TeachingClass
+        {
+            Id = Guid.NewGuid(),
+            Name = "Lớp HSK 4 Nâng Cao",
+            Code = "CLS-HSK4-ADV",
+            HskLevelId = "level-hsk-4",
+            TeacherId = teacherId,
+            Status = "ACTIVE",
+            Capacity = 25,
+            StartDate = DateTime.UtcNow
+        };
+        dbContext.TeachingClasses.Add(teachingClass);
+        await dbContext.SaveChangesAsync();
+
+        var fakeStudent = new FakeCurrentUserService
+        {
+            UserId = studentId,
+            Roles = new[] { RoleConstants.Student },
+            IsAuthenticated = true
+        };
+        var service = new TeacherClassService(dbContext, fakeStudent, NullLogger<TeacherClassService>.Instance);
+
+        var result = await service.GetMyEnrolledClassByIdAsync(teachingClass.Id);
+
+        Assert.Null(result); // Student has no membership in this class
+    }
+
+    [Fact]
+    public async Task GetMyEnrolledClassByIdAsync_WhenUnauthenticated_ThrowsUnauthorizedAccessException()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var unauthUser = new FakeCurrentUserService { IsAuthenticated = false, UserId = null };
+        var service = new TeacherClassService(dbContext, unauthUser, NullLogger<TeacherClassService>.Instance);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            service.GetMyEnrolledClassByIdAsync(Guid.NewGuid()));
+    }
 }
