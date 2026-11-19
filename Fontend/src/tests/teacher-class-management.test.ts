@@ -435,4 +435,38 @@ describe('Teacher Class Management Phase 1 - Real API & Contracts', () => {
     expect(enrolled[0].name).toBe('Lớp HSK 3 Online');
     expect(enrolled[0].teacherName).toBe('Cô Trương');
   });
+
+  it('15. getActiveClassIdsForStudentAsync resolves real class IDs from getMyEnrolledClasses and caches basic info', async () => {
+    globalThis.fetch = mock(async (url: any) => {
+      return new Response(
+        JSON.stringify([
+          {
+            id: 'cls-real-999',
+            name: 'Lớp HSK 4 Real DB',
+            code: 'CLS-HSK4-999',
+            hskLevelId: 'level-hsk-4',
+            hskLevelName: 'HSK 4',
+            hskLevelColor: '#059669',
+            teacherId: 'tch-real',
+            teacherName: 'Thầy Hoàng',
+            status: 'ACTIVE',
+            locationType: 'ONLINE',
+            startDate: '2026-10-01',
+            schedulesSummary: 'T3, T5 (19:00–20:30)',
+            enrolledAt: '2026-10-02T00:00:00Z',
+            memberStatus: 'ACTIVE',
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const activeClassIds = await teacherPortalService.getActiveClassIdsForStudentAsync('real-student-uuid');
+    expect(activeClassIds).toEqual(['cls-real-999']);
+
+    const basicInfo = teacherPortalService.getClassBasicInfo('cls-real-999');
+    expect(basicInfo).toBeDefined();
+    expect(basicInfo?.name).toBe('Lớp HSK 4 Real DB');
+    expect(basicInfo?.code).toBe('CLS-HSK4-999');
+  });
 });

@@ -184,6 +184,11 @@ export const StudentHomeworkListPage: React.FC = () => {
           >
             <span style={{ color: 'var(--muted)' }}>Học viên:</span>
             <strong style={{ color: 'var(--primary)' }}>{currentStudent.fullName}</strong>
+            {currentStudent.id.startsWith('usr-st-') && (
+              <span style={{ fontSize: '10px', color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.15)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                Demo Phase 2
+              </span>
+            )}
             <span style={{ color: 'var(--muted)' }}>({currentStudent.activeClassIds.length} lớp học)</span>
           </div>
         </div>
@@ -516,7 +521,7 @@ export const StudentHomeworkListPage: React.FC = () => {
           <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--muted)', maxWidth: '400px' }}>
             {searchQuery || selectedHsk !== 'ALL' || selectedClassId !== 'ALL' || currentTab !== 'ALL'
               ? 'Không có bài tập nào phù hợp với bộ lọc hiện tại. Bạn hãy thử bỏ bớt điều kiện lọc hoặc từ khoá tìm kiếm.'
-              : 'Hiện tại giáo viên chưa giao bài tập nào mới cho lớp học của bạn.'}
+              : 'Hiện tại giáo viên chưa giao bài tập nào mới cho lớp học của bạn hoặc bạn chưa được ghi danh vào lớp học nào.'}
           </p>
           {(searchQuery || selectedHsk !== 'ALL' || selectedClassId !== 'ALL' || currentTab !== 'ALL') && (
             <button
