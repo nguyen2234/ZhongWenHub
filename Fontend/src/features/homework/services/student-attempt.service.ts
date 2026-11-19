@@ -100,9 +100,10 @@ class StudentAttemptService {
     if (token) {
       const takingDto = await studentHomeworkService.startAttempt(assignmentId);
       const now = new Date();
+      const startedAt = takingDto.startedAt || now.toISOString();
       let expiresAt: string | undefined = undefined;
       if (takingDto.timeLimitMinutes && takingDto.timeLimitMinutes > 0) {
-        const expirationMs = now.getTime() + takingDto.timeLimitMinutes * 60 * 1000;
+        const expirationMs = new Date(startedAt).getTime() + takingDto.timeLimitMinutes * 60 * 1000;
         expiresAt = new Date(expirationMs).toISOString();
       }
 
@@ -113,7 +114,7 @@ class StudentAttemptService {
         classId: '',
         attemptNumber: takingDto.attemptNumber || 1,
         status: 'IN_PROGRESS',
-        startedAt: takingDto.startedAt || now.toISOString(),
+        startedAt,
         expiresAt,
         timeSpentSeconds: 0,
         answers: {},
@@ -299,7 +300,7 @@ class StudentAttemptService {
       attempt.submittedAt = result.submittedAt || new Date().toISOString();
       attempt.timeSpentSeconds = result.timeSpentSeconds || finalTimeSpentSeconds || 0;
       attempt.totalScore = result.score ?? result.earnedPoints;
-      attempt.isPassed = result.passed;
+      attempt.isPassed = result.isPassed;
       this.syncToStorage(attempt);
       return { ...attempt };
     }
@@ -377,8 +378,9 @@ class StudentAttemptService {
           totalQuestions: result.reviewQuestions ? result.reviewQuestions.length : 5,
           answeredCount: answered || 5,
         };
-      } catch {
-        // Fall back to local store
+      } catch (error) {
+        // Authenticated users must receive the real API error; local drafts are not server results.
+        throw error;
       }
     }
 
