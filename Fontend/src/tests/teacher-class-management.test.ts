@@ -469,4 +469,57 @@ describe('Teacher Class Management Phase 1 - Real API & Contracts', () => {
     expect(basicInfo?.name).toBe('Lớp HSK 4 Real DB');
     expect(basicInfo?.code).toBe('CLS-HSK4-999');
   });
+
+  it('16. getActiveClassIdsForStudentAsync returns [] when real student has 0 classes (No fallback to membersStore)', async () => {
+    authTokenService.setSession({ accessToken: 'real-token-test' });
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+
+    const result = await teacherPortalService.getActiveClassIdsForStudentAsync('c385c942-0000-0000-0000-000000000001');
+    expect(result).toEqual([]); // Must be empty, never fallback to membersStore
+  });
+
+  it('17. getClassBasicInfo does not fallback to classesStore when authenticated, and getClassBasicInfoAsync fetches from real API', async () => {
+    authTokenService.setSession({ accessToken: 'real-token-test' });
+    // Class not cached and not in enrolledClassesCache:
+    const uncached = teacherPortalService.getClassBasicInfo('cls-01'); // cls-01 exists in mock classesStore
+    expect(uncached).toBeUndefined(); // Strictly undefined when token exists
+
+    // Now test getClassBasicInfoAsync queries real API:
+    let calledUrl = '';
+    globalThis.fetch = mock(async (url: any) => {
+      calledUrl = String(url);
+      return new Response(
+        JSON.stringify({
+          classInfo: {
+            id: 'cls-api-888',
+            name: 'Lớp HSK 2 API',
+            code: 'CLS-HSK2-888',
+            hskLevelId: 'level-hsk-2',
+            status: 'ACTIVE',
+            capacity: 20,
+            locationType: 'ONLINE',
+            startDate: '2026-11-01',
+          },
+          derivedEnrollmentCount: 5,
+          schedules: [],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const asyncInfo = await teacherPortalService.getClassBasicInfoAsync('cls-api-888');
+    expect(calledUrl).toContain('/teacher/classes/cls-api-888');
+    expect(asyncInfo).toBeDefined();
+    expect(asyncInfo?.name).toBe('Lớp HSK 2 API');
+    expect(asyncInfo?.code).toBe('CLS-HSK2-888');
+
+    // Subsequent sync lookup should now hit cache:
+    const cachedNow = teacherPortalService.getClassBasicInfo('cls-api-888');
+    expect(cachedNow?.name).toBe('Lớp HSK 2 API');
+  });
 });

@@ -574,7 +574,7 @@ class AssignmentService {
       // Strictly ignore non-published assignments (drafts & archives)
       if (!a || a.status === 'DRAFT' || a.status === 'ARCHIVED') continue;
 
-      const classInfo = teacherPortalService.getClassBasicInfo(target.classId);
+      const classInfo = teacherPortalService.getClassBasicInfo(target.classId) || (await teacherPortalService.getClassBasicInfoAsync(target.classId));
       const hskMeta = resolveHskLevelMeta(a.hskLevelId);
       const aQuestions = questionsStore.filter((q) => q.assignmentId === a.id);
       const totalPoints = aQuestions.reduce((sum, q) => sum + q.points, 0);
@@ -639,7 +639,7 @@ class AssignmentService {
     );
     if (!target) return undefined; // Student is not enrolled in targeted class
 
-    const classInfo = teacherPortalService.getClassBasicInfo(target.classId);
+    const classInfo = teacherPortalService.getClassBasicInfo(target.classId) || (await teacherPortalService.getClassBasicInfoAsync(target.classId));
     const hskMeta = resolveHskLevelMeta(a.hskLevelId);
     const aQuestions = questionsStore.filter((q) => q.assignmentId === a.id);
     const totalPoints = aQuestions.reduce((sum, q) => sum + q.points, 0);
@@ -720,7 +720,7 @@ class AssignmentService {
       throw new Error('Bài tập này đã đóng và không thể bắt đầu lần làm mới.');
     }
 
-    const classInfo = teacherPortalService.getClassBasicInfo(target.classId);
+    const classInfo = teacherPortalService.getClassBasicInfo(target.classId) || (await teacherPortalService.getClassBasicInfoAsync(target.classId));
     const hskMeta = resolveHskLevelMeta(a.hskLevelId);
     const aQuestions = questionsStore
       .filter((q) => q.assignmentId === a.id)

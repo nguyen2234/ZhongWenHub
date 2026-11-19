@@ -123,14 +123,39 @@ export function useCurrentStudent() {
   const [identity, setIdentity] = useState(getCurrentStudentIdentity);
 
   useEffect(() => {
+    let isCancelled = false;
+
+    const fetchRealEnrollments = async (current: ReturnType<typeof getCurrentStudentIdentity>) => {
+      const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(current.id);
+      if (isRealUser) {
+        try {
+          const classIds = await teacherPortalService.getActiveClassIdsForStudentAsync(current.id);
+          if (!isCancelled) {
+            setIdentity((prev) => ({
+              ...prev,
+              enrolledClassIds: classIds,
+              activeClassIds: classIds,
+            }));
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    fetchRealEnrollments(identity);
+
     const handler = () => {
-      setIdentity(getCurrentStudentIdentity());
+      const next = getCurrentStudentIdentity();
+      setIdentity(next);
+      fetchRealEnrollments(next);
     };
 
     window.addEventListener('zh_student_identity_changed', handler);
     window.addEventListener('storage', handler);
 
     return () => {
+      isCancelled = true;
       window.removeEventListener('zh_student_identity_changed', handler);
       window.removeEventListener('storage', handler);
     };

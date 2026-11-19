@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
-import { getCurrentStudentIdentity } from '../../auth/services/student-identity.adapter';
+import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import type {
   StudentAssignmentRunnerDTO,
   StudentAssignmentAttempt,
@@ -18,7 +18,7 @@ import { SubmitConfirmModal } from '../components/runner/SubmitConfirmModal';
 export const StudentAssignmentRunnerPage: React.FC = () => {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
-  const currentStudent = getCurrentStudentIdentity();
+  const { student: currentStudent } = useCurrentStudent();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

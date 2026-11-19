@@ -469,13 +469,18 @@ class TeacherPortalService {
     if (authTokenService.getAccessToken()) {
       try {
         const enrolled = await this.getMyEnrolledClasses();
-        if (enrolled.length > 0) {
-          return enrolled.map((c) => c.id);
-        }
+        // Return real enrolled class IDs directly (fail-closed, no mock fallback)
+        return enrolled.map((c) => c.id);
       } catch (err) {
         console.warn('[TeacherPortalService] Failed to load real enrolled classes for student:', err);
+        // Fail-closed for real authenticated sessions: do not inject fake mock classes
+        const isRealGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
+        if (isRealGuid) {
+          return [];
+        }
       }
     }
+    // Only in unauthenticated dev/demo mode, fallback to in-memory membersStore
     return this.getActiveClassIdsForStudent(studentId);
   }
 
@@ -495,6 +500,10 @@ class TeacherPortalService {
         hskLevelId: cached.hskLevelId,
       };
     }
+    // In authenticated session, if not in cache, do NOT fallback to mock classesStore!
+    if (authTokenService.getAccessToken()) {
+      return undefined;
+    }
     const cls = classesStore.find((c) => c.id === classId);
     if (!cls) return undefined;
     return {
@@ -503,6 +512,46 @@ class TeacherPortalService {
       code: cls.code,
       hskLevelId: cls.hskLevelId,
     };
+  }
+
+  async getClassBasicInfoAsync(classId: string): Promise<{ id: string; name: string; code: string; hskLevelId: string } | undefined> {
+    const cached = this.getClassBasicInfo(classId);
+    if (cached) return cached;
+
+    if (authTokenService.getAccessToken()) {
+      try {
+        const detail = await this.getClassById(classId);
+        if (detail && detail.classInfo) {
+          const info = {
+            id: detail.classInfo.id,
+            name: detail.classInfo.name,
+            code: detail.classInfo.code,
+            hskLevelId: detail.classInfo.hskLevelId,
+          };
+          this.enrolledClassesCache.set(classId, {
+            id: info.id,
+            name: info.name,
+            code: info.code,
+            hskLevelId: info.hskLevelId,
+            hskLevelName: detail.hskLevel?.name || info.hskLevelId,
+            hskLevelColor: detail.hskLevel?.colorToken || '#4338ca',
+            teacherId: detail.classInfo.teacherId,
+            teacherName: '',
+            teacherEmail: '',
+            status: detail.classInfo.status,
+            locationType: detail.classInfo.locationType,
+            startDate: detail.classInfo.startDate,
+            schedulesSummary: '',
+            enrolledAt: '',
+            memberStatus: 'ACTIVE',
+          });
+          return info;
+        }
+      } catch (err) {
+        console.warn(`[TeacherPortalService] Failed to fetch class basic info for ${classId}:`, err);
+      }
+    }
+    return undefined;
   }
 
   /* ==========================================================================

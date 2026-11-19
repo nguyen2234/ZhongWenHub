@@ -2,13 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Search, BookOpen, AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
-import { getCurrentStudentIdentity } from '../../auth/services/student-identity.adapter';
+import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import type { StudentHomeworkSummaryDTO, StudentAssignmentAttempt } from '../types/student-homework.types';
 import { HomeworkFilterTabs, type HomeworkFilterStatus } from '../components/list/HomeworkFilterTabs';
 import { HomeworkCard } from '../components/list/HomeworkCard';
 
 export const StudentHomeworkListPage: React.FC = () => {
-  const currentStudent = getCurrentStudentIdentity();
+  const { student: currentStudent } = useCurrentStudent();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export const StudentHomeworkListPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentStudent.id]);
 
   // Map of active attempts and submitted attempts by assignmentId
   const { activeAttemptMap, submittedMap } = useMemo(() => {
