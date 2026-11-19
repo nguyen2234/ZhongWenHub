@@ -7,27 +7,18 @@ import {
   Calendar,
   Download,
   Clock,
+  Info,
 } from 'lucide-react';
 import { adminOperationsService, type AnalyticsReport, type HskDistributionItem, type SkillMetricItem } from '../../services/admin-operations.service';
 
 type DateRange = '7d' | '30d' | '90d' | '1y';
 
-const DEFAULT_HSK_DISTRIBUTION: HskDistributionItem[] = [
-  { level: 'HSK 1', percentage: 38, count: 4742, color: '#e60012' },
-  { level: 'HSK 2', percentage: 26, count: 3245, color: '#f97316' },
-  { level: 'HSK 3', percentage: 18, count: 2246, color: '#eab308' },
-  { level: 'HSK 4', percentage: 10, count: 1248, color: '#22c55e' },
-  { level: 'HSK 5', percentage: 6, count: 749, color: '#06b6d4' },
-  { level: 'HSK 6', percentage: 2, count: 250, color: '#8b5cf6' },
-];
-
-const DEFAULT_SKILL_METRICS: SkillMetricItem[] = [
-  { skill: 'Từ vựng (Flashcard & Spaced Repetition)', hours: 4120, avgScore: 88 },
-  { skill: 'Luyện nghe & Nhận diện âm đọc', hours: 3250, avgScore: 82 },
-  { skill: 'Luyện phát âm & Phản xạ câu', hours: 2680, avgScore: 76 },
-  { skill: 'Ngữ pháp & Cấu trúc câu', hours: 2190, avgScore: 79 },
-  { skill: 'Tập viết & Thứ tự nét Hán tự', hours: 1450, avgScore: 85 },
-];
+const RANGE_LABELS: Record<DateRange, string> = {
+  '7d': '7 ngày qua',
+  '30d': '30 ngày qua',
+  '90d': 'Quý này (90d)',
+  '1y': 'Năm học (1 năm)',
+};
 
 export const AdminAnalyticsView: React.FC = () => {
   const [range, setRange] = useState<DateRange>('30d');
@@ -46,15 +37,13 @@ export const AdminAnalyticsView: React.FC = () => {
   }, [range]);
 
   const activeStudents = report?.activeStudents ?? 0;
-  const completionRate = report?.completionRate ?? 78.5;
-  const learningHours = report?.learningHours ?? 1250;
-  const retentionRate = report?.retentionRate ?? 86.4;
-  const hskDistribution = report?.hskDistribution && report.hskDistribution.length > 0
-    ? report.hskDistribution
-    : DEFAULT_HSK_DISTRIBUTION;
-  const skillMetrics = report?.skillMetrics && report.skillMetrics.length > 0
-    ? report.skillMetrics
-    : DEFAULT_SKILL_METRICS;
+  const completionRate = report?.completionRate ?? 0;
+  const learningHours = report?.learningHours ?? 0;
+  const retentionRate = report?.retentionRate ?? 0;
+  const hskDistribution: HskDistributionItem[] = report?.hskDistribution || [];
+  const skillMetrics: SkillMetricItem[] = report?.skillMetrics || [];
+
+  const hasNoData = !isLoading && activeStudents === 0 && learningHours === 0 && completionRate === 0;
 
   const handleExportCsv = () => {
     const headers = ['Cấp độ / Kỹ năng', 'Tỷ lệ %', 'Số lượng học viên / Giờ học', 'Điểm trung bình'];
@@ -133,6 +122,28 @@ export const AdminAnalyticsView: React.FC = () => {
         </button>
       </div>
 
+      {/* Empty State Banner if no activity in selected range */}
+      {hasNoData && (
+        <div
+          style={{
+            padding: '16px 20px',
+            borderRadius: 'var(--radius-lg)',
+            backgroundColor: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            color: '#1e40af',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <Info size={20} style={{ color: '#2563eb', flexShrink: 0 }} />
+          <div>
+            <strong>Chưa có dữ liệu ghi nhận trong kỳ báo cáo ({RANGE_LABELS[range]}):</strong> Chưa phát sinh lượt học hoặc tiến độ bài học trong khoảng thời gian này. Vui lòng chọn mốc thời gian khác hoặc kiểm tra lại sau khi học viên học tập.
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div
         style={{
@@ -156,8 +167,8 @@ export const AdminAnalyticsView: React.FC = () => {
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--foreground)' }}>
             {isLoading ? '...' : new Intl.NumberFormat('vi-VN').format(activeStudents)}
           </div>
-          <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <TrendingUp size={12} /> Tăng +14.2% so với kỳ trước
+          <div style={{ fontSize: '11px', color: activeStudents > 0 ? '#16a34a' : 'var(--muted)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {activeStudents > 0 ? <><TrendingUp size={12} /> Học viên tương tác trong kỳ</> : 'Chưa có lượt tương tác'}
           </div>
         </div>
 
@@ -174,10 +185,10 @@ export const AdminAnalyticsView: React.FC = () => {
             <Award size={16} style={{ color: '#d97706' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--foreground)' }}>
-            {completionRate}%
+            {isLoading ? '...' : (completionRate > 0 ? `${completionRate}%` : 'Chưa có dữ liệu')}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
-            Mục tiêu nền tảng: &gt; 70%
+            {completionRate > 0 ? 'Dựa trên tiến độ bài học' : 'Chưa phát sinh bài học'}
           </div>
         </div>
 
@@ -194,10 +205,10 @@ export const AdminAnalyticsView: React.FC = () => {
             <Clock size={16} style={{ color: '#0284c7' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--foreground)' }}>
-            {new Intl.NumberFormat('vi-VN').format(learningHours)}h
+            {isLoading ? '...' : (learningHours > 0 ? `${new Intl.NumberFormat('vi-VN').format(learningHours)}h` : '0h')}
           </div>
-          <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <TrendingUp size={12} /> Trung bình 34 phút / học viên / ngày
+          <div style={{ fontSize: '11px', color: learningHours > 0 ? '#16a34a' : 'var(--muted)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {learningHours > 0 ? <><TrendingUp size={12} /> Thời lượng học tập thực tế</> : 'Chưa có giờ học tích lũy'}
           </div>
         </div>
 
@@ -210,14 +221,14 @@ export const AdminAnalyticsView: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Tỷ lệ duy trì (Retention 30d)</span>
+            <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Tỷ lệ duy trì (Retention)</span>
             <BookOpen size={16} style={{ color: '#16a34a' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--foreground)' }}>
-            {retentionRate}%
+            {isLoading ? '...' : (retentionRate > 0 ? `${retentionRate}%` : 'Chưa có dữ liệu')}
           </div>
-          <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '4px' }}>
-            Chỉ số gắn kết cao hơn 12% chuẩn EdTech
+          <div style={{ fontSize: '11px', color: retentionRate > 0 ? '#16a34a' : 'var(--muted)', marginTop: '4px' }}>
+            {retentionRate > 0 ? 'Tỷ lệ gắn kết người dùng' : 'Chưa đủ mẫu dữ liệu'}
           </div>
         </div>
       </div>
@@ -242,35 +253,41 @@ export const AdminAnalyticsView: React.FC = () => {
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
             Phân bố học viên theo cấp độ HSK (1 - 6)
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {hskDistribution.map((item) => (
-              <div key={item.level} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
-                  <strong style={{ color: 'var(--foreground)' }}>{item.level}</strong>
-                  <span style={{ color: 'var(--muted)' }}>
-                    {new Intl.NumberFormat('vi-VN').format(item.count)} học viên ({item.percentage}%)
-                  </span>
-                </div>
-                <div
-                  style={{
-                    height: '8px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--secondary)',
-                    overflow: 'hidden',
-                  }}
-                >
+          {hskDistribution.length === 0 || hskDistribution.every((item) => item.count === 0) ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+              Chưa có học viên phân bổ cấp độ trong kỳ báo cáo này.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {hskDistribution.map((item) => (
+                <div key={item.level} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                    <strong style={{ color: 'var(--foreground)' }}>{item.level}</strong>
+                    <span style={{ color: 'var(--muted)' }}>
+                      {new Intl.NumberFormat('vi-VN').format(item.count)} học viên ({item.percentage}%)
+                    </span>
+                  </div>
                   <div
                     style={{
-                      height: '100%',
-                      width: `${item.percentage}%`,
-                      backgroundColor: item.color,
+                      height: '8px',
                       borderRadius: 'var(--radius-full)',
+                      backgroundColor: 'var(--secondary)',
+                      overflow: 'hidden',
                     }}
-                  />
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${item.percentage}%`,
+                        backgroundColor: item.color,
+                        borderRadius: 'var(--radius-full)',
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Skill Engagement Breakdown */}
@@ -285,44 +302,50 @@ export const AdminAnalyticsView: React.FC = () => {
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
             Phân bổ thời lượng học theo kỹ năng
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {skillMetrics.map((skill) => (
-              <div
-                key={skill.skill}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  fontSize: '12.5px',
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>{skill.skill}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                    Thời lượng: {new Intl.NumberFormat('vi-VN').format(skill.hours)} giờ
-                  </div>
-                </div>
+          {skillMetrics.length === 0 || skillMetrics.every((s) => s.hours === 0 && s.avgScore === 0) ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+              Chưa có dữ liệu kỹ năng học tập phát sinh trong kỳ báo cáo này.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {skillMetrics.map((skill) => (
                 <div
+                  key={skill.skill}
                   style={{
-                    padding: '3px 8px',
+                    padding: '10px 14px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--surface)',
+                    backgroundColor: 'var(--background)',
                     border: '1px solid var(--border)',
-                    fontWeight: 700,
-                    color: 'var(--primary)',
-                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    fontSize: '12.5px',
                   }}
                 >
-                  {skill.avgScore} / 100
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>{skill.skill}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                      Thời lượng: {new Intl.NumberFormat('vi-VN').format(skill.hours)} giờ
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      fontWeight: 700,
+                      color: 'var(--primary)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {skill.avgScore > 0 ? `${skill.avgScore} / 100` : '—'}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ public class AuthService : IAuthService
     private readonly ApplicationDbContext _dbContext;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly JwtSettings _jwtSettings;
+    private readonly IPasswordResetEmailSender _emailSender;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -22,12 +23,14 @@ public class AuthService : IAuthService
         ApplicationDbContext dbContext,
         IJwtTokenService jwtTokenService,
         IOptions<JwtSettings> jwtOptions,
+        IPasswordResetEmailSender emailSender,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _dbContext = dbContext;
         _jwtTokenService = jwtTokenService;
         _jwtSettings = jwtOptions.Value;
+        _emailSender = emailSender;
         _logger = logger;
     }
 
@@ -377,7 +380,7 @@ public class AuthService : IAuthService
         return MapToUserDto(user, roles);
     }
 
-    public async Task<(bool Success, string Message, string? ResetTokenForDev)> ForgotPasswordAsync(
+    public async Task<(bool Success, string Message)> ForgotPasswordAsync(
         ForgotPasswordRequestDto request,
         string? ipAddress,
         CancellationToken cancellationToken = default)
@@ -392,7 +395,7 @@ public class AuthService : IAuthService
         {
             await RecordAuditAsync(null, email, "FORGOT_PASSWORD_REQUEST", ipAddress, null, false, "Yêu cầu cho email không tồn tại hoặc tài khoản không hoạt động.", cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return (true, genericMessage, null);
+            return (true, genericMessage);
         }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -400,9 +403,11 @@ public class AuthService : IAuthService
         await RecordAuditAsync(user.Id, user.UserName, "FORGOT_PASSWORD_REQUEST", ipAddress, null, true, "Đã tạo token đặt lại mật khẩu.", cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Password reset token generated for user {Email}: {Token}", email, token);
+        _logger.LogInformation("Password reset token generated and email dispatched for user {Email}", email);
 
-        return (true, genericMessage, token);
+        await _emailSender.SendPasswordResetEmailAsync(user.Email!, token, cancellationToken);
+
+        return (true, genericMessage);
     }
 
     public async Task<(bool Success, string Message)> ResetPasswordAsync(
@@ -435,7 +440,7 @@ public class AuthService : IAuthService
 
         // Security: Revoke all existing refresh tokens to invalidate stale sessions across all devices
         var activeRefreshTokens = await _dbContext.RefreshTokens
-            .Where(r => r.UserId == user.Id && !r.IsRevoked)
+            .Where(r => r.UserId == user.Id && r.RevokedAt == null)
             .ToListAsync(cancellationToken);
 
         foreach (var rt in activeRefreshTokens)

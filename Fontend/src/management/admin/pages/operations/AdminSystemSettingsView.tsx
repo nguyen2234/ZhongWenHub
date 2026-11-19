@@ -90,7 +90,7 @@ export const AdminSystemSettingsView: React.FC = () => {
         timezone,
         maxLoginAttempts: maxAttempts,
         sessionTimeoutMinutes: sessionTimeoutMin,
-        require2FA,
+        require2FA: false,
         systemNotice,
         isMaintenanceMode,
       });
@@ -420,14 +420,27 @@ export const AdminSystemSettingsView: React.FC = () => {
             </div>
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'not-allowed', opacity: 0.7 }}>
             <input
               type="checkbox"
               checked={require2FA}
-              onChange={(e) => handleFieldChange(setRequire2FA, e.target.checked)}
-              style={{ accentColor: 'var(--primary)' }}
+              disabled
+              style={{ accentColor: 'var(--primary)', cursor: 'not-allowed' }}
             />
             <span>Bắt buộc xác thực hai yếu tố (2FA) đối với tài khoản Admin và Giáo viên</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#b45309',
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                padding: '1px 8px',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
+              Chưa hỗ trợ
+            </span>
           </label>
         </div>
 

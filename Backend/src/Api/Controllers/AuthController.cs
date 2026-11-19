@@ -233,13 +233,12 @@ public class AuthController : BaseApiController
         }
 
         var ip = GetClientIpAddress();
-        var (success, message, resetTokenForDev) = await _authService.ForgotPasswordAsync(request, ip, cancellationToken);
+        var (success, message) = await _authService.ForgotPasswordAsync(request, ip, cancellationToken);
 
         return Ok(new
         {
             success,
-            message,
-            resetToken = resetTokenForDev
+            message
         });
     }
 

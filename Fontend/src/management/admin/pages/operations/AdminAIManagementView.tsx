@@ -16,71 +16,49 @@ const INITIAL_AI_SERVICES: AIServiceModel[] = [
     id: 'ai-tutor',
     name: 'AI Tutor (Trợ lý đối thoại)',
     role: 'Hội thoại tiếng Trung, giải đáp ngữ pháp và sửa lỗi ngữ cảnh',
-    provider: 'DeepSeek-V3 / Qwen-2.5-72B (Self-hosted Mock)',
-    latencyMs: 240,
-    uptime: '99.9%',
-    usagePercent: 78,
-    status: 'HEALTHY',
-    description: 'Xử lý trung bình 14,200 lượt hỏi đáp mỗi ngày. Tự động kiểm tra ngữ pháp HSK 1-6.',
+    provider: 'Google Gemini 2.5 Flash',
+    latencyMs: null as any,
+    uptime: null as any,
+    usagePercent: 0,
+    status: 'IDLE',
+    description: 'Hỗ trợ hội thoại và phân tích ngữ pháp tiếng Trung HSK 1-6.',
   },
   {
     id: 'ai-live',
     name: 'AI Live (Luyện phát âm & Phản xạ)',
     role: 'Nhận diện giọng nói (ASR) và đánh giá ngữ điệu Pinyin',
-    provider: 'Whisper-Large-v3 / FunASR (Mock Engine)',
-    latencyMs: 180,
-    uptime: '99.7%',
-    usagePercent: 62,
-    status: 'HEALTHY',
+    provider: 'Whisper-Large-v3 & FunASR Speech',
+    latencyMs: null as any,
+    uptime: null as any,
+    usagePercent: 0,
+    status: 'IDLE',
     description: 'Chấm điểm 4 thanh điệu tiếng Trung, phát hiện phát âm sai phụ âm đầu và vần.',
   },
   {
     id: 'ai-grading',
     name: 'AI Grading (Chấm bài tập & Đoạn văn)',
     role: 'Chấm điểm tự động bài tập viết chữ Hán và dịch câu',
-    provider: 'Qwen-Max Pedagogical Fine-tuned (Mock)',
-    latencyMs: 310,
-    uptime: '99.8%',
-    usagePercent: 44,
-    status: 'HEALTHY',
-    description: 'Hỗ trợ giáo viên chấm nhanh bài tập về nhà, gợi ý nhận xét song ngữ Trung - Việt.',
+    provider: 'Gemini 2.5 Pro Pedagogical',
+    latencyMs: null as any,
+    uptime: null as any,
+    usagePercent: 0,
+    status: 'IDLE',
+    description: 'Hỗ trợ giáo viên chấm bài tập về nhà và gợi ý nhận xét.',
   },
   {
     id: 'ai-analytics',
     name: 'AI Analytics (Gợi ý lộ trình thích ứng)',
     role: 'Phân tích điểm yếu kiến thức và lập lịch ôn tập ngắt quãng (SRS)',
     provider: 'ZhongWenHub Adaptive Pedagogical Engine',
-    latencyMs: 120,
-    uptime: '100%',
-    usagePercent: 51,
-    status: 'HEALTHY',
-    description: 'Cá nhân hóa danh sách từ vựng cần ôn luyện hôm nay dựa trên thuật toán SM-2 cải tiến.',
+    latencyMs: null as any,
+    uptime: null as any,
+    usagePercent: 0,
+    status: 'IDLE',
+    description: 'Cá nhân hóa danh sách từ vựng cần ôn luyện hôm nay dựa trên SRS.',
   },
 ];
 
-const INCIDENT_LOGS = [
-  {
-    id: 'inc-1',
-    time: '2026-10-27 10:14',
-    service: 'AI Live (ASR)',
-    event: 'Tự động kích hoạt cơ chế retry khi máy chủ phát âm phản hồi chậm > 500ms.',
-    level: 'INFO',
-  },
-  {
-    id: 'inc-2',
-    time: '2026-10-26 18:30',
-    service: 'AI Tutor',
-    event: 'Lưu lượng truy cập giờ cao điểm đạt 85% hạn mức quota. Hệ thống phân luồng ổn định.',
-    level: 'WARNING',
-  },
-  {
-    id: 'inc-3',
-    time: '2026-10-25 03:00',
-    service: 'AI Grading',
-    event: 'Cập nhật trọng số chấm điểm HSK 3. Hoàn tất kiểm thử nội bộ.',
-    level: 'RESOLVED',
-  },
-];
+const INCIDENT_LOGS: Array<{ id: string; time: string; service: string; event: string; level: string }> = [];
 
 export const AdminAIManagementView: React.FC = () => {
   const [quotaThreshold, setQuotaThreshold] = useState<number>(85);
@@ -181,7 +159,7 @@ export const AdminAIManagementView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Độ trễ trung bình</div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--foreground)' }}>
-              {isLoading ? '...' : `${aiStats?.averageLatencyMs ?? 185} ms`}
+              {isLoading ? '...' : (aiStats?.totalRequests && aiStats.totalRequests > 0 ? `${aiStats.averageLatencyMs} ms` : '—')}
             </div>
           </div>
         </div>
@@ -201,7 +179,7 @@ export const AdminAIManagementView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Tỷ lệ thành công</div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#16a34a' }}>
-              {isLoading ? '...' : `${aiStats?.successRate ?? 99.8}%`}
+              {isLoading ? '...' : (aiStats?.totalRequests && aiStats.totalRequests > 0 ? `${aiStats.successRate}%` : '100%')}
             </div>
           </div>
         </div>
@@ -293,7 +271,7 @@ export const AdminAIManagementView: React.FC = () => {
       >
         {services.map((srv) => {
           const isEnabled = serviceToggles[srv.id] ?? true;
-          const isOverQuota = srv.usagePercent >= quotaThreshold;
+          const isOverQuota = (srv.usagePercent ?? 0) >= quotaThreshold;
 
           return (
             <div
@@ -368,16 +346,16 @@ export const AdminAIManagementView: React.FC = () => {
               >
                 <div>
                   <div style={{ color: 'var(--muted)' }}>Độ trễ</div>
-                  <strong style={{ color: 'var(--foreground)' }}>{srv.latencyMs} ms</strong>
+                  <strong style={{ color: 'var(--foreground)' }}>{srv.latencyMs ? `${srv.latencyMs} ms` : '—'}</strong>
                 </div>
                 <div>
                   <div style={{ color: 'var(--muted)' }}>Khả dụng</div>
-                  <strong style={{ color: '#16a34a' }}>{srv.uptime}</strong>
+                  <strong style={{ color: '#16a34a' }}>{srv.uptime || '—'}</strong>
                 </div>
                 <div>
                   <div style={{ color: 'var(--muted)' }}>Tiêu thụ</div>
                   <strong style={{ color: isOverQuota ? '#be123c' : 'var(--foreground)' }}>
-                    {srv.usagePercent}%
+                    {srv.usagePercent !== undefined && srv.usagePercent !== null ? `${srv.usagePercent}%` : '0%'}
                   </strong>
                 </div>
               </div>
@@ -386,7 +364,7 @@ export const AdminAIManagementView: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted)', marginBottom: '4px' }}>
                   <span>Tỉ lệ sử dụng quota</span>
-                  <span>{srv.usagePercent}% / {quotaThreshold}%</span>
+                  <span>{srv.usagePercent !== undefined && srv.usagePercent !== null ? srv.usagePercent : 0}% / {quotaThreshold}%</span>
                 </div>
                 <div
                   style={{
@@ -399,7 +377,7 @@ export const AdminAIManagementView: React.FC = () => {
                   <div
                     style={{
                       height: '100%',
-                      width: `${Math.min(100, srv.usagePercent)}%`,
+                      width: `${Math.min(100, srv.usagePercent || 0)}%`,
                       backgroundColor: isOverQuota ? 'var(--danger)' : 'var(--primary)',
                       borderRadius: 'var(--radius-full)',
                     }}
@@ -435,51 +413,67 @@ export const AdminAIManagementView: React.FC = () => {
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {INCIDENT_LOGS.map((inc) => (
+          {INCIDENT_LOGS.length === 0 ? (
             <div
-              key={inc.id}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-md)',
+                padding: '24px 16px',
+                textAlign: 'center',
+                color: 'var(--muted)',
+                fontSize: '13px',
                 backgroundColor: 'var(--background)',
-                border: '1px solid var(--border)',
-                fontSize: '12.5px',
-                flexWrap: 'wrap',
-                gap: '8px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px dashed var(--border)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span
-                  style={{
-                    fontSize: '10.5px',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor:
-                      inc.level === 'WARNING'
-                        ? '#fffbeb'
-                        : inc.level === 'RESOLVED'
-                        ? '#f0fdf4'
-                        : 'var(--secondary)',
-                    color:
-                      inc.level === 'WARNING'
-                        ? '#b45309'
-                        : inc.level === 'RESOLVED'
-                        ? '#16a34a'
-                        : 'var(--muted)',
-                  }}
-                >
-                  {inc.level}
-                </span>
-                <strong style={{ color: 'var(--foreground)' }}>{inc.service}:</strong>
-                <span style={{ color: 'var(--foreground)' }}>{inc.event}</span>
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{inc.time}</span>
+              Chưa ghi nhận sự cố gián đoạn dịch vụ AI trong hệ thống.
             </div>
-          ))}
+          ) : (
+            INCIDENT_LOGS.map((inc) => (
+              <div
+                key={inc.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--background)',
+                  border: '1px solid var(--border)',
+                  fontSize: '12.5px',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span
+                    style={{
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      padding: '1px 6px',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor:
+                        inc.level === 'WARNING'
+                          ? '#fffbeb'
+                          : inc.level === 'RESOLVED'
+                          ? '#f0fdf4'
+                          : 'var(--secondary)',
+                      color:
+                        inc.level === 'WARNING'
+                          ? '#b45309'
+                          : inc.level === 'RESOLVED'
+                          ? '#16a34a'
+                          : 'var(--muted)',
+                    }}
+                  >
+                    {inc.level}
+                  </span>
+                  <strong style={{ color: 'var(--foreground)' }}>{inc.service}:</strong>
+                  <span style={{ color: 'var(--foreground)' }}>{inc.event}</span>
+                </div>
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{inc.time}</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

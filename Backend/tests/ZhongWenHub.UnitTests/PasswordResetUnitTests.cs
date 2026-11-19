@@ -82,4 +82,30 @@ public class PasswordResetUnitTests
         Assert.False(token.IsActive);
         Assert.Equal("Mật khẩu tài khoản đã được đặt lại", token.RevocationReason);
     }
+
+    [Fact]
+    public async Task PasswordResetEmailSender_WithoutHost_LogsWarningGracefully()
+    {
+        var config = new TestConfiguration(new Dictionary<string, string?>
+        {
+            { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
+        });
+
+        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+            config,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+
+        // Must not throw when host is missing
+        await sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123");
+    }
+
+    private class TestConfiguration : Microsoft.Extensions.Configuration.IConfiguration
+    {
+        private readonly Dictionary<string, string?> _data;
+        public TestConfiguration(Dictionary<string, string?> data) => _data = data;
+        public string? this[string key] { get => _data.TryGetValue(key, out var v) ? v : null; set => _data[key] = value; }
+        public IEnumerable<Microsoft.Extensions.Configuration.IConfigurationSection> GetChildren() => Enumerable.Empty<Microsoft.Extensions.Configuration.IConfigurationSection>();
+        public Microsoft.Extensions.Primitives.IChangeToken GetReloadToken() => null!;
+        public Microsoft.Extensions.Configuration.IConfigurationSection GetSection(string key) => null!;
+    }
 }

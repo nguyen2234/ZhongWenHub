@@ -136,7 +136,7 @@ public class AdminOperationsUnitTests
             PlatformName = "ZhongWenHub Production Test",
             ContactEmail = "contact@zhongwenhub.edu.vn",
             MaxLoginAttempts = 3,
-            Require2FA = true,
+            Require2FA = false,
             IsMaintenanceMode = false
         };
 
@@ -144,12 +144,28 @@ public class AdminOperationsUnitTests
         Assert.Equal("ZhongWenHub Production Test", updated.PlatformName);
         Assert.Equal("contact@zhongwenhub.edu.vn", updated.ContactEmail);
         Assert.Equal(3, updated.MaxLoginAttempts);
-        Assert.True(updated.Require2FA);
+        Assert.False(updated.Require2FA);
 
         // Read again to verify persistence
         var fetched = await service.GetSystemSettingsAsync();
         Assert.Equal("ZhongWenHub Production Test", fetched.PlatformName);
         Assert.Equal(3, fetched.MaxLoginAttempts);
-        Assert.True(fetched.Require2FA);
+        Assert.False(fetched.Require2FA);
+    }
+
+    [Fact]
+    public async Task UpdateSystemSettingsAsync_Unsupported2FA_ThrowsInvalidOperationException()
+    {
+        using var db = CreateInMemoryDbContext();
+        var userManager = CreateTestUserManager(db);
+        var service = new AdminOperationsService(db, userManager, NullLogger<AdminOperationsService>.Instance);
+
+        var unsupportedDto = new AdminSystemSettingsDto
+        {
+            PlatformName = "ZhongWenHub",
+            Require2FA = true
+        };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateSystemSettingsAsync(unsupportedDto));
     }
 }

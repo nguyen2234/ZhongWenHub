@@ -12,10 +12,10 @@ export interface AIServiceModel {
   name: string;
   role: string;
   provider: string;
-  latencyMs: number;
-  uptime: string;
-  usagePercent: number;
-  status: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE';
+  latencyMs?: number | null;
+  uptime?: string | null;
+  usagePercent?: number | null;
+  status: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE' | 'IDLE' | 'ONLINE';
   description: string;
   totalEvents?: number;
 }

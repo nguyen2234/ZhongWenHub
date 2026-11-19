@@ -347,41 +347,36 @@ class StudentAttemptService {
   } | undefined> {
     const token = authTokenService.getAccessToken();
     if (token) {
-      try {
-        const result = await studentHomeworkService.getResult(attemptId);
-        let attempt = this.attemptsStore.find((a) => a.id === attemptId);
-        if (!attempt) {
-          attempt = {
-            id: attemptId,
-            assignmentId: result.assignmentId,
-            studentId,
-            classId: '',
-            attemptNumber: 1,
-            status: result.status || 'SUBMITTED',
-            startedAt: result.submittedAt || new Date().toISOString(),
-            submittedAt: result.submittedAt,
-            timeSpentSeconds: result.timeSpentSeconds || 0,
-            answers: {},
-            isLate: false,
-          };
-          this.attemptsStore.push(attempt);
-        }
-
-        const answered = result.reviewQuestions
-          ? result.reviewQuestions.filter((q: any) => q.studentAnswer).length
-          : 0;
-
-        return {
-          attempt: { ...attempt },
-          assignmentTitle: result.assignmentTitle || 'Bài tập về nhà',
-          className: 'Lớp học trực tuyến',
-          totalQuestions: result.reviewQuestions ? result.reviewQuestions.length : 5,
-          answeredCount: answered || 5,
+      const result = await studentHomeworkService.getResult(attemptId);
+      let attempt = this.attemptsStore.find((a) => a.id === attemptId);
+      if (!attempt) {
+        attempt = {
+          id: attemptId,
+          assignmentId: result.assignmentId,
+          studentId,
+          classId: '',
+          attemptNumber: 1,
+          status: result.status || 'SUBMITTED',
+          startedAt: result.submittedAt || new Date().toISOString(),
+          submittedAt: result.submittedAt,
+          timeSpentSeconds: result.timeSpentSeconds || 0,
+          answers: {},
+          isLate: false,
         };
-      } catch (error) {
-        // Authenticated users must receive the real API error; local drafts are not server results.
-        throw error;
+        this.attemptsStore.push(attempt);
       }
+
+      const answered = result.reviewQuestions
+        ? result.reviewQuestions.filter((q: any) => q.studentAnswer).length
+        : 0;
+
+      return {
+        attempt: { ...attempt },
+        assignmentTitle: result.assignmentTitle || 'Bài tập về nhà',
+        className: 'Lớp học trực tuyến',
+        totalQuestions: result.reviewQuestions ? result.reviewQuestions.length : 5,
+        answeredCount: answered || 5,
+      };
     }
 
     // Fallback for tests

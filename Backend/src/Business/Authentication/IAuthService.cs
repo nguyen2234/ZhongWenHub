@@ -10,6 +10,6 @@ public interface IAuthService
     Task<bool> RevokeRefreshTokenAsync(string rawRefreshToken, string? ipAddress, string reason = "User logged out", CancellationToken cancellationToken = default);
     Task<UserDto?> GetCurrentUserProfileAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<UserDto?> UpdateCurrentUserProfileAsync(Guid userId, UpdateProfileRequestDto request, CancellationToken cancellationToken = default);
-    Task<(bool Success, string Message, string? ResetTokenForDev)> ForgotPasswordAsync(ForgotPasswordRequestDto request, string? ipAddress, CancellationToken cancellationToken = default);
+    Task<(bool Success, string Message)> ForgotPasswordAsync(ForgotPasswordRequestDto request, string? ipAddress, CancellationToken cancellationToken = default);
     Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequestDto request, string? ipAddress, CancellationToken cancellationToken = default);
 }

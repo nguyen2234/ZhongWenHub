@@ -9,10 +9,10 @@ public class AdminAIServiceStatusDto
     public string Name { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
-    public int LatencyMs { get; set; }
-    public string Uptime { get; set; } = "99.9%";
-    public int UsagePercent { get; set; }
-    public string Status { get; set; } = "HEALTHY";
+    public int? LatencyMs { get; set; }
+    public string? Uptime { get; set; }
+    public double? UsagePercent { get; set; }
+    public string Status { get; set; } = "IDLE";
     public string Description { get; set; } = string.Empty;
     public int TotalEvents { get; set; }
 }

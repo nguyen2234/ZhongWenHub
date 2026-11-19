@@ -103,6 +103,7 @@ public static class DependencyInjection
         // Business Services
         services.AddHttpContextAccessor();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IPasswordResetEmailSender, PasswordResetEmailSender>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminUserService, AdminUserService>();
         services.AddScoped<IAdminOperationsService, AdminOperationsService>();

@@ -615,7 +615,7 @@ export const authService = {
     if (defaultApiConfig.useMock) {
       return {
         success: true,
-        message: 'Yêu cầu khôi phục mật khẩu đã được ghi nhận. Trong môi trường demo, bạn có thể đặt lại mật khẩu tại trang /reset-password với mã xác thực: DEMO-RESET-TOKEN-123456.',
+        message: 'Nếu địa chỉ email tồn tại trên hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi đến hòm thư của bạn.',
       };
     }
 
