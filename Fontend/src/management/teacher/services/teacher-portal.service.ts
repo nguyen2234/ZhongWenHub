@@ -436,6 +436,8 @@ class TeacherPortalService {
      5. STUDENT ENROLLED CLASSES (REAL BACKEND INTEGRATION)
      ========================================================================== */
 
+  private enrolledClassesCache = new Map<string, StudentEnrolledClassDTO>();
+
   async getMyEnrolledClasses(): Promise<StudentEnrolledClassDTO[]> {
     const res = await fetch(getApiUrl('/teacher/my-enrolled-classes'), {
       method: 'GET',
@@ -452,12 +454,30 @@ class TeacherPortalService {
       throw new Error(detail);
     }
 
-    return await res.json();
+    const data: StudentEnrolledClassDTO[] = await res.json();
+    for (const c of data) {
+      this.enrolledClassesCache.set(c.id, c);
+    }
+    return data;
   }
 
   /* ==========================================================================
-     6. LEGACY / DEMO ADAPTER HELPERS (STRICT COMPATIBILITY)
+     6. STUDENT CLASS COMPATIBILITY & MOCK ADAPTERS
      ========================================================================== */
+
+  async getActiveClassIdsForStudentAsync(studentId: string): Promise<string[]> {
+    if (authTokenService.getAccessToken()) {
+      try {
+        const enrolled = await this.getMyEnrolledClasses();
+        if (enrolled.length > 0) {
+          return enrolled.map((c) => c.id);
+        }
+      } catch (err) {
+        console.warn('[TeacherPortalService] Failed to load real enrolled classes for student:', err);
+      }
+    }
+    return this.getActiveClassIdsForStudent(studentId);
+  }
 
   getActiveClassIdsForStudent(studentId: string): string[] {
     return membersStore
@@ -466,6 +486,15 @@ class TeacherPortalService {
   }
 
   getClassBasicInfo(classId: string): { id: string; name: string; code: string; hskLevelId: string } | undefined {
+    const cached = this.enrolledClassesCache.get(classId);
+    if (cached) {
+      return {
+        id: cached.id,
+        name: cached.name,
+        code: cached.code,
+        hskLevelId: cached.hskLevelId,
+      };
+    }
     const cls = classesStore.find((c) => c.id === classId);
     if (!cls) return undefined;
     return {

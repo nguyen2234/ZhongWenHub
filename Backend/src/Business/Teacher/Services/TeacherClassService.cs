@@ -22,6 +22,7 @@ public class TeacherClassService : ITeacherClassService
     private readonly ApplicationDbContext _dbContext;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<TeacherClassService> _logger;
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, SemaphoreSlim> _classEnrollmentLocks = new();
 
     public TeacherClassService(
         ApplicationDbContext dbContext,
@@ -412,128 +413,154 @@ public class TeacherClassService : ITeacherClassService
 
     public async Task<ClassMemberViewDto> AddMemberAsync(Guid classId, AddClassMemberDto dto, CancellationToken cancellationToken = default)
     {
-        var (userId, isAdmin) = GetCurrentUserInfo();
-
-        var classEntity = await _dbContext.TeachingClasses.FirstOrDefaultAsync(c => c.Id == classId, cancellationToken);
-        if (classEntity == null)
+        var classLock = _classEnrollmentLocks.GetOrAdd(classId, _ => new SemaphoreSlim(1, 1));
+        await classLock.WaitAsync(cancellationToken);
+        try
         {
-            throw new KeyNotFoundException($"Không tìm thấy lớp học với mã định danh '{classId}'.");
-        }
+            var isRelational = false;
+            try { isRelational = _dbContext.Database.IsRelational(); } catch { }
 
-        if (!isAdmin && classEntity.TeacherId != userId)
-        {
-            throw new UnauthorizedAccessException("Bạn không có quyền quản lý thành viên lớp học này.");
-        }
+            await using var transaction = isRelational
+                ? await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken)
+                : null;
 
-        // Check class status: do not allow enrollment into ARCHIVED or COMPLETED classes
-        if (classEntity.IsArchived || string.Equals(classEntity.Status, "ARCHIVED", StringComparison.OrdinalIgnoreCase) || string.Equals(classEntity.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("Không thể ghi danh vào lớp học đã kết thúc hoặc đã lưu trữ.");
-        }
-
-        // Capacity check
-        var activeCount = await _dbContext.TeachingClassMembers
-            .CountAsync(m => m.ClassId == classId && m.Status == "ACTIVE", cancellationToken);
-
-        if (activeCount >= classEntity.Capacity)
-        {
-            throw new InvalidOperationException($"Lớp học đã đạt sĩ số tối đa ({classEntity.Capacity} học viên).");
-        }
-
-        // Find student account
-        var identifier = dto.StudentIdentifier.Trim();
-        Guid? parsedGuid = Guid.TryParse(identifier, out var g) ? g : null;
-
-        var student = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u =>
-            (parsedGuid.HasValue && u.Id == parsedGuid.Value) ||
-            (u.Email != null && u.Email.ToLower() == identifier.ToLower()) ||
-            (u.UserName != null && u.UserName.ToLower() == identifier.ToLower()), cancellationToken);
-
-        if (student == null)
-        {
-            throw new KeyNotFoundException($"Không tìm thấy tài khoản học viên với thông tin '{dto.StudentIdentifier}'.");
-        }
-
-        // Role verification: Only accounts with STUDENT role can be enrolled
-        var isStudent = await (from ur in _dbContext.UserRoles
-                               join r in _dbContext.Roles on ur.RoleId equals r.Id
-                               where ur.UserId == student.Id && (r.NormalizedName == "STUDENT" || r.Name == "STUDENT")
-                               select ur).AnyAsync(cancellationToken);
-
-        if (!isStudent)
-        {
-            throw new InvalidOperationException($"Tài khoản '{student.UserName}' không phải là học viên (yêu cầu vai trò STUDENT).");
-        }
-
-        // Check duplicate enrollment
-        var existingMember = await _dbContext.TeachingClassMembers
-            .FirstOrDefaultAsync(m => m.ClassId == classId && m.StudentId == student.Id, cancellationToken);
-
-        if (existingMember != null)
-        {
-            if (existingMember.Status == "ACTIVE")
+            try
             {
-                throw new InvalidOperationException($"Học viên '{student.DisplayName ?? student.UserName}' đã là thành viên chính thức của lớp học.");
+                var (userId, isAdmin) = GetCurrentUserInfo();
+
+                var classEntity = await _dbContext.TeachingClasses.FirstOrDefaultAsync(c => c.Id == classId, cancellationToken);
+                if (classEntity == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy lớp học với mã định danh '{classId}'.");
+                }
+
+                if (!isAdmin && classEntity.TeacherId != userId)
+                {
+                    throw new UnauthorizedAccessException("Bạn không có quyền quản lý thành viên lớp học này.");
+                }
+
+                // Check class status: do not allow enrollment into ARCHIVED or COMPLETED classes
+                if (classEntity.IsArchived || string.Equals(classEntity.Status, "ARCHIVED", StringComparison.OrdinalIgnoreCase) || string.Equals(classEntity.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("Không thể ghi danh vào lớp học đã kết thúc hoặc đã lưu trữ.");
+                }
+
+                // Capacity check inside serialized critical section
+                var activeCount = await _dbContext.TeachingClassMembers
+                    .CountAsync(m => m.ClassId == classId && m.Status == "ACTIVE", cancellationToken);
+
+                if (activeCount >= classEntity.Capacity)
+                {
+                    throw new InvalidOperationException($"Lớp học đã đạt sĩ số tối đa ({classEntity.Capacity} học viên).");
+                }
+
+                // Find student account
+                var identifier = dto.StudentIdentifier.Trim();
+                Guid? parsedGuid = Guid.TryParse(identifier, out var g) ? g : null;
+
+                var student = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u =>
+                    (parsedGuid.HasValue && u.Id == parsedGuid.Value) ||
+                    (u.Email != null && u.Email.ToLower() == identifier.ToLower()) ||
+                    (u.UserName != null && u.UserName.ToLower() == identifier.ToLower()), cancellationToken);
+
+                if (student == null)
+                {
+                    throw new KeyNotFoundException($"Không tìm thấy tài khoản học viên với thông tin '{dto.StudentIdentifier}'.");
+                }
+
+                // Role verification: Only accounts with STUDENT role can be enrolled
+                var isStudent = await (from ur in _dbContext.UserRoles
+                                       join r in _dbContext.Roles on ur.RoleId equals r.Id
+                                       where ur.UserId == student.Id && (r.NormalizedName == "STUDENT" || r.Name == "STUDENT")
+                                       select ur).AnyAsync(cancellationToken);
+
+                if (!isStudent)
+                {
+                    throw new InvalidOperationException($"Tài khoản '{student.UserName}' không phải là học viên (yêu cầu vai trò STUDENT).");
+                }
+
+                // Check duplicate enrollment
+                var existingMember = await _dbContext.TeachingClassMembers
+                    .FirstOrDefaultAsync(m => m.ClassId == classId && m.StudentId == student.Id, cancellationToken);
+
+                if (existingMember != null)
+                {
+                    if (existingMember.Status == "ACTIVE")
+                    {
+                        throw new InvalidOperationException($"Học viên '{student.DisplayName ?? student.UserName}' đã là thành viên chính thức của lớp học.");
+                    }
+
+                    // Reactivate dropped or paused member
+                    existingMember.Status = "ACTIVE";
+                    existingMember.EnrolledAt = DateTime.UtcNow;
+                    if (!string.IsNullOrWhiteSpace(dto.Notes))
+                    {
+                        existingMember.Notes = dto.Notes.Trim();
+                    }
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    if (transaction != null) await transaction.CommitAsync(cancellationToken);
+                    _logger.LogInformation("Kích hoạt lại học viên {StudentId} vào lớp {ClassId}", student.Id, classId);
+
+                    return new ClassMemberViewDto
+                    {
+                        Id = existingMember.Id,
+                        ClassId = existingMember.ClassId,
+                        StudentId = existingMember.StudentId,
+                        StudentName = string.IsNullOrWhiteSpace(student.DisplayName) ? (student.UserName ?? "Học viên") : student.DisplayName,
+                        StudentEmail = student.Email ?? string.Empty,
+                        StudentAvatarUrl = student.AvatarUrl,
+                        EnrolledAt = existingMember.EnrolledAt,
+                        Status = existingMember.Status,
+                        AttendanceRate = existingMember.AttendanceRate,
+                        CompletedAssignmentsCount = existingMember.CompletedAssignmentsCount,
+                        Notes = existingMember.Notes
+                    };
+                }
+
+                var newMember = new TeachingClassMember
+                {
+                    Id = Guid.NewGuid(),
+                    ClassId = classId,
+                    StudentId = student.Id,
+                    EnrolledAt = DateTime.UtcNow,
+                    Status = "ACTIVE",
+                    AttendanceRate = 100.0,
+                    CompletedAssignmentsCount = 0,
+                    Notes = dto.Notes?.Trim()
+                };
+
+                _dbContext.TeachingClassMembers.Add(newMember);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                if (transaction != null) await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("Thêm thành công học viên {StudentId} vào lớp {ClassId}", student.Id, classId);
+
+                return new ClassMemberViewDto
+                {
+                    Id = newMember.Id,
+                    ClassId = newMember.ClassId,
+                    StudentId = newMember.StudentId,
+                    StudentName = string.IsNullOrWhiteSpace(student.DisplayName) ? (student.UserName ?? "Học viên") : student.DisplayName,
+                    StudentEmail = student.Email ?? string.Empty,
+                    StudentAvatarUrl = student.AvatarUrl,
+                    EnrolledAt = newMember.EnrolledAt,
+                    Status = newMember.Status,
+                    AttendanceRate = newMember.AttendanceRate,
+                    CompletedAssignmentsCount = newMember.CompletedAssignmentsCount,
+                    Notes = newMember.Notes
+                };
             }
-
-            // Reactivate dropped or paused member
-            existingMember.Status = "ACTIVE";
-            existingMember.EnrolledAt = DateTime.UtcNow;
-            if (!string.IsNullOrWhiteSpace(dto.Notes))
+            catch
             {
-                existingMember.Notes = dto.Notes.Trim();
+                if (transaction != null) await transaction.RollbackAsync(cancellationToken);
+                throw;
             }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Kích hoạt lại học viên {StudentId} vào lớp {ClassId}", student.Id, classId);
-
-            return new ClassMemberViewDto
-            {
-                Id = existingMember.Id,
-                ClassId = existingMember.ClassId,
-                StudentId = existingMember.StudentId,
-                StudentName = string.IsNullOrWhiteSpace(student.DisplayName) ? (student.UserName ?? "Học viên") : student.DisplayName,
-                StudentEmail = student.Email ?? string.Empty,
-                StudentAvatarUrl = student.AvatarUrl,
-                EnrolledAt = existingMember.EnrolledAt,
-                Status = existingMember.Status,
-                AttendanceRate = existingMember.AttendanceRate,
-                CompletedAssignmentsCount = existingMember.CompletedAssignmentsCount,
-                Notes = existingMember.Notes
-            };
         }
-
-        var newMember = new TeachingClassMember
+        finally
         {
-            Id = Guid.NewGuid(),
-            ClassId = classId,
-            StudentId = student.Id,
-            EnrolledAt = DateTime.UtcNow,
-            Status = "ACTIVE",
-            AttendanceRate = 100.0,
-            CompletedAssignmentsCount = 0,
-            Notes = dto.Notes?.Trim()
-        };
-
-        _dbContext.TeachingClassMembers.Add(newMember);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Thêm thành công học viên {StudentId} vào lớp {ClassId}", student.Id, classId);
-
-        return new ClassMemberViewDto
-        {
-            Id = newMember.Id,
-            ClassId = newMember.ClassId,
-            StudentId = newMember.StudentId,
-            StudentName = string.IsNullOrWhiteSpace(student.DisplayName) ? (student.UserName ?? "Học viên") : student.DisplayName,
-            StudentEmail = student.Email ?? string.Empty,
-            StudentAvatarUrl = student.AvatarUrl,
-            EnrolledAt = newMember.EnrolledAt,
-            Status = newMember.Status,
-            AttendanceRate = newMember.AttendanceRate,
-            CompletedAssignmentsCount = newMember.CompletedAssignmentsCount,
-            Notes = newMember.Notes
-        };
+            classLock.Release();
+        }
     }
 
     public async Task<bool> RemoveMemberAsync(Guid classId, Guid studentId, CancellationToken cancellationToken = default)

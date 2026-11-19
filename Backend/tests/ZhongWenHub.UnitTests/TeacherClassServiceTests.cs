@@ -673,4 +673,64 @@ public class TeacherClassServiceTests
         Assert.Equal("Cô Giáo", myClasses[0].TeacherName);
         Assert.Equal("ACTIVE", myClasses[0].Status);
     }
+
+    [Fact]
+    public async Task AddMemberAsync_ConcurrentEnrollments_WhenOnlyOneSpotRemains_NeverExceedsCapacity()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var fakeUser = new FakeCurrentUserService { UserId = teacherId, Roles = new[] { RoleConstants.Teacher } };
+        var service = new TeacherClassService(dbContext, fakeUser, NullLogger<TeacherClassService>.Instance);
+
+        var cls = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp Cạnh Tranh Suất Học",
+            Code = "CLS-CONCUR-01",
+            HskLevelId = "level-hsk-3",
+            Capacity = 1, // Only 1 spot!
+            StartDate = DateTime.UtcNow
+        });
+
+        var s1 = new ApplicationUser { Id = Guid.NewGuid(), UserName = "std_concur_1", Email = "c1@mail.com" };
+        var s2 = new ApplicationUser { Id = Guid.NewGuid(), UserName = "std_concur_2", Email = "c2@mail.com" };
+        dbContext.Users.AddRange(s1, s2);
+        await dbContext.SaveChangesAsync();
+        await EnsureStudentRoleAsync(dbContext, s1, s2);
+
+        // Run both enrollment requests concurrently
+        var task1 = Task.Run(async () =>
+        {
+            try
+            {
+                await service.AddMemberAsync(cls.Id, new AddClassMemberDto { StudentIdentifier = "c1@mail.com" });
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        });
+
+        var task2 = Task.Run(async () =>
+        {
+            try
+            {
+                await service.AddMemberAsync(cls.Id, new AddClassMemberDto { StudentIdentifier = "c2@mail.com" });
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        });
+
+        var results = await Task.WhenAll(task1, task2);
+
+        // Exactly one should succeed and one should fail
+        Assert.Contains(true, results);
+        Assert.Contains(false, results);
+
+        var finalCount = await dbContext.TeachingClassMembers.CountAsync(m => m.ClassId == cls.Id && m.Status == "ACTIVE");
+        Assert.Equal(1, finalCount); // NEVER exceeds capacity 1
+    }
 }

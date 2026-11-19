@@ -557,7 +557,7 @@ class AssignmentService {
   async getAssignmentsForStudent(studentId: string): Promise<StudentHomeworkSummaryDTO[]> {
     await new Promise((r) => setTimeout(r, 40));
 
-    const activeClassIds = teacherPortalService.getActiveClassIdsForStudent(studentId);
+    const activeClassIds = await teacherPortalService.getActiveClassIdsForStudentAsync(studentId);
     if (activeClassIds.length === 0) return [];
 
     const activeClassIdSet = new Set(activeClassIds);
@@ -633,7 +633,7 @@ class AssignmentService {
     const a = assignmentsStore.find((x) => x.id === assignmentId);
     if (!a || a.status === 'DRAFT' || a.status === 'ARCHIVED') return undefined;
 
-    const activeClassIds = teacherPortalService.getActiveClassIdsForStudent(studentId);
+    const activeClassIds = await teacherPortalService.getActiveClassIdsForStudentAsync(studentId);
     const target = targetsStore.find(
       (t) => t.assignmentId === assignmentId && activeClassIds.includes(t.classId)
     );
@@ -709,7 +709,7 @@ class AssignmentService {
     const a = assignmentsStore.find((x) => x.id === assignmentId);
     if (!a || a.status === 'DRAFT' || a.status === 'ARCHIVED') return undefined;
 
-    const activeClassIds = teacherPortalService.getActiveClassIdsForStudent(studentId);
+    const activeClassIds = await teacherPortalService.getActiveClassIdsForStudentAsync(studentId);
     const target = targetsStore.find(
       (t) => t.assignmentId === assignmentId && activeClassIds.includes(t.classId)
     );
