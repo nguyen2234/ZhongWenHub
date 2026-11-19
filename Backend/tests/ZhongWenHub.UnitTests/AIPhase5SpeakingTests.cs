@@ -23,7 +23,9 @@ namespace ZhongWenHub.UnitTests;
 
 public class AIPhase5SpeakingTests
 {
-    private const string ConnectionString = "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING")
+        ?? "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private ApplicationDbContext CreateContext()
     {
@@ -85,6 +87,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task GetPracticeItems_ReturnsItemsForWordSentenceScenario()
     {
         await using var db = CreateContext();
@@ -136,6 +139,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task SubmitPractice_WhenSttUnavailable_ReturnsClearNotice_NeverFakeTranscript()
     {
         await using var db = CreateContext();
@@ -169,6 +173,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task SubmitPractice_WithSuccessfulAudio_LogsSpeakingPracticeAttempt_AndUpdatesCompetency()
     {
         await using var db = CreateContext();
@@ -226,6 +231,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task SubmitPractice_RejectsEmptyAudioAndEmptyDirectText()
     {
         await using var db = CreateContext();
@@ -250,6 +256,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task ConversationAudio_TranscribesAudioAndProgressesConversation()
     {
         await using var db = CreateContext();
@@ -292,6 +299,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task SpeakingStats_SummarizesCompletedAttemptsAccurately()
     {
         await using var db = CreateContext();
@@ -339,6 +347,7 @@ public class AIPhase5SpeakingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task DirectText_DoesNotCreateSpeakingPracticeAttempt_AndDoesNotIncreaseCompetency()
     {
         await using var db = CreateContext();

@@ -35,7 +35,9 @@ Thumbs.db
 test-results/
 playwright-report/
 Fontend/scratch/
-Fontend/screenshots/*.png
+Fontend/screenshots/
+Fontend/public/images/dashboard/*.png
+data/hsk20/patches/*backup*
 
 # Python
 __pycache__/

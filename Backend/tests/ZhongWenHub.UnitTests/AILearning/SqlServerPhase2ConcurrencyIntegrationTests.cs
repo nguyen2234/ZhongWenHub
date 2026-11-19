@@ -14,10 +14,12 @@ using ZhongWenHub.Data.Persistence;
 namespace ZhongWenHub.UnitTests.AILearning;
 
 [Collection("SqlServerIntegrationTests")]
+[Trait("Category", "Integration")]
 public class SqlServerPhase2ConcurrencyIntegrationTests
 {
-    private const string SqlServerConnectionString =
-        "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+    private static readonly string SqlServerConnectionString =
+        Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING")
+        ?? "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private static ApplicationDbContext CreateSqlServerContext()
     {

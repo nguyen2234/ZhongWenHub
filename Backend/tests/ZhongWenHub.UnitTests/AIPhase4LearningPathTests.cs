@@ -104,9 +104,12 @@ public class AIPhase4LearningPathUnitTests
 }
 
 [Collection("SqlServerIntegrationTests")]
+[Trait("Category", "Integration")]
 public class AIPhase4SqlServerIntegrationTests
 {
-    private const string ConnectionString = "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING")
+        ?? "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private ApplicationDbContext CreateContext()
     {
