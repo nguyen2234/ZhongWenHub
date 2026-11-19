@@ -239,6 +239,11 @@ export const PendingSubmissionsQueue: React.FC<PendingSubmissionsQueueProps> = (
               </div>
             </div>
 
+            {saveError && (
+              <p role="alert" style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-3)', fontSize: 'var(--text-sm)' }}>
+                {saveError}
+              </p>
+            )}
             {saveSuccess ? (
               <div
                 style={{
