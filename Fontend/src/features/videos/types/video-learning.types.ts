@@ -6,6 +6,7 @@ export interface LearningVideo {
   youtubeVideoId: string | null;
   youTubeVideoId?: string | null;
   storagePath: string | null;
+  videoUrl?: string | null;
   thumbnailUrl: string;
   durationSeconds: number;
   durationFormatted: string;

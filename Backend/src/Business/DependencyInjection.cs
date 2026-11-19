@@ -9,6 +9,7 @@ using ZhongWenHub.Business.AILearning.Services.Competency;
 using ZhongWenHub.Business.AILearning.Services.Diagnostic;
 using ZhongWenHub.Business.AILearning.Services.Recommendation;
 using ZhongWenHub.Business.AILearning.Services.Speech;
+using ZhongWenHub.Business.Admin;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.Authentication;
 using ZhongWenHub.Business.Authorization;
@@ -104,6 +105,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminUserService, AdminUserService>();
+        services.AddScoped<IAdminOperationsService, AdminOperationsService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<ILearningService, LearningService>();
         services.AddScoped<IContentService, ContentService>();

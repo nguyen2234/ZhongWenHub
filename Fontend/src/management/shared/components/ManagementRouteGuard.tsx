@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
+import { ShieldAlert } from 'lucide-react';
 import type { UserRole } from '../../../types/roles';
 // ROLE_DEFAULT_PATHS
 import { managementAuthService } from '../services/management-auth.service';
@@ -88,14 +89,84 @@ export const ManagementRouteGuard: React.FC<ManagementRouteGuardProps> = ({
       roles.some((r) => userRoles.has(r));
 
     if (!isRoleAllowed) {
-      return <Navigate to="/dashboard" replace />;
+      return (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+            padding: '2rem',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
+            <ShieldAlert size={48} />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e293b' }}>
+            403 - Không có quyền truy cập
+          </h2>
+          <p style={{ color: '#64748b', maxWidth: '420px', marginBottom: '1.5rem', fontSize: '0.925rem' }}>
+            Tài khoản ({user.email}) với vai trò "{user.role || 'STUDENT'}" không có quyền truy cập vào phân hệ này.
+          </p>
+          <a
+            href="/dashboard"
+            className="ds-btn ds-btn-primary"
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '0.5rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Quay lại Bảng điều khiển học tập
+          </a>
+        </div>
+      );
     }
   }
 
   // 4. Permission validation
   if (requiredPermission) {
     if (!managementAuthService.hasPermission(requiredPermission)) {
-      return <Navigate to="/dashboard" replace />;
+      return (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+            padding: '2rem',
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
+            <ShieldAlert size={48} />
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1e293b' }}>
+            403 - Quyền bị từ chối
+          </h2>
+          <p style={{ color: '#64748b', maxWidth: '420px', marginBottom: '1.5rem', fontSize: '0.925rem' }}>
+            Tài khoản không sở hữu quyền cần thiết ({requiredPermission}) để thao tác trên tính năng này.
+          </p>
+          <a
+            href="/dashboard"
+            className="ds-btn ds-btn-primary"
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: '0.5rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Quay lại Bảng điều khiển học tập
+          </a>
+        </div>
+      );
     }
   }
 

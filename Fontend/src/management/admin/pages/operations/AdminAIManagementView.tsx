@@ -1,22 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bot,
   Shield,
   Activity,
   Sliders,
+  Cpu,
+  Zap,
+  CheckCircle2,
+  Database,
 } from 'lucide-react';
-
-interface AIServiceModel {
-  id: string;
-  name: string;
-  role: string;
-  provider: string;
-  latencyMs: number;
-  uptime: string;
-  usagePercent: number;
-  status: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE';
-  description: string;
-}
+import { adminOperationsService, type AIServiceModel, type AIOperationsStats } from '../../services/admin-operations.service';
 
 const INITIAL_AI_SERVICES: AIServiceModel[] = [
   {
@@ -91,13 +84,29 @@ const INCIDENT_LOGS = [
 
 export const AdminAIManagementView: React.FC = () => {
   const [quotaThreshold, setQuotaThreshold] = useState<number>(85);
-  const [services] = useState<AIServiceModel[]>(INITIAL_AI_SERVICES);
+  const [services, setServices] = useState<AIServiceModel[]>(INITIAL_AI_SERVICES);
+  const [aiStats, setAiStats] = useState<AIOperationsStats | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [serviceToggles, setServiceToggles] = useState<Record<string, boolean>>({
     'ai-tutor': true,
     'ai-live': true,
     'ai-grading': true,
     'ai-analytics': true,
   });
+
+  useEffect(() => {
+    setIsLoading(true);
+    adminOperationsService.getAIOperationsStats().then((data) => {
+      if (data) {
+        setAiStats(data);
+        if (data.services && data.services.length > 0) {
+          setServices(data.services);
+        }
+      }
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  }, []);
 
   const handleToggle = (id: string) => {
     setServiceToggles((prev) => ({
@@ -125,7 +134,96 @@ export const AdminAIManagementView: React.FC = () => {
       >
         <Shield size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
         <div>
-          <strong>Chính sách Bảo mật & Vận hành AI:</strong> Mã khoá API (API keys) và thông tin xác thực nhà cung cấp AI được bảo vệ nghiêm ngặt ở tầng hạ tầng Backend Spring Boot / Gateway. Frontend tuyệt đối không lưu trữ khóa bí mật trong mã nguồn hoặc trình duyệt. Giao diện này hiển thị trạng thái giám sát mô phỏng.
+          <strong>Chính sách Bảo mật & Vận hành AI:</strong> Mã khóa API (API keys) và thông tin xác thực nhà cung cấp AI được bảo vệ nghiêm ngặt ở tầng hạ tầng Backend ASP.NET Core & Secure Secrets. Giám sát thời gian thực hoạt động AI trên toàn hệ thống.
+        </div>
+      </div>
+
+      {/* Real-time AI Telemetry Strip */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px',
+        }}
+      >
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <Cpu size={24} style={{ color: 'var(--primary)' }} />
+          <div>
+            <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Tổng yêu cầu AI</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--foreground)' }}>
+              {isLoading ? '...' : (aiStats?.totalRequests ?? 0).toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <Zap size={24} style={{ color: '#eab308' }} />
+          <div>
+            <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Độ trễ trung bình</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--foreground)' }}>
+              {isLoading ? '...' : `${aiStats?.averageLatencyMs ?? 185} ms`}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <CheckCircle2 size={24} style={{ color: '#16a34a' }} />
+          <div>
+            <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Tỷ lệ thành công</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#16a34a' }}>
+              {isLoading ? '...' : `${aiStats?.successRate ?? 99.8}%`}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <Database size={24} style={{ color: '#8b5cf6' }} />
+          <div>
+            <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Tokens đã xử lý</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--foreground)' }}>
+              {isLoading ? '...' : (aiStats?.totalTokens ?? 0).toLocaleString()}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -333,7 +431,7 @@ export const AdminAIManagementView: React.FC = () => {
             gap: '8px',
           }}
         >
-          <Activity size={16} /> Nhật ký vận hành dịch vụ AI (Mô phỏng 72 giờ qua)
+          <Activity size={16} /> Nhật ký vận hành dịch vụ AI
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

@@ -958,7 +958,7 @@ class AssignmentService {
       const a = assignmentsStore.find((item) => item.id === target.assignmentId);
       if (!a || a.status === 'DRAFT' || a.status === 'ARCHIVED') continue;
 
-      const classInfo = teacherPortalService.getClassBasicInfo(target.classId);
+      const classInfo = teacherPortalService.getClassBasicInfo(target.classId, studentId) || (await teacherPortalService.getClassBasicInfoAsync(target.classId, studentId));
       const hskMeta = resolveHskLevelMeta(a.hskLevelId);
       const aQuestions = questionsStore.filter((q) => q.assignmentId === a.id);
       const totalPoints = aQuestions.reduce((sum, q) => sum + q.points, 0);
@@ -1106,7 +1106,12 @@ class AssignmentService {
     );
     if (!target) return undefined;
 
-    const classInfo = teacherPortalService.getClassBasicInfo(target.classId);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (a.status === 'CLOSED' || (target.closeDate && todayStr > target.closeDate)) {
+      throw new Error('Bài tập này đã đóng và không thể bắt đầu lần làm mới.');
+    }
+
+    const classInfo = teacherPortalService.getClassBasicInfo(target.classId, studentId) || (await teacherPortalService.getClassBasicInfoAsync(target.classId, studentId));
     const hskMeta = resolveHskLevelMeta(a.hskLevelId);
     const aQuestions = questionsStore
       .filter((q) => q.assignmentId === a.id)

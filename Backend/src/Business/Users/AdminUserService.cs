@@ -349,37 +349,55 @@ public class AdminUserService : IAdminUserService
 
 
         var totalActive = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && u.Status == UserStatus.ACTIVE, cancellationToken);
-
         var totalLocked = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && (u.Status == UserStatus.LOCKED || u.Status == UserStatus.SUSPENDED), cancellationToken);
-
         var new30d = await _userManager.Users.AsNoTracking().CountAsync(u => !u.IsDeleted && u.CreatedAt >= thirtyDaysAgo, cancellationToken);
 
+        var totalClasses = await _dbContext.TeachingClasses.CountAsync(cancellationToken);
+        var totalVocab = await _dbContext.Vocabularies.CountAsync(cancellationToken);
+        var totalGrammar = await _dbContext.GrammarPoints.CountAsync(cancellationToken);
+        var totalChars = await _dbContext.HanziCharacters.CountAsync(cancellationToken);
+        var totalLessons = await _dbContext.Lessons.CountAsync(cancellationToken);
+        var totalExercises = await _dbContext.Exercises.CountAsync(cancellationToken);
+        var totalVideos = await _dbContext.LearningVideos.CountAsync(cancellationToken);
+        var totalExams = await _dbContext.Exams.CountAsync(cancellationToken);
+        var pendingDraftVideos = await _dbContext.LearningVideos.CountAsync(v => v.Status == "Draft", cancellationToken);
 
+        var recentUsers = await _userManager.Users.AsNoTracking()
+            .Where(u => !u.IsDeleted)
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(5)
+            .Select(u => new AdminActivityDto
+            {
+                Id = "act-u-" + u.Id,
+                ActionText = "Tài khoản người dùng mới đăng ký",
+                TargetName = u.DisplayName ?? u.Email ?? "Học viên",
+                ActorName = "Hệ thống",
+                TimeAgo = "Gần đây",
+                Timestamp = u.CreatedAt.ToString("o")
+            })
+            .ToListAsync(cancellationToken);
 
         return new AdminDashboardStatsDto
-
         {
-
             TotalStudents = totalStudents,
-
             TotalTeachers = totalTeachers,
-
             TotalStaff = totalStaff,
-
             TotalCourses = await _dbContext.Courses.CountAsync(cancellationToken),
-
-            TotalClasses = null,
-
-            PendingSupportTickets = null,
-
+            TotalClasses = totalClasses,
+            PendingSupportTickets = 0,
             ActiveUsers = totalActive,
-
             LockedUsers = totalLocked,
-
-            NewUsers30d = new30d
-
+            NewUsers30d = new30d,
+            TotalVocabularies = totalVocab,
+            TotalGrammarPoints = totalGrammar,
+            TotalCharacters = totalChars,
+            TotalLessons = totalLessons,
+            TotalExercises = totalExercises,
+            TotalVideos = totalVideos,
+            TotalExams = totalExams,
+            PendingModerationCount = pendingDraftVideos,
+            RecentActivities = recentUsers
         };
-
     }
 
 

@@ -1078,6 +1078,54 @@ public class TeacherClassService : ITeacherClassService
         return $"{(int)diff.TotalDays} ngày trước";
     }
 
+    public async Task<StudentEnrolledClassDto?> GetMyEnrolledClassByIdAsync(Guid classId, CancellationToken cancellationToken = default)
+    {
+        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
+        {
+            throw new UnauthorizedAccessException("Người dùng chưa được xác thực.");
+        }
+
+        var studentId = _currentUserService.UserId.Value;
+
+        var member = await _dbContext.TeachingClassMembers
+            .AsNoTracking()
+            .Include(m => m.TeachingClass)
+                .ThenInclude(c => c.Teacher)
+            .Include(m => m.TeachingClass.Schedules)
+            .FirstOrDefaultAsync(m => m.ClassId == classId && m.StudentId == studentId && m.Status == "ACTIVE" && !m.TeachingClass.IsArchived, cancellationToken);
+
+        if (member == null || member.TeachingClass == null)
+        {
+            return null;
+        }
+
+        var c = member.TeachingClass;
+        var schedulesSummary = "Chưa xếp lịch";
+        if (c.Schedules != null && c.Schedules.Count > 0)
+        {
+            var orderedSchedules = c.Schedules.OrderBy(s => s.DayOfWeek).ToList();
+            var days = string.Join(", ", orderedSchedules.Select(s => FormatDayShort(s.DayOfWeek)));
+            var first = orderedSchedules[0];
+            schedulesSummary = $"{days} ({first.StartTime} - {first.EndTime})";
+        }
+
+        return new StudentEnrolledClassDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Code = c.Code,
+            HskLevelId = c.HskLevelId,
+            TeacherName = c.Teacher != null
+                ? (string.IsNullOrWhiteSpace(c.Teacher.DisplayName) ? (c.Teacher.UserName ?? "Giáo viên") : c.Teacher.DisplayName)
+                : "Giáo viên",
+            StartDate = c.StartDate,
+            LocationType = c.LocationType,
+            Status = c.Status,
+            SchedulesSummary = schedulesSummary,
+            EnrolledAt = member.EnrolledAt
+        };
+    }
+
     private static DayOfWeek ParseDayOfWeek(string day)
     {
         return day.ToUpperInvariant() switch

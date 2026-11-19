@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
-import { getCurrentStudentIdentity } from '../../auth/services/student-identity.adapter';
+import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+import { defaultApiConfig } from '../../../core/api/client/api-config';
 import type {
   StudentAssignmentRunnerDTO,
   StudentAssignmentAttempt,
@@ -18,7 +20,7 @@ import { SubmitConfirmModal } from '../components/runner/SubmitConfirmModal';
 export const StudentAssignmentRunnerPage: React.FC = () => {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
-  const currentStudent = getCurrentStudentIdentity();
+  const { student: currentStudent } = useCurrentStudent();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,12 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
+        setRunnerData(null);
+        setAttempt(null);
+
+        if (!authTokenService.isAuthenticated() && !defaultApiConfig.useMock) {
+          throw new Error('Vui lòng đăng nhập với tài khoản học viên để tham gia làm bài tập.');
+        }
 
         // 1. Fetch runner question package
         const data = await studentHomeworkService.getAssignmentRunner(assignmentId, currentStudent.id);
@@ -89,12 +97,17 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [assignmentId]);
+  }, [assignmentId, currentStudent.id, navigate]);
 
   // Submission handler
   const handleFinalSubmit = useCallback(
     async (finalAnswers: Record<string, StudentQuestionAnswer>) => {
       if (!attempt || !assignmentId) return;
+
+      if (attempt.studentId !== currentStudent.id) {
+        alert('Phiên làm bài này thuộc về tài khoản học viên khác. Vui lòng đăng nhập đúng tài khoản để nộp bài.');
+        return;
+      }
 
       try {
         setIsSubmitting(true);

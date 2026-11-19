@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, afterAll, mock } from 'bun:test';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   VideoLearningService,
   videoLearningService,
@@ -6,13 +8,23 @@ import {
   type LearningVideo,
   type LearningVideoQuery,
   VideoLibraryPage,
+  VideoDetailPage,
 } from '../features/videos';
+import { videoManagementService } from '../management/content-manager/services/video-management.service';
 import { HANBEEGO_STUDENT_NAV_GROUPS } from '../config/student-navigation.config';
 
 describe('Video Learning Library Integration & Architecture Contract', () => {
   const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  afterAll(() => {
     globalThis.fetch = originalFetch;
   });
 
@@ -205,6 +217,345 @@ describe('Video Learning Library Integration & Architecture Contract', () => {
       expect(res.items.length).toBe(1);
       expect(res.items[0].youtubeVideoId).toBe('k38L07o_9zM');
       expect(res.items[0].durationFormatted).toBe('02:30');
+    });
+  });
+
+  describe('3. Fail-Closed Resilience & Zero-Demo Contract (Phase B1)', () => {
+    it('fetchVideoById returns typed video detail with formatted duration on 200 OK', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'real-vid-001',
+            title: 'Học tiếng Trung HSK 1 thực tế',
+            description: 'Mô tả bài học thực tế',
+            sourceType: 'YouTube',
+            youtubeVideoId: '4lHwBZr66so',
+            storagePath: null,
+            thumbnailUrl: 'https://img.youtube.com/vi/4lHwBZr66so/hqdefault.jpg',
+            durationSeconds: 215,
+            hskLevel: 1,
+            topic: 'Giao tiếp hàng ngày',
+            status: 'Published',
+            viewCount: 42,
+            lessonId: null,
+            lessonTitle: null,
+            transcriptPdfPath: null,
+            transcriptPdfName: 'HSK1_Real.pdf',
+            transcriptPdfSizeBytes: 204800,
+            transcriptPdfUrl: 'https://cdn.example.com/pdf/HSK1_Real.pdf',
+            createdAt: '2026-11-19T00:00:00Z',
+            updatedAt: null,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const video = await videoLearningService.fetchVideoById('real-vid-001');
+      expect(video).not.toBeNull();
+      expect(video?.id).toBe('real-vid-001');
+      expect(video?.title).toBe('Học tiếng Trung HSK 1 thực tế');
+      expect(video?.durationFormatted).toBe('03:35');
+      expect(video?.viewCount).toBe(42);
+      expect(video?.transcriptPdfUrl).toBe('https://cdn.example.com/pdf/HSK1_Real.pdf');
+    });
+
+    it('fetchVideoById strictly returns null on HTTP 404 (Not Found semantic)', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ message: 'Không tìm thấy video học tập.' }), {
+          status: 404,
+          statusText: 'Not Found',
+        });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const video = await videoLearningService.fetchVideoById('missing-video-id');
+      expect(video).toBeNull();
+    });
+
+    it('fetchVideoById throws fail-closed Error on HTTP 500 without masking as null', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ message: 'Internal Server Error' }), {
+          status: 500,
+          statusText: 'Internal Server Error',
+        });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideoById('vid-500');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('500');
+    });
+
+    it('fetchVideoById throws fail-closed Error on network failure/timeout without returning null', async () => {
+      const mockFetch = mock(async () => {
+        throw new TypeError('Failed to fetch');
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideoById('vid-network-fail');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('Failed to fetch');
+    });
+
+    it('fetchVideoById throws fail-closed Error on HTTP 401 Unauthorized', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(null, { status: 401, statusText: 'Unauthorized' });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideoById('vid-401');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('401');
+    });
+
+    it('fetchVideoById throws fail-closed Error on HTTP 403 Forbidden', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(null, { status: 403, statusText: 'Forbidden' });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideoById('vid-403');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('403');
+    });
+
+    it('fetchVideoById rejects malformed payload by throwing schema validation error', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ notAnId: 123 }), { status: 200 });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideoById('vid-malformed');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('không hợp lệ');
+    });
+
+    it('fetchVideos throws fail-closed Error on HTTP 500 without returning empty list', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(null, { status: 500, statusText: 'Internal Server Error' });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideos({});
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('500');
+    });
+
+    it('fetchVideos rejects malformed payload where items is not array', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ items: 'not-an-array' }), { status: 200 });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoLearningService.fetchVideos({});
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('không hợp lệ');
+    });
+
+    it('videoManagementService.fetchVideoById strictly returns null on 404', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404 });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const video = await videoManagementService.fetchVideoById('missing-mgmt-id');
+      expect(video).toBeNull();
+    });
+
+    it('videoManagementService.fetchVideoById throws fail-closed Error on HTTP 500', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(null, { status: 500, statusText: 'Server Error' });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoManagementService.fetchVideoById('mgmt-500');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('500');
+    });
+
+    it('videoManagementService.fetchVideoById throws fail-closed Error on network failure', async () => {
+      const mockFetch = mock(async () => {
+        throw new TypeError('Network timeout');
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoManagementService.fetchVideoById('mgmt-timeout');
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('Network timeout');
+    });
+
+    it('videoManagementService.fetchVideoById throws on 401 and 403', async () => {
+      const mockFetch401 = mock(async () => new Response(null, { status: 401 }));
+      globalThis.fetch = mockFetch401 as unknown as typeof fetch;
+
+      let caught401: Error | null = null;
+      try {
+        await videoManagementService.fetchVideoById('mgmt-401');
+      } catch (err) {
+        caught401 = err as Error;
+      }
+      expect(caught401?.message).toContain('401');
+
+      const mockFetch403 = mock(async () => new Response(null, { status: 403 }));
+      globalThis.fetch = mockFetch403 as unknown as typeof fetch;
+
+      let caught403: Error | null = null;
+      try {
+        await videoManagementService.fetchVideoById('mgmt-403');
+      } catch (err) {
+        caught403 = err as Error;
+      }
+      expect(caught403?.message).toContain('403');
+    });
+
+    it('videoManagementService.fetchVideos rejects malformed payload where items is not array', async () => {
+      const mockFetch = mock(async () => {
+        return new Response(JSON.stringify({ items: 'corrupted' }), { status: 200 });
+      });
+
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      let caughtError: Error | null = null;
+      try {
+        await videoManagementService.fetchVideos({});
+      } catch (err) {
+        caughtError = err as Error;
+      }
+
+      expect(caughtError).not.toBeNull();
+      expect(caughtError?.message).toContain('không hợp lệ');
+    });
+
+    it('fetchVideoById returns null for empty or whitespace id without sending request', async () => {
+      let fetchCalled = false;
+      const mockFetch = mock(async () => {
+        fetchCalled = true;
+        return new Response(null, { status: 200 });
+      });
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const res1 = await videoLearningService.fetchVideoById('');
+      const res2 = await videoLearningService.fetchVideoById('   ');
+      expect(res1).toBeNull();
+      expect(res2).toBeNull();
+      expect(fetchCalled).toBe(false);
+    });
+
+    it('videoManagementService.fetchVideoById returns null for empty or whitespace id without sending request', async () => {
+      let fetchCalled = false;
+      const mockFetch = mock(async () => {
+        fetchCalled = true;
+        return new Response(null, { status: 200 });
+      });
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const res1 = await videoManagementService.fetchVideoById('');
+      const res2 = await videoManagementService.fetchVideoById('   ');
+      expect(res1).toBeNull();
+      expect(res2).toBeNull();
+      expect(fetchCalled).toBe(false);
+    });
+
+    it('supports HTML5 Video source when videoUrl is populated from storage service', () => {
+      const video: LearningVideo = {
+        id: 'uploaded-vid-1',
+        title: 'Video tải lên thực tế',
+        description: null,
+        sourceType: 'Uploaded',
+        youtubeVideoId: null,
+        storagePath: null,
+        videoUrl: 'https://storage.googleapis.com/zhongwenhub/videos/sample.mp4',
+        thumbnailUrl: 'https://storage.googleapis.com/zhongwenhub/thumbs/sample.jpg',
+        durationSeconds: 120,
+        durationFormatted: '02:00',
+        hskLevel: 2,
+        topic: 'Du lịch & Đời sống',
+        status: 'Published',
+        viewCount: 15,
+        lessonId: null,
+        lessonTitle: null,
+        createdAt: '2026-11-19T00:00:00Z',
+        updatedAt: null,
+      };
+
+      expect(video.sourceType).toBe('Uploaded');
+      expect(video.videoUrl).toBe('https://storage.googleapis.com/zhongwenhub/videos/sample.mp4');
+      expect(video.youtubeVideoId).toBeNull();
+    });
+
+    it('VideoDetailPage exports properly and guarantees zero DEMO_VIDEOS fallback in production', () => {
+      expect(typeof VideoDetailPage).toBe('function');
+      const pagePath = path.resolve(__dirname, '../features/videos/pages/VideoDetailPage.tsx');
+      const source = fs.readFileSync(pagePath, 'utf-8');
+      expect(source).not.toContain('DEMO_VIDEOS');
+      expect(source).not.toContain('../data/demoVideos');
     });
   });
 });

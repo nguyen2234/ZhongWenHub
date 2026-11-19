@@ -22,6 +22,7 @@ public interface ITeacherClassService
     Task<TeacherDashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default);
     Task<TeacherClassStatsDto> GetClassStatsAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<StudentEnrolledClassDto>> GetMyEnrolledClassesAsync(CancellationToken cancellationToken = default);
+    Task<StudentEnrolledClassDto?> GetMyEnrolledClassByIdAsync(Guid classId, CancellationToken cancellationToken = default);
     Task<ClassCurriculumDto> GetClassCurriculumAsync(Guid classId, CancellationToken cancellationToken = default);
     Task<bool> SetClassCurriculumAsync(Guid classId, SetClassCurriculumDto dto, CancellationToken cancellationToken = default);
     Task<ClassPerformanceDto> GetClassPerformanceAsync(Guid classId, CancellationToken cancellationToken = default);

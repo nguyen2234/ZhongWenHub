@@ -62,25 +62,45 @@ export class VideoLearningService {
       headers: getAuthHeaders(),
     });
 
+    if (response.status === 401) {
+      throw new Error('Yêu cầu đăng nhập để xem danh sách video (401)');
+    }
+    if (response.status === 403) {
+      throw new Error('Bạn không có quyền truy cập danh sách video (403)');
+    }
     if (!response.ok) {
       throw new Error(`Lỗi tải danh sách video (${response.status}): ${response.statusText}`);
     }
 
     const data = await response.json();
-    const rawItems: any[] = data.items || [];
-    const items: LearningVideo[] = rawItems.map((item) => ({
-      ...item,
-      youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
-      durationFormatted: item.durationFormatted ?? VideoLearningService.formatDuration(item.durationSeconds ?? 0),
-    }));
+    if (!data || typeof data !== 'object' || !Array.isArray(data.items)) {
+      throw new Error('Dữ liệu danh sách video từ máy chủ không hợp lệ.');
+    }
+
+    const rawItems: any[] = data.items;
+    const items: LearningVideo[] = rawItems.map((item) => {
+      if (!item || typeof item !== 'object' || !item.id || typeof item.title !== 'string') {
+        throw new Error('Cấu trúc video trong danh sách từ máy chủ không hợp lệ.');
+      }
+      return {
+        ...item,
+        youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+        durationFormatted: item.durationFormatted ?? VideoLearningService.formatDuration(item.durationSeconds ?? 0),
+        transcriptPdfPath: item.transcriptPdfPath ?? null,
+        transcriptPdfName: item.transcriptPdfName ?? null,
+        transcriptPdfSizeBytes: item.transcriptPdfSizeBytes ?? null,
+        transcriptPdfUrl: item.transcriptPdfUrl ?? null,
+        viewCount: typeof item.viewCount === 'number' ? item.viewCount : 0,
+      };
+    });
 
     return {
       items,
-      totalItems: data.totalItems ?? 0,
+      totalItems: typeof data.totalItems === 'number' ? data.totalItems : items.length,
       page: data.page ?? data.pageNumber ?? 1,
       pageNumber: data.pageNumber ?? data.page ?? 1,
       pageSize: data.pageSize ?? 12,
-      totalPages: data.totalPages ?? 0,
+      totalPages: typeof data.totalPages === 'number' ? data.totalPages : (items.length > 0 ? 1 : 0),
       hasPreviousPage: !!data.hasPreviousPage,
       hasNextPage: !!data.hasNextPage,
     };
@@ -104,29 +124,44 @@ export class VideoLearningService {
    * Fetch single video detail by ID
    */
   public async fetchVideoById(id: string): Promise<LearningVideo | null> {
-    try {
-      const response = await fetch(getApiUrl(`/videos/${id}`), {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-
-      if (response.status === 404) {
-        return null;
-      }
-      if (!response.ok) {
-        throw new Error(`Lỗi tải video (${response.status})`);
-      }
-
-      const item = (await response.json()) as any;
-      return {
-        ...item,
-        youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
-        durationFormatted: item.durationFormatted ?? VideoLearningService.formatDuration(item.durationSeconds ?? 0),
-      } as LearningVideo;
-    } catch (err) {
-      console.warn('[VideoLearningService] Error fetching video by id:', err);
+    const cleanId = id?.trim();
+    if (!cleanId) {
       return null;
     }
+
+    const response = await fetch(getApiUrl(`/videos/${encodeURIComponent(cleanId)}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+    if (response.status === 401) {
+      throw new Error('Yêu cầu đăng nhập để xem bài học video này (401)');
+    }
+    if (response.status === 403) {
+      throw new Error('Bạn không có quyền truy cập video này (403)');
+    }
+    if (!response.ok) {
+      throw new Error(`Lỗi máy chủ khi tải video (${response.status})`);
+    }
+
+    const item = await response.json();
+    if (!item || typeof item !== 'object' || !item.id || typeof item.title !== 'string') {
+      throw new Error('Dữ liệu bài học video từ máy chủ không hợp lệ.');
+    }
+
+    return {
+      ...item,
+      youtubeVideoId: item.youtubeVideoId ?? item.youTubeVideoId ?? null,
+      durationFormatted: item.durationFormatted ?? VideoLearningService.formatDuration(item.durationSeconds ?? 0),
+      transcriptPdfPath: item.transcriptPdfPath ?? null,
+      transcriptPdfName: item.transcriptPdfName ?? null,
+      transcriptPdfSizeBytes: item.transcriptPdfSizeBytes ?? null,
+      transcriptPdfUrl: item.transcriptPdfUrl ?? null,
+      viewCount: typeof item.viewCount === 'number' ? item.viewCount : 0,
+    } as LearningVideo;
   }
 
   /**

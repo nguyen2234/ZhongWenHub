@@ -72,7 +72,85 @@ const schedulesStore: ClassSchedule[] = [...INITIAL_CLASS_SCHEDULES];
 const submissionsStore = [...INITIAL_DEMO_SUBMISSIONS];
 const activitiesStore = [...INITIAL_RECENT_ACTIVITIES];
 
+/**
+ * Safely decodes JWT payload to extract user identity (sub or nameid),
+ * or keys mock/opaque test tokens without generic shared collision.
+ */
+function resolveSessionUserId(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonStr = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonStr);
+      const sub =
+        payload.sub ||
+        payload.nameid ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+      if (sub && typeof sub === 'string') {
+        return `user:${sub}`;
+      }
+    }
+  } catch {
+    // If not a standard JWT structure, fall through
+  }
+  return `token:${token}`;
+}
+
 class TeacherPortalService {
+  private enrolledClassesCacheByUser = new Map<string, Map<string, StudentEnrolledClassDTO>>();
+  private sessionEpoch = 0;
+
+  constructor() {
+    authTokenService.onExpired(() => {
+      this.clearEnrolledClassesCache();
+    });
+    if (typeof window !== 'undefined') {
+      window.addEventListener('zh_student_identity_changed', () => {
+        this.clearEnrolledClassesCache();
+      });
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'zhongwenhub_auth_session' || e.key === 'zh_active_student_id') {
+          this.clearEnrolledClassesCache();
+        }
+      });
+    }
+  }
+
+  getCurrentSessionUserId(): string | null {
+    const token = authTokenService.getAccessToken();
+    return resolveSessionUserId(token);
+  }
+
+  clearEnrolledClassesCache(userId?: string): void {
+    if (userId) {
+      this.enrolledClassesCacheByUser.delete(userId);
+    } else {
+      this.enrolledClassesCacheByUser.clear();
+    }
+    this.sessionEpoch++;
+  }
+
+  private isDemoOrTestMode(): boolean {
+    if ((globalThis as any).process?.env?.NODE_ENV === 'test') {
+      return true;
+    }
+    if (typeof window !== 'undefined' && (window as any).__ZWH_DEMO_MODE__) {
+      return true;
+    }
+    if (import.meta.env?.DEV || import.meta.env?.MODE === 'test') {
+      return true;
+    }
+    return false;
+  }
+
   getCurrentTeacherId(): string {
     return CURRENT_TEACHER_ID;
   }
@@ -441,9 +519,11 @@ class TeacherPortalService {
      5. STUDENT ENROLLED CLASSES (REAL BACKEND INTEGRATION)
      ========================================================================== */
 
-  private enrolledClassesCache = new Map<string, StudentEnrolledClassDTO>();
+  async getMyEnrolledClasses(_ignoredStudentId?: string): Promise<StudentEnrolledClassDTO[]> {
+    const tokenAtStart = authTokenService.getAccessToken();
+    const epochAtStart = this.sessionEpoch;
+    const sessionUserIdAtStart = this.getCurrentSessionUserId();
 
-  async getMyEnrolledClasses(): Promise<StudentEnrolledClassDTO[]> {
     const res = await fetch(getApiUrl('/teacher/my-enrolled-classes'), {
       method: 'GET',
       headers: getAuthHeaders(),
@@ -451,6 +531,7 @@ class TeacherPortalService {
 
     if (res.status === 401) {
       authTokenService.clearTokens();
+      this.clearEnrolledClassesCache();
       throw new Error('Phiên đăng nhập đã hết hạn.');
     }
 
@@ -460,9 +541,91 @@ class TeacherPortalService {
     }
 
     const data: StudentEnrolledClassDTO[] = await res.json();
-    for (const c of data) {
-      this.enrolledClassesCache.set(c.id, c);
+
+    if (!Array.isArray(data)) {
+      throw new Error(
+        'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách (StudentEnrolledClassDTO[]).'
+      );
     }
+
+    // RACE CONDITION & TOKEN CHANGE GUARD:
+    // If the token or session epoch changed while the request was in-flight,
+    // do NOT write into the new/stale cache.
+    const currentToken = authTokenService.getAccessToken();
+    if (
+      !tokenAtStart ||
+      currentToken !== tokenAtStart ||
+      this.sessionEpoch !== epochAtStart ||
+      !sessionUserIdAtStart
+    ) {
+      return data;
+    }
+
+    let userCache = this.enrolledClassesCacheByUser.get(sessionUserIdAtStart);
+    if (!userCache) {
+      userCache = new Map<string, StudentEnrolledClassDTO>();
+      this.enrolledClassesCacheByUser.set(sessionUserIdAtStart, userCache);
+    }
+    for (const c of data) {
+      userCache.set(c.id, c);
+    }
+    return data;
+  }
+
+  async getMyEnrolledClassById(classId: string, _ignoredStudentId?: string): Promise<StudentEnrolledClassDTO> {
+    const tokenAtStart = authTokenService.getAccessToken();
+    const epochAtStart = this.sessionEpoch;
+    const sessionUserIdAtStart = this.getCurrentSessionUserId();
+
+    const res = await fetch(getApiUrl(`/teacher/my-enrolled-classes/${classId}`), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (res.status === 401) {
+      authTokenService.clearTokens();
+      this.clearEnrolledClassesCache();
+      throw new Error('Phiên đăng nhập đã hết hạn.');
+    }
+
+    if (res.status === 403) {
+      throw new Error('Bạn không có quyền xem thông tin lớp học này.');
+    }
+
+    if (res.status === 404) {
+      throw new Error(`Không tìm thấy lớp học '${classId}' hoặc bạn chưa được ghi danh.`);
+    }
+
+    if (!res.ok) {
+      const detail = await extractErrorDetail(res, 'Không thể tải thông tin lớp học.');
+      throw new Error(detail);
+    }
+
+    const data: StudentEnrolledClassDTO = await res.json();
+
+    if (!data || typeof data !== 'object' || !('id' in data)) {
+      throw new Error(
+        'Dữ liệu chi tiết lớp học từ máy chủ không đúng định dạng (StudentEnrolledClassDTO).'
+      );
+    }
+
+    // RACE CONDITION & TOKEN CHANGE GUARD:
+    const currentToken = authTokenService.getAccessToken();
+    if (
+      !tokenAtStart ||
+      currentToken !== tokenAtStart ||
+      this.sessionEpoch !== epochAtStart ||
+      !sessionUserIdAtStart
+    ) {
+      return data;
+    }
+
+    let userCache = this.enrolledClassesCacheByUser.get(sessionUserIdAtStart);
+    if (!userCache) {
+      userCache = new Map<string, StudentEnrolledClassDTO>();
+      this.enrolledClassesCacheByUser.set(sessionUserIdAtStart, userCache);
+    }
+    userCache.set(data.id, data);
     return data;
   }
 
@@ -472,16 +635,17 @@ class TeacherPortalService {
 
   async getActiveClassIdsForStudentAsync(studentId: string): Promise<string[]> {
     if (authTokenService.getAccessToken()) {
-      try {
-        const enrolled = await this.getMyEnrolledClasses();
-        if (enrolled.length > 0) {
-          return enrolled.map((c) => c.id);
-        }
-      } catch (err) {
-        console.warn('[TeacherPortalService] Failed to load real enrolled classes for student:', err);
-      }
+      // Must query real student-scoped API.
+      // If student has 0 classes enrolled, returns [] (Empty State).
+      // If API fails (500, network error), throws error so callers can render Error State!
+      const enrolled = await this.getMyEnrolledClasses();
+      return enrolled.map((c) => c.id);
     }
-    return this.getActiveClassIdsForStudent(studentId);
+    // Only in unauthenticated dev/demo mode, fallback to in-memory membersStore
+    if (this.isDemoOrTestMode()) {
+      return this.getActiveClassIdsForStudent(studentId);
+    }
+    return [];
   }
 
   getActiveClassIdsForStudent(studentId: string): string[] {
@@ -490,24 +654,73 @@ class TeacherPortalService {
       .map((m) => m.classId);
   }
 
-  getClassBasicInfo(classId: string): { id: string; name: string; code: string; hskLevelId: string } | undefined {
-    const cached = this.enrolledClassesCache.get(classId);
-    if (cached) {
+  getClassBasicInfo(classId: string, _ignoredStudentId?: string): { id: string; name: string; code: string; hskLevelId: string } | undefined {
+    const sessionUserId = this.getCurrentSessionUserId();
+    if (sessionUserId) {
+      // Authenticated session: Look ONLY in this user's isolated cache.
+      // Strictly NEVER iterate other users' caches!
+      const userCache = this.enrolledClassesCacheByUser.get(sessionUserId);
+      const cached = userCache?.get(classId);
+      if (cached) {
+        return {
+          id: cached.id,
+          name: cached.name,
+          code: cached.code,
+          hskLevelId: cached.hskLevelId,
+        };
+      }
+      // If authenticated but not found in current user's cache: strictly return undefined (no mock fallback).
+      return undefined;
+    }
+
+    // Unauthenticated session:
+    // Only allow mock fallback in explicit demo/test mode.
+    if (this.isDemoOrTestMode()) {
+      const cls = classesStore.find((c) => c.id === classId);
+      if (!cls) return undefined;
       return {
-        id: cached.id,
-        name: cached.name,
-        code: cached.code,
-        hskLevelId: cached.hskLevelId,
+        id: cls.id,
+        name: cls.name,
+        code: cls.code,
+        hskLevelId: cls.hskLevelId,
       };
     }
-    const cls = classesStore.find((c) => c.id === classId);
-    if (!cls) return undefined;
-    return {
-      id: cls.id,
-      name: cls.name,
-      code: cls.code,
-      hskLevelId: cls.hskLevelId,
-    };
+
+    // In production runtime when not authenticated: strictly undefined.
+    return undefined;
+  }
+
+  async getClassBasicInfoAsync(classId: string, _ignoredStudentId?: string): Promise<{ id: string; name: string; code: string; hskLevelId: string } | undefined> {
+    const cached = this.getClassBasicInfo(classId);
+    if (cached) return cached;
+
+    if (authTokenService.getAccessToken()) {
+      try {
+        // Students fetch class metadata from student-scoped endpoint, NEVER teacher management endpoint!
+        const enrolled = await this.getMyEnrolledClassById(classId);
+        if (enrolled) {
+          return {
+            id: enrolled.id,
+            name: enrolled.name,
+            code: enrolled.code,
+            hskLevelId: enrolled.hskLevelId,
+          };
+        }
+      } catch (err: any) {
+        // If 404 or 403 (student not enrolled in this class), return undefined without mock fallback
+        if (
+          err?.message?.includes('404') ||
+          err?.message?.includes('403') ||
+          err?.message?.includes('chưa được ghi danh') ||
+          err?.message?.includes('không có quyền')
+        ) {
+          return undefined;
+        }
+        // If 500 or network error, throw so caller handles error state!
+        throw err;
+      }
+    }
+    return undefined;
   }
 
   /* ==========================================================================

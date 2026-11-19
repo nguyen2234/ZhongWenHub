@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { teacherPortalService } from '../management/teacher/services/teacher-portal.service';
+import { studentHomeworkService } from '../features/homework/services/student-homework.service';
 import { authTokenService } from '../core/api/client/auth-token.service';
 import type { CreateTeachingClassDTO, UpdateTeachingClassDTO } from '../management/teacher/types';
 
@@ -468,5 +469,340 @@ describe('Teacher Class Management Phase 1 - Real API & Contracts', () => {
     expect(basicInfo).toBeDefined();
     expect(basicInfo?.name).toBe('Lớp HSK 4 Real DB');
     expect(basicInfo?.code).toBe('CLS-HSK4-999');
+  });
+
+  it('16. getActiveClassIdsForStudentAsync returns [] when real student has 0 classes (No fallback to membersStore)', async () => {
+    authTokenService.setSession({ accessToken: 'real-token-test' });
+    globalThis.fetch = mock(async () => {
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+
+    const result = await teacherPortalService.getActiveClassIdsForStudentAsync('c385c942-0000-0000-0000-000000000001');
+    expect(result).toEqual([]); // Must be empty, never fallback to membersStore
+  });
+
+  it('17. getClassBasicInfo does not fallback to classesStore when authenticated, and getClassBasicInfoAsync fetches from student-scoped API', async () => {
+    authTokenService.setSession({ accessToken: 'real-token-test' });
+    // Class not cached and not in enrolledClassesCache:
+    const uncached = teacherPortalService.getClassBasicInfo('cls-01'); // cls-01 exists in mock classesStore
+    expect(uncached).toBeUndefined(); // Strictly undefined when token exists
+
+    // Now test getClassBasicInfoAsync queries real student-scoped API (never teacher management API):
+    let calledUrl = '';
+    globalThis.fetch = mock(async (url: any) => {
+      calledUrl = String(url);
+      return new Response(
+        JSON.stringify({
+          id: 'cls-api-888',
+          name: 'Lớp HSK 2 API',
+          code: 'CLS-HSK2-888',
+          hskLevelId: 'level-hsk-2',
+          teacherName: 'Thầy Nam',
+          status: 'ACTIVE',
+          locationType: 'ONLINE',
+          startDate: '2026-11-01',
+          schedulesSummary: 'T2, T4 (19:00 - 20:30)',
+          enrolledAt: '2026-11-02T00:00:00Z',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const asyncInfo = await teacherPortalService.getClassBasicInfoAsync('cls-api-888');
+    expect(calledUrl).toContain('/teacher/my-enrolled-classes/cls-api-888');
+    expect(asyncInfo).toBeDefined();
+    expect(asyncInfo?.name).toBe('Lớp HSK 2 API');
+    expect(asyncInfo?.code).toBe('CLS-HSK2-888');
+
+    // Subsequent sync lookup should now hit cache:
+    const cachedNow = teacherPortalService.getClassBasicInfo('cls-api-888');
+    expect(cachedNow?.name).toBe('Lớp HSK 2 API');
+  });
+
+  it('18. STUDENT xem metadata lớp đã ghi danh: 200', async () => {
+    authTokenService.setSession({ accessToken: 'student-token-200' });
+    let calledUrl = '';
+    globalThis.fetch = mock(async (url: any) => {
+      calledUrl = String(url);
+      return new Response(
+        JSON.stringify({
+          id: 'cls-enrolled-100',
+          name: 'Lớp HSK 3 Chuẩn Quốc Tế',
+          code: 'CLS-HSK3-100',
+          hskLevelId: 'level-hsk-3',
+          teacherName: 'Cô Linh',
+          status: 'ACTIVE',
+          startDate: '2026-10-01',
+          locationType: 'ONLINE',
+          schedulesSummary: 'T2, T6 (19:00 - 20:30)',
+          enrolledAt: '2026-10-02T08:00:00Z',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    const result = await teacherPortalService.getMyEnrolledClassById('cls-enrolled-100');
+    expect(calledUrl).toContain('/teacher/my-enrolled-classes/cls-enrolled-100');
+    expect(result.id).toBe('cls-enrolled-100');
+    expect(result.name).toBe('Lớp HSK 3 Chuẩn Quốc Tế');
+    expect(result.teacherName).toBe('Cô Linh');
+  });
+
+  it('19. STUDENT xem lớp chưa ghi danh: 403/404', async () => {
+    authTokenService.setSession({ accessToken: 'student-token-404' });
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({
+          title: 'Not Found',
+          detail: "Không tìm thấy lớp học 'cls-unregistered' hoặc bạn chưa được ghi danh.",
+          status: 404,
+        }),
+        { status: 404, headers: { 'Content-Type': 'application/problem+json' } }
+      );
+    });
+
+    // Calling single enrolled class endpoint directly throws 404
+    expect(teacherPortalService.getMyEnrolledClassById('cls-unregistered')).rejects.toThrow(
+      "Không tìm thấy lớp học 'cls-unregistered' hoặc bạn chưa được ghi danh."
+    );
+
+    // Calling getClassBasicInfoAsync returns undefined fail-closed without mock fallback
+    const basicInfo = await teacherPortalService.getClassBasicInfoAsync('cls-unregistered');
+    expect(basicInfo).toBeUndefined();
+  });
+
+  it('20. STUDENT không gọi được Teacher Management API (403 Forbidden)', async () => {
+    authTokenService.setSession({ accessToken: 'student-token-forbidden' });
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({
+          title: 'Forbidden',
+          detail: 'Bạn không có quyền xem chi tiết lớp học này.',
+          status: 403,
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/problem+json' } }
+      );
+    });
+
+    // Student attempting to call Teacher Management endpoint gets 403 Forbidden
+    expect(teacherPortalService.getClassById('cls-admin-secret')).rejects.toThrow(
+      'Bạn không có quyền xem chi tiết lớp học này.'
+    );
+  });
+
+  it('21. API 500 không biến thành [] (Throws error for UI Error State)', async () => {
+    authTokenService.setSession({ accessToken: 'student-token-500' });
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({
+          title: 'Internal Server Error',
+          detail: 'Đã xảy ra lỗi khi lấy danh sách lớp học của học viên.',
+          status: 500,
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } }
+      );
+    });
+
+    // Must THROW the error so UI renders Error State with Retry button; NEVER convert to []
+    expect(
+      teacherPortalService.getActiveClassIdsForStudentAsync('c385c942-0000-0000-0000-000000000001')
+    ).rejects.toThrow('Đã xảy ra lỗi khi lấy danh sách lớp học của học viên.');
+  });
+
+  it('22. Đổi tài khoản không dùng cache của tài khoản trước và thiếu studentId không tìm kiếm cache người khác', async () => {
+    // 1. Account A logs in and caches class info
+    authTokenService.setSession({ accessToken: 'token-user-a' });
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify([
+          {
+            id: 'cls-user-a-class',
+            name: 'Lớp của User A',
+            code: 'CLS-A-01',
+            hskLevelId: 'level-hsk-3',
+            status: 'ACTIVE',
+            locationType: 'ONLINE',
+            startDate: '2026-10-01',
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    await teacherPortalService.getMyEnrolledClasses();
+    const cachedUserA = teacherPortalService.getClassBasicInfo('cls-user-a-class');
+    expect(cachedUserA?.name).toBe('Lớp của User A');
+
+    // 2. Account switches to User B: User B cannot access User A's cache (even without studentId)
+    authTokenService.setSession({ accessToken: 'token-user-b' });
+    const cachedUserB = teacherPortalService.getClassBasicInfo('cls-user-a-class');
+    expect(cachedUserB).toBeUndefined(); // Never searches User A's cache!
+
+    // 3. User B cannot access even if caller passes a fake studentId
+    const cachedWithCallerId = teacherPortalService.getClassBasicInfo('cls-user-a-class', 'fake-caller-id');
+    expect(cachedWithCallerId).toBeUndefined();
+
+    // 4. Explicit cache clear also wipes session cache
+    teacherPortalService.clearEnrolledClassesCache();
+    authTokenService.setSession({ accessToken: 'token-user-a' });
+    const afterClear = teacherPortalService.getClassBasicInfo('cls-user-a-class');
+    expect(afterClear).toBeUndefined();
+  });
+
+  it('23. Student Homework hiển thị tên lớp thật và xử lý lỗi API đúng', async () => {
+    authTokenService.setSession({ accessToken: 'student-token-hw' });
+
+    // Mock enrolled classes returning real class name
+    globalThis.fetch = mock(async (url: any) => {
+      const urlStr = String(url);
+      if (urlStr.includes('/teacher/my-enrolled-classes')) {
+        return new Response(
+          JSON.stringify([
+            {
+              id: 'cls-001',
+              name: 'Lớp HSK 1 Cơ Bản Real Database',
+              code: 'CLS-HSK1-REAL',
+              hskLevelId: 'level-hsk-1',
+              teacherName: 'Thầy Hoàng',
+              status: 'ACTIVE',
+              locationType: 'ONLINE',
+              startDate: '2026-09-01',
+            },
+          ]),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return new Response('{}', { status: 200 });
+    });
+
+    const homeworks = await studentHomeworkService.getMyAssignments('student-real-guid');
+    const matched = homeworks.find((h) => h.classId === 'cls-001');
+    expect(matched).toBeDefined();
+    expect(matched?.className).toBe('Lớp HSK 1 Cơ Bản Real Database');
+    expect(matched?.classCode).toBe('CLS-HSK1-REAL');
+
+    // When API returns 500:
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({
+          title: 'Internal Server Error',
+          detail: 'Database unreachable',
+          status: 500,
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } }
+      );
+    });
+
+    // Calling getMyAssignments throws error rather than converting to []
+    expect(studentHomeworkService.getMyAssignments('student-real-guid')).rejects.toThrow('Database unreachable');
+  });
+
+  it('24. Request API hoàn thành sau khi logout không ghi lại cache cũ', async () => {
+    authTokenService.setSession({ accessToken: 'token-logout-test' });
+
+    let resolveFetch: (res: Response) => void;
+    const pendingFetchPromise = new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    });
+
+    globalThis.fetch = mock(async () => pendingFetchPromise);
+
+    // Launch request while logged in
+    const requestPromise = teacherPortalService.getMyEnrolledClasses();
+
+    // User logs out while request is still pending
+    authTokenService.clearTokens();
+    expect(authTokenService.isAuthenticated()).toBe(false);
+
+    // Now resolve the delayed response
+    resolveFetch!(
+      new Response(
+        JSON.stringify([
+          {
+            id: 'cls-stale-after-logout',
+            name: 'Lớp Rác Sau Khi Đăng Xuất',
+            code: 'CLS-STALE-01',
+            hskLevelId: 'level-hsk-2',
+            status: 'ACTIVE',
+            locationType: 'ONLINE',
+            startDate: '2026-11-01',
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    await requestPromise;
+
+    // Verify cache remains strictly empty; stale response was blocked from writing to cache
+    const cached = teacherPortalService.getClassBasicInfo('cls-stale-after-logout');
+    expect(cached).toBeUndefined();
+  });
+
+  it('25. Khi đổi token, request cũ không ghi dữ liệu vào cache phiên mới', async () => {
+    // 1. User A is logged in
+    authTokenService.setSession({ accessToken: 'token-user-a-stale' });
+
+    let resolveFetchA: (res: Response) => void;
+    const fetchPromiseA = new Promise<Response>((resolve) => {
+      resolveFetchA = resolve;
+    });
+
+    globalThis.fetch = mock(async () => fetchPromiseA);
+
+    // Launch request for User A
+    const requestA = teacherPortalService.getMyEnrolledClasses();
+
+    // 2. Token switches to User B while request A is still in-flight
+    authTokenService.setSession({ accessToken: 'token-user-b-active' });
+
+    // 3. User A's delayed request finishes
+    resolveFetchA!(
+      new Response(
+        JSON.stringify([
+          {
+            id: 'cls-user-a-delayed',
+            name: 'Lớp User A Trả Về Trễ',
+            code: 'CLS-DELAYED-01',
+            hskLevelId: 'level-hsk-1',
+            status: 'ACTIVE',
+            locationType: 'ONLINE',
+            startDate: '2026-11-01',
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    await requestA;
+
+    // User B must NOT see User A's class in its cache
+    const checkInUserBSession = teacherPortalService.getClassBasicInfo('cls-user-a-delayed');
+    expect(checkInUserBSession).toBeUndefined();
+  });
+
+  it('26. Server trả HTTP 200 nhưng schema không phải là mảng StudentEnrolledClassDTO[] thì ném lỗi rõ ràng (Không trả [] giả)', async () => {
+    authTokenService.setSession({ accessToken: 'token-schema-test' });
+
+    // Mock response returning an object instead of an array
+    globalThis.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({ ok: true, unexpected: 'object' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    });
+
+    // getMyEnrolledClasses must throw rather than swallow or return []
+    await expect(teacherPortalService.getMyEnrolledClasses()).rejects.toThrow(
+      'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách'
+    );
+
+    // getActiveClassIdsForStudentAsync also propagates the error rather than returning []
+    await expect(teacherPortalService.getActiveClassIdsForStudentAsync('any-student')).rejects.toThrow(
+      'Dữ liệu lớp học từ máy chủ không đúng định dạng danh sách'
+    );
   });
 });

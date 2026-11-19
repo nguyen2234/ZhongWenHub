@@ -377,6 +377,78 @@ public class AuthService : IAuthService
         return MapToUserDto(user, roles);
     }
 
+    public async Task<(bool Success, string Message, string? ResetTokenForDev)> ForgotPasswordAsync(
+        ForgotPasswordRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(email);
+
+        // Security: Always return generic message to prevent account enumeration
+        const string genericMessage = "Nếu địa chỉ email tồn tại trên hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi đến hòm thư của bạn.";
+
+        if (user == null || user.IsDeleted || user.Status != UserStatus.ACTIVE)
+        {
+            await RecordAuditAsync(null, email, "FORGOT_PASSWORD_REQUEST", ipAddress, null, false, "Yêu cầu cho email không tồn tại hoặc tài khoản không hoạt động.", cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return (true, genericMessage, null);
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        await RecordAuditAsync(user.Id, user.UserName, "FORGOT_PASSWORD_REQUEST", ipAddress, null, true, "Đã tạo token đặt lại mật khẩu.", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Password reset token generated for user {Email}: {Token}", email, token);
+
+        return (true, genericMessage, token);
+    }
+
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(
+        ResetPasswordRequestDto request,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.NewPassword != request.ConfirmPassword)
+        {
+            return (false, "Mật khẩu xác nhận không khớp.");
+        }
+
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null || user.IsDeleted || user.Status != UserStatus.ACTIVE)
+        {
+            return (false, "Yêu cầu đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            var firstError = result.Errors.FirstOrDefault()?.Description
+                             ?? "Mã token không hợp lệ hoặc đã hết hạn. Vui lòng gửi lại yêu cầu.";
+            await RecordAuditAsync(user.Id, user.UserName, "RESET_PASSWORD_FAILED", ipAddress, null, false, firstError, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return (false, firstError);
+        }
+
+        // Security: Revoke all existing refresh tokens to invalidate stale sessions across all devices
+        var activeRefreshTokens = await _dbContext.RefreshTokens
+            .Where(r => r.UserId == user.Id && !r.IsRevoked)
+            .ToListAsync(cancellationToken);
+
+        foreach (var rt in activeRefreshTokens)
+        {
+            rt.Revoke(ipAddress, "Mật khẩu tài khoản đã được đặt lại");
+        }
+
+        await RecordAuditAsync(user.Id, user.UserName, "RESET_PASSWORD_SUCCESS", ipAddress, null, true, "Đặt lại mật khẩu thành công và thu hồi tất cả phiên làm việc cũ.", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (true, "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.");
+    }
+
     private static UserDto MapToUserDto(ApplicationUser user, IEnumerable<string> roles)
     {
         return new UserDto

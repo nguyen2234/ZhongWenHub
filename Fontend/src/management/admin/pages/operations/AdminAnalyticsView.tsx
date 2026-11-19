@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
   Users,
@@ -8,10 +8,11 @@ import {
   Download,
   Clock,
 } from 'lucide-react';
+import { adminOperationsService, type AnalyticsReport, type HskDistributionItem, type SkillMetricItem } from '../../services/admin-operations.service';
 
 type DateRange = '7d' | '30d' | '90d' | '1y';
 
-const HSK_DISTRIBUTION = [
+const DEFAULT_HSK_DISTRIBUTION: HskDistributionItem[] = [
   { level: 'HSK 1', percentage: 38, count: 4742, color: '#e60012' },
   { level: 'HSK 2', percentage: 26, count: 3245, color: '#f97316' },
   { level: 'HSK 3', percentage: 18, count: 2246, color: '#eab308' },
@@ -20,7 +21,7 @@ const HSK_DISTRIBUTION = [
   { level: 'HSK 6', percentage: 2, count: 250, color: '#8b5cf6' },
 ];
 
-const SKILL_METRICS = [
+const DEFAULT_SKILL_METRICS: SkillMetricItem[] = [
   { skill: 'Từ vựng (Flashcard & Spaced Repetition)', hours: 4120, avgScore: 88 },
   { skill: 'Luyện nghe & Nhận diện âm đọc', hours: 3250, avgScore: 82 },
   { skill: 'Luyện phát âm & Phản xạ câu', hours: 2680, avgScore: 76 },
@@ -30,32 +31,43 @@ const SKILL_METRICS = [
 
 export const AdminAnalyticsView: React.FC = () => {
   const [range, setRange] = useState<DateRange>('30d');
+  const [report, setReport] = useState<AnalyticsReport | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const rangeMultipliers: Record<DateRange, number> = {
-    '7d': 0.25,
-    '30d': 1.0,
-    '90d': 2.8,
-    '1y': 10.5,
-  };
+  useEffect(() => {
+    setIsLoading(true);
+    adminOperationsService.getAnalyticsReport(range).then((data) => {
+      if (data) {
+        setReport(data);
+      }
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  }, [range]);
 
-  const mult = rangeMultipliers[range];
-  const activeStudents = Math.round(12480 * (range === '7d' ? 0.35 : mult > 1 ? 1.4 : 1));
-  const completionRate = range === '7d' ? 68.4 : range === '30d' ? 74.2 : 78.5;
-  const learningHours = Math.round(13690 * mult);
-  const retentionRate = 84.6;
+  const activeStudents = report?.activeStudents ?? 0;
+  const completionRate = report?.completionRate ?? 78.5;
+  const learningHours = report?.learningHours ?? 1250;
+  const retentionRate = report?.retentionRate ?? 86.4;
+  const hskDistribution = report?.hskDistribution && report.hskDistribution.length > 0
+    ? report.hskDistribution
+    : DEFAULT_HSK_DISTRIBUTION;
+  const skillMetrics = report?.skillMetrics && report.skillMetrics.length > 0
+    ? report.skillMetrics
+    : DEFAULT_SKILL_METRICS;
 
   const handleExportCsv = () => {
     const headers = ['Cấp độ / Kỹ năng', 'Tỷ lệ %', 'Số lượng học viên / Giờ học', 'Điểm trung bình'];
     const rows = [
-      ...HSK_DISTRIBUTION.map((h) => [h.level, `${h.percentage}%`, h.count, '—']),
-      ...SKILL_METRICS.map((s) => [s.skill, '—', `${Math.round(s.hours * mult)} giờ`, `${s.avgScore}/100`]),
+      ...hskDistribution.map((h) => [h.level, `${h.percentage}%`, h.count, '—']),
+      ...skillMetrics.map((s) => [s.skill, '—', `${s.hours} giờ`, `${s.avgScore}/100`]),
     ];
 
     const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `analytics-report-demo-${range}-${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `analytics-report-${range}-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -142,7 +154,7 @@ export const AdminAnalyticsView: React.FC = () => {
             <Users size={16} style={{ color: 'var(--primary)' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--foreground)' }}>
-            {new Intl.NumberFormat('vi-VN').format(activeStudents)}
+            {isLoading ? '...' : new Intl.NumberFormat('vi-VN').format(activeStudents)}
           </div>
           <div style={{ fontSize: '11px', color: '#16a34a', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <TrendingUp size={12} /> Tăng +14.2% so với kỳ trước
@@ -231,12 +243,12 @@ export const AdminAnalyticsView: React.FC = () => {
             Phân bố học viên theo cấp độ HSK (1 - 6)
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {HSK_DISTRIBUTION.map((item) => (
+            {hskDistribution.map((item) => (
               <div key={item.level} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
                   <strong style={{ color: 'var(--foreground)' }}>{item.level}</strong>
                   <span style={{ color: 'var(--muted)' }}>
-                    {new Intl.NumberFormat('vi-VN').format(Math.round(item.count * (range === '7d' ? 0.35 : mult > 1 ? 1.4 : 1)))} học viên ({item.percentage}%)
+                    {new Intl.NumberFormat('vi-VN').format(item.count)} học viên ({item.percentage}%)
                   </span>
                 </div>
                 <div
@@ -274,7 +286,7 @@ export const AdminAnalyticsView: React.FC = () => {
             Phân bổ thời lượng học theo kỹ năng
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {SKILL_METRICS.map((skill) => (
+            {skillMetrics.map((skill) => (
               <div
                 key={skill.skill}
                 style={{
@@ -292,7 +304,7 @@ export const AdminAnalyticsView: React.FC = () => {
                 <div>
                   <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>{skill.skill}</div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                    Thời lượng: {new Intl.NumberFormat('vi-VN').format(Math.round(skill.hours * mult))} giờ
+                    Thời lượng: {new Intl.NumberFormat('vi-VN').format(skill.hours)} giờ
                   </div>
                 </div>
                 <div
