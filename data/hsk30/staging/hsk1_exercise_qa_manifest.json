@@ -1,0 +1,583 @@
+{
+  "currentDev": {
+    "total": 28,
+    "valid": 14,
+    "flagged": 14,
+    "items": [
+      {
+        "id": "079AD2D2-E9BE-4EC6-B7BF-D9E79BDA311C",
+        "lessonId": "AAAAAAAA-1111-1111-1111-111111111111",
+        "type": "multiple-choice",
+        "title": "Chọn lời chào thích hợp",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "B8FB3363-6C7B-4DCC-B887-1B3528E1E0F9",
+        "lessonId": "E41DF40E-B099-4EA1-A42F-1D41B916AEB3",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 我是坐飞机来的",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "6C5062EA-CA3E-4008-91E0-D47F3AA17637",
+        "lessonId": "E41DF40E-B099-4EA1-A42F-1D41B916AEB3",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 15",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "DF94D5E6-83B4-4C62-9E15-8F2D171D4F4A",
+        "lessonId": "AAAAAAAA-2222-2222-2222-222222222222",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 谢谢你",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "407DF675-E320-4542-90BA-F893052BE2D0",
+        "lessonId": "AAAAAAAA-2222-2222-2222-222222222222",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 2",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "7052B68E-A74F-4F39-A644-6D22FA95D1A6",
+        "lessonId": "9493A5D5-A5E6-4254-975E-2519B46E010C",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 8",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "B710E9A8-AACF-4659-95BA-8212635EE9E2",
+        "lessonId": "9493A5D5-A5E6-4254-975E-2519B46E010C",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 明天天气怎么样",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "24381C58-31D5-4CB4-8F97-720872CA9534",
+        "lessonId": "AAAAAAAA-3333-3333-3333-333333333333",
+        "type": "fill-blank",
+        "title": "Điền từ hỏi tên",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Fewer than 2 options: 0",
+          "Invalid CorrectOptionIndex: None"
+        ]
+      },
+      {
+        "id": "3950EA47-3472-4AFB-84BA-D2A820B0F58C",
+        "lessonId": "AAAAAAAA-4444-4444-4444-444444444444",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 他是我的汉语老师",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "429DC0AE-4446-4B13-AB5D-E2D4B6F67944",
+        "lessonId": "AAAAAAAA-4444-4444-4444-444444444444",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 4",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "4AE4E663-D210-443B-B9FB-11ECC19A489A",
+        "lessonId": "B24B8ED2-34D9-468A-8560-778F5640828E",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 13",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "162DE195-6EF9-4679-8CA8-9397204F770E",
+        "lessonId": "B24B8ED2-34D9-468A-8560-778F5640828E",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 他在学校前面",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "0E148430-2ED3-4116-8467-2C47408076CC",
+        "lessonId": "8AE4343A-2121-40B2-B9B5-9DC3566C0100",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 12",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "B6225DA8-993B-4313-8846-E315F41B6A69",
+        "lessonId": "8AE4343A-2121-40B2-B9B5-9DC3566C0100",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 你去哪儿买东西",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "5AA01CDC-4682-45F5-9E89-852BF2EF78DF",
+        "lessonId": "F16768F3-EB8F-4954-BB67-A9BEA0B74DB0",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 10",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "F8C1BC55-E4C7-4705-A04D-C5453F4F60AB",
+        "lessonId": "F16768F3-EB8F-4954-BB67-A9BEA0B74DB0",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 我星期一去北京",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "A6BAC5B3-B7D3-4789-9F41-29199B0D722D",
+        "lessonId": "500CD93C-8E0E-460A-8DEA-B6C5EDBB3ACF",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 6",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "749CD1AA-8B88-4B27-8510-9E947B8EB0A3",
+        "lessonId": "500CD93C-8E0E-460A-8DEA-B6C5EDBB3ACF",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 你在做什么呢",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "033B5803-1CD4-42B8-A60F-7CD91DB484E4",
+        "lessonId": "9E5E372F-1364-4B71-A77F-B88ED7941C4C",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 现在几点",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "E84241A0-AE90-47CC-ABEA-A352D1C55E55",
+        "lessonId": "9E5E372F-1364-4B71-A77F-B88ED7941C4C",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 9",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "6BD31A3F-2393-412B-9156-099020667D27",
+        "lessonId": "AEF87F0A-6E86-4C8F-9DC5-D1D810944443",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 我想喝茶",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "C6418EFC-8E16-49B8-A52D-D37D520D9DB1",
+        "lessonId": "AEF87F0A-6E86-4C8F-9DC5-D1D810944443",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 5",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "CEBF4EF8-A9B9-49FA-9117-4BE31464081C",
+        "lessonId": "4EE4EDB7-7F40-4484-9C27-D69DB03F0358",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 7",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "96A6C109-08B6-4846-84D3-BD61BDCD7F36",
+        "lessonId": "4EE4EDB7-7F40-4484-9C27-D69DB03F0358",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 今天星期几",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "B973E05F-AE3C-40A3-A666-29DFD859417E",
+        "lessonId": "A08E673D-438F-48AB-9214-EF9D75C421BB",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 14",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "99EB3A74-3148-4CC0-9126-5CCC24F5D7FB",
+        "lessonId": "A08E673D-438F-48AB-9214-EF9D75C421BB",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 你会开车吗",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      },
+      {
+        "id": "61B17760-4600-4BBD-B381-6AB2350A4BD4",
+        "lessonId": "33CE9B58-BC67-475C-A655-F70C3CF3580C",
+        "type": "multiple-choice",
+        "title": "Luyện tập ngữ pháp bài 11",
+        "status": "VALID",
+        "issues": []
+      },
+      {
+        "id": "F58912DB-CB4F-437B-B9E3-EF5AAEC86927",
+        "lessonId": "33CE9B58-BC67-475C-A655-F70C3CF3580C",
+        "type": "multiple-choice",
+        "title": "Luyện tập từ vựng: 这个苹果多少钱",
+        "status": "FLAGGED_PLACEHOLDER",
+        "issues": [
+          "Contains placeholder distractor: 'Nghĩa khác A'",
+          "Contains placeholder distractor: 'Nghĩa khác B'",
+          "Contains placeholder distractor: 'Nghĩa khác C'"
+        ]
+      }
+    ]
+  },
+  "staging": {
+    "total": 32,
+    "valid": 32,
+    "flagged": 0,
+    "items": [
+      {
+        "id": "f5bbb4c5-c9b2-43f6-a39a-4271c138faa4",
+        "lessonId": "AAAAAAAA-1111-1111-1111-111111111111",
+        "lessonNumber": 1,
+        "type": "multiple-choice",
+        "title": "Chào hỏi sơ cấp: Chọn câu đáp lại phù hợp",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "ac10b5c1-7c37-484e-b254-ece933186e48",
+        "lessonId": "AAAAAAAA-1111-1111-1111-111111111111",
+        "lessonNumber": 1,
+        "type": "fill-in-the-blank",
+        "title": "Trợ từ nghi vấn: Điền từ vào chỗ trống",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "8ef445ac-45f7-451b-a098-4c00a2240df7",
+        "lessonId": "AAAAAAAA-2222-2222-2222-222222222222",
+        "lessonNumber": 2,
+        "type": "multiple-choice",
+        "title": "Đáp lại lời cảm ơn",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "e2e4c839-1cea-4bfd-b24e-f60d279340db",
+        "lessonId": "AAAAAAAA-2222-2222-2222-222222222222",
+        "lessonNumber": 2,
+        "type": "multiple-choice",
+        "title": "Đáp lại lời xin lỗi",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "386495cd-f8d3-4a1e-8130-86417e3959b9",
+        "lessonId": "AAAAAAAA-3333-3333-3333-333333333333",
+        "lessonNumber": 3,
+        "type": "sentence-ordering",
+        "title": "Trật tự từ trong câu hỏi họ tên",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "9fbd5aea-a034-41bf-92f1-1c556a559356",
+        "lessonId": "AAAAAAAA-3333-3333-3333-333333333333",
+        "lessonNumber": 3,
+        "type": "fill-in-the-blank",
+        "title": "Giới thiệu họ tên bản thân",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "229315ab-d298-4b7d-9f2f-cf6224d6f3d9",
+        "lessonId": "AAAAAAAA-4444-4444-4444-444444444444",
+        "lessonNumber": 4,
+        "type": "multiple-choice",
+        "title": "Cấu trúc định ngữ với trợ từ 的",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "67768217-e6fb-4023-a234-da5f453ba8c8",
+        "lessonId": "AAAAAAAA-4444-4444-4444-444444444444",
+        "lessonNumber": 4,
+        "type": "multiple-choice",
+        "title": "Đại từ nghi vấn hỏi người: 谁",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "2348424e-4d54-4ec6-8b33-0bf408369ebd",
+        "lessonId": "AEF87F0A-6E86-4C8F-9DC5-D1D810944443",
+        "lessonNumber": 5,
+        "type": "fill-in-the-blank",
+        "title": "Động từ năng nguyện: 想",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "3c2d2d86-ed44-4ccb-a6bd-655317067126",
+        "lessonId": "AEF87F0A-6E86-4C8F-9DC5-D1D810944443",
+        "lessonNumber": 5,
+        "type": "multiple-choice",
+        "title": "Từ vựng đồ ăn & thức uống",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "f0eee8ce-0ff5-4393-b6fe-3d7570acfb52",
+        "lessonId": "500CD93C-8E0E-460A-8DEA-B6C5EDBB3ACF",
+        "lessonNumber": 6,
+        "type": "multiple-choice",
+        "title": "Cấu trúc tiếp diễn: 在...呢",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "d928e316-416d-4174-8078-9295b8f90c52",
+        "lessonId": "500CD93C-8E0E-460A-8DEA-B6C5EDBB3ACF",
+        "lessonNumber": 6,
+        "type": "sentence-ordering",
+        "title": "Sắp xếp câu tiếp diễn",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "2800e514-8686-4333-a2aa-23fc980b11d3",
+        "lessonId": "4EE4EDB7-7F40-4484-9C27-D69DB03F0358",
+        "lessonNumber": 7,
+        "type": "multiple-choice",
+        "title": "Hỏi và trả lời về thứ trong tuần",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "f2434578-46db-41c0-9f2a-3c2b6ecb51c7",
+        "lessonId": "4EE4EDB7-7F40-4484-9C27-D69DB03F0358",
+        "lessonNumber": 7,
+        "type": "fill-in-the-blank",
+        "title": "Trật tự từ chỉ thời gian: Năm, Tháng, Ngày",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "301fbf29-e798-4894-ad41-cfc751a3aff1",
+        "lessonId": "9493A5D5-A5E6-4254-975E-2519B46E010C",
+        "lessonNumber": 8,
+        "type": "multiple-choice",
+        "title": "Đại từ nghi vấn hỏi tính chất/tình trạng: 怎么样",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "8d8cce2e-711f-4074-bc11-aee7aa0889d3",
+        "lessonId": "9493A5D5-A5E6-4254-975E-2519B46E010C",
+        "lessonNumber": 8,
+        "type": "multiple-choice",
+        "title": "Phó từ mức độ: 太...了",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "7579a61c-1edd-4c0e-ac16-4b2b6585e065",
+        "lessonId": "9E5E372F-1364-4B71-A77F-B88ED7941C4C",
+        "lessonNumber": 9,
+        "type": "multiple-choice",
+        "title": "Biểu thị giờ giấc: Giờ và Phút",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "faeffab5-2da4-4872-89ab-eaa50da54586",
+        "lessonId": "9E5E372F-1364-4B71-A77F-B88ED7941C4C",
+        "lessonNumber": 9,
+        "type": "fill-in-the-blank",
+        "title": "Hỏi giờ hiện tại",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "9b062d73-6cb5-4dc6-a731-e43db7e184e2",
+        "lessonId": "F16768F3-EB8F-4954-BB67-A9BEA0B74DB0",
+        "lessonNumber": 10,
+        "type": "multiple-choice",
+        "title": "Vị trí của trạng ngữ chỉ thời gian trong câu",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "4c852fba-ce25-4d39-92c8-f76d0d39d8ad",
+        "lessonId": "F16768F3-EB8F-4954-BB67-A9BEA0B74DB0",
+        "lessonNumber": 10,
+        "type": "fill-in-the-blank",
+        "title": "Động từ chuyển dịch phương hướng: 去 / 来",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "bbb8449d-c268-42ac-9b10-438bca6f3b35",
+        "lessonId": "33CE9B58-BC67-475C-A655-F70C3CF3580C",
+        "lessonNumber": 11,
+        "type": "multiple-choice",
+        "title": "Hỏi giá tiền khi mua sắm",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "4f5767ef-90db-4c84-b3fe-b4074ca0866e",
+        "lessonId": "33CE9B58-BC67-475C-A655-F70C3CF3580C",
+        "lessonNumber": 11,
+        "type": "fill-in-the-blank",
+        "title": "Đơn vị tiền tệ khẩu ngữ: 块",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "b005f7c9-cf6e-4960-8c36-8252353cac3c",
+        "lessonId": "8AE4343A-2121-40B2-B9B5-9DC3566C0100",
+        "lessonNumber": 12,
+        "type": "multiple-choice",
+        "title": "Đại từ nghi vấn chỉ nơi chốn: 哪儿",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "e6ce8166-e424-410a-942e-d8681e2ae5f0",
+        "lessonId": "8AE4343A-2121-40B2-B9B5-9DC3566C0100",
+        "lessonNumber": 12,
+        "type": "sentence-ordering",
+        "title": "Cấu trúc câu liên động: Đi đâu làm gì",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "5e6ebd72-570e-4135-b387-c978cf4ba51e",
+        "lessonId": "B24B8ED2-34D9-468A-8560-778F5640828E",
+        "lessonNumber": 13,
+        "type": "multiple-choice",
+        "title": "Cấu trúc phương vị từ: Ở phía trước / sau",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "2a103cb2-bd60-4ee8-b692-1c285f7a1c57",
+        "lessonId": "B24B8ED2-34D9-468A-8560-778F5640828E",
+        "lessonNumber": 13,
+        "type": "fill-in-the-blank",
+        "title": "Phân biệt vị trí: 上边 vs 下边",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "a0494b2a-fea1-4bb0-8fd5-e76b58f23eab",
+        "lessonId": "A08E673D-438F-48AB-9214-EF9D75C421BB",
+        "lessonNumber": 14,
+        "type": "multiple-choice",
+        "title": "Động từ năng nguyện: 会 (Biết qua học tập)",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "62ef99b7-00ab-449e-b88e-c28d8ad8ecad",
+        "lessonId": "A08E673D-438F-48AB-9214-EF9D75C421BB",
+        "lessonNumber": 14,
+        "type": "fill-in-the-blank",
+        "title": "Phủ định của động từ năng nguyện 会",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "b8d3c62d-04a2-4c23-9a12-23cdd6227ac4",
+        "lessonId": "E41DF40E-B099-4EA1-A42F-1D41B916AEB3",
+        "lessonNumber": 15,
+        "type": "multiple-choice",
+        "title": "Cấu trúc nhấn mạnh: 是...的 (Nhấn mạnh phương thức)",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "71c61b3d-7c99-41f9-95c6-1ebfc797367c",
+        "lessonId": "E41DF40E-B099-4EA1-A42F-1D41B916AEB3",
+        "lessonNumber": 15,
+        "type": "sentence-ordering",
+        "title": "Sắp xếp câu cấu trúc 是...的",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "769830b9-acac-4031-a4a2-cadaa802e249",
+        "lessonId": "4EE4EDB7-7F40-4484-9C27-D69DB03F0358",
+        "lessonNumber": 7,
+        "type": "multiple-choice",
+        "title": "Ôn tập tổng hợp Units 1–3: Giao tiếp & Hội thoại",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      },
+      {
+        "id": "797ba2f9-d1ef-4bea-ad49-29fbd2eaf540",
+        "lessonId": "E41DF40E-B099-4EA1-A42F-1D41B916AEB3",
+        "lessonNumber": 15,
+        "type": "multiple-choice",
+        "title": "Ôn tập tổng hợp HSK 1: Hoạt động & Thời gian & Địa điểm",
+        "status": "VALID_PRODUCTION_READY",
+        "issues": []
+      }
+    ]
+  }
+}

@@ -148,6 +148,49 @@ export const AIGradingPage: React.FC = () => {
             </div>
           </div>
 
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() =>
+                setInputText(
+                  '昨天我和朋友去饭馆吃饭。我们吃了北京烤鸭，非常好吃。但是那里的菜有一点儿贵。'
+                )
+              }
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#f8fafc',
+                color: '#334155',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Mẫu đoạn văn HSK
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setInputText(
+                  '亲爱的王老师：\n您好！最近您的身体好吗？我已经学习汉语三个月了，现在能写简单的中文信了。下个月我想去北京旅游，请问您有时间见面吗？\n祝您身体健康！\n学生：小明'
+                )
+              }
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #c7d2fe',
+                backgroundColor: '#eef2ff',
+                color: '#4338ca',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Mẫu viết thư (书信)
+            </button>
+          </div>
+
           <textarea
             rows={8}
             value={inputText}

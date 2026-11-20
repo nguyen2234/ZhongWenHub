@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-P94-HSK4-REMAINING",
+  "title": "HSK 4 Curriculum Completion & Release Verification",
+  "description": "Complete remaining HSK 4 curriculum development, pedagogical enrichment, multi-batch test DB validation, exact rollback, and lesson-by-lesson Playwright E2E testing for ZhongWenHub.",
+  "project": "ZhongWenHub",
+  "phase": "Phase 9.4",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "status": "PENDING",
+  "revision": 1,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "9bfee9b",
+  "input_files": [
+    "data/hsk30/staging/dev_hsk4_vocab_raw.json",
+    "data/hsk30/staging/dev_hsk4_grammar_raw.json",
+    "data/hsk30/staging/dev_hsk4_exercises_raw.json",
+    "data/hsk30/staging/hsk4_phase94_checkpoint.json"
+  ],
+  "expected_outputs": [
+    ".ai-collaboration/results/ZWH-P94-HSK4-REMAINING_result.json",
+    "docs/hsk30/phase94/HSK4_PHASE94_MASTER_REPORT.md",
+    "data/hsk30/staging/hsk4_staging_import_audit.json"
+  ],
+  "acceptance_criteria": [
+    "Complete vocabulary enrichment for all 20 lessons (exactly 1,000 words with contextual sentences and tone marks)",
+    "Audit all 95 grammar points and 40 MP3 audio files",
+    "Provide 5 unit reading passages with comprehension exercises",
+    "Complete 80 interactive exercises (4 per lesson) with verified answer keys",
+    "Verify multi-batch exact rollback on ZhongWenHub_Test without residual data",
+    "Execute real lesson-by-lesson Playwright E2E test on Chromium desktop and mobile viewports",
+    "Verify no cross-level regressions on HSK 1, 2, or 3",
+    "Compile 19 comprehensive documentation deliverables in docs/hsk30/phase94/",
+    "Keep all 20 lessons in DRAFT status awaiting human expert approval",
+    "Keep PR #16 strictly Open & Draft"
+  ],
+  "safety_constraints": [
+    "ZERO writes to ZhongWenHub_Dev. Dev DB is strictly READ-ONLY.",
+    "Runtime verification SELECT DB_NAME() == 'ZhongWenHub_Test' required before any write.",
+    "Do NOT auto-publish lessons to students.",
+    "Do NOT merge PR #16 or mark ready for review."
+  ],
+  "created_at": "2026-11-10T22:15:00Z",
+  "updated_at": "2026-11-10T22:15:00Z",
+  "issue_number": 17
+}

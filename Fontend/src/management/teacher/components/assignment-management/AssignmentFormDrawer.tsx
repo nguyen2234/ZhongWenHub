@@ -16,8 +16,7 @@ import {
 import { hskRepositoryService } from '../../../admin/content/services/hsk-repository.service';
 import type { HskLevel } from '../../../admin/content/types';
 import type { SharedExerciseItem } from '../../../../features/exercise-engine/types';
-import { assignmentService } from '../../services';
-import { INITIAL_TEACHING_CLASSES, CURRENT_TEACHER_ID } from '../../data/mockTeacherPortalData';
+import { assignmentService, teacherPortalService } from '../../services';
 import type {
   AssignmentDetailDTO,
   CreateAssignmentDTO,
@@ -45,6 +44,9 @@ interface SelectedQuestionFormItem {
   promptHanzi?: string;
   promptPinyin?: string;
   promptVietnamese?: string;
+  options?: string[];
+  correctAnswer?: string;
+  explanation?: string;
 }
 
 interface TargetClassFormItem {
@@ -118,102 +120,108 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
     const levels = hskRepositoryService.getLevels();
     setHskLevels(levels);
 
-    // Get owned classes for CURRENT_TEACHER_ID
-    const owned = INITIAL_TEACHING_CLASSES.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+    // Load classes dynamically
+    teacherPortalService
+      .getClasses({ search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' }, { page: 1, pageSize: 100 })
+      .then((res) => {
+        const owned = res.items.map((c) => ({ id: c.id, name: c.name, code: c.code }));
+        if (assignmentId) {
+          // Edit / View existing assignment
+          setLoading(true);
+          assignmentService
+            .getAssignmentById(assignmentId)
+            .then((detail) => {
+              if (!detail) {
+                setErrorMsg(`Không tìm thấy bài tập #${assignmentId}`);
+                return;
+              }
+              setTitle(detail.title);
+              setDescription(detail.description || '');
+              setHskLevelId(detail.hskLevelId);
+              setCurrentStatus(detail.status);
+              setIsSnapshotted(detail.isSnapshotted);
 
-    if (assignmentId) {
-      // Edit / View existing assignment
-      setLoading(true);
-      assignmentService
-        .getAssignmentById(assignmentId)
-        .then((detail) => {
-          if (!detail) {
-            setErrorMsg(`Không tìm thấy bài tập #${assignmentId}`);
-            return;
-          }
-          setTitle(detail.title);
-          setDescription(detail.description || '');
-          setHskLevelId(detail.hskLevelId);
-          setCurrentStatus(detail.status);
-          setIsSnapshotted(detail.isSnapshotted);
+              // Questions
+              setSelectedQuestions(
+                detail.questions.map((q, idx) => ({
+                  questionBankId: q.questionBankId,
+                  orderIndex: idx,
+                  points: q.points,
+                  title: q.title,
+                  exerciseType: q.exerciseType,
+                  promptHanzi: q.promptHanzi,
+                  promptPinyin: q.promptPinyin,
+                  promptVietnamese: q.promptVietnamese,
+                }))
+              );
 
-          // Questions
-          setSelectedQuestions(
-            detail.questions.map((q, idx) => ({
-              questionBankId: q.questionBankId,
-              orderIndex: idx,
-              points: q.points,
-              title: q.title,
-              exerciseType: q.exerciseType,
-              promptHanzi: q.promptHanzi,
-              promptPinyin: q.promptPinyin,
-              promptVietnamese: q.promptVietnamese,
+              // Targets
+              const targetMap = new Map(detail.targets.map((t) => [t.classId, t]));
+              setTargetClasses(
+                owned.map((c) => {
+                  const matched = targetMap.get(c.id);
+                  return {
+                    classId: c.id,
+                    className: c.name,
+                    classCode: c.code,
+                    selected: !!matched,
+                    dueDate: matched?.dueDate ?? '',
+                    closeDate: matched?.closeDate ?? '',
+                  };
+                })
+              );
+
+              // Settings
+              setPassingPoints(detail.passingPoints);
+              setTimeLimitMinutes(detail.timeLimitMinutes ? String(detail.timeLimitMinutes) : '');
+              setMaxAttempts(detail.maxAttempts);
+              setRetakePolicy(detail.retakePolicy);
+              setAllowLateSubmission(detail.allowLateSubmission);
+              setLatePenaltyPercent(detail.latePenaltyPercent);
+              setShuffleQuestions(detail.shuffleQuestions);
+              setShowCorrectAnswers(detail.showCorrectAnswers);
+            })
+            .catch((err) => {
+              setErrorMsg(err.message || 'Lỗi khi tải thông tin bài tập.');
+            })
+            .finally(() => {
+              setLoading(false);
+            });
+        } else {
+          // Create new assignment
+          setTitle('');
+          setDescription('');
+          setHskLevelId(levels[0]?.id ?? 'level-hsk-1');
+          setSelectedQuestions([]);
+          setCurrentStatus('DRAFT');
+          setIsSnapshotted(false);
+
+          // Default target classes (unselected)
+          const defaultDueDate = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+          setTargetClasses(
+            owned.map((c) => ({
+              classId: c.id,
+              className: c.name,
+              classCode: c.code,
+              selected: false,
+              dueDate: defaultDueDate,
+              closeDate: '',
             }))
           );
 
-          // Targets
-          const targetMap = new Map(detail.targets.map((t) => [t.classId, t]));
-          setTargetClasses(
-            owned.map((c) => {
-              const matched = targetMap.get(c.id);
-              return {
-                classId: c.id,
-                className: c.name,
-                classCode: c.code,
-                selected: !!matched,
-                dueDate: matched?.dueDate ?? '',
-                closeDate: matched?.closeDate ?? '',
-              };
-            })
-          );
-
-          // Settings
-          setPassingPoints(detail.passingPoints);
-          setTimeLimitMinutes(detail.timeLimitMinutes ? String(detail.timeLimitMinutes) : '');
-          setMaxAttempts(detail.maxAttempts);
-          setRetakePolicy(detail.retakePolicy);
-          setAllowLateSubmission(detail.allowLateSubmission);
-          setLatePenaltyPercent(detail.latePenaltyPercent);
-          setShuffleQuestions(detail.shuffleQuestions);
-          setShowCorrectAnswers(detail.showCorrectAnswers);
-        })
-        .catch((err) => {
-          setErrorMsg(err.message || 'Lỗi khi tải thông tin bài tập.');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      // Create new assignment
-      setTitle('');
-      setDescription('');
-      setHskLevelId(levels[0]?.id ?? 'level-hsk-1');
-      setSelectedQuestions([]);
-      setCurrentStatus('DRAFT');
-      setIsSnapshotted(false);
-
-      // Default target classes (unselected)
-      const defaultDueDate = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
-      setTargetClasses(
-        owned.map((c) => ({
-          classId: c.id,
-          className: c.name,
-          classCode: c.code,
-          selected: false,
-          dueDate: defaultDueDate,
-          closeDate: '',
-        }))
-      );
-
-      setPassingPoints(10);
-      setTimeLimitMinutes('30');
-      setMaxAttempts(2);
-      setRetakePolicy('HIGHEST_SCORE');
-      setAllowLateSubmission(true);
-      setLatePenaltyPercent(10);
-      setShuffleQuestions(false);
-      setShowCorrectAnswers(true);
-    }
+          setPassingPoints(10);
+          setTimeLimitMinutes('30');
+          setMaxAttempts(2);
+          setRetakePolicy('HIGHEST_SCORE');
+          setAllowLateSubmission(true);
+          setLatePenaltyPercent(10);
+          setShuffleQuestions(false);
+          setShowCorrectAnswers(true);
+        }
+      })
+      .catch(() => {
+        setTargetClasses([]);
+      });
   }, [isOpen, assignmentId]);
 
   // Adjust passingPoints automatically if total points decrease
@@ -260,15 +268,27 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
     const newEntries: SelectedQuestionFormItem[] = [];
     pickedItems.forEach((p) => {
       if (!existingIds.has(String(p.id))) {
+        let derivedCorrectAnswer = 'A';
+        if (p.correctOptionIndex !== undefined) {
+          derivedCorrectAnswer = String.fromCharCode(65 + p.correctOptionIndex);
+        } else if (p.correctSentence) {
+          derivedCorrectAnswer = p.correctSentence;
+        } else if (p.acceptableAnswers && p.acceptableAnswers.length > 0) {
+          derivedCorrectAnswer = p.acceptableAnswers[0];
+        }
+
         newEntries.push({
           questionBankId: p.id,
           orderIndex: selectedQuestions.length + newEntries.length,
           points: 5, // Default 5 points
-          title: p.title,
-          exerciseType: p.type,
+          title: p.title || p.promptHanzi || `Câu hỏi #${p.id}`,
+          exerciseType: p.type || 'multiple-choice',
           promptHanzi: p.promptHanzi,
           promptPinyin: p.promptPinyin,
           promptVietnamese: p.promptVietnamese,
+          options: p.options,
+          correctAnswer: derivedCorrectAnswer,
+          explanation: p.explanation,
         });
       }
     });
@@ -383,7 +403,12 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
       const payloadQuestions = selectedQuestions.map((q, idx) => ({
         questionBankId: q.questionBankId,
         orderIndex: idx,
-        points: Number(q.points),
+        points: Number(q.points) || 10,
+        prompt: q.promptHanzi || q.title || `Câu hỏi #${idx + 1}`,
+        questionType: (q.exerciseType || 'single-choice').toUpperCase().replace('-', '_'),
+        options: q.options || [],
+        correctAnswer: q.correctAnswer || 'A',
+        explanation: q.explanation || '',
       }));
 
       const parsedTimeLimit = timeLimitMinutes.trim() ? parseInt(timeLimitMinutes, 10) : undefined;
@@ -495,7 +520,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
           </div>
           <button
             type="button"
-            className="tp-btn tp-btn--ghost"
+            className="ds-btn ds-btn-ghost"
             onClick={onClose}
             aria-label="Đóng"
           >
@@ -683,7 +708,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                     {!isLocked && (
                       <button
                         type="button"
-                        className="tp-btn tp-btn--primary"
+                        className="ds-btn ds-btn-primary"
                         onClick={() => setIsPickerOpen(true)}
                       >
                         <Plus size={15} />
@@ -765,7 +790,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                 <>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px' }}
                                     disabled={idx === 0}
                                     onClick={() => moveQuestion(idx, 'up')}
@@ -775,7 +800,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                   </button>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px' }}
                                     disabled={idx === selectedQuestions.length - 1}
                                     onClick={() => moveQuestion(idx, 'down')}
@@ -785,7 +810,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
                                   </button>
                                   <button
                                     type="button"
-                                    className="tp-btn tp-btn--ghost"
+                                    className="ds-btn ds-btn-ghost"
                                     style={{ padding: '4px', color: 'var(--danger)' }}
                                     onClick={() => handleRemoveQuestion(idx)}
                                     title="Xóa câu hỏi"
@@ -1245,7 +1270,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button
               type="button"
-              className="tp-btn tp-btn--secondary"
+              className="ds-btn ds-btn-secondary"
               onClick={onClose}
               disabled={saving}
             >
@@ -1256,7 +1281,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
               <>
                 <button
                   type="button"
-                  className="tp-btn tp-btn--secondary"
+                  className="ds-btn ds-btn-secondary"
                   disabled={saving}
                   onClick={() => handleSubmit(false)}
                 >
@@ -1266,7 +1291,7 @@ export const AssignmentFormDrawer: React.FC<AssignmentFormDrawerProps> = ({
 
                 <button
                   type="button"
-                  className="tp-btn tp-btn--primary"
+                  className="ds-btn ds-btn-primary"
                   disabled={
                     saving ||
                     selectedQuestions.length === 0 ||

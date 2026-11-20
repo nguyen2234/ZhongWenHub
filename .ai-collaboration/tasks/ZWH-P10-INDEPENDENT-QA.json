@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-P10-INDEPENDENT-QA",
+  "title": "Phase 10 — HSK 1–4 Real E2E & Independent Acceptance",
+  "description": "Independently verify the claimed completion of HSK 1–4 (70 lessons, 2,008 vocabulary entries), confirm HSK 5–6 are Coming Soon with no accessible lessons, execute fullstack tests and real Playwright E2E tests, and produce evidence-based technical acceptance.",
+  "project": "ZhongWenHub",
+  "phase": "Phase 10",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 18,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
+  "input_files": [
+    "data/hsk30/reference/current_db_inventory.json",
+    "docs/hsk30/HSK1_TO_HSK4_FINAL_COMPLETION_REPORT.md",
+    ".ai-collaboration/qa/functional-test-matrix.json"
+  ],
+  "expected_outputs": [
+    "docs/hsk30/phase10/PHASE10_INDEPENDENT_QA_REPORT.md",
+    ".ai-collaboration/results/ZWH-P10-INDEPENDENT-QA_result.json",
+    ".ai-collaboration/qa/functional-test-matrix.json"
+  ],
+  "acceptance_criteria": [
+    "Reconcile evidence-to-commit provenance bound to commit 48d11e3024ecfc8df43626b6a36a0a43d76196df",
+    "Confirm latest backend and frontend CI conclusion and job logs",
+    "Independent real source database audit for 70 lessons in ZhongWenHub_Test",
+    "Verify HSK 5–6 are Coming Soon with zero fake lessons or accessible student content",
+    "Run backend/frontend build, unit, integration and RBAC/security tests",
+    "Execute real Playwright E2E tests on Chromium desktop and mobile viewports with running servers",
+    "Verify regression, negative tests, and release gate",
+    "Compile PHASE10_INDEPENDENT_QA_REPORT.md and ZWH-P10-INDEPENDENT-QA_result.json",
+    "Mark task WAITING_FOR_REVIEW upon completion of evidence without self-accepting"
+  ],
+  "safety_constraints": [
+    "Dev DB ZhongWenHub_Dev is strictly read-only: 0 writes",
+    "Runtime verification SELECT DB_NAME() == 'ZhongWenHub_Test' required before any write",
+    "Do not auto-publish lessons to students (maintain DRAFT / staging state)",
+    "Do not merge PR #16 or mark ready for review",
+    "Do not force push"
+  ],
+  "created_at": "2026-11-10T17:00:00Z",
+  "updated_at": "2026-11-10T17:00:00Z"
+}

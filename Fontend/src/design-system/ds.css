@@ -10,7 +10,7 @@ body {
   margin: 0;
   padding: 0;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
   font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
@@ -57,43 +57,72 @@ textarea {
 }
 
 /* ==========================================================================
-   STUDENT LAYOUT & CONTAINER SYSTEM (FE-5.6 Centered Layout & Consistent Spacing)
+   STUDENT LAYOUT & CONTAINER SYSTEM (Fluid Responsive Layout System)
    ========================================================================== */
+:root {
+  --student-sidebar-width: 256px;
+  --student-sidebar-collapsed-width: 72px;
+}
+
+@media (max-width: 1366px) {
+  :root {
+    --student-sidebar-width: 232px;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --student-sidebar-width: 216px;
+  }
+}
+
+.student-main-viewport {
+  container-type: inline-size;
+  container-name: student-viewport;
+}
+
 .student-content-container {
   width: 100%;
   max-width: 1360px;
   margin-inline: auto;
-  padding: 24px 28px 48px;
+  padding: clamp(18px, 2vw, 24px) clamp(16px, 2vw, 28px) 48px;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: student-container;
 }
 
 @media (max-width: 1024px) {
   .student-content-container {
-    padding: 20px 20px 36px;
+    padding: 16px 16px 36px;
   }
 }
 
 @media (max-width: 640px) {
   .student-content-container {
-    padding: 16px 14px 28px;
+    padding: 14px 12px 28px;
   }
 }
 
 /* Sidebar Invisible Scrollbar: Smooth scrolling without ugly gray track */
-.student-sidebar-scroll {
+.student-sidebar-scroll,
+.management-sidebar-nav {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
-.student-sidebar-scroll::-webkit-scrollbar {
+.student-sidebar-scroll::-webkit-scrollbar,
+.management-sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
 
-.student-sidebar-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-full); }
-.student-sidebar-scroll:hover { scrollbar-color: var(--border-strong) transparent; }
-.student-sidebar-scroll:hover::-webkit-scrollbar-thumb { background: var(--border-strong); }
+.student-sidebar-scroll::-webkit-scrollbar-thumb,
+.management-sidebar-nav::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-full); }
+.student-sidebar-scroll:hover,
+.management-sidebar-nav:hover { scrollbar-color: var(--border-strong) transparent; }
+.student-sidebar-scroll:hover::-webkit-scrollbar-thumb,
+.management-sidebar-nav:hover::-webkit-scrollbar-thumb { background: var(--border-strong); }
 
 html { scroll-padding-top: calc(var(--app-header-height) + var(--space-4)); }
 
@@ -199,6 +228,106 @@ html { scroll-padding-top: calc(var(--app-header-height) + var(--space-4)); }
 
 .ds-btn[aria-busy="true"] {
   cursor: progress;
+}
+
+/* Teacher Portal Button Aliases (Issue #7: .tp-btn -> .ds-btn) */
+.tp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.tp-btn--primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.tp-btn--primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.tp-btn--secondary {
+  background-color: var(--secondary);
+  border-color: transparent;
+  color: var(--foreground);
+}
+.tp-btn--secondary:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+}
+.tp-btn--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.tp-btn--ghost:hover:not(:disabled) {
+  background-color: var(--item-hover);
+  color: var(--foreground);
+}
+.tp-btn--danger {
+  background-color: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+.tp-btn--danger:hover:not(:disabled) {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+/* Legacy Button Aliases (Admin Teachers & Support Staff: .btn -> .ds-btn) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.25;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.btn-secondary {
+  background-color: var(--secondary);
+  border-color: transparent;
+  color: var(--foreground);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+}
+.btn-sm {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
 }
 
 /* ==========================================================================

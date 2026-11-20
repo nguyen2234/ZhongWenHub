@@ -12,6 +12,29 @@ import {
 } from '../features/learning/services/learning-event-store.service';
 import type { LearningEvent } from '../features/learning/types/learning-event.types';
 
+// Polyfill localStorage for headless test runner
+const mockStorage: Record<string, string> = {};
+if (typeof globalThis.localStorage === 'undefined') {
+  const localStorageMock = {
+    getItem: (key: string) => mockStorage[key] ?? null,
+    setItem: (key: string, value: string) => {
+      mockStorage[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete mockStorage[key];
+    },
+    clear: () => {
+      for (const k of Object.keys(mockStorage)) {
+        delete mockStorage[k];
+      }
+    },
+  };
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+  });
+}
+
 describe('FE-7: Interactive Chinese Video Learning', () => {
   beforeEach(() => {
     localStorage.clear();

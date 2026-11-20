@@ -14,9 +14,9 @@ describe('Phase FE-5.5: Compact HSK Curriculum & Global Vietnamese Typography', 
       const unit = HSK_CURRICULUM[2].units[0];
       const topic = mapUnitToTopic(unit);
 
-      expect(topic.lessons.length).toBe(4);
-      expect(topic.title).toBe('Chào hỏi & Giới thiệu trang trọng');
-      expect(topic.hanziTitle).toBe('日常问候与介绍');
+      expect(topic.lessons.length).toBe(3);
+      expect(topic.title).toBe('Đời sống & Sinh hoạt hàng ngày');
+      expect(topic.hanziTitle).toBe('生活与起居');
 
       // Each lesson contains all fields required for the compact row
       topic.lessons.forEach((lesson) => {

@@ -18,11 +18,12 @@ export interface ExerciseContext {
 export interface AITutorContext {
   source: AITutorSource;
   hskLevel?: number;
-  lessonId?: number;
+  lessonId?: number | string;
   lessonTitle?: string;
   currentStep?: string;
+  grammarPointId?: string;
   grammarPoints?: string[];
-  vocabularyIds?: number[];
+  vocabularyIds?: (number | string)[];
   vocabularyWord?: {
     hanzi: string;
     pinyin: string;
@@ -30,6 +31,7 @@ export interface AITutorContext {
   };
   exerciseContext?: ExerciseContext;
   weaknesses?: string[];
+  learningGoal?: string;
   languagePreference?: 'Vietnamese' | 'English';
 }
 
@@ -126,6 +128,11 @@ export interface AITutorMessage {
   contextSnapshot?: AITutorContext;
   createdAt: string;
   feedback?: 'like' | 'dislike';
+}
+
+export interface AITutorHistoryTurn {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export interface AITutorConversation {

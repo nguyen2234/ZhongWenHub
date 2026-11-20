@@ -1,0 +1,370 @@
+{
+  "phase": "9.3",
+  "hskLevel": 3,
+  "totalExpected": 40,
+  "totalFound": 40,
+  "missingCount": 0,
+  "reviewStatus": "VERIFIED_ON_DISK",
+  "audioManifest": [
+    {
+      "lessonNumber": 1,
+      "type": "dialogue",
+      "filename": "les1_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les1_dialogue.mp3",
+      "fileSizeBytes": 175824,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 1,
+      "type": "listening",
+      "filename": "les1_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les1_listening.mp3",
+      "fileSizeBytes": 237888,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 2,
+      "type": "dialogue",
+      "filename": "les2_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les2_dialogue.mp3",
+      "fileSizeBytes": 171072,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 2,
+      "type": "listening",
+      "filename": "les2_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les2_listening.mp3",
+      "fileSizeBytes": 230832,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 3,
+      "type": "dialogue",
+      "filename": "les3_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les3_dialogue.mp3",
+      "fileSizeBytes": 175824,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 3,
+      "type": "listening",
+      "filename": "les3_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les3_listening.mp3",
+      "fileSizeBytes": 227232,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 4,
+      "type": "dialogue",
+      "filename": "les4_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les4_dialogue.mp3",
+      "fileSizeBytes": 177408,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 4,
+      "type": "listening",
+      "filename": "les4_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les4_listening.mp3",
+      "fileSizeBytes": 240624,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 5,
+      "type": "dialogue",
+      "filename": "les5_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les5_dialogue.mp3",
+      "fileSizeBytes": 173808,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 5,
+      "type": "listening",
+      "filename": "les5_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les5_listening.mp3",
+      "fileSizeBytes": 198000,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 6,
+      "type": "dialogue",
+      "filename": "les6_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les6_dialogue.mp3",
+      "fileSizeBytes": 173232,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 6,
+      "type": "listening",
+      "filename": "les6_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les6_listening.mp3",
+      "fileSizeBytes": 232272,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 7,
+      "type": "dialogue",
+      "filename": "les7_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les7_dialogue.mp3",
+      "fileSizeBytes": 168768,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 7,
+      "type": "listening",
+      "filename": "les7_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les7_listening.mp3",
+      "fileSizeBytes": 228528,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 8,
+      "type": "dialogue",
+      "filename": "les8_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les8_dialogue.mp3",
+      "fileSizeBytes": 172656,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 8,
+      "type": "listening",
+      "filename": "les8_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les8_listening.mp3",
+      "fileSizeBytes": 224784,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 9,
+      "type": "dialogue",
+      "filename": "les9_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les9_dialogue.mp3",
+      "fileSizeBytes": 178848,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 9,
+      "type": "listening",
+      "filename": "les9_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les9_listening.mp3",
+      "fileSizeBytes": 246816,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 10,
+      "type": "dialogue",
+      "filename": "les10_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les10_dialogue.mp3",
+      "fileSizeBytes": 175536,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 10,
+      "type": "listening",
+      "filename": "les10_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les10_listening.mp3",
+      "fileSizeBytes": 202464,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 11,
+      "type": "dialogue",
+      "filename": "les11_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les11_dialogue.mp3",
+      "fileSizeBytes": 174672,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 11,
+      "type": "listening",
+      "filename": "les11_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les11_listening.mp3",
+      "fileSizeBytes": 235872,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 12,
+      "type": "dialogue",
+      "filename": "les12_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les12_dialogue.mp3",
+      "fileSizeBytes": 176112,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 12,
+      "type": "listening",
+      "filename": "les12_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les12_listening.mp3",
+      "fileSizeBytes": 236736,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 13,
+      "type": "dialogue",
+      "filename": "les13_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les13_dialogue.mp3",
+      "fileSizeBytes": 170640,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 13,
+      "type": "listening",
+      "filename": "les13_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les13_listening.mp3",
+      "fileSizeBytes": 221184,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 14,
+      "type": "dialogue",
+      "filename": "les14_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les14_dialogue.mp3",
+      "fileSizeBytes": 174096,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 14,
+      "type": "listening",
+      "filename": "les14_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les14_listening.mp3",
+      "fileSizeBytes": 235008,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 15,
+      "type": "dialogue",
+      "filename": "les15_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les15_dialogue.mp3",
+      "fileSizeBytes": 177984,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 15,
+      "type": "listening",
+      "filename": "les15_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les15_listening.mp3",
+      "fileSizeBytes": 203472,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 16,
+      "type": "dialogue",
+      "filename": "les16_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les16_dialogue.mp3",
+      "fileSizeBytes": 174384,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 16,
+      "type": "listening",
+      "filename": "les16_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les16_listening.mp3",
+      "fileSizeBytes": 232560,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 17,
+      "type": "dialogue",
+      "filename": "les17_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les17_dialogue.mp3",
+      "fileSizeBytes": 172944,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 17,
+      "type": "listening",
+      "filename": "les17_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les17_listening.mp3",
+      "fileSizeBytes": 232704,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 18,
+      "type": "dialogue",
+      "filename": "les18_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les18_dialogue.mp3",
+      "fileSizeBytes": 175104,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 18,
+      "type": "listening",
+      "filename": "les18_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les18_listening.mp3",
+      "fileSizeBytes": 225648,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 19,
+      "type": "dialogue",
+      "filename": "les19_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les19_dialogue.mp3",
+      "fileSizeBytes": 175824,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 19,
+      "type": "listening",
+      "filename": "les19_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les19_listening.mp3",
+      "fileSizeBytes": 238608,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 20,
+      "type": "dialogue",
+      "filename": "les20_dialogue.mp3",
+      "relativeUrl": "/audio/hsk3/les20_dialogue.mp3",
+      "fileSizeBytes": 175680,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    },
+    {
+      "lessonNumber": 20,
+      "type": "listening",
+      "filename": "les20_listening.mp3",
+      "relativeUrl": "/audio/hsk3/les20_listening.mp3",
+      "fileSizeBytes": 202608,
+      "exists": true,
+      "status": "VERIFIED_FILE_EXISTS"
+    }
+  ]
+}

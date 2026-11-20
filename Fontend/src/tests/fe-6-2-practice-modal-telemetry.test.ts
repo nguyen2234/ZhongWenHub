@@ -8,6 +8,29 @@ import { LearningEventService } from '../features/learning/services/learning-eve
 import type { LearningEvent } from '../features/learning/types/learning-event.types';
 import { LessonPracticeModal } from '../features/lesson/components/LessonPracticeModal';
 
+// Polyfill localStorage for headless test runner
+const mockStorage: Record<string, string> = {};
+if (typeof globalThis.localStorage === 'undefined') {
+  const localStorageMock = {
+    getItem: (key: string) => mockStorage[key] ?? null,
+    setItem: (key: string, value: string) => {
+      mockStorage[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete mockStorage[key];
+    },
+    clear: () => {
+      for (const k of Object.keys(mockStorage)) {
+        delete mockStorage[k];
+      }
+    },
+  };
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+  });
+}
+
 describe('FE-6.2: Stable Practice Modal & Learning Behavior Telemetry', () => {
   beforeEach(() => {
     // Reset test storage

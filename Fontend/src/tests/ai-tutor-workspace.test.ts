@@ -1,134 +1,190 @@
-/**
- * Phase FE-1 & FE-2 Automated Test Suite
- * Validates Student Dashboard Refinement, Professional AI Tutor Workspace,
- * Voice Session State Machine, Barge-In Interruption, and HSK 7-9 Support.
- */
-
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'bun:test';
 import { VoiceSessionController } from '../features/ai-tutor/services/voice/VoiceSessionController';
 import { AITutorService } from '../features/ai-tutor/services/AITutorService';
+import { authTokenService } from '../core/api/client/auth-token.service';
 import { hskLevelIdToNumber, hskNumberToLevelId } from '../utils/hsk.utils';
 
-let passed = 0;
-let failed = 0;
+describe('Phase FE-1 & FE-2 AI Tutor Workspace Tests', () => {
+  const originalFetch = globalThis.fetch;
 
-function assert(condition: boolean, msg: string) {
-  if (condition) {
-    console.log(`[PASS] ${msg}`);
-    passed++;
-  } else {
-    console.error(`[FAIL] ${msg}`);
-    failed++;
-  }
-}
-
-async function runTests() {
-  console.log('=== STARTING PHASE FE-1 & FE-2 AI TUTOR WORKSPACE TESTS ===\n');
-
-  // TEST 01: Voice Session Controller initializes in IDLE state
-  const controller = new VoiceSessionController();
-  assert(controller.getState() === 'IDLE', 'TEST 01: VoiceSessionController initializes in IDLE state');
-  assert(controller.getTurns().length === 0, 'TEST 02: Initial turns array is empty');
-  assert(controller.getMetrics().interruptionCount === 0, 'TEST 03: Initial interruption count is 0');
-
-  // TEST 04: Starting session transitions to SPEAKING and generates assistant greeting
-  await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
-  assert(controller.getState() === 'SPEAKING', 'TEST 04: startSession transitions to SPEAKING');
-  assert(controller.getTurns().length === 1, 'TEST 05: Session starts with 1 greeting turn');
-  assert(controller.getTurns()[0].speaker === 'assistant', 'TEST 06: Initial speaker is assistant');
-  assert(controller.getTurns()[0].hanzi.includes('你想喝点什么'), 'TEST 07: Greeting contains scenario text');
-
-  // TEST 08: Barge-in interruption
-  controller.interruptAssistant();
-  assert(controller.getState() === 'INTERRUPTED', 'TEST 08: interruptAssistant immediately sets state to INTERRUPTED');
-  assert(controller.getMetrics().interruptionCount === 1, 'TEST 09: Interruption count is incremented to 1');
-
-  // Wait for transition to LISTENING
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  assert(controller.getState() === 'LISTENING', 'TEST 10: State swiftly snaps to LISTENING after interruption');
-
-  // TEST 11: Stale playback prevention
-  const currentCount = controller.getTurns().length;
-  controller.cancelPlayback();
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  assert(controller.getTurns().length === currentCount, 'TEST 11: Stale speech timeout cannot append zombie turns');
-
-  // TEST 12: Pause and resume session
-  controller.pauseSession();
-  assert(controller.getState() === 'PAUSED', 'TEST 12: pauseSession transitions state to PAUSED');
-  controller.resumeSession();
-  assert(controller.getState() === 'LISTENING', 'TEST 13: resumeSession restores LISTENING state');
-
-  // TEST 14: Simulated user utterance and assistant response
-  controller.sendUserUtterance({
-    hanzi: '我要一杯冰美式咖啡。',
-    pinyin: 'Wǒ yào yībēi bīng měishì kāfēi.',
-    vietnamese: 'Tôi muốn một ly Americano đá.',
+  beforeEach(() => {
+    globalThis.fetch = originalFetch;
+    authTokenService.clearTokens();
   });
-  assert(controller.getState() === 'PROCESSING', 'TEST 14: User utterance transitions state to PROCESSING');
-  assert(controller.getTurns().length === 2, 'TEST 15: User utterance appended to turn history');
-  assert(controller.getTurns()[1].speaker === 'user', 'TEST 16: Turn speaker is correctly user');
 
-  // Wait for AI response processing (~1.3s)
-  await new Promise((resolve) => setTimeout(resolve, 1350));
-  assert(controller.getState() === 'SPEAKING', 'TEST 17: AI synthesizes response and transitions to SPEAKING');
-  assert(controller.getTurns().length === 3, 'TEST 18: Assistant turn appended to history');
-  assert(controller.getTurns()[2].speaker === 'assistant', 'TEST 19: Turn speaker is assistant');
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    authTokenService.clearTokens();
+  });
 
-  // TEST 20: Stop session and honest post-session review data
-  const review = controller.stopSession();
-  assert(controller.getState() === 'ENDED', 'TEST 20: stopSession transitions state to ENDED');
-  assert(review.isDemoEvaluation === true, 'TEST 21: Review explicitly marks evaluation as demo');
-  assert(review.vocabularyPracticed.length > 0, 'TEST 22: Review captures vocabulary practiced');
-  assert(review.grammarPointsObserved.length > 0, 'TEST 23: Review captures grammar points observed');
-  assert(review.turnCount === 3, 'TEST 24: Turn count matches recorded turns');
+  afterAll(() => {
+    globalThis.fetch = originalFetch;
+    authTokenService.clearTokens();
+  });
 
-  // TEST 25: AITutorService Chat Generation for practice errors
-  const errResponse = await AITutorService.sendChatMessage({
-    conversationId: 'test-conv-1',
-    message: 'Tại sao câu của tôi sai?',
-    mode: 'EXPLAIN',
-    context: {
-      source: 'practice',
-      hskLevel: 2,
-      exerciseContext: {
-        exerciseId: 'ex-101',
-        question: 'Điền từ thích hợp vào chỗ trống',
-        userAnswer: 'shì',
-        correctAnswer: '想 (xiǎng)',
-        promptHanzi: '我 ___ 喝茶。',
+  it('TEST 01 - 03: Voice Session Controller initializes in IDLE state', () => {
+    const controller = new VoiceSessionController();
+    expect(controller.getState()).toBe('IDLE');
+    expect(controller.getTurns().length).toBe(0);
+    expect(controller.getMetrics().interruptionCount).toBe(0);
+  });
+
+  it('TEST 04 - 07: Starting session transitions to SPEAKING and generates assistant greeting', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+    expect(controller.getState()).toBe('SPEAKING');
+    expect(controller.getTurns().length).toBe(1);
+    expect(controller.getTurns()[0].speaker).toBe('assistant');
+    expect(controller.getTurns()[0].hanzi).toContain('你想喝点什么');
+  });
+
+  it('TEST 08 - 10: Barge-in interruption and state recovery', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+    controller.interruptAssistant();
+    expect(controller.getState()).toBe('INTERRUPTED');
+    expect(controller.getMetrics().interruptionCount).toBe(1);
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    expect(controller.getState()).toBe('LISTENING');
+  });
+
+  it('TEST 11: Stale playback prevention', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+    const currentCount = controller.getTurns().length;
+    controller.cancelPlayback();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(controller.getTurns().length).toBe(currentCount);
+  });
+
+  it('TEST 12 & 13: Pause and resume session', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+    controller.pauseSession();
+    expect(controller.getState()).toBe('PAUSED');
+    controller.resumeSession();
+    expect(controller.getState()).toBe('LISTENING');
+  });
+
+  it('TEST 14 - 19: Simulated user utterance and assistant response', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+
+    controller.sendUserUtterance({
+      hanzi: '我要一杯冰美式咖啡。',
+      pinyin: 'Wǒ yào yībēi bīng měishì kāfēi.',
+      vietnamese: 'Tôi muốn một ly Americano đá.',
+    });
+    expect(controller.getState()).toBe('PROCESSING');
+    expect(controller.getTurns().length).toBe(2);
+    expect(controller.getTurns()[1].speaker).toBe('user');
+
+    // Wait for AI response processing (~1.3s)
+    await new Promise((resolve) => setTimeout(resolve, 1350));
+    expect(controller.getState()).toBe('SPEAKING');
+    expect(controller.getTurns().length).toBe(3);
+    expect(controller.getTurns()[2].speaker).toBe('assistant');
+  });
+
+  it('TEST 20 - 24: Stop session and honest post-session review data', async () => {
+    const controller = new VoiceSessionController();
+    await controller.startSession('daily_conversation', 'Gọi đồ uống tại quán cà phê', 2);
+
+    controller.sendUserUtterance({
+      hanzi: '我要一杯冰美式咖啡。',
+      pinyin: 'Wǒ yào yībēi bīng měishì kāfēi.',
+      vietnamese: 'Tôi muốn một ly Americano đá.',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 1350));
+
+    const review = controller.stopSession();
+    expect(controller.getState()).toBe('ENDED');
+    expect(review.isDemoEvaluation).toBe(true);
+    expect(review.vocabularyPracticed.length).toBeGreaterThan(0);
+    expect(review.grammarPointsObserved.length).toBeGreaterThan(0);
+    expect(review.turnCount).toBe(3);
+  });
+
+  it('TEST 25 - 28: AITutorService normalizes structured responses and sentence corrections', async () => {
+    authTokenService.setSession({ accessToken: 'test-jwt-token' });
+    globalThis.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          type: 'structured',
+          summary: 'Giải thích lỗi sai',
+          blocks: [
+            {
+              type: 'explanation',
+              title: 'PHÂN TÍCH',
+              content: 'Dùng 想 (xiǎng) trước động từ 喝 (hē).',
+            },
+          ],
+          suggestedActions: ['Phân biệt 想 và 要'],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )) as unknown as typeof fetch;
+
+    const errResponse = await AITutorService.sendChatMessage({
+      conversationId: 'test-conv-1',
+      message: 'Tại sao câu của tôi sai?',
+      mode: 'EXPLAIN',
+      context: {
+        source: 'practice',
+        hskLevel: 2,
+        exerciseContext: {
+          exerciseId: 'ex-101',
+          question: 'Điền từ thích hợp vào chỗ trống',
+          userAnswer: 'shì',
+          correctAnswer: '想 (xiǎng)',
+          promptHanzi: '我 ___ 喝茶。',
+        },
       },
-    },
+    });
+    expect(errResponse.type).toBe('structured');
+    expect(errResponse.blocks.length).toBeGreaterThan(0);
+    expect(errResponse.suggestedActions.length).toBeGreaterThan(0);
+
+    // Sentence correction test
+    globalThis.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          type: 'structured',
+          summary: 'Sửa câu',
+          blocks: [
+            {
+              type: 'correction',
+              originalSentence: '我想喝咖啡了',
+              correctedSentence: '我想喝咖啡。',
+              pinyin: 'Wǒ xiǎng hē kāfēi.',
+              vietnamese: 'Tôi muốn uống cà phê.',
+              explanation: 'Không cần 了 trong câu biểu thị nguyện vọng hiện tại.',
+              diffItems: [{ type: 'same', text: '我想喝咖啡' }],
+            },
+          ],
+          suggestedActions: [],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )) as unknown as typeof fetch;
+
+    const corrResponse = await AITutorService.sendChatMessage({
+      conversationId: 'test-conv-2',
+      message: 'Sửa giúp tôi câu này: 我想喝咖啡了',
+      mode: 'CORRECT',
+      context: {
+        source: 'dashboard',
+        hskLevel: 2,
+      },
+    });
+    const hasCorrection = corrResponse.blocks.some((b) => b.type === 'correction');
+    expect(hasCorrection).toBe(true);
   });
-  assert(errResponse.type === 'structured', 'TEST 25: AITutorService returns structured response');
-  assert(errResponse.blocks.length > 0, 'TEST 26: Response contains structured learning blocks');
-  assert(errResponse.suggestedActions.length > 0, 'TEST 27: Response provides suggested prompt actions');
 
-  // TEST 28: AITutorService Sentence Correction
-  const corrResponse = await AITutorService.sendChatMessage({
-    conversationId: 'test-conv-2',
-    message: 'Sửa giúp tôi câu này: 我想喝咖啡了',
-    mode: 'CORRECT',
-    context: {
-      source: 'dashboard',
-      hskLevel: 2,
-    },
+  it('TEST 29 - 33: HSK 7-9 Level Support', () => {
+    expect(hskLevelIdToNumber('level-hsk-79')).toBe(7);
+    expect(hskLevelIdToNumber('hsk7-9')).toBe(7);
+    expect(hskNumberToLevelId(7)).toBe('level-hsk-79');
+    expect(hskNumberToLevelId(8)).toBe('level-hsk-79');
+    expect(hskNumberToLevelId(9)).toBe('level-hsk-79');
   });
-  const hasCorrection = corrResponse.blocks.some((b) => b.type === 'correction');
-  assert(hasCorrection, 'TEST 28: AITutorService returns correction block for sentence review');
-
-  // TEST 29: HSK 7-9 Level Support
-  assert(hskLevelIdToNumber('level-hsk-79') === 7, 'TEST 29: level-hsk-79 resolves to level 7');
-  assert(hskLevelIdToNumber('hsk7-9') === 7, 'TEST 30: hsk7-9 resolves to level 7');
-  assert(hskNumberToLevelId(7) === 'level-hsk-79', 'TEST 31: Numeric level 7 maps to level-hsk-79');
-  assert(hskNumberToLevelId(8) === 'level-hsk-79', 'TEST 32: Numeric level 8 maps to level-hsk-79');
-  assert(hskNumberToLevelId(9) === 'level-hsk-79', 'TEST 33: Numeric level 9 maps to level-hsk-79');
-
-  console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===`);
-  if (failed > 0) {
-    throw new Error(`${failed} tests failed`);
-  }
-}
-
-runTests().catch((e) => {
-  console.error(e);
 });

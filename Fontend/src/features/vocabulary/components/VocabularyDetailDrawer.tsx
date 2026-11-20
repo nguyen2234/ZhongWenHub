@@ -223,9 +223,9 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
               </strong>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
-              <span>Bài học gốc:</span>
-              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{vocabulary.lessonSource}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)', color: 'var(--muted)' }}>
+              <span>{vocabulary.lessons && vocabulary.lessons.length > 1 ? 'Thuộc các bài học:' : 'Bài học gốc:'}</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)', textAlign: 'right' }}>{vocabulary.lessonSource}</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)' }}>
@@ -272,6 +272,7 @@ export const VocabularyDetailDrawer: React.FC<VocabularyDetailDrawerProps> = ({
             onClick={() => {
               const ctx = ContextBuilder.build('vocabulary', {
                 hskLevel: vocabulary.hskLevel,
+                vocabularyIds: vocabulary.id ? [vocabulary.id] : undefined,
                 vocabularyWord: {
                   hanzi: vocabulary.hanzi,
                   pinyin: vocabulary.pinyin,

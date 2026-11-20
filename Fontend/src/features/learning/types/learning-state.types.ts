@@ -61,6 +61,18 @@ export interface LearningRecommendation {
   badgeVariant?: 'primary' | 'streak' | 'xp' | 'success';
 }
 
+export interface HskCourseProgressDTO {
+  hskLevel: number;
+  courseId: string;
+  title: string;
+  totalLessons: number;
+  publishedLessons: number;
+  completedLessons: number;
+  inProgressLessons: number;
+  percent: number;
+  isComingSoon: boolean;
+}
+
 export interface StudentLearningState {
   schemaVersion: number;
   studentId: string;
@@ -81,6 +93,7 @@ export interface StudentLearningState {
     targetXp: number;
   };
   dailyActivityHistory: Record<string, DailyActivityRecord>;
+  hskProgress?: HskCourseProgressDTO[];
 }
 
 export interface SrsReviewResultPayload {

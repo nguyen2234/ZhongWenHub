@@ -1,0 +1,493 @@
+{
+  "lessons": [
+    {
+      "id": "1e19300e-0ba0-4ea1-9d52-2247c8892171",
+      "order": 1,
+      "title": "简单的爱情",
+      "dialogue": "{\"id\": \"diag-1E19300E-0BA0-4EA1-9D52-2247C8892171\", \"lessonId\": \"1E19300E-0BA0-4EA1-9D52-2247C8892171\", \"title\": \"Bài học 1 HSK 4: 简单的爱情 (Tình yêu giản dị)\", \"topic\": \"Chủ đề HSK 4: Tình yêu giản dị\", \"audioUrl\": \"/audio/hsk4/les1_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'简单的爱情'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '简单的爱情' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Tình yêu giản dị' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les1_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les1_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les1_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les1_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "c6b083f2-715d-4e95-a8fc-4a0414e25c30",
+      "order": 2,
+      "title": "真正的朋友",
+      "dialogue": "{\"id\": \"diag-C6B083F2-715D-4E95-A8FC-4A0414E25C30\", \"lessonId\": \"C6B083F2-715D-4E95-A8FC-4A0414E25C30\", \"title\": \"Bài học 2 HSK 4: 真正的朋友 (Người bạn chân chính)\", \"topic\": \"Chủ đề HSK 4: Người bạn chân chính\", \"audioUrl\": \"/audio/hsk4/les2_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'真正的朋友'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '真正的朋友' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Người bạn chân chính' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les2_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les2_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les2_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les2_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "e7f82f5d-5ed2-440b-8369-fe116ee51abc",
+      "order": 3,
+      "title": "一买即合",
+      "dialogue": "{\"id\": \"diag-E7F82F5D-5ED2-440B-8369-FE116EE51ABC\", \"lessonId\": \"E7F82F5D-5ED2-440B-8369-FE116EE51ABC\", \"title\": \"Bài học 3 HSK 4: 一买即合 (Vừa nhìn là muốn mua ngay)\", \"topic\": \"Chủ đề HSK 4: Vừa nhìn là muốn mua ngay\", \"audioUrl\": \"/audio/hsk4/les3_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'一买即合'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '一买即合' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Vừa nhìn là muốn mua ngay' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les3_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les3_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les3_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les3_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "ed099b26-70b5-4c9f-a171-97fbb6a69e4c",
+      "order": 4,
+      "title": "不要太在乎得失",
+      "dialogue": "{\"id\": \"diag-ED099B26-70B5-4C9F-A171-97FBB6A69E4C\", \"lessonId\": \"ED099B26-70B5-4C9F-A171-97FBB6A69E4C\", \"title\": \"Bài học 4 HSK 4: 不要太在乎得失 (Đừng quá để tâm đến được mất)\", \"topic\": \"Chủ đề HSK 4: Đừng quá để tâm đến được mất\", \"audioUrl\": \"/audio/hsk4/les4_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'不要太在乎得失'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '不要太在乎得失' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Đừng quá để tâm đến được mất' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les4_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les4_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les4_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les4_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "4d554ad3-4530-48d4-846e-25f026eeff5d",
+      "order": 5,
+      "title": "只买对的，不买贵的",
+      "dialogue": "{\"id\": \"diag-4D554AD3-4530-48D4-846E-25F026EEFF5D\", \"lessonId\": \"4D554AD3-4530-48D4-846E-25F026EEFF5D\", \"title\": \"Bài học 5 HSK 4: 只买对的，不买贵的 (Chỉ mua đồ đúng, không mua đồ đắt)\", \"topic\": \"Chủ đề HSK 4: Chỉ mua đồ đúng, không mua đồ đắt\", \"audioUrl\": \"/audio/hsk4/les5_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'只买对的，不买贵的'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '只买对的，不买贵的' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Chỉ mua đồ đúng, không mua đồ đắt' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les5_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les5_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les5_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les5_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "95268dac-d50c-442a-8436-85c845d1c72f",
+      "order": 6,
+      "title": "一分钱一分货",
+      "dialogue": "{\"id\": \"diag-95268DAC-D50C-442A-8436-85C845D1C72F\", \"lessonId\": \"95268DAC-D50C-442A-8436-85C845D1C72F\", \"title\": \"Bài học 6 HSK 4: 一分钱一分货 (Tiền nào của nấy)\", \"topic\": \"Chủ đề HSK 4: Tiền nào của nấy\", \"audioUrl\": \"/audio/hsk4/les6_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'一分钱一分货'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '一分钱一分货' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Tiền nào của nấy' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les6_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les6_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les6_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les6_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "dc410bc5-6799-4156-bef8-3a2ccbe4a1a6",
+      "order": 7,
+      "title": "最佳面试者",
+      "dialogue": "{\"id\": \"diag-DC410BC5-6799-4156-BEF8-3A2CCBE4A1A6\", \"lessonId\": \"DC410BC5-6799-4156-BEF8-3A2CCBE4A1A6\", \"title\": \"Bài học 7 HSK 4: 最佳面试者 (Ứng viên phỏng vấn xuất sắc nhất)\", \"topic\": \"Chủ đề HSK 4: Ứng viên phỏng vấn xuất sắc nhất\", \"audioUrl\": \"/audio/hsk4/les7_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'最佳面试者'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '最佳面试者' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Ứng viên phỏng vấn xuất sắc nhất' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les7_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les7_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les7_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les7_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "cb223d54-b351-4ebc-9a47-018ca23ae6ce",
+      "order": 8,
+      "title": "成功的秘密",
+      "dialogue": "{\"id\": \"diag-CB223D54-B351-4EBC-9A47-018CA23AE6CE\", \"lessonId\": \"CB223D54-B351-4EBC-9A47-018CA23AE6CE\", \"title\": \"Bài học 8 HSK 4: 成功的秘密 (Bí quyết của sự thành công)\", \"topic\": \"Chủ đề HSK 4: Bí quyết của sự thành công\", \"audioUrl\": \"/audio/hsk4/les8_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'成功的秘密'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '成功的秘密' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Bí quyết của sự thành công' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les8_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les8_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les8_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les8_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "d0a7bb74-a49c-4d2a-b5fb-c34af6410cf9",
+      "order": 9,
+      "title": "阳光总在风雨后",
+      "dialogue": "{\"id\": \"diag-D0A7BB74-A49C-4D2A-B5FB-C34AF6410CF9\", \"lessonId\": \"D0A7BB74-A49C-4D2A-B5FB-C34AF6410CF9\", \"title\": \"Bài học 9 HSK 4: 阳光总在风雨后 (Ánh dương luôn rạng rỡ sau cơn mưa)\", \"topic\": \"Chủ đề HSK 4: Ánh dương luôn rạng rỡ sau cơn mưa\", \"audioUrl\": \"/audio/hsk4/les9_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'阳光总在风雨后'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '阳光总在风雨后' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Ánh dương luôn rạng rỡ sau cơn mưa' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les9_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les9_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les9_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les9_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "c27413f4-adc8-436f-9436-1530c708008e",
+      "order": 10,
+      "title": "幸福的标准",
+      "dialogue": "{\"id\": \"diag-C27413F4-ADC8-436F-9436-1530C708008E\", \"lessonId\": \"C27413F4-ADC8-436F-9436-1530C708008E\", \"title\": \"Bài học 10 HSK 4: 幸福的标准 (Tiêu chuẩn của hạnh phúc)\", \"topic\": \"Chủ đề HSK 4: Tiêu chuẩn của hạnh phúc\", \"audioUrl\": \"/audio/hsk4/les10_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'幸福的标准'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '幸福的标准' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Tiêu chuẩn của hạnh phúc' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les10_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les10_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les10_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les10_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "362cb9d4-5f0c-4c98-a09b-bc3ebfcdbaa3",
+      "order": 11,
+      "title": "读书好，读好书",
+      "dialogue": "{\"id\": \"diag-362CB9D4-5F0C-4C98-A09B-BC3EBFCDBAA3\", \"lessonId\": \"362CB9D4-5F0C-4C98-A09B-BC3EBFCDBAA3\", \"title\": \"Bài học 11 HSK 4: 读书好，读好书 (Đọc sách tốt, đọc sách hay)\", \"topic\": \"Chủ đề HSK 4: Đọc sách tốt, đọc sách hay\", \"audioUrl\": \"/audio/hsk4/les11_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'读书好，读好书'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '读书好，读好书' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Đọc sách tốt, đọc sách hay' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les11_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les11_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les11_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les11_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "17f5c0e2-6a2d-45bc-99ea-637aa85d6508",
+      "order": 12,
+      "title": "用心发现美",
+      "dialogue": "{\"id\": \"diag-17F5C0E2-6A2D-45BC-99EA-637AA85D6508\", \"lessonId\": \"17F5C0E2-6A2D-45BC-99EA-637AA85D6508\", \"title\": \"Bài học 12 HSK 4: 用心发现美 (Dùng trái tim khám phá vẻ đẹp)\", \"topic\": \"Chủ đề HSK 4: Dùng trái tim khám phá vẻ đẹp\", \"audioUrl\": \"/audio/hsk4/les12_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'用心发现美'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '用心发现美' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Dùng trái tim khám phá vẻ đẹp' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les12_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les12_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les12_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les12_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "1c92848c-099f-4b61-a466-f6381b0e9519",
+      "order": 13,
+      "title": "喝着茶看京剧",
+      "dialogue": "{\"id\": \"diag-1C92848C-099F-4B61-A466-F6381B0E9519\", \"lessonId\": \"1C92848C-099F-4B61-A466-F6381B0E9519\", \"title\": \"Bài học 13 HSK 4: 喝着茶看京剧 (Vừa uống trà vừa thưởng thức Kinh kịch)\", \"topic\": \"Chủ đề HSK 4: Vừa uống trà vừa thưởng thức Kinh kịch\", \"audioUrl\": \"/audio/hsk4/les13_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'喝着茶看京剧'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '喝着茶看京剧' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Vừa uống trà vừa thưởng thức Kinh kịch' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les13_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les13_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les13_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les13_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "226c0c08-ee32-4846-b8f3-fed582e3f873",
+      "order": 14,
+      "title": "保护地球母亲",
+      "dialogue": "{\"id\": \"diag-226C0C08-EE32-4846-B8F3-FED582E3F873\", \"lessonId\": \"226C0C08-EE32-4846-B8F3-FED582E3F873\", \"title\": \"Bài học 14 HSK 4: 保护地球母亲 (Bảo vệ mẹ Trái Đất)\", \"topic\": \"Chủ đề HSK 4: Bảo vệ mẹ Trái Đất\", \"audioUrl\": \"/audio/hsk4/les14_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'保护地球母亲'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '保护地球母亲' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Bảo vệ mẹ Trái Đất' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les14_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les14_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les14_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les14_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "d551ad89-18f8-417a-bc0f-0fcbd23c1448",
+      "order": 15,
+      "title": "教育孩子的艺术",
+      "dialogue": "{\"id\": \"diag-D551AD89-18F8-417A-BC0F-0FCBD23C1448\", \"lessonId\": \"D551AD89-18F8-417A-BC0F-0FCBD23C1448\", \"title\": \"Bài học 15 HSK 4: 教育孩子的艺术 (Nghệ thuật giáo dục con trẻ)\", \"topic\": \"Chủ đề HSK 4: Nghệ thuật giáo dục con trẻ\", \"audioUrl\": \"/audio/hsk4/les15_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'教育孩子的艺术'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '教育孩子的艺术' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Nghệ thuật giáo dục con trẻ' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les15_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les15_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les15_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les15_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "90a35972-4cd6-46cb-8fc0-ff111d8dfb71",
+      "order": 16,
+      "title": "文化交流的桥梁",
+      "dialogue": "{\"id\": \"diag-90A35972-4CD6-46CB-8FC0-FF111D8DFB71\", \"lessonId\": \"90A35972-4CD6-46CB-8FC0-FF111D8DFB71\", \"title\": \"Bài học 16 HSK 4: 文化交流的桥梁 (Nhịp cầu giao lưu văn hóa)\", \"topic\": \"Chủ đề HSK 4: Nhịp cầu giao lưu văn hóa\", \"audioUrl\": \"/audio/hsk4/les16_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'文化交流的桥梁'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '文化交流的桥梁' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Nhịp cầu giao lưu văn hóa' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les16_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les16_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les16_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les16_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "c8dc9fd6-e848-464d-a0f0-80259d92c427",
+      "order": 17,
+      "title": "科技改变生活",
+      "dialogue": "{\"id\": \"diag-C8DC9FD6-E848-464D-A0F0-80259D92C427\", \"lessonId\": \"C8DC9FD6-E848-464D-A0F0-80259D92C427\", \"title\": \"Bài học 17 HSK 4: 科技改变生活 (Khoa học công nghệ thay đổi đời sống)\", \"topic\": \"Chủ đề HSK 4: Khoa học công nghệ thay đổi đời sống\", \"audioUrl\": \"/audio/hsk4/les17_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'科技改变生活'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '科技改变生活' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Khoa học công nghệ thay đổi đời sống' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les17_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les17_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les17_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les17_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "1c6edd2a-ed7c-40cb-9435-0bbaea6c573a",
+      "order": 18,
+      "title": "人与自然和谐相处",
+      "dialogue": "{\"id\": \"diag-1C6EDD2A-ED7C-40CB-9435-0BBAEA6C573A\", \"lessonId\": \"1C6EDD2A-ED7C-40CB-9435-0BBAEA6C573A\", \"title\": \"Bài học 18 HSK 4: 人与自然和谐相处 (Con người sống hài hòa với thiên nhiên)\", \"topic\": \"Chủ đề HSK 4: Con người sống hài hòa với thiên nhiên\", \"audioUrl\": \"/audio/hsk4/les18_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'人与自然和谐相处'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '人与自然和谐相处' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Con người sống hài hòa với thiên nhiên' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les18_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les18_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les18_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les18_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "575f094f-5298-41be-b343-46849ddb0e1e",
+      "order": 19,
+      "title": "旅行的真正意义",
+      "dialogue": "{\"id\": \"diag-575F094F-5298-41BE-B343-46849DDB0E1E\", \"lessonId\": \"575F094F-5298-41BE-B343-46849DDB0E1E\", \"title\": \"Bài học 19 HSK 4: 旅行的真正意义 (Ý nghĩa thực sự của những chuyến đi)\", \"topic\": \"Chủ đề HSK 4: Ý nghĩa thực sự của những chuyến đi\", \"audioUrl\": \"/audio/hsk4/les19_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'旅行的真正意义'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '旅行的真正意义' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Ý nghĩa thực sự của những chuyến đi' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les19_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les19_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les19_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les19_line4.mp3\", \"displayOrder\": 4}]}"
+    },
+    {
+      "id": "3815613c-581a-4ea8-92a8-f907e35f8bd4",
+      "order": 20,
+      "title": "展望未来的世界",
+      "dialogue": "{\"id\": \"diag-3815613C-581A-4EA8-92A8-F907E35F8BD4\", \"lessonId\": \"3815613C-581A-4EA8-92A8-F907E35F8BD4\", \"title\": \"Bài học 20 HSK 4: 展望未来的世界 (Hướng tới thế giới tương lai)\", \"topic\": \"Chủ đề HSK 4: Hướng tới thế giới tương lai\", \"audioUrl\": \"/audio/hsk4/les20_dialogue.mp3\", \"audioStatus\": \"GENERATED\", \"editorialReviewStatus\": \"PENDING_EDITORIAL_REVIEW\", \"lines\": [{\"id\": \"line-1\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"小李，这次关于'展望未来的世界'的项目报告准备得如何了？\", \"pinyin\": \"Xiǎo Lǐ, zhè cì guānyú '展望未来的世界' de xiàngmù bàogào zhǔnbèi de rúhé le?\", \"meaningVi\": \"Tiểu Lý, báo cáo dự án lần này về 'Hướng tới thế giới tương lai' chuẩn bị đến đâu rồi?\", \"audioUrl\": \"/audio/hsk4/les20_line1.mp3\", \"displayOrder\": 1}, {\"id\": \"line-2\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"张经理，基本框架已经完成了。根据过去的经验，我们在工作环节进行了优化。\", \"pinyin\": \"Zhāng Jīnglǐ, jīběn kuàngjià yǐjīng wánchéng le. Gēnjù guòqù de 经验, wǒmen zài 工作 huánjié jìnxíng le yōuhuà.\", \"meaningVi\": \"Thưa Trương Kinh Lý, khung cơ bản đã hoàn tất rồi ạ. Căn cứ theo 经验 trước đây, chúng tôi đã tối ưu hóa ở khâu 工作.\", \"audioUrl\": \"/audio/hsk4/les20_line2.mp3\", \"displayOrder\": 2}, {\"id\": \"line-3\", \"speakerName\": \"张经理\", \"speakerRole\": \"Trương Kinh Lý\", \"zh\": \"很好！务必注意细节数据的核对，明天客户要过来看演示。\", \"pinyin\": \"Hěn hǎo! Wùbì zhùyì xìjié shùjù de héduì, míngtiān kèhù yào guòlái kàn yǎnshì.\", \"meaningVi\": \"Tốt lắm! Nhất định phải chú ý đối chiếu số liệu chi tiết, ngày mai khách hàng sẽ qua xem bản thử nghiệm.\", \"audioUrl\": \"/audio/hsk4/les20_line3.mp3\", \"displayOrder\": 3}, {\"id\": \"line-4\", \"speakerName\": \"小李\", \"speakerRole\": \"Tiểu Lý\", \"zh\": \"请您放心，今天下午我和团队会再进行最后一次模拟测试。\", \"pinyin\": \"Qǐng nín fàngxīn, jīntiān xiàwǔ wǒ hé tuánduì huì zài jìnxíng zuìhòu yí cì mónǐ cèshì.\", \"meaningVi\": \"Xin ngài yên tâm, chiều nay tôi và cả đội sẽ tiến hành chạy thử nghiệm mô phỏng lần cuối.\", \"audioUrl\": \"/audio/hsk4/les20_line4.mp3\", \"displayOrder\": 4}]}"
+    }
+  ],
+  "vocabularies": [],
+  "exercises": [
+    {
+      "id": "edf7970c-7da5-4208-a131-2575dea06e76",
+      "title": "Luyện tập ngữ pháp bài 1",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 1
+    },
+    {
+      "id": "f047625b-0e76-4026-b7d5-b9f7fae9d484",
+      "title": "Luyện tập từ vựng: 简单的爱情",
+      "correctIdx": 0,
+      "correctAnswer": "Tình yêu giản dị",
+      "options": "[\"Tình yêu giản dị\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Tình yêu giản dị",
+      "lessonOrder": 1
+    },
+    {
+      "id": "daab7dea-87fa-4a52-9694-2751373151f9",
+      "title": "Luyện tập từ vựng: 真正的朋友",
+      "correctIdx": 0,
+      "correctAnswer": "Người bạn chân chính",
+      "options": "[\"Người bạn chân chính\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Người bạn chân chính",
+      "lessonOrder": 2
+    },
+    {
+      "id": "ce4ba79f-ff03-4094-9397-b0211d9d33a5",
+      "title": "Luyện tập ngữ pháp bài 2",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 2
+    },
+    {
+      "id": "7437bb62-57d5-45b5-87cb-aa89bb4ca3a7",
+      "title": "Luyện tập ngữ pháp bài 3",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 3
+    },
+    {
+      "id": "d7e89460-db04-4593-a0f6-c7fc6709ef61",
+      "title": "Luyện tập từ vựng: 一买即合",
+      "correctIdx": 0,
+      "correctAnswer": "Vừa nhìn là muốn mua ngay",
+      "options": "[\"Vừa nhìn là muốn mua ngay\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Vừa nhìn là muốn mua ngay",
+      "lessonOrder": 3
+    },
+    {
+      "id": "f8d2730c-caf8-4c43-8a77-4f179ad179ae",
+      "title": "Luyện tập từ vựng: 不要太在乎得失",
+      "correctIdx": 0,
+      "correctAnswer": "Đừng quá để tâm đến được mất",
+      "options": "[\"Đừng quá để tâm đến được mất\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Đừng quá để tâm đến được mất",
+      "lessonOrder": 4
+    },
+    {
+      "id": "fa3167f5-c795-4944-9268-5193fcb32796",
+      "title": "Luyện tập ngữ pháp bài 4",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 4
+    },
+    {
+      "id": "438912b5-fd4a-4455-8285-d0d2526a05b4",
+      "title": "Luyện tập ngữ pháp bài 5",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 5
+    },
+    {
+      "id": "e0376dea-9275-42cd-ad22-e05f95be4376",
+      "title": "Luyện tập từ vựng: 只买对的，不买贵的",
+      "correctIdx": 0,
+      "correctAnswer": "Chỉ mua đồ đúng, không mua đồ đắt",
+      "options": "[\"Chỉ mua đồ đúng, không mua đồ đắt\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Chỉ mua đồ đúng, không mua đồ đắt",
+      "lessonOrder": 5
+    },
+    {
+      "id": "1fb3bd31-9417-4200-879e-68b7fb9d8452",
+      "title": "Luyện tập từ vựng: 一分钱一分货",
+      "correctIdx": 0,
+      "correctAnswer": "Tiền nào của nấy",
+      "options": "[\"Tiền nào của nấy\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Tiền nào của nấy",
+      "lessonOrder": 6
+    },
+    {
+      "id": "eb05d0ee-bbf5-4f59-9dc7-7a63675d4753",
+      "title": "Luyện tập ngữ pháp bài 6",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 6
+    },
+    {
+      "id": "e352f17d-6b45-47ce-b775-5ed905c53355",
+      "title": "Luyện tập ngữ pháp bài 7",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 7
+    },
+    {
+      "id": "8ca3050b-5595-4c9d-b3e0-6dd83cd292ed",
+      "title": "Luyện tập từ vựng: 最佳面试者",
+      "correctIdx": 0,
+      "correctAnswer": "Ứng viên phỏng vấn xuất sắc nhất",
+      "options": "[\"Ứng viên phỏng vấn xuất sắc nhất\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Ứng viên phỏng vấn xuất sắc nhất",
+      "lessonOrder": 7
+    },
+    {
+      "id": "d0cc74d3-0283-4fd2-a269-9052583dfb41",
+      "title": "Luyện tập từ vựng: 成功的秘密",
+      "correctIdx": 0,
+      "correctAnswer": "Bí quyết của sự thành công",
+      "options": "[\"Bí quyết của sự thành công\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Bí quyết của sự thành công",
+      "lessonOrder": 8
+    },
+    {
+      "id": "53249991-a342-41f9-b2d9-da46e5e63425",
+      "title": "Luyện tập ngữ pháp bài 8",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 8
+    },
+    {
+      "id": "62df571a-f88c-4bc9-b101-60eb97bd11a9",
+      "title": "Luyện tập ngữ pháp bài 9",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 9
+    },
+    {
+      "id": "1625bf6f-036f-4953-887a-72e1c260a7fd",
+      "title": "Luyện tập từ vựng: 阳光总在风雨后",
+      "correctIdx": 0,
+      "correctAnswer": "Ánh dương luôn rạng rỡ sau cơn mưa",
+      "options": "[\"Ánh dương luôn rạng rỡ sau cơn mưa\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Ánh dương luôn rạng rỡ sau cơn mưa",
+      "lessonOrder": 9
+    },
+    {
+      "id": "f470de1f-848e-46f6-9cf3-abf476573e9d",
+      "title": "Luyện tập ngữ pháp bài 10",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 10
+    },
+    {
+      "id": "eed6d46a-096a-40d1-a59d-af9d89abd33a",
+      "title": "Luyện tập từ vựng: 幸福的标准",
+      "correctIdx": 0,
+      "correctAnswer": "Tiêu chuẩn của hạnh phúc",
+      "options": "[\"Tiêu chuẩn của hạnh phúc\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Tiêu chuẩn của hạnh phúc",
+      "lessonOrder": 10
+    },
+    {
+      "id": "16fe74b0-ee93-4973-a8db-4b17e7794e7e",
+      "title": "Luyện tập từ vựng: 读书好，读好书",
+      "correctIdx": 0,
+      "correctAnswer": "Đọc sách tốt, đọc sách hay",
+      "options": "[\"Đọc sách tốt, đọc sách hay\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Đọc sách tốt, đọc sách hay",
+      "lessonOrder": 11
+    },
+    {
+      "id": "786ccb7a-5937-4031-aa97-4fb3402f70fc",
+      "title": "Luyện tập ngữ pháp bài 11",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 11
+    },
+    {
+      "id": "a877efd5-d6b1-4f03-ade0-4feaf49900ba",
+      "title": "Luyện tập ngữ pháp bài 12",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 12
+    },
+    {
+      "id": "77f0ceb2-e0b5-4d3a-acb7-88d9925e7ef2",
+      "title": "Luyện tập từ vựng: 用心发现美",
+      "correctIdx": 0,
+      "correctAnswer": "Dùng trái tim khám phá vẻ đẹp",
+      "options": "[\"Dùng trái tim khám phá vẻ đẹp\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Dùng trái tim khám phá vẻ đẹp",
+      "lessonOrder": 12
+    },
+    {
+      "id": "ed7408ce-c0cb-4dbe-85fa-a928d5b96e50",
+      "title": "Luyện tập từ vựng: 喝着茶看京剧",
+      "correctIdx": 0,
+      "correctAnswer": "Vừa uống trà vừa thưởng thức Kinh kịch",
+      "options": "[\"Vừa uống trà vừa thưởng thức Kinh kịch\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Vừa uống trà vừa thưởng thức Kinh kịch",
+      "lessonOrder": 13
+    },
+    {
+      "id": "d67d8843-c4fd-4fff-bfeb-edd6170c769c",
+      "title": "Luyện tập ngữ pháp bài 13",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 13
+    },
+    {
+      "id": "45ead374-626c-437d-b1bc-059672a2fea5",
+      "title": "Luyện tập từ vựng: 保护地球母亲",
+      "correctIdx": 0,
+      "correctAnswer": "Bảo vệ mẹ Trái Đất",
+      "options": "[\"Bảo vệ mẹ Trái Đất\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Bảo vệ mẹ Trái Đất",
+      "lessonOrder": 14
+    },
+    {
+      "id": "7f2c31cb-6933-4f36-ab9f-23d42401987a",
+      "title": "Luyện tập ngữ pháp bài 14",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 14
+    },
+    {
+      "id": "4bb2a9c8-daa4-424d-9986-17f1305de7d7",
+      "title": "Luyện tập từ vựng: 教育孩子的艺术",
+      "correctIdx": 0,
+      "correctAnswer": "Nghệ thuật giáo dục con trẻ",
+      "options": "[\"Nghệ thuật giáo dục con trẻ\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Nghệ thuật giáo dục con trẻ",
+      "lessonOrder": 15
+    },
+    {
+      "id": "6b1f5b1e-0302-406c-bfe1-22934a552532",
+      "title": "Luyện tập ngữ pháp bài 15",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 15
+    },
+    {
+      "id": "95d17976-eabf-43d9-b418-0ea9e928f2e3",
+      "title": "Luyện tập ngữ pháp bài 16",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 16
+    },
+    {
+      "id": "563ca988-d6d4-45dd-8b22-736a709db902",
+      "title": "Luyện tập từ vựng: 文化交流的桥梁",
+      "correctIdx": 0,
+      "correctAnswer": "Nhịp cầu giao lưu văn hóa",
+      "options": "[\"Nhịp cầu giao lưu văn hóa\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Nhịp cầu giao lưu văn hóa",
+      "lessonOrder": 16
+    },
+    {
+      "id": "77d37739-3d98-441a-bca5-18e713d9ee5f",
+      "title": "Luyện tập ngữ pháp bài 17",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 17
+    },
+    {
+      "id": "8dc7c110-0531-4b7f-ae0c-399fdcb37821",
+      "title": "Luyện tập từ vựng: 科技改变生活",
+      "correctIdx": 0,
+      "correctAnswer": "Khoa học công nghệ thay đổi đời sống",
+      "options": "[\"Khoa học công nghệ thay đổi đời sống\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Khoa học công nghệ thay đổi đời sống",
+      "lessonOrder": 17
+    },
+    {
+      "id": "6cab185e-d61b-4af0-a3b7-9f20cf1e55da",
+      "title": "Luyện tập ngữ pháp bài 18",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 18
+    },
+    {
+      "id": "d9e9e1b4-73ea-4e1d-a539-b081cf8caadb",
+      "title": "Luyện tập từ vựng: 人与自然和谐相处",
+      "correctIdx": 0,
+      "correctAnswer": "Con người sống hài hòa với thiên nhiên",
+      "options": "[\"Con người sống hài hòa với thiên nhiên\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Con người sống hài hòa với thiên nhiên",
+      "lessonOrder": 18
+    },
+    {
+      "id": "e4482216-2a87-42e2-87d9-16f42fb3176d",
+      "title": "Luyện tập từ vựng: 旅行的真正意义",
+      "correctIdx": 0,
+      "correctAnswer": "Ý nghĩa thực sự của những chuyến đi",
+      "options": "[\"Ý nghĩa thực sự của những chuyến đi\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Ý nghĩa thực sự của những chuyến đi",
+      "lessonOrder": 19
+    },
+    {
+      "id": "1c2a3521-2166-4497-9f91-ca9c2d24a78c",
+      "title": "Luyện tập ngữ pháp bài 19",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 19
+    },
+    {
+      "id": "44f59953-b438-48be-ade5-8082a94dbd63",
+      "title": "Luyện tập từ vựng: 展望未来的世界",
+      "correctIdx": 0,
+      "correctAnswer": "Hướng tới thế giới tương lai",
+      "options": "[\"Hướng tới thế giới tương lai\", \"Nghĩa khác A\", \"Nghĩa khác B\", \"Nghĩa khác C\"]",
+      "explanation": "Nghĩa chính xác là: Hướng tới thế giới tương lai",
+      "lessonOrder": 20
+    },
+    {
+      "id": "3c13acc4-9fbc-4aed-948f-d7023f22bc54",
+      "title": "Luyện tập ngữ pháp bài 20",
+      "correctIdx": 0,
+      "correctAnswer": "Đúng trật tự cú pháp HSK 4",
+      "options": "[\"Đúng trật tự cú pháp HSK 4\", \"Sai vị trí tân ngữ\", \"Thiếu phó từ\", \"Dùng sai trợ từ\"]",
+      "explanation": "Câu mẫu tuân theo đúng trật tự từ HSK 4.",
+      "lessonOrder": 20
+    }
+  ],
+  "counts": {
+    "lessons": 20,
+    "vocabularies": 0,
+    "exercises": 40
+  },
+  "sha256": "36795ff12092354f831f16b3af3db3d0a51b1b23cad897f0d46a0bf0b1dc4609"
+}

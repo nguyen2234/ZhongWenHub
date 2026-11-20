@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "HSK5-6-COMING-SOON",
+  "title": "HSK 5 & 6 Coming Soon Invariant Enforcement",
+  "description": "Enforce strict Coming Soon state for HSK 5 and HSK 6: all database lessons remain DRAFT with zero vocabularies, frontend units/lessons cleared, coming soon badge displayed, no fake progress, no playable buttons.",
+  "project": "ZhongWenHub",
+  "phase": "Phase 9.5",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "COMPLETED",
+  "revision": 1,
+  "issue_number": null,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "3918063",
+  "input_files": [
+    "Fontend/src/features/learning/data/curriculumData.ts",
+    "Fontend/src/features/learning-path/components/HskCurriculumView.tsx",
+    "Fontend/src/features/dashboard/pages/DashboardPage.tsx"
+  ],
+  "expected_outputs": [
+    "Fontend/src/features/learning/data/curriculumData.ts",
+    "Fontend/src/features/learning-path/components/HskCurriculumView.tsx",
+    "Fontend/src/features/dashboard/pages/DashboardPage.tsx"
+  ],
+  "acceptance_criteria": [
+    "Frontend HSK 5, 6, 7 have units: [] and isComingSoon: true",
+    "HskCurriculumView shows dedicated Coming Soon state with CTA to HSK 4/1",
+    "Dashboard displays Sắp ra mắt badge with no fake progress bar",
+    "DB lessons for HSK 5 and 6 remain 100% DRAFT with 0 vocabularies"
+  ],
+  "safety_constraints": [
+    "No fake placeholder content or mock lessons injected into HSK 5 or 6"
+  ],
+  "created_at": "2026-11-10T23:50:00Z",
+  "updated_at": "2026-11-10T23:50:00Z"
+}

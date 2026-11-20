@@ -234,3 +234,150 @@ export interface ClassSort {
   field: ClassSortField;
   direction: SortDirection;
 }
+
+/**
+ * Thống kê tổng hợp số lượng lớp học theo trạng thái (KPI strip)
+ */
+export interface TeacherClassStatsDTO {
+  totalClasses: number;
+  activeCount: number;
+  upcomingCount: number;
+  archivedCount: number;
+  totalStudents: number;
+}
+
+/**
+ * Lớp học mà học viên đã ghi danh
+ */
+export interface StudentEnrolledClassDTO {
+  id: string;
+  name: string;
+  code: string;
+  hskLevelId: string;
+  hskLevelName: string;
+  hskLevelColor: string;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  status: string;
+  locationType: LocationType;
+  meetingUrl?: string;
+  roomLocation?: string;
+  startDate: string;
+  endDate?: string;
+  schedulesSummary: string;
+  enrolledAt: string;
+  memberStatus: string;
+}
+
+/**
+ * Kiểu trạng thái điểm danh
+ */
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
+
+export interface ClassAttendanceRecord {
+  id: string;
+  classId: string;
+  scheduleId?: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  attendanceDate: string;
+  status: AttendanceStatus;
+  notes?: string;
+  recordedByTeacherId: string;
+  createdAt: string;
+}
+
+export interface RecordAttendanceItem {
+  studentId: string;
+  status: AttendanceStatus;
+  notes?: string;
+}
+
+export interface RecordClassAttendancePayload {
+  attendanceDate: string;
+  scheduleId?: string;
+  records: RecordAttendanceItem[];
+}
+
+export interface StudentAttendanceSummary {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  totalSessions: number;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  excusedCount: number;
+  attendanceRate: number;
+}
+
+export interface ClassAttendanceSummaryDTO {
+  classId: string;
+  className: string;
+  totalSessionsHeld: number;
+  averageAttendanceRate: number;
+  students: StudentAttendanceSummary[];
+}
+
+export interface ClassCurriculumLessonDTO {
+  id: string;
+  lessonNumber: number;
+  title: string;
+  pinyinTitle: string;
+  vietnameseTitle: string;
+  isPublished: boolean;
+}
+
+export interface ClassCurriculumUnitDTO {
+  id: string;
+  unitNumber: number;
+  title: string;
+  lessons: ClassCurriculumLessonDTO[];
+}
+
+export interface ClassCurriculumDTO {
+  classId: string;
+  className: string;
+  courseId?: string;
+  courseTitle?: string;
+  hskLevelId: string;
+  units: ClassCurriculumUnitDTO[];
+}
+
+export interface StudentPerformanceSummaryDTO {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatarUrl?: string;
+  attendanceRate: number;
+  assignmentsCompleted: number;
+  totalAssignments: number;
+  averageScore: number;
+  status: string;
+}
+
+export interface GradeDistributionDTO {
+  excellentCount: number;
+  goodCount: number;
+  averageCount: number;
+  poorCount: number;
+}
+
+export interface ClassPerformanceDTO {
+  classId: string;
+  className: string;
+  classCode: string;
+  totalStudents: number;
+  averageAttendanceRate: number;
+  totalAssignmentsAssigned: number;
+  averageAssignmentScore: number;
+  submissionRate: number;
+  gradeDistribution: GradeDistributionDTO;
+  studentSummaries: StudentPerformanceSummaryDTO[];
+}
+
+

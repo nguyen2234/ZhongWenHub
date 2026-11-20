@@ -1,0 +1,586 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Shield,
+  Palette,
+  Bell,
+  CheckCircle2,
+  AlertTriangle,
+  Lock,
+  Globe,
+  Loader2,
+} from 'lucide-react';
+import { adminOperationsService } from '../../services/admin-operations.service';
+
+export const AdminSystemSettingsView: React.FC = () => {
+  const [platformName, setPlatformName] = useState('ZhongWenHub (中文社)');
+  const [contactEmail, setContactEmail] = useState('admin@zhongwenhub.edu.vn');
+  const [slogan, setSlogan] = useState('Nền tảng đào tạo HSK và Tiếng Trung Thương mại Thông minh');
+  const [defaultLanguage, setDefaultLanguage] = useState('vi-VN');
+  const [timezone, setTimezone] = useState('Asia/Ho_Chi_Minh');
+
+  // Security policies
+  const [maxAttempts, setMaxAttempts] = useState(5);
+  const [sessionTimeoutMin, setSessionTimeoutMin] = useState(60);
+  const [require2FA, setRequire2FA] = useState(false);
+
+  // Notifications
+  const [systemNotice, setSystemNotice] = useState(
+    'Hệ thống sẽ tiến hành nâng cấp thuật toán AI Tutor vào 02:00 sáng ngày 01/11.'
+  );
+
+  // Maintenance mode (controlled at infrastructure level)
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+
+  // Save feedback
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    adminOperationsService.getSystemSettings().then((s) => {
+      if (s) {
+        if (s.platformName) setPlatformName(s.platformName);
+        if (s.contactEmail) setContactEmail(s.contactEmail);
+        if (s.slogan) setSlogan(s.slogan);
+        if (s.defaultLanguage) setDefaultLanguage(s.defaultLanguage);
+        if (s.timezone) setTimezone(s.timezone);
+        if (s.maxLoginAttempts) setMaxAttempts(s.maxLoginAttempts);
+        if (s.sessionTimeoutMinutes) setSessionTimeoutMin(s.sessionTimeoutMinutes);
+        if (s.require2FA !== undefined) setRequire2FA(s.require2FA);
+        if (s.systemNotice) setSystemNotice(s.systemNotice);
+        if (s.isMaintenanceMode !== undefined) setIsMaintenanceMode(s.isMaintenanceMode);
+      }
+    });
+  }, []);
+
+  const handleFieldChange = (setter: any, value: any) => {
+    setter(value);
+    setHasChanges(true);
+    setIsSaved(false);
+    setSaveError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      await adminOperationsService.updateSystemSettings({
+        platformName,
+        contactEmail,
+        slogan,
+        defaultLanguage,
+        timezone,
+        maxLoginAttempts: 5,
+        sessionTimeoutMinutes: 60,
+        require2FA: false,
+        systemNotice,
+        isMaintenanceMode: false,
+      });
+
+      setIsSaved(true);
+      setHasChanges(false);
+      setTimeout(() => setIsSaved(false), 4000);
+    } catch (err: any) {
+      setSaveError(err?.message || 'Không thể lưu cấu hình lên máy chủ.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+      {/* Disclaimer */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+          padding: '12px 16px',
+          borderRadius: 'var(--radius-lg)',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          color: '#1e40af',
+          fontSize: '12.5px',
+          lineHeight: 1.5,
+        }}
+      >
+        <Shield size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
+        <div>
+          <strong>Cấu hình hệ thống tập trung:</strong> Mọi thiết lập trên trang này được đồng bộ và lưu trữ trực tiếp trên hệ thống Backend ASP.NET Core & Cơ sở dữ liệu.
+        </div>
+      </div>
+
+      {/* Maintenance Mode Alert Banner if enabled */}
+      {isMaintenanceMode && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '12px 16px',
+            borderRadius: 'var(--radius-lg)',
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fde68a',
+            color: '#b45309',
+            fontSize: '13px',
+            fontWeight: 600,
+          }}
+        >
+          <AlertTriangle size={18} />
+          <span>Hệ thống đang ở trạng thái BẢO TRÌ MÔ PHỎNG. Người dùng thông thường sẽ thấy trang thông báo bảo trì.</span>
+        </div>
+      )}
+
+      {/* Settings Form */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        {/* Section 1: Platform Information */}
+        <div
+          style={{
+            padding: '20px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+            <Globe size={18} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
+              1. Thông tin Nền tảng & Định danh
+            </h3>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+                Tên nền tảng hiển thị <span style={{ color: 'var(--primary)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={platformName}
+                onChange={(e) => handleFieldChange(setPlatformName, e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--foreground)',
+                  fontSize: '13px',
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+                Email liên hệ hỗ trợ / Quản trị
+              </label>
+              <input
+                type="email"
+                required
+                value={contactEmail}
+                onChange={(e) => handleFieldChange(setContactEmail, e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--foreground)',
+                  fontSize: '13px',
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+              Khẩu hiệu thương hiệu (Slogan)
+            </label>
+            <input
+              type="text"
+              value={slogan}
+              onChange={(e) => handleFieldChange(setSlogan, e.target.value)}
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 12px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-strong)',
+                backgroundColor: 'var(--surface)',
+                color: 'var(--foreground)',
+                fontSize: '13px',
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+                Ngôn ngữ giao diện mặc định
+              </label>
+              <select
+                value={defaultLanguage}
+                onChange={(e) => handleFieldChange(setDefaultLanguage, e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 10px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--foreground)',
+                  fontSize: '13px',
+                }}
+              >
+                <option value="vi-VN">Tiếng Việt (vi-VN)</option>
+                <option value="zh-CN">Tiếng Trung giản thể (zh-CN)</option>
+                <option value="en-US">English (en-US)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+                Múi giờ hệ thống
+              </label>
+              <select
+                value={timezone}
+                onChange={(e) => handleFieldChange(setTimezone, e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 10px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--surface)',
+                  color: 'var(--foreground)',
+                  fontSize: '13px',
+                }}
+              >
+                <option value="Asia/Ho_Chi_Minh">Giờ Hà Nội (GMT+7)</option>
+                <option value="Asia/Shanghai">Giờ Bắc Kinh / Thượng Hải (GMT+8)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 2: Branding Settings */}
+        <div
+          style={{
+            padding: '20px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+            <Palette size={18} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
+              2. Bộ Nhận diện Thương hiệu (Brand Identity)
+            </h3>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            {/* Color Palette Preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: '#E60012',
+                  boxShadow: '0 2px 8px rgba(230, 0, 18, 0.3)',
+                }}
+              />
+              <div>
+                <strong style={{ fontSize: '13px', color: 'var(--foreground)' }}>Màu chủ đạo (Viettel Red)</strong>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'monospace' }}>#E60012</div>
+              </div>
+            </div>
+
+            {/* Seal Logo Preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-hanzi)',
+                  fontWeight: 800,
+                  fontSize: '22px',
+                  boxShadow: '0 2px 8px rgba(230, 0, 18, 0.3)',
+                }}
+              >
+                华
+              </div>
+              <div>
+                <strong style={{ fontSize: '13px', color: 'var(--foreground)' }}>Dấu ấn Hán tự (Chinese Seal)</strong>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Biểu tượng độc quyền ZhongWenHub</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3: Security & Session Policies */}
+        <div
+          style={{
+            padding: '20px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+            <Lock size={18} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
+              3. Chính sách Tài khoản & An toàn (Bảo mật Hạ tầng)
+            </h3>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)' }}>
+                  Số lần đăng nhập sai tối đa trước khi khoá tạm
+                </label>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '1px 6px', borderRadius: 'var(--radius-sm)' }}>
+                  Cố định Identity (5 lần)
+                </span>
+              </div>
+              <input
+                type="number"
+                disabled
+                value={maxAttempts}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--secondary)',
+                  color: 'var(--muted)',
+                  fontSize: '13px',
+                  cursor: 'not-allowed',
+                }}
+              />
+              <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '4px' }}>
+                Tài khoản tự động bị tạm khóa 15 phút sau 5 lần nhập sai mật khẩu liên tiếp.
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)' }}>
+                  Thời gian hết hạn phiên làm việc
+                </label>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '1px 6px', borderRadius: 'var(--radius-sm)' }}>
+                  Cố định JWT (60 phút)
+                </span>
+              </div>
+              <input
+                type="number"
+                disabled
+                value={sessionTimeoutMin}
+                style={{
+                  width: '100%',
+                  height: '38px',
+                  padding: '0 12px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--secondary)',
+                  color: 'var(--muted)',
+                  fontSize: '13px',
+                  cursor: 'not-allowed',
+                }}
+              />
+              <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '4px' }}>
+                Thời lượng phiên JWT được cấu hình tại tầng dịch vụ xác thực máy chủ.
+              </div>
+            </div>
+          </div>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', cursor: 'not-allowed', opacity: 0.7 }}>
+            <input
+              type="checkbox"
+              checked={require2FA}
+              disabled
+              style={{ accentColor: 'var(--primary)', cursor: 'not-allowed' }}
+            />
+            <span>Bắt buộc xác thực hai yếu tố (2FA) đối với tài khoản Admin và Giáo viên</span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#b45309',
+                backgroundColor: '#fffbeb',
+                border: '1px solid #fde68a',
+                padding: '1px 8px',
+                borderRadius: 'var(--radius-sm)',
+              }}
+            >
+              Chưa hỗ trợ
+            </span>
+          </label>
+        </div>
+
+        {/* Section 4: System Notice & Maintenance Mode */}
+        <div
+          style={{
+            padding: '20px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+            <Bell size={18} style={{ color: 'var(--primary)' }} />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
+              4. Thông báo Hệ thống & Chế độ Bảo trì
+            </h3>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
+              Nội dung thông báo nổi trên toàn bộ cổng học viên
+            </label>
+            <textarea
+              rows={2}
+              value={systemNotice}
+              onChange={(e) => handleFieldChange(setSystemNotice, e.target.value)}
+              placeholder="Nhập thông báo hiển thị trên banner..."
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-strong)',
+                backgroundColor: 'var(--surface)',
+                color: 'var(--foreground)',
+                fontSize: '13px',
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: 'var(--background)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+              opacity: 0.85,
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <strong style={{ fontSize: '13.5px', color: 'var(--foreground)' }}>
+                  Kích hoạt chế độ bảo trì hệ thống (Maintenance Mode)
+                </strong>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#b45309',
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    padding: '1px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                  }}
+                >
+                  Chưa hỗ trợ kích hoạt từ Web
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                Để đảm bảo an toàn vận hành, chế độ bảo trì toàn hệ thống được điều khiển tại tầng hạ tầng (Reverse Proxy / Gateway).
+              </div>
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'not-allowed', fontSize: '13px' }}>
+              <input
+                type="checkbox"
+                checked={false}
+                disabled
+                style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', cursor: 'not-allowed' }}
+              />
+              <span style={{ fontWeight: 600, color: 'var(--muted)' }}>
+                Tắt (Khóa)
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* Submit Actions */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-xl)',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div>
+            {hasChanges && (
+              <span style={{ fontSize: '12.5px', color: '#b45309', fontWeight: 600 }}>
+                Bạn có thay đổi chưa lưu.
+              </span>
+            )}
+            {saveError && (
+              <span style={{ fontSize: '12.5px', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <AlertTriangle size={15} /> {saveError}
+              </span>
+            )}
+            {isSaved && (
+              <span style={{ fontSize: '12.5px', color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 size={15} /> Cấu hình hệ thống đã được lưu thành công vào cơ sở dữ liệu!
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="ds-btn ds-btn-primary"
+              style={{ gap: '6px' }}
+            >
+              {isSaving ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+              {isSaving ? 'Đang lưu...' : 'Lưu & Áp dụng thiết lập'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+};
+export default AdminSystemSettingsView;

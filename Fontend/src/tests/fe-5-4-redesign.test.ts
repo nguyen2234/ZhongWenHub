@@ -58,8 +58,14 @@ describe('Phase FE-5.4: Redesign Beginner Roadmap & HSK Curriculum', () => {
         const curriculumLevel = HSK_CURRICULUM[level];
         expect(curriculumLevel).toBeDefined();
         expect(curriculumLevel.level).toBe(level);
-        expect(curriculumLevel.units.length).toBeGreaterThan(0);
-        expect(curriculumLevel.totalLessons).toBeGreaterThan(0);
+        if (level <= 4) {
+          expect(curriculumLevel.units.length).toBeGreaterThan(0);
+          expect(curriculumLevel.totalLessons).toBeGreaterThan(0);
+        } else {
+          expect(curriculumLevel.isComingSoon).toBe(true);
+          expect(curriculumLevel.units.length).toBe(0);
+          expect(curriculumLevel.totalLessons).toBe(0);
+        }
       }
     });
   });
@@ -93,7 +99,7 @@ describe('Phase FE-5.4: Redesign Beginner Roadmap & HSK Curriculum', () => {
     });
 
     it('calculates topic progress dynamically based on completedLessonIds', () => {
-      const unit = HSK_CURRICULUM[2].units[0]; // Unit 1 of HSK 2: 4 lessons (les-1 to les-4)
+      const unit = HSK_CURRICULUM[2].units[0]; // Unit 1 of HSK 2: 3 lessons (les-1 to les-3)
       const topic = mapUnitToTopic(unit);
 
       const mockCompletedLessonIds = ['les-1', 'les-2'];
@@ -101,8 +107,8 @@ describe('Phase FE-5.4: Redesign Beginner Roadmap & HSK Curriculum', () => {
       const progressPercent = Math.round((completedCount / topic.lessons.length) * 100);
 
       expect(completedCount).toBe(2);
-      expect(topic.lessons.length).toBe(4);
-      expect(progressPercent).toBe(50);
+      expect(topic.lessons.length).toBe(3);
+      expect(progressPercent).toBe(67);
     });
   });
 

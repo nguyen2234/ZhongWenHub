@@ -1,10 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Plus } from 'lucide-react';
-import { PageHeader, Pagination, ConfirmDialog } from '../../../shared/components';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, AlertCircle, RefreshCw } from 'lucide-react';
+import { PageHeader, Pagination, ConfirmDialog, ToastNotification, type ToastMessage } from '../../../shared/components';
 import type {
   CreateUserDTO,
-  UpdateUserDTO,
-  UserDetail,
   UserFilters,
   UserListItem,
   UserSort,
@@ -16,17 +15,27 @@ import {
   UserToolbar,
   UserTable,
   UserCardList,
-  UserDetailDrawer,
   CreateUserModal,
 } from '../components';
 import '../components/user-management.css';
 
+const isSoleAdmin = (user: UserListItem) => {
+  return (
+    user.email.toLowerCase() === 'admin@gmail.com' ||
+    user.roles?.includes('ADMIN') ||
+    user.role === 'ADMIN'
+  );
+};
+
 export const AdminUsersPage: React.FC = () => {
+  const navigate = useNavigate();
+
   // 1. Filter and search state
   const [filters, setFilters] = useState<UserFilters>({
     search: '',
     status: 'ALL',
     hskLevel: 'ALL',
+    role: 'ALL',
   });
 
   // 2. Pagination state (default: 20 per specification)
@@ -45,7 +54,6 @@ export const AdminUsersPage: React.FC = () => {
   const [usersVersion, setUsersVersion] = useState(0);
 
   const paginatedData = useMemo(() => {
-    // Reference usersVersion to re-evaluate when mock service data changes
     if (usersVersion < 0) return adminUserService.getUsers(filters, pagination, sort);
     return adminUserService.getUsers(filters, pagination, sort);
   }, [filters, pagination, sort, usersVersion]);
@@ -57,17 +65,40 @@ export const AdminUsersPage: React.FC = () => {
 
   // 5. Selection states
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // 6. Modal states
+  // 6. Modal and notification states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [targetLockUser, setTargetLockUser] = useState<UserListItem | UserDetail | null>(null);
+  const [targetLockUser, setTargetLockUser] = useState<UserListItem | null>(null);
   const [isConfirmLockOpen, setIsConfirmLockOpen] = useState(false);
 
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
+
   const triggerRefresh = useCallback(() => {
-    setUsersVersion((v) => v + 1);
+    setIsSyncing(true);
+    setSyncError(null);
+    adminUserService
+      .syncFromBackend()
+      .then((res) => {
+        if (!res.success) {
+          setSyncError(res.error || 'Lỗi tải dữ liệu người dùng.');
+        } else {
+          setSyncError(null);
+        }
+      })
+      .catch((err) => {
+        setSyncError(err?.message || 'Lỗi kết nối máy chủ.');
+      })
+      .finally(() => {
+        setIsSyncing(false);
+        setUsersVersion((v) => v + 1);
+      });
   }, []);
+
+  useEffect(() => {
+    triggerRefresh();
+  }, [triggerRefresh]);
 
   // Handle Toolbar filters change
   const handleFilterChange = (newFilters: UserFilters) => {
@@ -80,6 +111,7 @@ export const AdminUsersPage: React.FC = () => {
       search: '',
       status: 'ALL',
       hskLevel: 'ALL',
+      role: 'ALL',
     });
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
@@ -111,68 +143,87 @@ export const AdminUsersPage: React.FC = () => {
     }
   };
 
-  // Drawer interactions
+  // Page-based Navigation (Separate Pages instead of Drawer)
   const handleSelectUser = (user: UserListItem) => {
-    const fullDetail = adminUserService.getUserById(user.id);
-    if (fullDetail) {
-      setSelectedUser(fullDetail);
-      setIsDrawerOpen(true);
-    }
+    navigate(`/management/admin/users/${user.id}`);
   };
 
   const handleEditFromTable = (user: UserListItem) => {
-    const fullDetail = adminUserService.getUserById(user.id);
-    if (fullDetail) {
-      setSelectedUser(fullDetail);
-      setIsDrawerOpen(true);
-    }
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-  };
-
-  // Save edit in Drawer
-  const handleSaveEdit = (id: string, dto: UpdateUserDTO) => {
-    const updated = adminUserService.updateUser(id, dto);
-    setSelectedUser(updated);
-    triggerRefresh();
+    navigate(`/management/admin/users/${user.id}/edit`);
   };
 
   // Lock / Unlock Confirmation
-  const handleOpenLockConfirmation = (user: UserListItem | UserDetail) => {
+  const handleOpenLockConfirmation = (user: UserListItem) => {
+    if (isSoleAdmin(user)) {
+      setToast({
+        type: 'error',
+        message: 'Không thể vô hiệu hóa tài khoản Quản trị viên duy nhất trong hệ thống.',
+      });
+      return;
+    }
     setTargetLockUser(user);
     setIsConfirmLockOpen(true);
   };
 
-  const handleExecuteLockToggle = () => {
+  const handleExecuteLockToggle = async () => {
     if (!targetLockUser) return;
-
-    let updated: UserDetail;
-    if (targetLockUser.status === 'LOCKED') {
-      updated = adminUserService.unlockUser(targetLockUser.id);
-    } else {
-      updated = adminUserService.lockUser(
-        targetLockUser.id,
-        'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
-      );
+    if (isSoleAdmin(targetLockUser)) {
+      setToast({
+        type: 'error',
+        message: 'Không thể vô hiệu hóa tài khoản Quản trị viên duy nhất trong hệ thống.',
+      });
+      setIsConfirmLockOpen(false);
+      return;
     }
 
-    if (selectedUser?.id === targetLockUser.id) {
-      setSelectedUser(updated);
-    }
+    try {
+      const isDeactivated = targetLockUser.status === 'LOCKED' || targetLockUser.status === 'INACTIVE';
+      if (isDeactivated) {
+        await adminUserService.unlockUser(targetLockUser.id);
+        setToast({
+          type: 'success',
+          message: `Đã kích hoạt lại tài khoản ${targetLockUser.name} thành công.`,
+        });
+      } else {
+        await adminUserService.lockUser(
+          targetLockUser.id,
+          'Tài khoản bị tạm khóa theo yêu cầu kiểm tra của Quản trị viên.'
+        );
+        setToast({
+          type: 'success',
+          message: `Đã vô hiệu hóa tài khoản ${targetLockUser.name}.`,
+        });
+      }
 
-    setIsConfirmLockOpen(false);
-    setTargetLockUser(null);
-    triggerRefresh();
+      setIsConfirmLockOpen(false);
+      setTargetLockUser(null);
+      triggerRefresh();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể thực hiện thao tác.',
+      });
+    }
   };
 
   // Create User
-  const handleCreateUser = (dto: CreateUserDTO) => {
-    const created = adminUserService.createUser(dto);
-    triggerRefresh();
-    setSelectedUser(created);
-    setIsDrawerOpen(true);
+  const handleCreateUser = async (dto: CreateUserDTO) => {
+    try {
+      const created = await adminUserService.createUser(dto);
+      setToast({
+        type: 'success',
+        message: `Đã tạo tài khoản ${created.name} (${created.email}) thành công!`,
+      });
+      setIsCreateModalOpen(false);
+      triggerRefresh();
+      navigate(`/management/admin/users/${created.id}`);
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Không thể tạo tài khoản.',
+      });
+      throw err;
+    }
   };
 
   const confirmDialogProps = useMemo(() => {
@@ -185,20 +236,20 @@ export const AdminUsersPage: React.FC = () => {
       };
     }
 
-    const isLocked = targetLockUser.status === 'LOCKED';
-    if (isLocked) {
+    const isDeactivated = targetLockUser.status === 'LOCKED' || targetLockUser.status === 'INACTIVE';
+    if (isDeactivated) {
       return {
-        title: `Mở khóa tài khoản ${targetLockUser.name}?`,
-        message: `Học viên sẽ có thể đăng nhập trở lại và tiếp tục truy cập các bài học trên ZhongWenHub.`,
-        confirmLabel: 'Mở khóa tài khoản',
+        title: `Kích hoạt lại tài khoản ${targetLockUser.name}?`,
+        message: `Người dùng sẽ có thể đăng nhập trở lại và tiếp tục sử dụng hệ thống đào tạo ZhongWenHub.`,
+        confirmLabel: 'Kích hoạt lại tài khoản',
         isDestructive: false,
       };
     }
 
     return {
-      title: `Khóa tài khoản ${targetLockUser.name}?`,
-      message: `Học viên sẽ không thể đăng nhập cho đến khi tài khoản được mở khóa lại. Toàn bộ tiến độ học tập và SRS vẫn được bảo lưu an toàn.`,
-      confirmLabel: 'Khóa tài khoản',
+      title: `Vô hiệu hóa tài khoản ${targetLockUser.name}?`,
+      message: `Tài khoản sẽ bị vô hiệu hóa (tạm khóa). Người dùng sẽ không thể đăng nhập cho đến khi được kích hoạt lại.`,
+      confirmLabel: 'Vô hiệu hóa tài khoản',
       isDestructive: true,
     };
   }, [targetLockUser]);
@@ -208,13 +259,13 @@ export const AdminUsersPage: React.FC = () => {
       {/* 1. Page Header */}
       <PageHeader
         title="Quản lý người dùng"
-        subtitle="Quản lý tài khoản học viên và trạng thái sử dụng hệ thống đào tạo ZhongWenHub."
+        subtitle="Quản lý tài khoản học viên, giáo viên và nhân sự vận hành hệ thống đào tạo ZhongWenHub."
         actions={
           <button
             type="button"
             className="ds-btn ds-btn-primary ds-btn-sm"
             onClick={() => setIsCreateModalOpen(true)}
-            aria-label="Thêm học viên mới"
+            aria-label="Thêm người dùng mới"
           >
             <Plus size={16} style={{ marginRight: '6px' }} />
             Thêm người dùng
@@ -232,10 +283,55 @@ export const AdminUsersPage: React.FC = () => {
         onResetFilters={handleResetFilters}
       />
 
-      {/* 4. Data Table (Desktop >=768px) */}
+      {/* Error Alert with Retry Action */}
+      {syncError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            padding: '12px 16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-lg)',
+            color: '#dc2626',
+            marginBottom: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>{syncError}</span>
+          </div>
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm"
+            onClick={triggerRefresh}
+            disabled={isSyncing}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fca5a5',
+              color: '#dc2626',
+              borderRadius: '6px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              flexShrink: 0,
+            }}
+          >
+            <RefreshCw size={14} />
+            <span>Thử lại</span>
+          </button>
+        </div>
+      )}
+
+      {/* 4. Data Table (Desktop >=768px) - Strictly 3 Actions: Xem, Sửa, Vô hiệu hóa / Kích hoạt lại */}
       <UserTable
         users={paginatedData.items}
-        selectedUserId={isDrawerOpen ? selectedUser?.id : undefined}
         selectedIds={selectedIds}
         onToggleSelectAll={handleToggleSelectAll}
         onToggleSelectUser={handleToggleSelectUser}
@@ -250,7 +346,6 @@ export const AdminUsersPage: React.FC = () => {
       {/* 5. Mobile Cards View (<768px) */}
       <UserCardList
         users={paginatedData.items}
-        selectedUserId={isDrawerOpen ? selectedUser?.id : undefined}
         onSelectUser={handleSelectUser}
         onEditUser={handleEditFromTable}
         onLockUnlockUser={handleOpenLockConfirmation}
@@ -268,19 +363,10 @@ export const AdminUsersPage: React.FC = () => {
         onPageSizeChange={(newSize) =>
           setPagination((prev) => ({ ...prev, pageSize: newSize, page: 1 }))
         }
-        itemLabel="học viên"
+        itemLabel="người dùng"
       />
 
-      {/* 7. Slide-over User Detail Drawer */}
-      <UserDetailDrawer
-        isOpen={isDrawerOpen}
-        user={selectedUser}
-        onClose={handleCloseDrawer}
-        onSaveEdit={handleSaveEdit}
-        onToggleLock={handleOpenLockConfirmation}
-      />
-
-      {/* 8. Destructive Action Confirmation Dialog */}
+      {/* 7. Destructive Action Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isConfirmLockOpen}
         title={confirmDialogProps.title}
@@ -291,12 +377,15 @@ export const AdminUsersPage: React.FC = () => {
         onCancel={() => setIsConfirmLockOpen(false)}
       />
 
-      {/* 9. Create User Modal */}
+      {/* 8. Create User Modal */}
       <CreateUserModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateUser}
       />
+
+      {/* 9. Toast Notification */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 };

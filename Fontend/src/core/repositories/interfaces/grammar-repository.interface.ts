@@ -12,6 +12,7 @@ export interface AdminGrammarStats {
   pending: number;
   archived: number;
   byHsk: Record<number, number>;
+  byCategory?: Record<string, number>;
 }
 
 /**

@@ -124,7 +124,7 @@ export const AssignmentToolbar: React.FC<AssignmentToolbarProps> = ({
         {/* Create Button */}
         <button
           type="button"
-          className="tp-btn tp-btn--primary"
+          className="ds-btn ds-btn-primary"
           onClick={onCreateClick}
         >
           <Plus size={16} />

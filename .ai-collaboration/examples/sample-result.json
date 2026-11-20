@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "EX-TASK-001",
+  "task_revision": 2,
+  "execution_id": "EXEC-20261110-001",
+  "executor": "Antigravity",
+  "commit_sha": "a1b2c3d",
+  "branch": "integration/zhongwenhub-sqlserver",
+  "changed_files": [
+    "Fontend/src/services/example.service.ts",
+    "Fontend/src/tests/example.service.test.ts"
+  ],
+  "started_at": "2026-11-10T20:05:00Z",
+  "finished_at": "2026-11-10T20:25:00Z",
+  "status": "PASS",
+  "summary": "Implemented exponential backoff retry mechanism with 5 comprehensive unit tests.",
+  "test_results": [
+    {
+      "test_id": "TEST-EX-01",
+      "test_name": "Exponential Backoff Service Test",
+      "command": "bun test src/tests/example.service.test.ts",
+      "test_type": "UNIT",
+      "environment": "Windows Node v24",
+      "commit_sha": "a1b2c3d",
+      "passed_count": 5,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-10T20:20:00Z"
+    }
+  ],
+  "evidence_links": [
+    "https://github.com/nguyen2234/ZhongWenHub/commit/a1b2c3d"
+  ],
+  "warnings": [],
+  "blockers": []
+}

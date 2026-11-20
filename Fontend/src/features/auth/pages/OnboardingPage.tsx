@@ -1,18 +1,49 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { HSKLevel } from '../../../design-system';
+import { useAuthContext } from '../context/AuthContext';
+import type { UserRole } from '../../../types/roles';
+import { ROLE_DEFAULT_PATHS } from '../../../types/roles';
 
 export interface OnboardingPageProps {
   onComplete?: () => void;
+  /**
+   * Set to true to view/edit goal configuration interactively (for optional future profile/settings integration).
+   * Defaults to false, which safely auto-redirects old /onboarding URLs to the role-appropriate dashboard.
+   */
+  allowInteractive?: boolean;
 }
 
-export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onComplete: customComplete }) => {
+export const OnboardingPage: React.FC<OnboardingPageProps> = ({
+  onComplete: customComplete,
+  allowInteractive = false,
+}) => {
   const routerNavigate = useNavigate();
-  const onComplete = customComplete ?? (() => routerNavigate('/dashboard'));
-  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const { user, isAuthenticated } = useAuthContext();
 
+  const role = (user?.role || user?.roles?.[0] || 'STUDENT') as UserRole;
+  const targetPath = isAuthenticated ? (ROLE_DEFAULT_PATHS[role] || '/dashboard') : '/dashboard';
+
+  const onComplete = customComplete ?? (() => routerNavigate(targetPath));
+
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<number>(15);
+
+  useEffect(() => {
+    if (!allowInteractive) {
+      if (customComplete) {
+        customComplete();
+      } else {
+        routerNavigate(targetPath, { replace: true });
+      }
+    }
+  }, [allowInteractive, customComplete, routerNavigate, targetPath]);
+
+  // Direct access to /onboarding safely redirects to the user's dashboard or home
+  if (!allowInteractive) {
+    return <Navigate to={targetPath} replace />;
+  }
 
   const levels = [
     { level: 1, name: 'HSK 1', desc: 'Người mới bắt đầu (150 - 500 từ)', chars: '零基础' },

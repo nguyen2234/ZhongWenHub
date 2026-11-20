@@ -8,7 +8,6 @@ export * from './components/LessonProgress';
 export * from './components/LessonActionBar';
 export * from './components/AudioPlayerButton';
 export * from './components/AnswerFeedback';
-export * from './components/AITutorDrawer';
 export * from './steps/IntroStep';
 export * from './steps/VocabularyStep';
 export * from './steps/GrammarStep';

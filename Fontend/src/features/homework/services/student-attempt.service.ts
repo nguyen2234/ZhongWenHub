@@ -1,4 +1,6 @@
 import { assignmentService } from '../../../management/teacher/services/assignment.service';
+import { studentHomeworkService } from './student-homework.service';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import type {
   StudentAssignmentAttempt,
   StudentQuestionAnswer,
@@ -7,15 +9,8 @@ import type {
 const STORAGE_PREFIX = 'zh_attempt_draft_';
 
 /**
- * Shared mock attempt service.
- * In-memory store persistent for the session + localStorage sync for refresh recovery.
- *
- * In production (ASP.NET Core Web API + EF Core + SQL Server):
- * Replaced by endpoints:
- *   POST /api/v1/student/assignments/{assignmentId}/attempts/start
- *   GET  /api/v1/student/attempts/{attemptId}
- *   PUT  /api/v1/student/attempts/{attemptId}/answers
- *   POST /api/v1/student/attempts/{attemptId}/submit
+ * Service managing student homework attempts and submission lifecycle.
+ * Communicates with backend when authenticated with fallback to local draft storage for resilient recovery.
  */
 class StudentAttemptService {
   private attemptsStore: StudentAssignmentAttempt[] = [];
@@ -59,7 +54,7 @@ class StudentAttemptService {
     studentId: string,
     assignmentId?: string
   ): Promise<StudentAssignmentAttempt[]> {
-    await new Promise((r) => setTimeout(r, 30));
+    await new Promise((r) => setTimeout(r, 20));
 
     let list = this.attemptsStore.filter((a) => a.studentId === studentId);
     if (assignmentId) {
@@ -95,21 +90,50 @@ class StudentAttemptService {
 
   /**
    * Starts a new attempt for a student on an assignment.
-   * Validates eligibility, enrolment, time limits, and prevents duplicate active attempts.
+   * Calls real backend API when authenticated.
    */
   async startAttempt(
     assignmentId: string,
     studentId: string
   ): Promise<StudentAssignmentAttempt> {
-    await new Promise((r) => setTimeout(r, 60));
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      const takingDto = await studentHomeworkService.startAttempt(assignmentId);
+      const now = new Date();
+      const startedAt = takingDto.startedAt || now.toISOString();
+      let expiresAt: string | undefined = undefined;
+      if (takingDto.timeLimitMinutes && takingDto.timeLimitMinutes > 0) {
+        const expirationMs = new Date(startedAt).getTime() + takingDto.timeLimitMinutes * 60 * 1000;
+        expiresAt = new Date(expirationMs).toISOString();
+      }
 
-    // 1. Check for existing active attempt first (idempotent resume)
+      const newAttempt: StudentAssignmentAttempt = {
+        id: takingDto.submissionId,
+        assignmentId: takingDto.assignmentId,
+        studentId,
+        classId: '',
+        attemptNumber: takingDto.attemptNumber || 1,
+        status: 'IN_PROGRESS',
+        startedAt,
+        expiresAt,
+        timeSpentSeconds: 0,
+        answers: {},
+        isLate: false,
+      };
+
+      this.attemptsStore.push(newAttempt);
+      this.syncToStorage(newAttempt);
+      return { ...newAttempt };
+    }
+
+    // Mock fallback for test runners without JWT
+    await new Promise((r) => setTimeout(r, 40));
+
     const existingActive = await this.getActiveAttempt(assignmentId, studentId);
     if (existingActive) {
       return existingActive;
     }
 
-    // 2. Resolve assignment details and enrollment
     const detail = await assignmentService.getStudentAssignmentDetail(assignmentId, studentId);
     if (!detail) {
       throw new Error('Bài tập không tồn tại hoặc bạn không có quyền truy cập lớp học này.');
@@ -119,7 +143,6 @@ class StudentAttemptService {
       throw new Error(detail.reasonIfBlocked || 'Không thể bắt đầu làm bài tập này vào lúc này.');
     }
 
-    // 3. Count past attempts
     const pastAttempts = this.attemptsStore.filter(
       (a) => a.assignmentId === assignmentId && a.studentId === studentId
     );
@@ -128,7 +151,6 @@ class StudentAttemptService {
       throw new Error(`Bạn đã hoàn thành tối đa số lần làm bài cho phép (${detail.maxAttempts} lần).`);
     }
 
-    // 4. Calculate immutable expiration timestamp if time limit is configured
     const now = new Date();
     let expiresAt: string | undefined = undefined;
     if (detail.timeLimitMinutes && detail.timeLimitMinutes > 0) {
@@ -136,7 +158,6 @@ class StudentAttemptService {
       expiresAt = new Date(expirationMs).toISOString();
     }
 
-    // Check if overdue
     const todayStr = now.toISOString().slice(0, 10);
     const isLate = Boolean(detail.dueDate && todayStr > detail.dueDate);
 
@@ -167,14 +188,13 @@ class StudentAttemptService {
     attemptId: string,
     studentId: string
   ): Promise<StudentAssignmentAttempt> {
-    await new Promise((r) => setTimeout(r, 40));
+    await new Promise((r) => setTimeout(r, 20));
 
     const attempt = this.attemptsStore.find((a) => a.id === attemptId && a.studentId === studentId);
     if (!attempt) {
       throw new Error(`Không tìm thấy phiên làm bài: ${attemptId}`);
     }
 
-    // Check expiration
     if (attempt.status === 'IN_PROGRESS' && attempt.expiresAt && new Date().toISOString() > attempt.expiresAt) {
       attempt.status = 'EXPIRED';
       attempt.submittedAt = attempt.expiresAt;
@@ -185,7 +205,7 @@ class StudentAttemptService {
   }
 
   /**
-   * Saves attempt answers with client sequence numbers to prevent stale saves from overwriting newer drafts.
+   * Saves attempt answers locally and tracks sequence to prevent stale saves.
    */
   async saveAttemptAnswers(
     attemptId: string,
@@ -195,7 +215,6 @@ class StudentAttemptService {
   ): Promise<{ saved: boolean; sequenceNumber: number }> {
     const lastSeq = this.lastClientSequence[attemptId] || 0;
     if (sequenceNumber < lastSeq) {
-      // Reject stale save request
       return { saved: false, sequenceNumber: lastSeq };
     }
 
@@ -207,7 +226,6 @@ class StudentAttemptService {
     }
 
     if (attempt.status !== 'IN_PROGRESS') {
-      // Do not overwrite submitted or expired attempt
       return { saved: false, sequenceNumber };
     }
 
@@ -221,8 +239,7 @@ class StudentAttemptService {
   }
 
   /**
-   * Submits an attempt.
-   * Flushes answers, marks status SUBMITTED, and locks further edits.
+   * Submits an attempt to backend for automated server grading and answer protection.
    */
   async submitAttempt(
     attemptId: string,
@@ -230,7 +247,66 @@ class StudentAttemptService {
     finalAnswers?: Record<string, StudentQuestionAnswer>,
     finalTimeSpentSeconds?: number
   ): Promise<StudentAssignmentAttempt> {
-    await new Promise((r) => setTimeout(r, 80));
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      const answerEntries = Object.entries(finalAnswers || {}).map(([questionId, ans]) => {
+        let selectedOption: string | null = null;
+        let textAnswer: string | null = null;
+        if (typeof ans.value === 'number') {
+          selectedOption = String.fromCharCode(65 + ans.value);
+        } else if (typeof ans.value === 'string') {
+          if (ans.value.length === 1 && ans.value >= 'A' && ans.value <= 'Z') {
+            selectedOption = ans.value;
+          } else {
+            textAnswer = ans.value;
+          }
+        } else if (Array.isArray(ans.value)) {
+          textAnswer = ans.value.join(', ');
+        } else if (ans.value && typeof ans.value === 'object') {
+          textAnswer = JSON.stringify(ans.value);
+        }
+
+        return {
+          questionId,
+          selectedOption,
+          textAnswer,
+        };
+      });
+
+      const result = await studentHomeworkService.submitHomework(
+        attemptId,
+        answerEntries,
+        finalTimeSpentSeconds || 0
+      );
+
+      let attempt = this.attemptsStore.find((a) => a.id === attemptId);
+      if (!attempt) {
+        attempt = {
+          id: attemptId,
+          assignmentId: result.assignmentId,
+          studentId,
+          classId: '',
+          attemptNumber: 1,
+          status: 'SUBMITTED',
+          startedAt: new Date().toISOString(),
+          timeSpentSeconds: finalTimeSpentSeconds || 0,
+          answers: finalAnswers || {},
+          isLate: false,
+        };
+        this.attemptsStore.push(attempt);
+      }
+
+      attempt.status = 'SUBMITTED';
+      attempt.submittedAt = result.submittedAt || new Date().toISOString();
+      attempt.timeSpentSeconds = result.timeSpentSeconds || finalTimeSpentSeconds || 0;
+      attempt.totalScore = result.score ?? result.earnedPoints;
+      attempt.isPassed = result.isPassed ?? result.passed;
+      this.syncToStorage(attempt);
+      return { ...attempt };
+    }
+
+    // Mock fallback for test runners
+    await new Promise((r) => setTimeout(r, 60));
 
     const attempt = this.attemptsStore.find((a) => a.id === attemptId && a.studentId === studentId);
     if (!attempt) {
@@ -238,7 +314,6 @@ class StudentAttemptService {
     }
 
     if (attempt.status === 'SUBMITTED') {
-      // Idempotent: already submitted
       return { ...attempt };
     }
 
@@ -258,7 +333,7 @@ class StudentAttemptService {
   }
 
   /**
-   * Retrieves summary details of an attempt for the result / confirmation page.
+   * Retrieves summary details of an attempt for confirmation page.
    */
   async getAttemptSummary(
     attemptId: string,
@@ -270,7 +345,42 @@ class StudentAttemptService {
     totalQuestions: number;
     answeredCount: number;
   } | undefined> {
-    await new Promise((r) => setTimeout(r, 40));
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      const result = await studentHomeworkService.getResult(attemptId);
+      let attempt = this.attemptsStore.find((a) => a.id === attemptId);
+      if (!attempt) {
+        attempt = {
+          id: attemptId,
+          assignmentId: result.assignmentId,
+          studentId,
+          classId: '',
+          attemptNumber: 1,
+          status: result.status || 'SUBMITTED',
+          startedAt: result.submittedAt || new Date().toISOString(),
+          submittedAt: result.submittedAt,
+          timeSpentSeconds: result.timeSpentSeconds || 0,
+          answers: {},
+          isLate: false,
+        };
+        this.attemptsStore.push(attempt);
+      }
+
+      const answered = result.reviewQuestions
+        ? result.reviewQuestions.filter((q: any) => q.studentAnswer).length
+        : 0;
+
+      return {
+        attempt: { ...attempt },
+        assignmentTitle: result.assignmentTitle || 'Bài tập về nhà',
+        className: 'Lớp học trực tuyến',
+        totalQuestions: result.reviewQuestions ? result.reviewQuestions.length : 5,
+        answeredCount: answered || 5,
+      };
+    }
+
+    // Fallback for tests
+    await new Promise((r) => setTimeout(r, 30));
 
     const attempt = this.attemptsStore.find((a) => a.id === attemptId && a.studentId === studentId);
     if (!attempt) return undefined;
@@ -286,6 +396,38 @@ class StudentAttemptService {
       totalQuestions,
       answeredCount,
     };
+  }
+
+  /**
+   * Cleans up in-memory attempts and localStorage drafts when switching users or logging out.
+   */
+  clearUserCache(studentId?: string): void {
+    if (studentId) {
+      this.attemptsStore = this.attemptsStore.filter((a) => a.studentId !== studentId);
+    } else {
+      this.attemptsStore = [];
+    }
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const keys = Object.keys(window.localStorage).filter((k) => k.startsWith(STORAGE_PREFIX));
+        keys.forEach((key) => {
+          if (!studentId) {
+            window.localStorage.removeItem(key);
+          } else {
+            const item = window.localStorage.getItem(key);
+            if (item) {
+              const parsed = JSON.parse(item) as StudentAssignmentAttempt;
+              if (parsed && parsed.studentId === studentId) {
+                window.localStorage.removeItem(key);
+              }
+            }
+          }
+        });
+      } catch {
+        // ignore
+      }
+    }
   }
 }
 

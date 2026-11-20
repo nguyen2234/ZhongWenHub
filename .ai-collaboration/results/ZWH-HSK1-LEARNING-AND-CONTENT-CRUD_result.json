@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK1-LEARNING-AND-CONTENT-CRUD",
+  "task_revision": 1,
+  "execution_id": "EXEC-20261111-HSK1-LEARNING-CRUD",
+  "executor": "Antigravity",
+  "commit_sha": "587fd06f2a3632e1e3dcdefdb30527c48ef42e3d",
+  "branch": "integration/zhongwenhub-sqlserver",
+  "changed_files": [
+    ".ai-collaboration/results/ZWH-HSK1-LEARNING-AND-CONTENT-CRUD_result.json",
+    "docs/hsk20/HSK1_END_TO_END_IMPLEMENTATION_REPORT.md",
+    "docs/hsk20/HSK1_CONTENT_SOURCE_AND_QA_REPORT.md",
+    "docs/hsk20/HSK1_STUDENT_LEARNING_E2E_REPORT.md",
+    "docs/hsk20/HSK1_ADMIN_CRUD_E2E_REPORT.md",
+    "docs/hsk20/HSK1_DATABASE_APPROVAL_AND_ROLLBACK_PLAN.md",
+    "Fontend/src/features/lesson/services/lesson-content.service.ts",
+    "Fontend/src/features/learning/data/curriculumData.ts",
+    "Fontend/src/tests/fe-6-textbook-scrollspy.test.ts",
+    "Fontend/e2e/hsk1-published-student-and-cms.spec.ts",
+    "Backend/src/Business/Learning/LearningService.cs",
+    "Backend/src/Business/Content/ContentService.cs",
+    "Backend/tests/ZhongWenHub.UnitTests/StudentProgressSafetyTests.cs",
+    "scripts/hsk20/snapshot_and_rollback.py",
+    "scripts/hsk20/verify_hsk20_data_quality.py"
+  ],
+  "started_at": "2026-11-11T02:30:00Z",
+  "finished_at": "2026-11-11T07:50:00Z",
+  "status": "PARTIAL",
+  "summary": "Hardened HSK 1 end-to-end implementation under CONDITIONAL contract status: eliminated browser runtime mock fallback to MOCK_LESSON_8_DRAFT and standardized HSK_2_0 metadata in lesson-content.service.ts; aligned L05-L14 curriculumData titles with ZhongWenHub_Test HSK 2.0 lessons; enforced published-only progress/completion (HTTP 404 on DRAFT) and server-side XP calculation in LearningService.cs; normalized case-insensitive DeleteLessonAsync progress check in ContentService.cs; removed empty FALLBACK_SCHEMA_SNAPSHOT and added full 3-table ACID rollback + NEG-2.5 in snapshot/QA scripts; verified 70 .NET unit tests, 293 Bun tests, 12 QA suites, and 3 isolated Ephemeral QA Playwright E2E + real rollback round-trip tests with zero mutations to ZhongWenHub_Test or ZhongWenHub_Dev. Remaining gate: USER_APPROVAL_TOKEN.signed is absent so ZhongWenHub_Test stays at 3/15 PUBLISHED.",
+  "test_results": [
+    {
+      "test_id": "TEST-HSK20-QA-SUITE",
+      "test_name": "HSK 2.0 Comprehensive QA Suite (Positive + Negative incl. NEG-2.5)",
+      "command": "python scripts/hsk20/verify_hsk20_data_quality.py",
+      "test_type": "INTEGRATION",
+      "environment": "Windows Python 3.12",
+      "commit_sha": "587fd06f2a3632e1e3dcdefdb30527c48ef42e3d",
+      "passed_count": 12,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-11T07:50:00Z"
+    },
+    {
+      "test_id": "TEST-BACKEND-UNIT",
+      "test_name": "ASP.NET Core .NET 10 Unit Tests",
+      "command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj -c Release",
+      "test_type": "UNIT",
+      "environment": "Windows .NET 10",
+      "commit_sha": "587fd06f2a3632e1e3dcdefdb30527c48ef42e3d",
+      "passed_count": 70,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-11T07:50:00Z"
+    },
+    {
+      "test_id": "TEST-FRONTEND-UNIT",
+      "test_name": "Frontend Bun Test Suite",
+      "command": "bun test src/tests",
+      "test_type": "UNIT",
+      "environment": "Windows Bun",
+      "commit_sha": "587fd06f2a3632e1e3dcdefdb30527c48ef42e3d",
+      "passed_count": 293,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-11T07:50:00Z"
+    },
+    {
+      "test_id": "TEST-EPHEMERAL-E2E",
+      "test_name": "Playwright Ephemeral QA E2E (15 HSK1 Published Lessons, CMS CRUD, Exam Repo, Security Checks)",
+      "command": "bunx playwright test --config=playwright.ephemeral.config.ts",
+      "test_type": "E2E",
+      "environment": "ZhongWenHub_Ephemeral_QA (SQL Server Express)",
+      "commit_sha": "587fd06f2a3632e1e3dcdefdb30527c48ef42e3d",
+      "passed_count": 3,
+      "failed_count": 0,
+      "skipped_count": 0,
+      "status": "PASS",
+      "execution_timestamp": "2026-11-11T07:35:00Z"
+    }
+  ],
+  "evidence_links": [
+    "https://github.com/nguyen2234/ZhongWenHub/issues/19",
+    "https://github.com/nguyen2234/ZhongWenHub/pull/16"
+  ],
+  "warnings": [
+    "Overall acceptance status is CONDITIONAL (mapped to PARTIAL in result schema): ZhongWenHub_Test and ZhongWenHub_Dev remain 100% unmutated at 3/15 PUBLISHED HSK 1 lessons until explicit USER_APPROVAL_TOKEN.signed sign-off.",
+    "Academic standard status is marked PENDING_HUMAN_EXPERT_SIGN_OFF until linguist review."
+  ],
+  "blockers": [
+    "USER_APPROVAL_TOKEN.signed does not exist, so data/hsk20 staging remediation for HSK 1 lessons L04-L15 was verified on ZhongWenHub_Ephemeral_QA only and intentionally blocked from executing on ZhongWenHub_Test."
+  ]
+}

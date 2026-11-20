@@ -6,7 +6,7 @@ export interface UnitModalProps {
   isOpen: boolean;
   unit: Unit | null;
   onClose: () => void;
-  onSave: (dto: UpdateUnitDTO) => void;
+  onSave: (dto: UpdateUnitDTO) => Promise<void> | void;
 }
 
 export const UnitModal: React.FC<UnitModalProps> = ({
@@ -20,6 +20,8 @@ export const UnitModal: React.FC<UnitModalProps> = ({
   const [description, setDescription] = useState('');
   const [orderIndex, setOrderIndex] = useState(1);
   const [status, setStatus] = useState<ContentStatus>('PUBLISHED');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (unit) {
@@ -35,19 +37,29 @@ export const UnitModal: React.FC<UnitModalProps> = ({
       setOrderIndex(1);
       setStatus('PUBLISHED');
     }
+    setSubmitError(null);
+    setIsSubmitting(false);
   }, [unit, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleZh.trim() || !titleVi.trim()) return;
-    onSave({
-      titleZh,
-      titleVi,
-      description,
-      orderIndex,
-      status,
-    });
-    onClose();
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      await onSave({
+        titleZh,
+        titleVi,
+        description,
+        orderIndex,
+        status,
+      });
+      onClose();
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Không thể lưu Unit vào máy chủ. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,6 +69,21 @@ export const UnitModal: React.FC<UnitModalProps> = ({
       title={unit ? `Chỉnh sửa Unit #${unit.unitNumber}` : 'Thêm Unit mới'}
     >
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-2) 0' }}>
+        {submitError && (
+          <div
+            style={{
+              padding: 'var(--space-2) var(--space-3)',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--danger, #ef4444)',
+              fontSize: 'var(--text-xs)',
+            }}
+          >
+            {submitError}
+          </div>
+        )}
+
         <div className="lcm-form-group">
           <label className="lcm-form-label">Tên Unit (Hán tự) *</label>
           <input
@@ -65,6 +92,7 @@ export const UnitModal: React.FC<UnitModalProps> = ({
             onChange={(e) => setTitleZh(e.target.value)}
             placeholder="e.g. 饮食与餐厅"
             required
+            disabled={isSubmitting}
           />
         </div>
 
@@ -76,6 +104,7 @@ export const UnitModal: React.FC<UnitModalProps> = ({
             onChange={(e) => setTitleVi(e.target.value)}
             placeholder="e.g. Ẩm thực & Nhà hàng"
             required
+            disabled={isSubmitting}
           />
         </div>
 
@@ -87,6 +116,7 @@ export const UnitModal: React.FC<UnitModalProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Mô tả nội dung trọng tâm của Unit..."
+            disabled={isSubmitting}
           />
         </div>
 
@@ -98,6 +128,7 @@ export const UnitModal: React.FC<UnitModalProps> = ({
               className="lcm-form-input"
               value={orderIndex}
               onChange={(e) => setOrderIndex(Number(e.target.value))}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -107,6 +138,7 @@ export const UnitModal: React.FC<UnitModalProps> = ({
               className="lcm-form-input"
               value={status}
               onChange={(e) => setStatus(e.target.value as ContentStatus)}
+              disabled={isSubmitting}
             >
               <option value="PUBLISHED">Đã xuất bản</option>
               <option value="DRAFT">Bản nháp</option>
@@ -119,14 +151,16 @@ export const UnitModal: React.FC<UnitModalProps> = ({
             type="button"
             className="ds-btn ds-btn-outline ds-btn-sm"
             onClick={onClose}
+            disabled={isSubmitting}
           >
             Hủy bỏ
           </button>
           <button
             type="submit"
             className="ds-btn ds-btn-primary ds-btn-sm"
+            disabled={isSubmitting}
           >
-            Lưu Unit
+            {isSubmitting ? 'Đang lưu...' : 'Lưu Unit'}
           </button>
         </div>
       </form>

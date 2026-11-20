@@ -1,9 +1,11 @@
 export * from './types';
+export * from './types/video-learning.types';
 export * from './data/demoVideos';
 export * from './adapters';
 export * from './components/useAudioRecorder';
 export * from './components/SpeakingPracticeCard';
 export * from './components/SynchronizedTranscript';
+export * from './services/video-learning.service';
+export * from './hooks/useVideoLibrary';
 export * from './pages/VideoLibraryPage';
 export * from './pages/VideoDetailPage';
-

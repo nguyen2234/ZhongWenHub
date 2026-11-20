@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 import { type QuizQuestionItem } from '../types';
 import { AnswerFeedback } from '../components/AnswerFeedback';
@@ -13,6 +13,36 @@ export const QuizStep: React.FC<QuizStepProps> = ({ quiz, onCompleteQuiz }) => {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [hasChecked, setHasChecked] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
+
+  useEffect(() => {
+    setCurrentQIndex(0);
+    setSelectedOption(null);
+    setHasChecked(false);
+    setCorrectCount(0);
+  }, [quiz]);
+
+  if (!quiz || quiz.length === 0 || !quiz[currentQIndex]) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', alignItems: 'center', padding: 'var(--space-6)' }}>
+        <p style={{ color: 'var(--muted)', fontSize: 'var(--text-sm)' }}>Bài học này chưa có câu hỏi mini quiz.</p>
+        <button
+          type="button"
+          onClick={() => onCompleteQuiz(0, 0)}
+          style={{
+            padding: '10px 24px',
+            backgroundColor: 'var(--primary)',
+            color: '#fff',
+            borderRadius: 'var(--radius-md)',
+            border: 'none',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Hoàn thành bài học
+        </button>
+      </div>
+    );
+  }
 
   const currentQ = quiz[currentQIndex];
   const isCorrect = selectedOption === currentQ.correctIndex;
@@ -38,9 +68,8 @@ export const QuizStep: React.FC<QuizStepProps> = ({ quiz, onCompleteQuiz }) => {
       setSelectedOption(null);
       setHasChecked(false);
     } else {
-      // Completed all quiz questions
-      const finalScore = isCorrect ? correctCount + 1 : correctCount;
-      onCompleteQuiz(finalScore, quiz.length);
+      // correctCount was already incremented inside handleCheck when checking the final question
+      onCompleteQuiz(correctCount, quiz.length);
     }
   };
 

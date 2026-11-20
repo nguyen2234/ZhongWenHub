@@ -1,0 +1,227 @@
+[
+  {
+    "unitNumber": 1,
+    "lessonNumber": 4,
+    "titleZh": "周末的打算",
+    "titleVi": "Kế hoạch cuối tuần",
+    "targetWords": ["打算", "旅游", "爬山", "照相", "历史", "如果"],
+    "targetGrammar": ["Cấu trúc 如果……就……", "Phó từ 一起", "Động từ năng nguyện 打算"],
+    "passageZh": "这个周末李明打算去外地旅游。他打算和朋友一起去爬山、照相，还要尝尝那里的特色水果。如果下大雨，他们就去参观当地的历史博物馆。",
+    "passagePinyin": "Zhè gè zhōumò Lǐ Míng dǎsuàn qù wàidì lǚyóu. Tā dǎsuàn hé péngyou yìqǐ qù páshān, zhàoxiàng, hái yào chángchang nàlǐ de tèsè shuǐguǒ. Rúguǒ xià dàyǔ, tāmen jiù qù cānguān dāngdì de lìshǐ bówùguǎn.",
+    "passageVi": "Cuối tuần này Lý Minh dự định đi du lịch ngoại tỉnh. Cậu ấy dự định cùng bạn đi leo núi, chụp ảnh, còn muốn nếm thử hoa quả đặc sản ở đó. Nếu trời mưa to, họ sẽ đi tham quan bảo tàng lịch sử địa phương.",
+    "characterCount": 68,
+    "comprehensionQuestions": [
+      {
+        "questionZh": "李明打算和朋友一起去做什么？",
+        "questionPinyin": "Lǐ Míng dǎsuàn hé péngyou yìqǐ qù zuò shénme?",
+        "questionVi": "Lý Minh dự định cùng bạn đi làm gì?",
+        "options": [
+          "去外地爬山、照相 (Qù wàidì páshān, zhàoxiàng)",
+          "在家里睡大觉 (Zài jiālǐ shuì dà jiào)",
+          "去学校参加考试 (Qù xuéxiào cānjiā kǎoshì)",
+          "去超市买衣服 (Qù chāoshì mǎi yīfu)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Đoạn văn nêu rõ: '他打算和朋友一起去爬山、照相' (Cậu ấy dự định cùng bạn đi leo núi, chụp ảnh)."
+      },
+      {
+        "questionZh": "如果周末下大雨，他们打算怎么办？",
+        "questionPinyin": "Rúguǒ zhōumò xià dàyǔ, tāmen dǎsuàn zěnme bàn?",
+        "questionVi": "Nếu cuối tuần mưa to, họ dự định làm sao?",
+        "options": [
+          "留在宾馆看电视 (Liú zài bīnguǎn kàn diànshì)",
+          "去参观当地的历史博物馆 (Qù cānguān dāngdì de lìshǐ bówùguǎn)",
+          "马上坐火车回家 (Mǎshàng zuò huǒchē huíjiā)",
+          "去体育馆打网球 (Qù tǐyùguǎn dǎ wǎngqiú)"
+        ],
+        "correctIndex": 1,
+        "explanation": "Đoạn văn viết: '如果下大雨，他们就去参观当地的历史博物馆' (Nếu trời mưa to, họ sẽ đi tham quan bảo tàng lịch sử địa phương)."
+      }
+    ],
+    "status": "AI_ASSISTED_VERIFIED",
+    "integrationStrategy": {
+      "schemaImpact": "ZERO_SCHEMA_CHANGE",
+      "recommendedStorage": "DialogueJson.readingPassage OR static fallback"
+    }
+  },
+  {
+    "unitNumber": 2,
+    "lessonNumber": 8,
+    "titleZh": "健康的生活习惯",
+    "titleVi": "Thói quen sống lành mạnh",
+    "targetWords": ["习惯", "锻炼", "新鲜", "健康", "越来越"],
+    "targetGrammar": ["Liên từ 不但……而且……", "Cấu trúc 越来越……", "Giới từ 对……有好处"],
+    "passageZh": "王老师每天都有很多好习惯。他不仅早起跑步锻炼，而且平时很少喝冰饮料。他认为，多吃新鲜蔬菜水果、多喝温水，身体就会越来越健康。",
+    "passagePinyin": "Wáng lǎoshī měitiān dōu yǒu hěn duō hǎo xíguàn. Tā bùjǐn zǎoqǐ pǎobù duànliàn, érqiě píngshí hěn shǎo hē bīng yǐnliào. Tā rènwéi, duō chī xīnxian shūcài shuǐguǒ, duō hē wēnshuǐ, shēntǐ jiù huì yuèláiyuè jiànkāng.",
+    "passageVi": "Thầy Vương mỗi ngày đều có rất nhiều thói quen tốt. Thầy không chỉ dậy sớm chạy bộ tập thể dục mà ngày thường còn rất ít khi uống đồ uống lạnh. Thầy cho rằng, ăn nhiều rau quả tươi, uống nhiều nước ấm, cơ thể sẽ ngày càng khỏe mạnh.",
+    "characterCount": 68,
+    "comprehensionQuestions": [
+      {
+        "questionZh": "王老师每天早上有什么习惯？",
+        "questionPinyin": "Wáng lǎoshī měitiān zǎoshang yǒu shénme xíguàn?",
+        "questionVi": "Thầy Vương mỗi sáng có thói quen gì?",
+        "options": [
+          "早起跑步锻炼身体 (Zǎoqǐ pǎobù duànliàn shēntǐ)",
+          "睡到中午才起床 (Shuì dào zhōngwǔ cái qǐchuáng)",
+          "一边喝咖啡一边看电影 (Yìbiān hē kāfēi yìbiān kàn diànyǐng)",
+          "去医院看医生 (Qù yīyuàn kàn yīshēng)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Trong bài viết: '他不仅早起跑步锻炼' (Thầy không chỉ dậy sớm chạy bộ rèn luyện thân thể)."
+      },
+      {
+        "questionZh": "王老师认为怎样才能让身体更健康？",
+        "questionPinyin": "Wáng lǎoshī rènwéi zěnyàng cái néng ràng shēntǐ gèng jiànkāng?",
+        "questionVi": "Thầy Vương cho rằng làm thế nào mới giúp cơ thể khỏe mạnh hơn?",
+        "options": [
+          "每天多喝冰饮料 (Měitiān duō hē bīng yǐnliào)",
+          "多吃新鲜蔬果、多喝温水 (Duō chī xīnxian shūguǒ, duō hē wēnshuǐ)",
+          "经常不吃早餐 (Jīngcháng bù chī zǎocān)",
+          "整天在屋子里看电视 (Zhěngtiān zài wūzi lǐ kàn diànshì)"
+        ],
+        "correctIndex": 1,
+        "explanation": "Đoạn văn nêu: '多吃新鲜蔬菜水果、多喝温水，身体就会越来越健康' (Ăn nhiều rau quả tươi, uống nhiều nước ấm, cơ thể sẽ ngày càng khỏe mạnh)."
+      }
+    ],
+    "status": "AI_ASSISTED_VERIFIED",
+    "integrationStrategy": {
+      "schemaImpact": "ZERO_SCHEMA_CHANGE",
+      "recommendedStorage": "DialogueJson.readingPassage OR static fallback"
+    }
+  },
+  {
+    "unitNumber": 3,
+    "lessonNumber": 12,
+    "titleZh": "把重要的事写在本子上",
+    "titleVi": "Ghi việc quan trọng vào sổ",
+    "targetWords": ["办公室", "认真", "笔记本", "完成", "习惯"],
+    "targetGrammar": ["Câu chữ 把", "Phó từ 才能", "Trợ từ kết cấu 地"],
+    "passageZh": "张经理在办公室工作非常认真。每天开始工作前，他都会把当天重要的会议和计划写在笔记本上。他说，养成好习惯才能更快地完成工作。",
+    "passagePinyin": "Zhāng jīnglǐ zài bàngōngshì gōngzuò fēicháng rènzhēn. Měitiān kāishǐ gōngzuò qián, tā dōu huì bǎ dāngtiān zhòngyào de huìyì hé jìhuà xiě zài bǐjìběn shang. Tā shuō, yǎngchéng hǎo xíguàn cái néng gèng kuài de wánchéng gōngzuò.",
+    "passageVi": "Giám đốc Trương làm việc trong văn phòng vô cùng chăm chỉ. Mỗi ngày trước khi bắt đầu công việc, anh đều ghi các cuộc họp và kế hoạch quan trọng trong ngày vào cuốn sổ tay. Anh nói, rèn luyện thói quen tốt mới có thể hoàn thành công việc nhanh hơn.",
+    "characterCount": 68,
+    "comprehensionQuestions": [
+      {
+        "questionZh": "张经理每天工作前会做什么？",
+        "questionPinyin": "Zhāng jīnglǐ měitiān gōngzuò qián huì zuò shénme?",
+        "questionVi": "Giám đốc Trương trước khi làm việc mỗi ngày sẽ làm gì?",
+        "options": [
+          "把重要的事写在笔记本上 (Bǎ zhòngyào de shì xiě zài bǐjìběn shang)",
+          "喝两杯冰饮料 (Hē liǎng bēi bīng yǐnliào)",
+          "离开办公室去散步 (Líkāi bàngōngshì qù sànbù)",
+          "玩电脑游戏 (Wán diànnǎo yóuxì)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Đoạn văn viết: '他都会把当天重要的会议和计划写在笔记本上' (Anh đều ghi các cuộc họp và kế hoạch quan trọng trong ngày vào sổ tay)."
+      },
+      {
+        "questionZh": "张经理认为怎样才能更快地完成工作？",
+        "questionPinyin": "Zhāng jīnglǐ rènwéi zěnyàng cái néng gèng kuài de wánchéng gōngzuò?",
+        "questionVi": "Giám đốc Trương cho rằng làm thế nào mới hoàn thành công việc nhanh hơn?",
+        "options": [
+          "遇到困难马上请假 (Yùdào kùnnan mǎshàng qǐngjià)",
+          "养成良好的工作习惯 (Yǎngchéng liánghǎo de gōngzuò xíguàn)",
+          "每天迟到半小时 (Měitiān chídào bàn xiǎoshí)",
+          "不做任何工作计划 (Bú zuò rènhé gōngzuò jìhuà)"
+        ],
+        "correctIndex": 1,
+        "explanation": "Đoạn văn khẳng định: '养成好习惯才能更快地完成工作' (Rèn luyện thói quen tốt mới có thể hoàn thành công việc nhanh hơn)."
+      }
+    ],
+    "status": "AI_ASSISTED_VERIFIED",
+    "integrationStrategy": {
+      "schemaImpact": "ZERO_SCHEMA_CHANGE",
+      "recommendedStorage": "DialogueJson.readingPassage OR static fallback"
+    }
+  },
+  {
+    "unitNumber": 4,
+    "lessonNumber": 16,
+    "titleZh": "坚持运动的好处",
+    "titleVi": "Lợi ích của việc kiên trì thể thao",
+    "targetWords": ["坚持", "球场", "健康", "而且", "感觉"],
+    "targetGrammar": ["Cấu trúc 越来越……", "Liên từ 而且", "Bổ ngữ trình độ 得"],
+    "passageZh": "小刘过去身体比较瘦弱，后来他坚持每天到学校球场跑步锻炼。几个月下来，他的身体越来越健康，而且学习时也感觉精力充沛，心情非常愉快。",
+    "passagePinyin": "Xiǎo Liú guòqù shēntǐ bǐjiào shòuruò, hòulái tā jiānchí měitiān dào xuéxiào qiúchǎng pǎobù duànliàn. Jǐ gè yuè xiàlai, tā de shēntǐ yuèláiyuè jiànkāng, érqiě xuéxí shí yě gǎnjué jīnglì chōngpèi, xīnqíng fēicháng yúkuài.",
+    "passageVi": "Tiểu Lưu trước đây cơ thể tương đối gầy yếu, sau này cậu kiên trì mỗi ngày đến sân vận động của trường chạy bộ rèn luyện. Trải qua vài tháng, cơ thể cậu ngày càng khỏe mạnh, hơn nữa khi học bài cũng cảm thấy tràn đầy năng lượng, tâm trạng rất vui vẻ.",
+    "characterCount": 72,
+    "comprehensionQuestions": [
+      {
+        "questionZh": "小刘过去身体怎么样？",
+        "questionPinyin": "Xiǎo Liú guòqù shēntǐ zěnmeyàng?",
+        "questionVi": "Tiểu Lưu trước đây sức khỏe như thế nào?",
+        "options": [
+          "身体比较瘦弱 (Shēntǐ bǐjiào shòuruò)",
+          "非常高大强壮 (Fēicháng gāodà qiángzhuàng)",
+          "经常参加运动会 (Jīngcháng cānjiā yùndònghuì)",
+          "每天都打网球 (Měitiān dōu dǎ wǎngqiú)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Bài viết nêu: '小刘过去身体比较瘦弱' (Tiểu Lưu trước đây cơ thể tương đối gầy yếu)."
+      },
+      {
+        "questionZh": "坚持跑步后小刘有了什么变化？",
+        "questionPinyin": "Jiānchí pǎobù hòu Xiǎo Liú yǒu le shénme biànhuà?",
+        "questionVi": "Sau khi kiên trì chạy bộ, Tiểu Lưu đã có thay đổi gì?",
+        "options": [
+          "身体越来越健康，精力充沛 (Shēntǐ yuèláiyuè jiànkāng, jīnglì chōngpèi)",
+          "每天都觉得特别累不想动 (Měitiān dōu juéde tèbié lèi bù xiǎng dòng)",
+          "忘记了所有学过的生词 (Wàngjì le suǒyǒu xué guò de shēngcí)",
+          "不想再去学校上课 (Bù xiǎng zài qù xuéxiào shàngkè)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Đoạn văn nêu rõ: '他的身体越来越健康，而且学习时也感觉精力充沛' (Cơ thể cậu ngày càng khỏe mạnh, hơn nữa khi học tập cũng cảm thấy dồi dào năng lượng)."
+      }
+    ],
+    "status": "AI_ASSISTED_VERIFIED",
+    "integrationStrategy": {
+      "schemaImpact": "ZERO_SCHEMA_CHANGE",
+      "recommendedStorage": "DialogueJson.readingPassage OR static fallback"
+    }
+  },
+  {
+    "unitNumber": 5,
+    "lessonNumber": 20,
+    "titleZh": "努力就有收获",
+    "titleVi": "Nỗ lực ắt có thu hoạch",
+    "targetWords": ["努力", "收获", "明白", "只有", "未来"],
+    "targetGrammar": ["Cấu trúc 只要……就……", "Cấu trúc 不仅……还……", "Động từ 明白 / 懂得"],
+    "passageZh": "经过一年的刻苦努力，安娜不仅通过了汉语水平考试，还交到了许多热情的中国朋友。她明白了一个道理：只要坚持努力，就一定能收获美好的未来。",
+    "passagePinyin": "Jīngguò yì nián de kèkǔ nǔlì, Ānnà bùjǐn tōngguò le hànyǔ shuǐpíng kǎoshì, hái jiāodào le xǔduō rèqíng de Zhōngguó péngyou. Tā míngbai le yí gè dàolǐ: zhǐyào jiānchí nǔlì, jiù yídìng néng shōuhuò měihǎo de wèilái.",
+    "passageVi": "Qua một năm nỗ lực khắc khổ, Anna không chỉ vượt qua kỳ thi năng lực tiếng Hán mà còn kết giao được với rất nhiều người bạn Trung Quốc nhiệt tình. Cô hiểu ra một đạo lý: chỉ cần kiên trì nỗ lực thì nhất định sẽ gặt hái được một tương lai tươi đẹp.",
+    "characterCount": 71,
+    "comprehensionQuestions": [
+      {
+        "questionZh": "安娜通过一年的努力取得了什么收获？",
+        "questionPinyin": "Ānnà tōngguò yì nián de nǔlì qǔdé le shénme shōuhuò?",
+        "questionVi": "Anna qua một năm nỗ lực đã thu được thành quả gì?",
+        "options": [
+          "通过了汉语考试并结交了朋友 (Tōngguò le hànyǔ kǎoshì bìng jiéjiāo le péngyou)",
+          "买了一辆新汽车 (Mǎi le yí liàng xīn qìchē)",
+          "搬家到了别的城市 (Bānjiā dào le biéde chéngshì)",
+          "离开了中国大学 (Líkāi le Zhōngguó dàxué)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Đoạn văn nêu: '安娜不仅通过了汉语水平考试，还交到了许多热情的中国朋友' (Anna không chỉ thi đỗ kỳ thi tiếng Hán mà còn kết giao được nhiều bạn Trung Quốc nhiệt tình)."
+      },
+      {
+        "questionZh": "这段话告诉我们什么道理？",
+        "questionPinyin": "Zhè duàn huà gàosù wǒmen shénme dàolǐ?",
+        "questionVi": "Đoạn văn này nói cho chúng ta biết đạo lý gì?",
+        "options": [
+          "只要坚持努力就会有收获 (Zhǐyào jiānchí nǔlì jiù huì yǒu shōuhuò)",
+          "学习汉语不需要花费时间 (Xuéxí hànyǔ bù xūyào huāfèi shíjiān)",
+          "考试之前不用做任何复习 (Kǎoshì zhīqián búyòng zuò rènhé fùxí)",
+          "平时只要睡觉就能学好 (Píngshí zhǐyào shuìjiào jiù néng xué hǎo)"
+        ],
+        "correctIndex": 0,
+        "explanation": "Đoạn văn kết luận: '只要坚持努力，就一定能收获美好的未来' (Chỉ cần kiên trì nỗ lực thì nhất định sẽ gặt hái tương lai tươi đẹp)."
+      }
+    ],
+    "status": "AI_ASSISTED_VERIFIED",
+    "integrationStrategy": {
+      "schemaImpact": "ZERO_SCHEMA_CHANGE",
+      "recommendedStorage": "DialogueJson.readingPassage OR static fallback"
+    }
+  }
+]

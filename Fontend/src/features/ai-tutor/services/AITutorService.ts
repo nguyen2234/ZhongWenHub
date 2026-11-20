@@ -1,6 +1,11 @@
+import { httpClient } from '../../../core/api/client/http-client';
+import { ApiClientError } from '../../../core/api/client/api-error';
 import type {
   AITutorContext,
+  AITutorHistoryTurn,
+  AITutorMessage,
   AITutorMode,
+  AIResponseBlock,
   StructuredAIResponse,
 } from '../types';
 
@@ -9,6 +14,7 @@ export interface ChatRequest {
   message: string;
   mode: AITutorMode;
   context: AITutorContext;
+  history?: AITutorHistoryTurn[];
 }
 
 export interface ChatStreamChunk {
@@ -17,213 +23,209 @@ export interface ChatStreamChunk {
   structuredResponse?: StructuredAIResponse;
 }
 
+export interface ChatSendOptions {
+  signal?: AbortSignal;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isValidBlock(block: unknown): block is AIResponseBlock {
+  if (!isRecord(block) || typeof block.type !== 'string') {
+    return false;
+  }
+
+  switch (block.type) {
+    case 'explanation':
+      return typeof block.content === 'string' && block.content.trim().length > 0;
+    case 'chinese_example':
+      return (
+        typeof block.hanzi === 'string' &&
+        typeof block.pinyin === 'string' &&
+        typeof block.vietnamese === 'string'
+      );
+    case 'correction':
+      return (
+        typeof block.correctedSentence === 'string' &&
+        typeof block.explanation === 'string' &&
+        Array.isArray(block.diffItems)
+      );
+    case 'practice':
+      return (
+        typeof block.instruction === 'string' &&
+        isRecord(block.exercise) &&
+        Array.isArray(block.exercise.options) &&
+        typeof block.exercise.correctOptionIndex === 'number'
+      );
+    default:
+      return false;
+  }
+}
+
 export class AITutorService {
   /**
-   * Mock generation of contextual structured responses
-   * Designed to easily swap out with `fetch('/api/ai-tutor/chat')` or WebSocket streaming.
+   * Sends a contextual learner question to the ASP.NET Core AI Tutor endpoint (`POST /api/v1/ai-tutor/chat`).
+   * Reuses HttpClient (with JWT Bearer token) and never fabricates mock answers on failure.
    */
   static async sendChatMessage(
     request: ChatRequest,
-    onChunk?: (chunk: ChatStreamChunk) => void
+    onChunk?: ((chunk: ChatStreamChunk) => void) | ChatSendOptions,
+    options?: ChatSendOptions
   ): Promise<StructuredAIResponse> {
-    const { message, context } = request;
-    const lower = message.toLowerCase();
+    const resolvedOptions = typeof onChunk === 'function' ? options : onChunk;
+    const chunkCallback = typeof onChunk === 'function' ? onChunk : undefined;
 
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    // 1. PRACTICE ERROR USE CASE: "Tại sao tôi sai" or asking about error
-    if (
-      context.exerciseContext ||
-      lower.includes('tại sao') ||
-      lower.includes('sai') ||
-      lower.includes('đáp án')
-    ) {
-      const ex = context.exerciseContext;
-      const userAns = ex?.userAnswer || 'là';
-      const rightAns = ex?.correctAnswer || '想 (xiǎng)';
-
-      const response: StructuredAIResponse = {
-        type: 'structured',
-        summary: 'Phân tích lỗi sai bài tập',
-        blocks: [
-          {
-            type: 'explanation',
-            title: 'TẠI SAO CÂU CỦA BẠN CHƯA ĐÚNG?',
-            content: `Trong câu "${ex?.promptHanzi || '我 ___ 喝茶。'}", bạn đã chọn "${userAns}". Tuy nhiên, đáp án đúng phải là "${rightAns}". 是 (shì) là động từ liên kết mang nghĩa "là", không thể đứng trực tiếp trước một động từ chính khác như 喝 (hē - uống).`,
-            note: 'Công thức chuẩn: Chủ ngữ + 想 + Động từ + Tân ngữ (Muốn làm gì).',
-          },
-          {
-            type: 'chinese_example',
-            hanzi: '我想喝茶。',
-            pinyin: 'Wǒ xiǎng hē chá.',
-            vietnamese: 'Tôi muốn uống trà.',
-            highlightWords: ['想', '喝'],
-          },
-          {
-            type: 'explanation',
-            title: 'LƯU Ý NGỮ PHÁP QUAN TRỌNG',
-            content: 'Muốn diễn đạt ý phủ định "Không muốn", ta dùng 不想 (bù xiǎng), ví dụ: 我不想喝茶 (Tôi không muốn uống trà), tuyệt đối không nói 我不喝茶了 với nghĩa muốn.',
-          },
-          {
-            type: 'practice',
-            instruction: 'Thử sức ngay với 1 câu tương tự để kiểm tra độ hiểu:',
-            exercise: {
-              id: 'ai-mini-drill-1',
-              type: 'fill-blank',
-              title: 'Bài tập tương tự do AI đề xuất',
-              instruction: 'Chọn từ chính xác để hoàn thành câu: "Tôi muốn học tiếng Trung."',
-              promptHanzi: '我 ___ 学习中文。',
-              promptPinyin: 'Wǒ ___ xuéxí Zhōngwén.',
-              promptVietnamese: 'Tôi muốn học tiếng Trung.',
-              options: ['想', '是', '有', '在'],
-              correctOptionIndex: 0,
-              explanation: 'Chính xác! Dùng 想 (xiǎng) trước động từ 学习 (xuéxí - học) để diễn đạt mong muốn học.',
-              xpReward: 5,
-            },
-          },
-        ],
-        suggestedActions: [
-          'Cho thêm 2 câu tương tự',
-          'Phân biệt 想 và 要',
-          'Luyện hội thoại gọi đồ uống',
-        ],
-      };
-
-      if (onChunk) {
-        onChunk({ isCompleted: true, structuredResponse: response });
+    const rawResponse = await httpClient.post<unknown>(
+      '/ai-tutor/chat',
+      {
+        conversationId: request.conversationId,
+        message: request.message,
+        mode: request.mode,
+        context: request.context,
+        history: request.history && request.history.length > 0 ? request.history : undefined,
+      },
+      {
+        timeoutMs: 35000,
+        signal: resolvedOptions?.signal,
       }
-      return response;
+    );
+
+    const normalized = AITutorService.normalizeResponse(rawResponse);
+
+    if (chunkCallback) {
+      chunkCallback({ isCompleted: true, structuredResponse: normalized });
     }
 
-    // 2. CORRECTION USE CASE: User submits a sentence to check
-    if (
-      lower.includes('sửa') ||
-      lower.includes('đúng chưa') ||
-      lower.includes('我想喝咖啡了') ||
-      lower.includes('câu này') ||
-      message.includes('咖啡')
-    ) {
-      const response: StructuredAIResponse = {
-        type: 'structured',
-        summary: 'Sửa lỗi và tối ưu câu',
-        blocks: [
-          {
-            type: 'correction',
-            originalSentence: message.includes('了') ? message : '我想喝咖啡了',
-            correctedSentence: '我想喝咖啡。',
-            pinyin: 'Wǒ xiǎng hē kāfēi.',
-            vietnamese: 'Tôi muốn uống cà phê.',
-            explanation:
-              'Trong ngữ cảnh biểu đạt nguyện vọng thuần túy ở hiện tại, trợ từ ngữ khí 了 (le) là dư thừa. 了 thường biểu thị hành động đã hoàn tất hoặc có sự thay đổi trạng thái đột ngột.',
-            diffItems: [
-              { type: 'same', text: '我想喝咖啡' },
-              { type: 'removed', text: '了' },
-              { type: 'added', text: '。' },
-            ],
-          },
-          {
-            type: 'chinese_example',
-            hanzi: '你想喝冰咖啡还是热咖啡？',
-            pinyin: 'Nǐ xiǎng hē bīng kāfēi háishi rè kāfēi?',
-            vietnamese: 'Bạn muốn uống cà phê đá hay cà phê nóng?',
-          },
-        ],
-        suggestedActions: [
-          'Thử đặt câu khác với 想',
-          'Khi nào thì dùng 了?',
-          'Luyện hội thoại quán cà phê',
-        ],
-      };
+    return normalized;
+  }
 
-      if (onChunk) {
-        onChunk({ isCompleted: true, structuredResponse: response });
-      }
-      return response;
+  /**
+   * Safely validates and normalizes backend/AI output so malformed payloads fall back to markdown
+   * without breaking the UI or StructuredAIResponse contract.
+   */
+  static normalizeResponse(raw: unknown): StructuredAIResponse {
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      return {
+        type: 'markdown',
+        summary: 'Phản hồi từ Trợ giảng AI',
+        markdownFallback: trimmed || 'Trợ giảng AI chưa trả về nội dung hợp lệ.',
+        blocks: [],
+        suggestedActions: [],
+      };
     }
 
-    // 3. VOCABULARY COMPARISON / GENERAL: "Phân biệt 想 và 要"
-    if (lower.includes('phân biệt') || lower.includes('想') || lower.includes('要')) {
-      const response: StructuredAIResponse = {
-        type: 'structured',
-        summary: 'Phân biệt điểm ngữ pháp',
-        blocks: [
-          {
-            type: 'explanation',
-            title: 'SO SÁNH BẢN CHẤT: 想 (xiǎng) vs 要 (yào)',
-            content:
-              'Cả hai từ đều có thể dịch là "muốn", nhưng mức độ quyết tâm và sắc thái hoàn toàn khác biệt:\n\n• 想 (xiǎng): Mong muốn trong suy nghĩ, nguyện vọng chủ quan nhẹ nhàng, lịch sự ("tôi muốn / tôi dự định").\n• 要 (yào): Ý định dứt khoát, quyết tâm thực hiện, hoặc yêu cầu mạnh mẽ ("tôi muốn / tôi sẽ / tôi cần").',
-          },
-          {
-            type: 'chinese_example',
-            hanzi: '我想去中国旅游。',
-            pinyin: 'Wǒ xiǎng qù Zhōngguó lǚyóu.',
-            vietnamese: 'Tôi muốn đi Trung Quốc du lịch (mong muốn, kế hoạch).',
-          },
-          {
-            type: 'chinese_example',
-            hanzi: '我要一杯美式咖啡。',
-            pinyin: 'Wǒ yào yībēi Měishì kāfēi.',
-            vietnamese: 'Cho tôi một ly cà phê Americano (yêu cầu gọi món rõ ràng).',
-          },
-          {
-            type: 'practice',
-            instruction: 'Chọn từ phù hợp nhất cho ngữ cảnh gọi món tại quầy:',
-            exercise: {
-              id: 'ai-mini-drill-2',
-              type: 'fill-blank',
-              title: 'Gọi món ở quầy',
-              instruction: 'Chọn từ diễn đạt ý dứt khoát khi gọi đồ uống:',
-              promptHanzi: '你好，服务员！我 ___ 一杯热茶。',
-              promptPinyin: 'Nǐ hǎo, fúwùyuán! Wǒ ___ yībēi rè chá.',
-              promptVietnamese: 'Xin chào, phục vụ! Cho tôi một ly trà nóng.',
-              options: ['要', '想', '看', '在'],
-              correctOptionIndex: 0,
-              explanation: 'Tuyệt vời! Khi gọi món trực tiếp với phục vụ, dùng 我要 (Cho tôi...) là cách nói tự nhiên và dứt khoát nhất.',
-              xpReward: 5,
-            },
-          },
-        ],
-        suggestedActions: [
-          'Thử đặt 1 câu với 要',
-          'Luyện nghe phân biệt 想 và 要',
-          'Luyện hội thoại gọi đồ uống',
-        ],
+    if (!isRecord(raw)) {
+      return {
+        type: 'markdown',
+        summary: 'Phản hồi từ Trợ giảng AI',
+        markdownFallback: 'Định dạng phản hồi từ Trợ giảng AI không hợp lệ. Vui lòng thử lại.',
+        blocks: [],
+        suggestedActions: [],
       };
-
-      if (onChunk) {
-        onChunk({ isCompleted: true, structuredResponse: response });
-      }
-      return response;
     }
 
-    // 4. DEFAULT CONTEXTUAL EXPLANATION
-    const defaultResponse: StructuredAIResponse = {
-      type: 'structured',
-      summary: 'Trợ giảng giải thích',
-      blocks: [
-        {
-          type: 'explanation',
-          title: 'HƯỚNG DẪN TỪ TRỢ GIẢNG',
-          content: `Về câu hỏi "${message}": Đối với trình độ HSK ${context.hskLevel || 2}, bạn nên chú trọng vào việc hình thành phản xạ câu hoàn chỉnh trước khi học sâu vào các từ hiếm.`,
-        },
-        {
-          type: 'chinese_example',
-          hanzi: '每天练习一点点，进步看得见。',
-          pinyin: 'Měitiān liànxí yīdiǎndiǎn, jìnbù kàndéjiàn.',
-          vietnamese: 'Mỗi ngày luyện tập một chút, tiến bộ sẽ thấy rõ.',
-        },
-      ],
-      suggestedActions: [
-        'Giải thích ngữ pháp bài đang học',
-        'Cho câu luyện tập tương tự',
-        'Luyện hội thoại tình huống',
-      ],
+    const summary = typeof raw.summary === 'string' ? raw.summary : undefined;
+    const markdownFallback =
+      typeof raw.markdownFallback === 'string' && raw.markdownFallback.trim().length > 0
+        ? raw.markdownFallback.trim()
+        : undefined;
+
+    const suggestedActions = Array.isArray(raw.suggestedActions)
+      ? raw.suggestedActions.filter((a): a is string => typeof a === 'string' && a.trim().length > 0).slice(0, 3)
+      : [];
+
+    const validBlocks = Array.isArray(raw.blocks) ? raw.blocks.filter(isValidBlock) : [];
+
+    if (validBlocks.length > 0 && raw.type !== 'markdown') {
+      return {
+        type: 'structured',
+        summary,
+        markdownFallback,
+        blocks: validBlocks,
+        suggestedActions,
+      };
+    }
+
+    return {
+      type: 'markdown',
+      summary: summary || 'Phản hồi từ Trợ giảng AI',
+      markdownFallback:
+        markdownFallback ||
+        summary ||
+        'Trợ giảng AI trả về dữ liệu chưa chuẩn cấu trúc. Vui lòng thử đặt câu hỏi lại.',
+      blocks: [],
+      suggestedActions,
     };
+  }
 
-    if (onChunk) {
-      onChunk({ isCompleted: true, structuredResponse: defaultResponse });
+  static buildHistoryFromMessages(messages: AITutorMessage[], maxTurns = 8): AITutorHistoryTurn[] {
+    const turns: AITutorHistoryTurn[] = [];
+    for (const msg of messages) {
+      if (msg.id.startsWith('m-init-') || msg.id === 'msg-welcome') {
+        continue;
+      }
+
+      if (msg.role !== 'user' && msg.role !== 'assistant') {
+        continue;
+      }
+
+      let text = (msg.content || '').trim();
+      if (!text && msg.structuredResponse) {
+        const sr = msg.structuredResponse;
+        const parts: string[] = [];
+        if (sr.summary) parts.push(sr.summary.trim());
+        for (const block of sr.blocks || []) {
+          if (block.type === 'explanation' && block.content) {
+            parts.push(block.content.trim());
+          } else if (block.type === 'chinese_example' && block.hanzi) {
+            parts.push(`${block.hanzi} (${block.pinyin}) - ${block.vietnamese}`);
+          } else if (block.type === 'correction' && block.correctedSentence) {
+            parts.push(`Sửa: ${block.correctedSentence} (${block.explanation})`);
+          }
+        }
+        if (parts.length === 0 && sr.markdownFallback) {
+          parts.push(sr.markdownFallback.trim());
+        }
+        text = parts.join('\n').trim();
+      }
+
+      if (!text) continue;
+
+      turns.push({
+        role: msg.role,
+        content: text.length > 800 ? text.slice(0, 800) : text,
+      });
     }
-    return defaultResponse;
+
+    return turns.slice(-Math.max(1, maxTurns));
+  }
+
+  static getErrorMessage(error: unknown): string {
+    if (error instanceof ApiClientError) {
+      if (error.status === 401) {
+        return 'Phiên đăng nhập đã hết hạn hoặc bạn chưa đăng nhập. Vui lòng đăng nhập lại để sử dụng Trợ giảng AI.';
+      }
+      if (error.status === 429) {
+        return 'Hệ thống AI đang quá tải hoặc bạn gửi quá nhanh (429). Vui lòng đợi ít phút rồi thử lại.';
+      }
+      if (error.status === 503) {
+        return 'Trợ giảng AI hiện chưa được cấu hình hoặc tạm thời bảo trì (503).';
+      }
+      if (error.status === 408 || error.status === 504) {
+        return 'Trợ giảng AI phản hồi quá thời gian. Vui lòng thử lại.';
+      }
+      if (error.isNetworkError && error.status === 0) {
+        return 'Không thể kết nối đến máy chủ Trợ giảng AI. Vui lòng kiểm tra mạng và thử lại.';
+      }
+      return error.message || 'Không thể gửi câu hỏi tới Trợ giảng AI lúc này.';
+    }
+
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+
+    return 'Đã xảy ra lỗi không xác định khi gọi Trợ giảng AI. Vui lòng thử lại.';
   }
 }

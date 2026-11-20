@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "HSK2-AUDIT-COMPLETE",
+  "title": "HSK 2 Curriculum Verification & Test DB Integrity",
+  "description": "Audit and verify HSK 2 curriculum: 15 lessons, 200 vocabulary, 78 grammar points, 90 exercises, 15 dialogues, 5 reading passages, 30 audio files in ZhongWenHub_Test.",
+  "project": "ZhongWenHub",
+  "phase": "Phase 9.2",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "COMPLETED",
+  "revision": 1,
+  "issue_number": null,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "3918063",
+  "input_files": [
+    "data/hsk30/reference/current_db_inventory.json"
+  ],
+  "expected_outputs": [
+    "data/hsk30/reference/current_db_inventory.json"
+  ],
+  "acceptance_criteria": [
+    "15 lessons in HSK 2 verified in ZhongWenHub_Test",
+    "200 vocabulary entries with verified pinyin and Vietnamese definitions",
+    "78 grammar points, 90 exercises, 15 dialogues, 5 passages, 30 audios verified"
+  ],
+  "safety_constraints": [
+    "Read-only audit against ZhongWenHub_Test"
+  ],
+  "created_at": "2026-11-10T23:50:00Z",
+  "updated_at": "2026-11-10T23:50:00Z"
+}

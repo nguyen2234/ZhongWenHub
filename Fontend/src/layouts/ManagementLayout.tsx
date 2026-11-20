@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ManagementSidebar, ManagementHeader } from '../management/shared/components';
 import {
@@ -11,25 +11,22 @@ import { managementAuthService } from '../management/shared/services/management-
 import type { UserRole } from '../types';
 
 export const ManagementLayout: React.FC = () => {
-  const location = useLocation();
   const [session, setSession] = useState(() => managementAuthService.getSession());
 
   useEffect(() => {
     return managementAuthService.subscribe((updated) => setSession(updated));
   }, []);
 
-  // Determine current role based on exact URL role segment (/management/:roleSegment/...)
+  const location = useLocation();
+
   const currentRole: UserRole = useMemo(() => {
-    const segments = location.pathname.toLowerCase().split('/').filter(Boolean);
-    if (segments[0] === 'management' && segments[1]) {
-      const roleSegment = segments[1];
-      if (roleSegment === 'content-manager') return 'CONTENT_MANAGER';
-      if (roleSegment === 'teacher') return 'TEACHER';
-      if (roleSegment === 'support') return 'SUPPORT';
-      if (roleSegment === 'admin') return 'ADMIN';
-    }
-    return session.role;
-  }, [location.pathname, session.role]);
+    const path = location.pathname;
+    if (path.startsWith('/management/teacher')) return 'TEACHER';
+    if (path.startsWith('/management/content-manager')) return 'CONTENT_MANAGER';
+    if (path.startsWith('/management/support')) return 'SUPPORT';
+    if (path.startsWith('/management/admin')) return 'ADMIN';
+    return session?.role || 'ADMIN';
+  }, [location.pathname, session?.role]);
 
   // Sidebar expanded / collapsed state (persisted or auto-collapsed on tablet)
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -85,7 +82,7 @@ export const ManagementLayout: React.FC = () => {
       className="management-layout-root"
       style={{
         display: 'flex',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         backgroundColor: 'var(--background)',
         width: '100%',
         position: 'relative',
@@ -94,6 +91,7 @@ export const ManagementLayout: React.FC = () => {
       {/* Mobile Backdrop Overlay (< 1024px) */}
       {isMobileOpen && (
         <div
+          data-testid="management-mobile-backdrop"
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
           style={{
@@ -102,6 +100,8 @@ export const ManagementLayout: React.FC = () => {
             backgroundColor: 'rgba(15, 23, 42, 0.45)',
             zIndex: 49,
             transition: 'opacity 0.2s ease',
+            overscrollBehavior: 'none',
+            touchAction: 'none',
           }}
         />
       )}
@@ -133,8 +133,8 @@ export const ManagementLayout: React.FC = () => {
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
           onMobileToggle={() => setIsMobileOpen((prev) => !prev)}
-          userName={session.name}
-          userEmail={session.email}
+          userName={session?.name || 'Quản trị viên'}
+          userEmail={session?.email || 'admin@zhongwenhub.edu.vn'}
         />
 
         {/* Content Viewport */}

@@ -243,7 +243,9 @@ export class HttpClient {
       }
     }
 
-    if (body !== undefined && !headers.has('content-type')) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+
+    if (body !== undefined && !isFormData && !headers.has('content-type')) {
       headers.set('Content-Type', 'application/json');
     }
 
@@ -282,7 +284,7 @@ export class HttpClient {
         ...restOptions,
         method,
         headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: isFormData ? (body as BodyInit) : (body !== undefined ? JSON.stringify(body) : undefined),
         signal: controller.signal,
         credentials,
       });

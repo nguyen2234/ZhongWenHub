@@ -1,16 +1,29 @@
-import React from 'react';
-import { Calendar, Clock, Video, MapPin, Globe, ExternalLink } from 'lucide-react';
-import type { ClassSchedule } from '../../types/class.types';
+import React, { useState } from 'react';
+import { Calendar, Clock, Video, MapPin, Globe, ExternalLink, CheckCheck } from 'lucide-react';
+import type { ClassSchedule, ClassMemberViewDTO } from '../../types/class.types';
 import { DAY_OF_WEEK_LABELS } from '../../types/class.types';
+import { ClassAttendanceModal } from './ClassAttendanceModal';
 
 export interface ClassScheduleTabProps {
   schedules: ClassSchedule[];
+  classId?: string;
+  className?: string;
+  members?: ClassMemberViewDTO[];
+  onAttendanceSaved?: () => void;
 }
 
-export const ClassScheduleTab: React.FC<ClassScheduleTabProps> = ({ schedules }) => {
+export const ClassScheduleTab: React.FC<ClassScheduleTabProps> = ({
+  schedules,
+  classId,
+  className = 'Lớp học',
+  members = [],
+  onAttendanceSaved,
+}) => {
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+
   return (
     <div className="tp-card">
-      <div className="tp-card-header">
+      <div className="tp-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
         <div>
           <h3 className="tp-card-title">
             <Calendar size={18} style={{ color: 'var(--primary)' }} />
@@ -20,6 +33,18 @@ export const ClassScheduleTab: React.FC<ClassScheduleTabProps> = ({ schedules })
             Khung giờ cố định theo tuần, múi giờ Việt Nam (Asia/Ho_Chi_Minh)
           </div>
         </div>
+
+        {classId && (
+          <button
+            type="button"
+            className="ds-btn ds-btn-sm ds-btn-primary"
+            onClick={() => setIsAttendanceOpen(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <CheckCheck size={14} />
+            <span>Điểm danh buổi học</span>
+          </button>
+        )}
       </div>
 
       {schedules.length === 0 ? (
@@ -154,6 +179,17 @@ export const ClassScheduleTab: React.FC<ClassScheduleTabProps> = ({ schedules })
             );
           })}
         </div>
+      )}
+
+      {classId && (
+        <ClassAttendanceModal
+          isOpen={isAttendanceOpen}
+          onClose={() => setIsAttendanceOpen(false)}
+          classId={classId}
+          className={className}
+          members={members}
+          onAttendanceSaved={onAttendanceSaved}
+        />
       )}
     </div>
   );

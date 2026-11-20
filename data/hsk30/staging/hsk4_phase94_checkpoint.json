@@ -1,0 +1,53 @@
+{
+  "phase": "9.4",
+  "current_stage": "STAGE_TEST_DB_IMPORTED_COMMITTED",
+  "completed_tasks": [
+    "Task 1: Baseline Audit & Data Dump",
+    "Task 3: Vocabulary Enrichment P1 (L01-L05, 250 words)",
+    "Task 3: Vocabulary Enrichment P2 (L06-L10, 250 words)"
+  ],
+  "completed_lessons": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "completed_vocabulary_count": 1000,
+  "remaining_stages": [
+    "Vocabulary Enrichment P3 (L11-L15, 250 words)",
+    "Vocabulary Enrichment P4 (L16-L20, 250 words)",
+    "Vocabulary Enrichment Assembly & Manifest",
+    "Source Provenance & Grammar Audit (95 points)",
+    "5 Unit Reading Passages Integration",
+    "Audio QA & Verification (40 files)",
+    "Exercise Expansion (40 existing + 40 new = 80 exercises)",
+    "Frontend Alignment & Bun Unit Tests",
+    "Backend Integration & Multi-Batch Test DB Import/Rollback",
+    "Lesson-by-Lesson Playwright E2E Testing",
+    "19 Markdown Phase 9.4 Deliverables Generation"
+  ],
+  "file_hashes": {
+    "hsk4_vocab_data_p1.py": "44e882a9bce0f298f3bd92bc9c895babe2f712cb12ce8d43b9679a5db29945dc",
+    "hsk4_vocab_data_p2.py": "ccd56c9c237f314b556b62da6d1f49968de6309829d11fbbe09b2a88588b71bf",
+    "dev_hsk4_vocab_raw.json": "3e1dab5eb71977077762e8cf0547aec11980ea9a2ee497af5ffc93069f3fbbfc",
+    "dev_hsk4_grammar_raw.json": "033660239a0d75e8d6597b58eb1fc9a3dbb8f2098742cbdcfd09b4c0fea17e6e",
+    "dev_hsk4_exercises_raw.json": "ad6ff7d7d09f71668a671310ece3363d61c009e86f885ac2a00f9b73489843a0"
+  },
+  "status": "IN_PROGRESS"
+}

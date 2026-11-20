@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK20-DATA-QA-REMEDIATION",
+  "title": "HSK 2.0 Phase 2 Independent Data QA, Verification & Flaw Remediation",
+  "description": "Comprehensive audit and remediation of 7 previous session flaws, phonotactic pinyin validation with pypinyin dictionary cross-check, elimination of English fallbacks across 1,200 vocabulary items, pedagogical translation of 311 grammar points, record-level diff engine with 5-category classification, database lock and signed token approval gate, and positive/negative test suites.",
+  "project": "ZhongWenHub",
+  "phase": "Curriculum Quality Assurance",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 19,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "e75fd3f411bdfc5696384374715746a7457f906a",
+  "input_files": [
+    "data/hsk20/staging/hsk20_vocabulary_standard.json",
+    "data/hsk20/staging/hsk20_grammar_standard.json",
+    "scripts/hsk20/import_hsk20_vocab_grammar.py",
+    "scripts/hsk20/verify_hsk20_data_quality.py"
+  ],
+  "expected_outputs": [
+    "scripts/hsk20/pinyin_validator.py",
+    "scripts/hsk20/generate_pre_import_diff.py",
+    "scripts/hsk20/remediate_grammar_dataset.py",
+    "scripts/hsk20/import_hsk20_vocab_grammar.py",
+    "scripts/hsk20/verify_hsk20_data_quality.py",
+    "data/hsk20/staging/hsk20_pre_import_diff.json",
+    "data/hsk20/staging/hsk20_qa_test_results.json",
+    "docs/hsk20/HSK20_PHASE2_INDEPENDENT_AUDIT.md",
+    "docs/hsk20/HSK20_PHASE2_VOCAB_CONFLICTS.md",
+    "docs/hsk20/HSK20_PHASE2_GRAMMAR_REVIEW.md",
+    "docs/hsk20/HSK20_PHASE2_RECORD_LEVEL_DIFF.md",
+    "docs/hsk20/HSK20_PHASE2_QA_RESULTS.md",
+    ".ai-collaboration/results/ZWH-HSK20-DATA-QA-REMEDIATION_result.json"
+  ],
+  "acceptance_criteria": [
+    "Audit and remediate 7 flaws from previous implementation session with file/line evidence",
+    "Strict Pinyin phonotactic validation and pypinyin dictionary cross-check with 0 errors on 1,200 vocab items",
+    "Eliminate 100% of English fallback strings and uncleaned parentheses in Vietnamese meanings",
+    "Pedagogical translation of 311 grammar points with formulas and multi-sentence examples",
+    "Explain Hanban 2012 syllabus word count target anomaly (150, 150, 299, 601 = 1,200 cumulative entries)",
+    "Implement record-level diff engine categorizing all records into TO_ADD, TO_UPDATE, UNCHANGED, CONFLICT, SUPPLEMENTARY",
+    "Implement database safety approval gate requiring cryptographic/signed token prior to writes",
+    "Implement both Positive Suite (7 tests) and Negative Tamper Suite (4 tests) with 11/11 PASS",
+    "Verify regression tests: 38/38 .NET backend unit tests and 288/288 bun frontend unit tests PASS",
+    "Compile 5 detailed markdown documentation deliverables in docs/hsk20/"
+  ],
+  "safety_constraints": [
+    "Zero database writes (Dev strictly read-only, Test locked with signed token gate)",
+    "No copyrighted books or audio files committed to Git repository",
+    "Preserve 70 lessons architecture with single HSK 4 level (no HSK 4A/4B split)",
+    "Keep PR #16 Open/Draft; do not merge or force push"
+  ],
+  "created_at": "2026-11-11T02:00:00Z",
+  "updated_at": "2026-11-11T02:11:00Z"
+}

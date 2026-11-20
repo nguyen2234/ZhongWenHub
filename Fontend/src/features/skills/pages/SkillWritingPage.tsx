@@ -6,6 +6,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { MOCK_WRITING_EXERCISES } from '../mock/mockSkillData';
+import { normalizeAnswerText } from '../../exercise-engine';
 
 export const SkillWritingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'character' | 'sentence'>('sentence');
@@ -37,8 +38,8 @@ export const SkillWritingPage: React.FC = () => {
     setSentenceSubmitted(false);
   };
 
-  const constructedSentence = selectedWords.join('') + '。';
-  const isSentenceCorrect = constructedSentence === sentenceEx.correctSentence;
+  const isSentenceCorrect =
+    normalizeAnswerText(selectedWords.join('')) === normalizeAnswerText(sentenceEx.correctSentence);
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>

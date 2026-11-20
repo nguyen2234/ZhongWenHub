@@ -3,7 +3,7 @@
 .lesson-toc-desktop-card {
   position: sticky;
   top: 84px;
-  width: 250px;
+  width: clamp(200px, 16vw, 240px);
   max-height: calc(100vh - 104px);
   overflow-y: auto;
   scrollbar-width: none;
@@ -11,13 +11,43 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 18px 14px;
+  padding: clamp(12px, 1.2vw, 16px) clamp(10px, 1vw, 14px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: clamp(10px, 1vw, 14px);
   flex-shrink: 0;
   box-sizing: border-box;
+}
+
+@media (max-width: 1536px) {
+  .lesson-toc-desktop-card {
+    width: 216px;
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .lesson-toc-item-btn {
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 1366px) {
+  .lesson-toc-desktop-card {
+    width: 200px;
+    padding: 10px 8px;
+    gap: 8px;
+  }
+
+  .lesson-toc-item-btn {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+
+  .lesson-toc-item-left {
+    gap: 6px;
+  }
 }
 
 .lesson-toc-desktop-card::-webkit-scrollbar {
@@ -142,18 +172,18 @@
   color: var(--primary, #E60012);
 }
 
-/* Tablet Horizontal Sticky Bar (768px - 1279px) */
+/* Tablet Horizontal Sticky Bar */
 .lesson-toc-tablet-bar {
   display: none;
 }
 
-@media (min-width: 768px) and (max-width: 1279px) {
+@media (max-width: 1180px) and (min-width: 768px) {
   .lesson-toc-desktop-card {
-    display: none;
+    display: none !important;
   }
 
   .lesson-toc-tablet-bar {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 8px;
     overflow-x: auto;
@@ -164,9 +194,12 @@
     z-index: 25;
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(8px);
-    border-bottom: 1px solid #e2e8f0;
-    padding: 10px 16px;
-    margin: 0 -28px 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 14px;
+    margin: 0 0 16px 0;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .lesson-toc-tablet-bar::-webkit-scrollbar {
@@ -177,9 +210,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
+    padding: 6px 12px;
     border-radius: 999px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
     border: 1px solid #e2e8f0;
@@ -197,12 +230,12 @@
   }
 }
 
-/* Mobile Floating/Bottom Drawer TOC (< 1024px) */
+/* Mobile Floating/Bottom Drawer TOC (< 768px) */
 .lesson-toc-mobile-trigger {
   display: none;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .lesson-toc-desktop-card {
     display: none !important;
   }
@@ -212,7 +245,7 @@
   }
 
   .lesson-toc-mobile-trigger {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     position: sticky;
@@ -221,10 +254,13 @@
     background-color: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1.5px solid #e2e8f0;
-    padding: 10px 16px;
-    margin: -16px -16px 20px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 14px;
+    margin: 0 0 16px 0;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    box-sizing: border-box;
+    width: 100%;
   }
 
   .lesson-toc-mobile-btn {

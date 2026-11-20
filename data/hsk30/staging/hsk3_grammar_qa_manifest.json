@@ -1,0 +1,2217 @@
+{
+  "phase": "9.3",
+  "hskLevel": 3,
+  "totalGrammarPoints": 96,
+  "reviewStatus": "PENDING_HUMAN_EXPERT_SIGN_OFF",
+  "lessonsCovered": 20,
+  "grammarPoints": [
+    {
+      "id": "E9AB3EAB-7AD4-4E17-A680-D7CE93E6D6B8",
+      "code": "GR30-HSK3-149",
+      "title": "Tiền tố: 老—",
+      "structureFormula": "老—",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Ngữ tố (Tiền tố). Dùng trong mẫu câu diễn đạt chuẩn: 老—. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 1,
+      "lessonTitle": "周末你有什么打算",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“老”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "E853E84B-EA6F-4435-B5EB-5C58D6380130",
+      "code": "GR30-HSK3-169",
+      "title": "Phó từ: 大概、必须、差不多、一定、好像、几乎",
+      "structureFormula": "大概、必须、差不多、一定、好像、几乎",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 大概、必须、差不多、一定、好像、几乎. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 1,
+      "lessonTitle": "周末你有什么打算",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“大概”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "5246E117-3FCD-40C6-A997-2CEC9AA3AE67",
+      "code": "GR30-HSK3-189",
+      "title": "Cụm từ cố định: 看上去",
+      "structureFormula": "看上去",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 看上去. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 1,
+      "lessonTitle": "周末你有什么打算",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“看上去”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "D08B2706-1D36-46B6-813C-EB696F2A513E",
+      "code": "GR30-HSK3-209",
+      "title": "Bổ ngữ: 动词+得/不+动词/形容词",
+      "structureFormula": "动词+得/不+动词/形容词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 动词+得/不+动词/形容词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 1,
+      "lessonTitle": "周末你有什么打算",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "80BD187C-FDEF-46C4-8643-70385A977EE7",
+      "code": "GR30-HSK3-229",
+      "title": "Mẫu câu đặc biệt: 主语+动词+宾语+动词+补语",
+      "structureFormula": "主语+动词+宾语+动词+补语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+动词+宾语+动词+补语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 1,
+      "lessonTitle": "周末你有什么打算",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "634D6DD2-6043-4CD4-910C-8D69BA44B82D",
+      "code": "GR30-HSK3-150",
+      "title": "Hậu tố: —家、—子、—员",
+      "structureFormula": "—家、—子、—员",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Ngữ tố (Hậu tố). Dùng trong mẫu câu diễn đạt chuẩn: —家、—子、—员. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 2,
+      "lessonTitle": "他什么时候回来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“这个句型”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "63B9EB1B-A953-4B77-806C-AB79A32E2F3B",
+      "code": "GR30-HSK3-170",
+      "title": "Phó từ: 当然、其实、终于、才2、才3、就4",
+      "structureFormula": "当然、其实、终于、才2、才3、就4",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 当然、其实、终于、才2、才3、就4. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 2,
+      "lessonTitle": "他什么时候回来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“当然”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "2FB449B3-53C0-4AD3-8A20-8105DAAC7CDB",
+      "code": "GR30-HSK3-190",
+      "title": "Cụm từ cố định: 一般来说",
+      "structureFormula": "一般来说",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 一般来说. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 2,
+      "lessonTitle": "他什么时候回来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一般来说”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0370F116-0D6E-427D-91DA-3E09176DA4C1",
+      "code": "GR30-HSK3-210",
+      "title": "Bổ ngữ: 形容词+得很",
+      "structureFormula": "形容词+得很",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 形容词+得很. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 2,
+      "lessonTitle": "他什么时候回来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“形容词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "64024AEE-AB11-4B57-B2C6-7E8C00C11334",
+      "code": "GR30-HSK3-230",
+      "title": "Câu phức: 先……，再/然后……",
+      "structureFormula": "先……，再/然后……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 先……，再/然后……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 2,
+      "lessonTitle": "他什么时候回来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“先……，再/然后……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "2F696728-08C4-422F-A16B-F7301C78525E",
+      "code": "GR30-HSK3-151",
+      "title": "Danh từ: 东、南、西、北、北方、东方、南方、西方、中间",
+      "structureFormula": "东、南、西、北、北方、东方、南方、西方、中间",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Danh từ). Dùng trong mẫu câu diễn đạt chuẩn: 东、南、西、北、北方、东方、南方、西方、中间. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 3,
+      "lessonTitle": "桌子上放着一杯咖啡",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“东”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "FB32DD66-4582-4621-B7DD-D537B8DE9AC2",
+      "code": "GR30-HSK3-171",
+      "title": "Phó từ: 不必、不用",
+      "structureFormula": "不必、不用",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 不必、不用. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 3,
+      "lessonTitle": "桌子上放着一杯咖啡",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“不必”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "183F8475-07C7-4DC0-8740-F378D35D6D71",
+      "code": "GR30-HSK3-191",
+      "title": "Cụm từ cố định: 不怎么样",
+      "structureFormula": "不怎么样",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 不怎么样. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 3,
+      "lessonTitle": "桌子上放着一杯咖啡",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“不怎么样”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "44F0689A-BEFF-4829-B707-3D902ADF797B",
+      "code": "GR30-HSK3-211",
+      "title": "Bổ ngữ: 形容词/动词+极了/坏了",
+      "structureFormula": "形容词/动词+极了/坏了",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 形容词/动词+极了/坏了. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 3,
+      "lessonTitle": "桌子上放着一杯咖啡",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“形容词/动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "B66421E9-3235-4750-8D1E-FB0519068978",
+      "code": "GR30-HSK3-231",
+      "title": "Câu phức: 或者……，或者……",
+      "structureFormula": "或者……，或者……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 或者……，或者……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 3,
+      "lessonTitle": "桌子上放着一杯咖啡",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“或者……，或者……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A08F71CB-72CB-45F9-B038-243A69004E68",
+      "code": "GR30-HSK3-152",
+      "title": "Động từ: 需要、该、应该、愿意、得",
+      "structureFormula": "需要、该、应该、愿意、得",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Động từ). Dùng trong mẫu câu diễn đạt chuẩn: 需要、该、应该、愿意、得. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 4,
+      "lessonTitle": "她总是笑着跟客人说话",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“需要”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "AF682360-294C-4B2F-A128-731EDB994D87",
+      "code": "GR30-HSK3-172",
+      "title": "Giới từ: 为1、向1、关于",
+      "structureFormula": "为1、向1、关于",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Giới từ). Dùng trong mẫu câu diễn đạt chuẩn: 为1、向1、关于. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 4,
+      "lessonTitle": "她总是笑着跟客人说话",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“为1”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "B9A7D5FE-7587-44A2-9F56-3910ECB0A7E8",
+      "code": "GR30-HSK3-192",
+      "title": "Cấu trúc cố định: 除了 ……（以外），……还/也/都……",
+      "structureFormula": "除了 ……（以外），……还/也/都……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 除了 ……（以外），……还/也/都……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 4,
+      "lessonTitle": "她总是笑着跟客人说话",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“除了 ……（以外），……还/也/都……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A0D244AC-CC23-4BDC-A0F9-E1BFB17A1737",
+      "code": "GR30-HSK3-212",
+      "title": "Bổ ngữ: 表示动作结束到某个时间点的间隔时间",
+      "structureFormula": "表示动作结束到某个时间点的间隔时间",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 表示动作结束到某个时间点的间隔时间. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 4,
+      "lessonTitle": "她总是笑着跟客人说话",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“表示动作结束到某个时间点的间隔时间”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "1D32B5F0-6AAC-4094-8E9B-987D058F634B",
+      "code": "GR30-HSK3-232",
+      "title": "Câu phức: 一会儿……，一会儿……",
+      "structureFormula": "一会儿……，一会儿……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 一会儿……，一会儿……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 4,
+      "lessonTitle": "她总是笑着跟客人说话",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一会儿……，一会儿……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "4F4366DF-DFD8-474B-9980-28CF4168D091",
+      "code": "GR30-HSK3-153",
+      "title": "Động từ: 动宾式离合词：放假、见面、结婚、洗澡",
+      "structureFormula": "动宾式离合词：放假、见面、结婚、洗澡",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Động từ). Dùng trong mẫu câu diễn đạt chuẩn: 动宾式离合词：放假、见面、结婚、洗澡. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 5,
+      "lessonTitle": "我最近越来越胖了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动宾式离合词：放假”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "253AFAF1-E084-4667-9D42-A3A5C0EC4FD5",
+      "code": "GR30-HSK3-173",
+      "title": "Giới từ: 向2",
+      "structureFormula": "向2",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Giới từ). Dùng trong mẫu câu diễn đạt chuẩn: 向2. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 5,
+      "lessonTitle": "我最近越来越胖了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“向2”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "105981E9-CE0A-4BEC-91A3-9268F59A395A",
+      "code": "GR30-HSK3-193",
+      "title": "Cấu trúc cố định: 从……起",
+      "structureFormula": "从……起",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 从……起. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 5,
+      "lessonTitle": "我最近越来越胖了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“从……起”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0D3498CF-2B48-43EC-9BC5-199F20E1EA13",
+      "code": "GR30-HSK3-213",
+      "title": "Loại câu: “怎样+动词”的特指问句",
+      "structureFormula": "“怎样+动词”的特指问句",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Loại câu). Dùng trong mẫu câu diễn đạt chuẩn: “怎样+动词”的特指问句. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 5,
+      "lessonTitle": "我最近越来越胖了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用““怎样”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0EFEDA04-81B0-4F89-A3FF-946010D880AF",
+      "code": "GR30-HSK3-233",
+      "title": "Câu phức: 又……，又……",
+      "structureFormula": "又……，又……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 又……，又……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 5,
+      "lessonTitle": "我最近越来越胖了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“又……，又……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0B2FE398-85D1-47BE-BFFF-78BDF5C011D0",
+      "code": "GR30-HSK3-154",
+      "title": "Động từ: 动补式离合词：打开、看见、离开、完成、分开",
+      "structureFormula": "动补式离合词：打开、看见、离开、完成、分开",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Động từ). Dùng trong mẫu câu diễn đạt chuẩn: 动补式离合词：打开、看见、离开、完成、分开. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 6,
+      "lessonTitle": "怎么突然找不到了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动补式离合词：打开”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "FD9FA0F3-AB07-4E56-8BF9-638789728922",
+      "code": "GR30-HSK3-174",
+      "title": "Giới từ: 为了、为2",
+      "structureFormula": "为了、为2",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Giới từ). Dùng trong mẫu câu diễn đạt chuẩn: 为了、为2. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 6,
+      "lessonTitle": "怎么突然找不到了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“为了”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "519F33FF-7851-4549-BCD9-B24BB093E6D0",
+      "code": "GR30-HSK3-194",
+      "title": "Cấu trúc cố định: 对……来说",
+      "structureFormula": "对……来说",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 对……来说. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 6,
+      "lessonTitle": "怎么突然找不到了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“对……来说”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "424E1475-B511-418F-85A3-9A6788EC5AAA",
+      "code": "GR30-HSK3-214",
+      "title": "Loại câu: 用反问句表示强调：不是……吗？",
+      "structureFormula": "用反问句表示强调：不是……吗？",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Loại câu). Dùng trong mẫu câu diễn đạt chuẩn: 用反问句表示强调：不是……吗？. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 6,
+      "lessonTitle": "怎么突然找不到了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“用反问句表示强调：不是……吗？”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "B65E2123-AE9A-4D44-B6F9-5C4F627F87BE",
+      "code": "GR30-HSK3-234",
+      "title": "Câu phức: 一边……，一边……",
+      "structureFormula": "一边……，一边……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 一边……，一边……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 6,
+      "lessonTitle": "怎么突然找不到了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一边……，一边……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "BFC269A7-796E-4879-9E79-A1DB7005F696",
+      "code": "GR30-HSK3-155",
+      "title": "Đại từ: 怎样",
+      "structureFormula": "怎样",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Đại từ). Dùng trong mẫu câu diễn đạt chuẩn: 怎样. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 7,
+      "lessonTitle": "我跟你一起去",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“怎样”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "FABA9300-0254-4FD3-A23F-5BA90B403A76",
+      "code": "GR30-HSK3-175",
+      "title": "Giới từ: 把、被",
+      "structureFormula": "把、被",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Giới từ). Dùng trong mẫu câu diễn đạt chuẩn: 把、被. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 7,
+      "lessonTitle": "我跟你一起去",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“把”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "4722F344-842B-4447-A0F5-77FDB1891A9C",
+      "code": "GR30-HSK3-195",
+      "title": "Cấu trúc cố định: 一……也/都+不/没……",
+      "structureFormula": "一……也/都+不/没……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 一……也/都+不/没……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 7,
+      "lessonTitle": "我跟你一起去",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一……也/都”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0F0B68B0-58A9-4D05-A383-9176211CAC42",
+      "code": "GR30-HSK3-215",
+      "title": "Mẫu câu đặc biệt: 主语+把+宾语+动词+在/到+处所",
+      "structureFormula": "主语+把+宾语+动词+在/到+处所",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+把+宾语+动词+在/到+处所. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 7,
+      "lessonTitle": "我跟你一起去",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "B1892452-B49E-4E2D-8F18-04FA692D1937",
+      "code": "GR30-HSK3-235",
+      "title": "Câu phức: 不但……，而且……",
+      "structureFormula": "不但……，而且……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 不但……，而且……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 7,
+      "lessonTitle": "我跟你一起去",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“不但……，而且……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "18D527EF-BA02-4F4D-AC59-70797D06AAE1",
+      "code": "GR30-HSK3-156",
+      "title": "Đại từ: 疑问代词的非疑问用法：任指用法：①疑问代词+都……    ②疑问代词+疑问代词",
+      "structureFormula": "疑问代词的非疑问用法：任指用法：①疑问代词+都……    ②疑问代词+疑问代词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Đại từ). Dùng trong mẫu câu diễn đạt chuẩn: 疑问代词的非疑问用法：任指用法：①疑问代词+都……    ②疑问代词+疑问代词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 8,
+      "lessonTitle": "你去哪儿我就去哪儿",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“疑问代词的非疑问用法：任指用法：①疑问代词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A8D35CC2-2973-432B-BA9C-C497F9006468",
+      "code": "GR30-HSK3-176",
+      "title": "Giới từ: 根据",
+      "structureFormula": "根据",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Giới từ). Dùng trong mẫu câu diễn đạt chuẩn: 根据. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 8,
+      "lessonTitle": "你去哪儿我就去哪儿",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“根据”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "25205C00-AF50-4AFD-A1D0-A5E7CB76D404",
+      "code": "GR30-HSK3-196",
+      "title": "Cấu trúc cố định: 一点儿也不",
+      "structureFormula": "一点儿也不",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 一点儿也不. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 8,
+      "lessonTitle": "你去哪儿我就去哪儿",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一点儿也不”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "F6A7ADD8-F29F-495E-9CC0-D6212D8F0D2E",
+      "code": "GR30-HSK3-216",
+      "title": "Mẫu câu đặc biệt: 主语+把+宾语1+动词（+给）+宾语2",
+      "structureFormula": "主语+把+宾语1+动词（+给）+宾语2",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+把+宾语1+动词（+给）+宾语2. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 8,
+      "lessonTitle": "你去哪儿我就去哪儿",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A5075C02-723A-46F3-B64B-24E027250032",
+      "code": "GR30-HSK3-236",
+      "title": "Câu phức: 虽然……，可是……",
+      "structureFormula": "虽然……，可是……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 虽然……，可是……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 8,
+      "lessonTitle": "你去哪儿我就去哪儿",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“虽然……，可是……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "DC8561A2-46F0-43FC-9D54-E28F64C100C3",
+      "code": "GR30-HSK3-157",
+      "title": "Đại từ: 疑问代词的非疑问用法：不定指用法",
+      "structureFormula": "疑问代词的非疑问用法：不定指用法",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Đại từ). Dùng trong mẫu câu diễn đạt chuẩn: 疑问代词的非疑问用法：不定指用法. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 9,
+      "lessonTitle": "她的汉语说得跟中国人一样好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“疑问代词的非疑问用法：不定指用法”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "19C792E7-6D68-44AE-949C-A2FC82CCDA51",
+      "code": "GR30-HSK3-177",
+      "title": "Liên từ: 或、或者",
+      "structureFormula": "或、或者",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Liên từ). Dùng trong mẫu câu diễn đạt chuẩn: 或、或者. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 9,
+      "lessonTitle": "她的汉语说得跟中国人一样好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“或”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "F3F85783-1363-4E98-9C9B-0EF9F86E0124",
+      "code": "GR30-HSK3-197",
+      "title": "Cấu trúc cố định: 越……越……",
+      "structureFormula": "越……越……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 越……越……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 9,
+      "lessonTitle": "她的汉语说得跟中国人一样好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“越……越……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "331EEBE1-D2AA-47B2-B4D1-A32075F136D6",
+      "code": "GR30-HSK3-217",
+      "title": "Mẫu câu đặc biệt: 主语+把+宾语+动词+结果补语/趋向补语/状态补语",
+      "structureFormula": "主语+把+宾语+动词+结果补语/趋向补语/状态补语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+把+宾语+动词+结果补语/趋向补语/状态补语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 9,
+      "lessonTitle": "她的汉语说得跟中国人一样好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "99D01480-F1BC-456D-8F33-4A646360E317",
+      "code": "GR30-HSK3-237",
+      "title": "Câu phức: 如果……，就……",
+      "structureFormula": "如果……，就……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 如果……，就……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 9,
+      "lessonTitle": "她的汉语说得跟中国人一样好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“如果……，就……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "DF77D63A-CC40-4721-A3E8-43660CDC70C2",
+      "code": "GR30-HSK3-158",
+      "title": "Đại từ: 别人、咱们",
+      "structureFormula": "别人、咱们",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Đại từ). Dùng trong mẫu câu diễn đạt chuẩn: 别人、咱们. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 10,
+      "lessonTitle": "数学比历史难多了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“别人”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "416A04B8-653A-4ECB-96CE-C8800A14B438",
+      "code": "GR30-HSK3-178",
+      "title": "Liên từ: 只有、只要、不但、而且、如果、可1、可是、然后",
+      "structureFormula": "只有、只要、不但、而且、如果、可1、可是、然后",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Liên từ). Dùng trong mẫu câu diễn đạt chuẩn: 只有、只要、不但、而且、如果、可1、可是、然后. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 10,
+      "lessonTitle": "数学比历史难多了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“只有”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "E109D579-F9FD-4862-A023-BDAC284A4EDF",
+      "code": "GR30-HSK3-198",
+      "title": "Cấu trúc cố định: （在）……以前/以后/前/后",
+      "structureFormula": "（在）……以前/以后/前/后",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: （在）……以前/以后/前/后. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 10,
+      "lessonTitle": "数学比历史难多了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“（在）……以前/以后/前/后”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "66361D19-7620-4F61-8A21-1433823B066A",
+      "code": "GR30-HSK3-218",
+      "title": "Mẫu câu đặc biệt: 主语+被+宾语+动词+其他成分",
+      "structureFormula": "主语+被+宾语+动词+其他成分",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+被+宾语+动词+其他成分. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 10,
+      "lessonTitle": "数学比历史难多了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "E139C5BE-7630-403F-B7F8-7829A86A3768",
+      "code": "GR30-HSK3-238",
+      "title": "Câu phức: ……的话，就……",
+      "structureFormula": "……的话，就……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: ……的话，就……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 10,
+      "lessonTitle": "数学比历史难多了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“……的话，就……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "2EF70FB0-521C-4F5E-AF54-977FF1231E2C",
+      "code": "GR30-HSK3-159",
+      "title": "Đại từ: 别的、其他",
+      "structureFormula": "别的、其他",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Đại từ). Dùng trong mẫu câu diễn đạt chuẩn: 别的、其他. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 11,
+      "lessonTitle": "别忘了把空调关了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“别的”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "350FBD1E-6A82-4F48-94AC-63421E60362C",
+      "code": "GR30-HSK3-179",
+      "title": "Trợ từ: 的话",
+      "structureFormula": "的话",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Trợ từ). Dùng trong mẫu câu diễn đạt chuẩn: 的话. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 11,
+      "lessonTitle": "别忘了把空调关了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“的话”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "D0FBC7C6-4F66-4AFA-8771-3F6DE35C65D6",
+      "code": "GR30-HSK3-199",
+      "title": "Cấu trúc cố định: X什么(啊)",
+      "structureFormula": "X什么(啊)",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: X什么(啊). Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 11,
+      "lessonTitle": "别忘了把空调关了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“X什么(啊)”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "D54073F2-E37C-431E-B10A-B11D0C976B66",
+      "code": "GR30-HSK3-219",
+      "title": "Mẫu câu đặc biệt: 主语+被+动词+其他成分",
+      "structureFormula": "主语+被+动词+其他成分",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 主语+被+动词+其他成分. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 11,
+      "lessonTitle": "别忘了把空调关了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "8159D8D8-714A-49BE-BD9A-89549B6571FE",
+      "code": "GR30-HSK3-239",
+      "title": "Câu phức: 只有……，才……",
+      "structureFormula": "只有……，才……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 只有……，才……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 11,
+      "lessonTitle": "别忘了把空调关了",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“只有……，才……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "FD64D8E7-41CC-4436-AA6F-7DF577E7DCC6",
+      "code": "GR30-HSK3-160",
+      "title": "Lượng từ: 专用名量词：把、双、张、种、层、封、页、辆、节、所、班、段、头、句公斤、斤、角、毛、刻、米",
+      "structureFormula": "专用名量词：把、双、张、种、层、封、页、辆、节、所、班、段、头、句公斤、斤、角、毛、刻、米",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Lượng từ). Dùng trong mẫu câu diễn đạt chuẩn: 专用名量词：把、双、张、种、层、封、页、辆、节、所、班、段、头、句公斤、斤、角、毛、刻、米. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 12,
+      "lessonTitle": "把重要的事写在本子上",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“专用名量词：把”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "C5CBACE2-0634-4BAD-98F3-8A2A0E27CB4A",
+      "code": "GR30-HSK3-180",
+      "title": "Kiểu cấu trúc: 同位短语",
+      "structureFormula": "同位短语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Kiểu cấu trúc). Dùng trong mẫu câu diễn đạt chuẩn: 同位短语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 12,
+      "lessonTitle": "把重要的事写在本子上",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“同位短语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A49C5D43-D504-42A6-B345-7C98BE83F49D",
+      "code": "GR30-HSK3-200",
+      "title": "Cấu trúc cố định: 该……了",
+      "structureFormula": "该……了",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 该……了. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 12,
+      "lessonTitle": "把重要的事写在本子上",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“该……了”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "894CCD5F-D705-4FD1-AA5F-3EF79D9193B9",
+      "code": "GR30-HSK3-220",
+      "title": "Mẫu câu đặc biệt: “着”表示动作的伴随：动词1+着+动词2",
+      "structureFormula": "“着”表示动作的伴随：动词1+着+动词2",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: “着”表示动作的伴随：动词1+着+动词2. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 12,
+      "lessonTitle": "把重要的事写在本子上",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用““着”表示动作的伴随：动词1”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "ACBD656C-176C-4CEF-9E21-53222F31B2C6",
+      "code": "GR30-HSK3-240",
+      "title": "Câu phức: 只要……，就……",
+      "structureFormula": "只要……，就……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 只要……，就……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 12,
+      "lessonTitle": "把重要的事写在本子上",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“只要……，就……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "63C8DE2E-73D2-4CEA-8F06-064743960B0F",
+      "code": "GR30-HSK3-161",
+      "title": "Lượng từ: 借用名量词：碗、盘",
+      "structureFormula": "借用名量词：碗、盘",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Lượng từ). Dùng trong mẫu câu diễn đạt chuẩn: 借用名量词：碗、盘. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 13,
+      "lessonTitle": "走得越快越好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“借用名量词：碗”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "7B3A2D68-0ACE-4118-998A-236EE32D6F0E",
+      "code": "GR30-HSK3-181",
+      "title": "Kiểu cấu trúc: 动补短语2",
+      "structureFormula": "动补短语2",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Kiểu cấu trúc). Dùng trong mẫu câu diễn đạt chuẩn: 动补短语2. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 13,
+      "lessonTitle": "走得越快越好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动补短语2”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "ADC6FEA6-81BD-4FB0-937E-AE9EE3FDA078",
+      "code": "GR30-HSK3-201",
+      "title": "Cấu trúc cố định: 在……上/下/中",
+      "structureFormula": "在……上/下/中",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cấu trúc cố định. Dùng trong mẫu câu diễn đạt chuẩn: 在……上/下/中. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 13,
+      "lessonTitle": "走得越快越好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“在……上/下/中”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "220389AF-E349-48E5-856E-FDB57D7B2C49",
+      "code": "GR30-HSK3-221",
+      "title": "Mẫu câu đặc biệt: A比B+更/还+形容词",
+      "structureFormula": "A比B+更/还+形容词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: A比B+更/还+形容词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 13,
+      "lessonTitle": "走得越快越好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“A比B”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "E5AE246A-CD39-4D18-8366-F51E765B7A23",
+      "code": "GR30-HSK3-241",
+      "title": "Câu phức: 为了……，……",
+      "structureFormula": "为了……，……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: 为了……，……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 13,
+      "lessonTitle": "走得越快越好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“为了……，……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0BDB99C3-CA72-42B0-B273-1935B29C6E81",
+      "code": "GR30-HSK3-162",
+      "title": "Lượng từ: 口、回、遍、声",
+      "structureFormula": "口、回、遍、声",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Lượng từ). Dùng trong mẫu câu diễn đạt chuẩn: 口、回、遍、声. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 14,
+      "lessonTitle": "请把护照拿出来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“口”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "4370C23D-0B0E-4D6C-A715-BE39BC02B7BB",
+      "code": "GR30-HSK3-182",
+      "title": "Kiểu cấu trúc: 数量重叠：数词+量词+数词+量词",
+      "structureFormula": "数量重叠：数词+量词+数词+量词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Kiểu cấu trúc). Dùng trong mẫu câu diễn đạt chuẩn: 数量重叠：数词+量词+数词+量词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 14,
+      "lessonTitle": "请把护照拿出来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“数量重叠：数词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "2FCA5715-E627-4776-A30E-0F08715834E8",
+      "code": "GR30-HSK3-202",
+      "title": "Chủ ngữ: 动词或动词性短语、形容词或形容词性短语作主语",
+      "structureFormula": "动词或动词性短语、形容词或形容词性短语作主语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Chủ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 动词或动词性短语、形容词或形容词性短语作主语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 14,
+      "lessonTitle": "请把护照拿出来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动词或动词性短语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "60D041CD-9BCE-4DF5-88EA-40DBA5C6F4A1",
+      "code": "GR30-HSK3-222",
+      "title": "Mẫu câu đặc biệt: A跟B一样",
+      "structureFormula": "A跟B一样",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: A跟B一样. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 14,
+      "lessonTitle": "请把护照拿出来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“A跟B一样”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "DA723D74-239E-4A5F-8743-0800C261B0EC",
+      "code": "GR30-HSK3-242",
+      "title": "Câu phức: ……了……（就）……",
+      "structureFormula": "……了……（就）……",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Câu phức). Dùng trong mẫu câu diễn đạt chuẩn: ……了……（就）……. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 14,
+      "lessonTitle": "请把护照拿出来",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“……了……（就）……”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "78E84620-AB9B-43A5-865D-46FC6115EC03",
+      "code": "GR30-HSK3-163",
+      "title": "Lượng từ: 个个、张张",
+      "structureFormula": "个个、张张",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Lượng từ). Dùng trong mẫu câu diễn đạt chuẩn: 个个、张张. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 15,
+      "lessonTitle": "除了看书，他还喜欢运动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“个个”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "5048D136-F1B7-4314-A121-F17635080377",
+      "code": "GR30-HSK3-183",
+      "title": "Cụm từ cố định: 不A 不 B",
+      "structureFormula": "不A 不 B",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 不A 不 B. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 15,
+      "lessonTitle": "除了看书，他还喜欢运动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“不A 不 B”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "522C2F80-E64D-4E0B-B037-F43AC8E2DFD5",
+      "code": "GR30-HSK3-203",
+      "title": "Chủ ngữ: 主谓短语作主语",
+      "structureFormula": "主谓短语作主语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Chủ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 主谓短语作主语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 15,
+      "lessonTitle": "除了看书，他还喜欢运动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“主谓短语作主语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "14396C40-F3AF-4A6A-A96D-503EF9EC1A1C",
+      "code": "GR30-HSK3-223",
+      "title": "Mẫu câu đặc biệt: A跟B一样+形容词",
+      "structureFormula": "A跟B一样+形容词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: A跟B一样+形容词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 15,
+      "lessonTitle": "除了看书，他还喜欢运动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“A跟B一样”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "9BACF257-E071-44F3-ABD4-317B121E5203",
+      "code": "GR30-HSK3-243",
+      "title": "Cách biểu đạt con số: 概数表达法2：用“大概”表示概数",
+      "structureFormula": "概数表达法2：用“大概”表示概数",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cách biểu đạt đặc biệt (Cách biểu đạt con số). Dùng trong mẫu câu diễn đạt chuẩn: 概数表达法2：用“大概”表示概数. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 15,
+      "lessonTitle": "除了看书，他还喜欢运动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“概数表达法2：用“大概”表示概数”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "8BB2596A-D68B-4371-BEEC-8C58496C158D",
+      "code": "GR30-HSK3-164",
+      "title": "Phó từ: 比较、还3、更、特别、挺、有些、越、极",
+      "structureFormula": "比较、还3、更、特别、挺、有些、越、极",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 比较、还3、更、特别、挺、有些、越、极. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 16,
+      "lessonTitle": "我现在累得不想动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“比较”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "1FA69970-6A2E-4840-B977-D57CE9BC814D",
+      "code": "GR30-HSK3-184",
+      "title": "Cụm từ cố định: 不一会儿",
+      "structureFormula": "不一会儿",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 不一会儿. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 16,
+      "lessonTitle": "我现在累得不想动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“不一会儿”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "149CD74A-0383-465B-951B-040FABE8FFBF",
+      "code": "GR30-HSK3-204",
+      "title": "Định ngữ: 多项定语",
+      "structureFormula": "多项定语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Định ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 多项定语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 16,
+      "lessonTitle": "我现在累得不想动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“多项定语”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "65B6D9B4-9B50-44D1-9479-84DE217FCBD4",
+      "code": "GR30-HSK3-224",
+      "title": "Mẫu câu đặc biệt: A不比B+形容词",
+      "structureFormula": "A不比B+形容词",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: A不比B+形容词. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 16,
+      "lessonTitle": "我现在累得不想动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“A不比B”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "8A1659D6-CD3A-465A-B9B1-3A1761C5588F",
+      "code": "GR30-HSK3-244",
+      "title": "Cách biểu đạt con số: 概数表达法2：相邻数词连用表示概数",
+      "structureFormula": "概数表达法2：相邻数词连用表示概数",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cách biểu đạt đặc biệt (Cách biểu đạt con số). Dùng trong mẫu câu diễn đạt chuẩn: 概数表达法2：相邻数词连用表示概数. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 16,
+      "lessonTitle": "我现在累得不想动",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“概数表达法2：相邻数词连用表示概数”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "F044B072-5BBB-4D26-8330-6E32400AB8FA",
+      "code": "GR30-HSK3-165",
+      "title": "Phó từ: 就3、一块儿、一共、只、到处、只是",
+      "structureFormula": "就3、一块儿、一共、只、到处、只是",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 就3、一块儿、一共、只、到处、只是. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 17,
+      "lessonTitle": "谁都有生病的时候",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“就3”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "6DF2BB04-F983-4574-A1F4-F4D629F48B5A",
+      "code": "GR30-HSK3-185",
+      "title": "Cụm từ cố định: 看来",
+      "structureFormula": "看来",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 看来. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 17,
+      "lessonTitle": "谁都有生病的时候",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“看来”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "C5EF22CA-2152-4BD5-831C-8DC3334CA439",
+      "code": "GR30-HSK3-205",
+      "title": "Bổ ngữ: 动词+到/住/走/上",
+      "structureFormula": "动词+到/住/走/上",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 动词+到/住/走/上. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 17,
+      "lessonTitle": "谁都有生病的时候",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "099386D3-458C-4731-A08D-8928AB023DAE",
+      "code": "GR30-HSK3-225",
+      "title": "Mẫu câu đặc biệt: A比B+多/少/早/晚+动词+数量短语",
+      "structureFormula": "A比B+多/少/早/晚+动词+数量短语",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: A比B+多/少/早/晚+动词+数量短语. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 17,
+      "lessonTitle": "谁都有生病的时候",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“A比B”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "CD5D7529-9A68-4BA0-8D16-1522BC341EF1",
+      "code": "GR30-HSK3-166",
+      "title": "Phó từ: 才1、马上、先、一会儿、刚、刚刚、一直",
+      "structureFormula": "才1、马上、先、一会儿、刚、刚刚、一直",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 才1、马上、先、一会儿、刚、刚刚、一直. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 18,
+      "lessonTitle": "我相信你一定能做好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“才1”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "8077DE91-70D1-4668-AFCD-3D33CBB842E5",
+      "code": "GR30-HSK3-186",
+      "title": "Cụm từ cố định: 在……看来",
+      "structureFormula": "在……看来",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 在……看来. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 18,
+      "lessonTitle": "我相信你一定能做好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“在……看来”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "4343AD2B-1AEE-4216-81FB-1DA5374DA834",
+      "code": "GR30-HSK3-206",
+      "title": "Bổ ngữ: 趋向补语的引申用法：表示结果意义：动词+出/起/下",
+      "structureFormula": "趋向补语的引申用法：表示结果意义：动词+出/起/下",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 趋向补语的引申用法：表示结果意义：动词+出/起/下. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 18,
+      "lessonTitle": "我相信你一定能做好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“趋向补语的引申用法：表示结果意义：动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "BEC2D99C-02C2-4C5F-B7D9-B6273E49769D",
+      "code": "GR30-HSK3-226",
+      "title": "Mẫu câu đặc biệt: 表示出现：处所词+动词+趋向补语/结果补语+动态助词（了）+数量短语+人/物",
+      "structureFormula": "表示出现：处所词+动词+趋向补语/结果补语+动态助词（了）+数量短语+人/物",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 表示出现：处所词+动词+趋向补语/结果补语+动态助词（了）+数量短语+人/物. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 18,
+      "lessonTitle": "我相信你一定能做好",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“表示出现：处所词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "C3221FFE-D097-4A41-AF62-E986CFFD7BCD",
+      "code": "GR30-HSK3-167",
+      "title": "Phó từ: 总、总是、又、常常",
+      "structureFormula": "总、总是、又、常常",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 总、总是、又、常常. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 19,
+      "lessonTitle": "你没看懂这篇文章吗",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“总”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "B979D177-B67E-45DB-9DA0-A5AF51993E06",
+      "code": "GR30-HSK3-187",
+      "title": "Cụm từ cố định: 越来越",
+      "structureFormula": "越来越",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 越来越. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 19,
+      "lessonTitle": "你没看懂这篇文章吗",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“越来越”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "85CFD2C6-20EA-4FD2-8EAA-3F3B03112704",
+      "code": "GR30-HSK3-207",
+      "title": "Bổ ngữ: 趋向补语的引申用法：表示动作行为的开始：动词+上/起来",
+      "structureFormula": "趋向补语的引申用法：表示动作行为的开始：动词+上/起来",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 趋向补语的引申用法：表示动作行为的开始：动词+上/起来. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 19,
+      "lessonTitle": "你没看懂这篇文章吗",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“趋向补语的引申用法：表示动作行为的开始：动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "55F5BBA4-38CA-4BD9-B28D-F2C550F10ACB",
+      "code": "GR30-HSK3-227",
+      "title": "Mẫu câu đặc biệt: 表示消失：处所词+动词+结果补语+动态助词（了）+数量短语+人/物",
+      "structureFormula": "表示消失：处所词+动词+结果补语+动态助词（了）+数量短语+人/物",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 表示消失：处所词+动词+结果补语+动态助词（了）+数量短语+人/物. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 19,
+      "lessonTitle": "你没看懂这篇文章吗",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“表示消失：处所词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "A85D742D-2818-4C1F-A155-3E2886476793",
+      "code": "GR30-HSK3-168",
+      "title": "Phó từ: 一边",
+      "structureFormula": "一边",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Từ loại (Phó từ). Dùng trong mẫu câu diễn đạt chuẩn: 一边. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 20,
+      "lessonTitle": "只要努力就会有收获",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“一边”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "0CDA8BF1-29ED-4E91-B062-CE88CF040565",
+      "code": "GR30-HSK3-188",
+      "title": "Cụm từ cố định: 看起来",
+      "structureFormula": "看起来",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Cụm từ (Cụm từ cố định). Dùng trong mẫu câu diễn đạt chuẩn: 看起来. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 20,
+      "lessonTitle": "只要努力就会有收获",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“看起来”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "1EC3A325-1024-49B6-95A7-7B1C2321450C",
+      "code": "GR30-HSK3-208",
+      "title": "Bổ ngữ: 趋向补语的引申用法：表示动作行为的持续：动词+下去/下来",
+      "structureFormula": "趋向补语的引申用法：表示动作行为的持续：动词+下去/下来",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Thành phần câu (Bổ ngữ). Dùng trong mẫu câu diễn đạt chuẩn: 趋向补语的引申用法：表示动作行为的持续：动词+下去/下来. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 20,
+      "lessonTitle": "只要努力就会有收获",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“趋向补语的引申用法：表示动作行为的持续：动词”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "id": "454C86E4-61AF-4444-8BCB-C102D99384F1",
+      "code": "GR30-HSK3-228",
+      "title": "Mẫu câu đặc biệt: 强调说话人的看法或态度",
+      "structureFormula": "强调说话人的看法或态度",
+      "explanation": "Điểm ngữ pháp HSK 3 thuộc nhóm Loại câu (Mẫu câu đặc biệt). Dùng trong mẫu câu diễn đạt chuẩn: 强调说话人的看法或态度. Cung cấp quy tắc kết hợp cú pháp chuẩn xác và sắc thái ngôn ngữ phù hợp trình độ HSK 3.",
+      "lessonNumber": 20,
+      "lessonTitle": "只要努力就会有收获",
+      "exampleCount": 2,
+      "examples": [
+        {
+          "zh": "在中文交流中，我们经常使用“强调说话人的看法或态度”表达相关语义。",
+          "pinyin": "Zài Zhōngwén jiāoliú zhōng, wǒmen jīngcháng shǐyòng...",
+          "meaningVi": "Trong giao tiếp tiếng Trung, chúng ta thường sử dụng điểm ngữ pháp này để biểu đạt ý nghĩa tương ứng."
+        },
+        {
+          "zh": "请大家注意这个语法点的具体位置和语序。",
+          "pinyin": "Qǐng dàjiā zhùyì zhè ge yǔfǎdiǎn de jùtǐ wèizhì hé yǔxù.",
+          "meaningVi": "Xin mọi người chú ý vị trí cụ thể và trật tự từ của điểm ngữ pháp này."
+        }
+      ],
+      "status": "NEEDS_HUMAN_REVIEW"
+    }
+  ]
+}

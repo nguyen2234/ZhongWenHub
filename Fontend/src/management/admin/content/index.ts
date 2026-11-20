@@ -9,3 +9,4 @@ export * from './pages/AdminCurriculumPage';
 export * from './pages/AdminLessonEditorPage';
 export * from './pages/AdminGrammarManagementPage';
 export * from './pages/AdminExerciseBankPage';
+export * from './pages/AdminExamRepositoryPage';

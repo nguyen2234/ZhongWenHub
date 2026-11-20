@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK20-MIGRATION-AND-SOURCES",
+  "title": "HSK 2.0 Curriculum Transition & HSK 1-4B Source Downloader",
+  "description": "Establish official curriculum transition direction to HSK 2.0 Standard Course for HSK 1–4 (70 lessons), discover and verify source materials from Baúl Chino, build one-click batch downloader with integrity verification, perform comparative gap audit against existing 70 lessons, and compile migration plan without database mutations or committing copyrighted files.",
+  "project": "ZhongWenHub",
+  "phase": "Curriculum Transition",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 19,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "2fdf52253029cd2319733dd57062b840d080ce9c",
+  "input_files": [
+    "data/hsk30/reference/current_db_inventory.json",
+    "docs/hsk30/HSK1_TO_HSK4_FINAL_COMPLETION_REPORT.md"
+  ],
+  "expected_outputs": [
+    "scripts/hsk_sources/Download-HSK-All.bat",
+    "scripts/hsk_sources/Download-HSK-All.ps1",
+    "docs/hsk20/HSK20_SOURCE_DOWNLOAD_REPORT.md",
+    "docs/hsk20/HSK30_TO_HSK20_MIGRATION_PLAN.md",
+    ".ai-collaboration/results/ZWH-HSK20-MIGRATION-AND-SOURCES_result.json"
+  ],
+  "acceptance_criteria": [
+    "Confirm official curriculum structure: exactly 4 active HSK levels (HSK 1, 2, 3, 4) with 70 lessons total, zero HSK 4A/4B standalone levels, and HSK 5-6 strictly Coming Soon",
+    "Discover and verify real source links from Baúl Chino for HSK 1, 2, 3, 4A, 4B (Textbook, Workbook, Audio, Answers)",
+    "Implement one-click Windows downloader (Download-HSK-All.bat and Download-HSK-All.ps1) with pre-download summary, single confirmation, max 3 concurrency, resume, retry, PDF/ZIP integrity verification, SHA-256 calculation, and manifest output",
+    "Configure .gitignore to strictly prevent committing downloaded PDFs, ZIPs, MP3s or copyrighted materials to Git",
+    "ZERO database writes: ZhongWenHub_Dev strictly read-only, ZhongWenHub_Test untouched",
+    "Audit 70 existing lessons against HSK 2.0 structure and classify match statuses",
+    "Generate comprehensive reports: HSK20_SOURCE_DOWNLOAD_REPORT.md and HSK30_TO_HSK20_MIGRATION_PLAN.md",
+    "Keep PR #16 strictly Open & Draft; sync evidence and status to GitHub Issue #19"
+  ],
+  "safety_constraints": [
+    "Zero database writes (both ZhongWenHub_Dev and ZhongWenHub_Test untouched)",
+    "No copyrighted books or audio files committed to Git repository",
+    "No bypass of CAPTCHA, paywalls, or access controls",
+    "Do not auto-publish content or alter student XP/progress",
+    "Keep PR #16 Open/Draft; do not merge or force push"
+  ],
+  "created_at": "2026-11-10T17:50:00Z",
+  "updated_at": "2026-11-10T17:50:00Z"
+}

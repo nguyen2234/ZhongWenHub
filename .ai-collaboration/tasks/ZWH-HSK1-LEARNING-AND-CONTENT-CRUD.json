@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK1-LEARNING-AND-CONTENT-CRUD",
+  "title": "HSK 1 End-to-End Real Student Learning & Content Management CRUD",
+  "description": "Establish authentic, non-mock HSK 1 student learning loop (Database -> API -> Frontend -> Learning -> Progress Persistence) and content management CRUD (CMS -> Backend -> SQL Server -> Student Content), eliminate all mock fallbacks in runtime HSK 1, verify DrKameleon 150-word HSK 1 dataset against Hanban 2012 syllabus, implement record-level snapshot and transactional rollback, and halt at database approval gate.",
+  "project": "ZhongWenHub",
+  "phase": "Curriculum Full-Stack Integration",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 19,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "018933dd787864c01ca8d8109d73d4ee794017f8",
+  "input_files": [
+    "Fontend/src/features/lesson/services/hsk-textbook.service.ts",
+    "Fontend/src/features/lesson/services/lesson-content.service.ts",
+    "Fontend/src/features/learning/data/curriculumData.ts",
+    "Fontend/src/features/lesson/pages/HskTextbookLessonPage.tsx",
+    "Backend/src/Api/Controllers/ContentController.cs",
+    "Backend/src/Business/Content/ContentService.cs",
+    "scripts/hsk20/snapshot_and_rollback.py",
+    "scripts/hsk20/import_hsk20_vocab_grammar.py"
+  ],
+  "expected_outputs": [
+    "docs/hsk20/HSK1_END_TO_END_IMPLEMENTATION_REPORT.md",
+    "docs/hsk20/HSK1_CONTENT_SOURCE_AND_QA_REPORT.md",
+    "docs/hsk20/HSK1_STUDENT_LEARNING_E2E_REPORT.md",
+    "docs/hsk20/HSK1_ADMIN_CRUD_E2E_REPORT.md",
+    "docs/hsk20/HSK1_DATABASE_APPROVAL_AND_ROLLBACK_PLAN.md",
+    ".ai-collaboration/results/ZWH-HSK1-LEARNING-AND-CONTENT-CRUD_result.json"
+  ],
+  "acceptance_criteria": [
+    "Eliminate all mock fallbacks in runtime HSK 1 student learning (single source of truth from backend)",
+    "Display authentic empty states instead of generating fake dialogues or mock grammar points",
+    "Ensure all 15 HSK 1 lessons are registered in curriculum with accurate lesson numbers and DB GUID mappings",
+    "Verify lesson aggregate CRUD in backend and frontend (Title, DialogueJson, ListeningJson, LinkedVocabs, LinkedGrammars, LinkedExercises)",
+    "Protect against hard deletion of lessons with existing student learning progress in DeleteLessonAsync",
+    "Verify 150 HSK 1 words against DrKameleon old/1.json repository with 100% simplified character match",
+    "Upgrade snapshot_and_rollback.py to perform full record-level snapshot dumping and true transactional rollback",
+    "Enforce signed token approval gate on importer and halt before modifying ZhongWenHub_Test",
+    "Pass 11/11 automated data QA test suites, 38/38 .NET unit tests, and 288/288 bun frontend unit tests",
+    "Compile 5 detailed markdown reports in docs/hsk20/"
+  ],
+  "safety_constraints": [
+    "Zero database writes (Dev strictly read-only, Test gated pending signed approval token)",
+    "PR #16 remains Open/Draft; do not merge or force push",
+    "Preserve student XP, streak, and progress without mutation for test decoration"
+  ],
+  "created_at": "2026-11-11T02:30:00Z",
+  "updated_at": "2026-11-11T02:59:00Z"
+}

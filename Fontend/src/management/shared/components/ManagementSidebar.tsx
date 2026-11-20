@@ -30,6 +30,7 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
   onMobileClose,
   onRoleChange,
 }) => {
+  void onRoleChange;
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -68,12 +69,14 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         borderRight: '1px solid var(--border-strong)',
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        flexShrink: 0,
         position: 'sticky',
         top: 0,
         zIndex: 'var(--z-sidebar)',
         transition: 'width 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-        overflow: 'visible',
+        overflow: 'hidden',
         boxShadow: 'none',
       }}
     >
@@ -126,10 +129,10 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
 
           {!isCollapsed && (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
                 <span
                   style={{
-                    fontSize: '14.5px',
+                    fontSize: '15px',
                     fontWeight: 800,
                     color: 'var(--foreground)',
                     letterSpacing: '-0.3px',
@@ -137,20 +140,6 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
                   }}
                 >
                   ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
-                </span>
-                <span
-                  style={{
-                    fontSize: '9.5px',
-                    fontWeight: 700,
-                    padding: '1px 6px',
-                    borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--primary-light)',
-                    color: 'var(--primary)',
-                    letterSpacing: '0.4px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {currentRole}
                 </span>
               </div>
               <span
@@ -257,12 +246,16 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           3. NAVIGATION ITEMS WITH GROUP HEADERS
           ===================================================================== */}
       <nav
+        className="management-sidebar-nav"
         aria-label="Admin Navigation"
         style={{
           flex: 1,
+          minHeight: 0,
+          overscrollBehaviorY: 'contain',
+          scrollbarGutter: 'stable',
           overflowY: 'auto',
           overflowX: 'hidden',
-          padding: isCollapsed ? 'var(--space-2) 0' : 'var(--space-2) var(--space-3)',
+          padding: isCollapsed ? 'var(--space-2) 0 var(--space-4)' : 'var(--space-2) var(--space-3) var(--space-4)',
         }}
       >
         {filteredGroups.length === 0 ? (
@@ -451,51 +444,11 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
           flexShrink: 0,
         }}
       >
-        {/* Workspace Quick Switcher */}
-        {!isCollapsed && (
-          <div style={{ marginBottom: 'var(--space-2)' }}>
-            <div
-              style={{
-                fontSize: '10px',
-                textTransform: 'uppercase',
-                color: 'var(--muted)',
-                fontWeight: 700,
-                marginBottom: '6px',
-                letterSpacing: '0.4px',
-              }}
-            >
-              Không gian quản trị:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
-              {(['ADMIN', 'CONTENT_MANAGER', 'TEACHER', 'SUPPORT'] as UserRole[]).map((r) => (
-                <Link
-                  key={r}
-                  to={r === 'CONTENT_MANAGER' ? '/management/content-manager/dashboard' : `/management/${r.toLowerCase()}/dashboard`}
-                  onClick={() => onRoleChange && onRoleChange(r)}
-                  style={{
-                    textAlign: 'center',
-                    padding: '5px 0',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '11px',
-                    fontWeight: currentRole === r ? 700 : 500,
-                    backgroundColor: currentRole === r ? 'var(--primary-light)' : 'var(--background)',
-                    color: currentRole === r ? 'var(--primary)' : 'var(--muted)',
-                    textDecoration: 'none',
-                    border: `1px solid ${currentRole === r ? 'rgba(230, 0, 18, 0.4)' : 'var(--border-strong)'}`,
-                    transition: 'all 0.12s ease',
-                  }}
-                  title={`Chuyển tới ${r} Workspace`}
-                >
-                  {r === 'ADMIN' ? 'Admin' : r === 'CONTENT_MANAGER' ? 'Content' : r === 'TEACHER' ? 'Teacher' : 'Support'}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Back to Student Portal */}
         <Link
           to="/dashboard"
+          onClick={onMobileClose}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -560,12 +513,15 @@ export const ManagementSidebar: React.FC<ManagementSidebarProps> = ({
         @media (max-width: 1023px) {
           .management-sidebar {
             position: fixed !important;
-            left: -300px;
+            left: -320px;
             top: 0;
             bottom: 0;
-            width: 280px !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            width: min(300px, 85vw) !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            z-index: var(--z-drawer) !important;
           }
           .management-sidebar.mobile-open {
             left: 0 !important;

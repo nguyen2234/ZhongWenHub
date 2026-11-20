@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MOCK_STUDENTS_STORE, type MockStudentUser } from '../../../management/teacher/data/mockTeacherPortalData';
 import { teacherPortalService } from '../../../management/teacher/services/teacher-portal.service';
+import { managementAuthService } from '../../../management/shared/services/management-auth.service';
 
 /**
  * ============================================================================
@@ -22,7 +23,7 @@ export const DEFAULT_DEMO_STUDENT_ID = 'usr-st-01'; // Trần Thị Thu Thảo (
 
 const STORAGE_KEY = 'zh_active_student_id';
 
-let inMemoryActiveStudentId = DEFAULT_DEMO_STUDENT_ID;
+let inMemoryActiveStudentId: string | null = null;
 
 /**
  * Returns the currently active student identity record.
@@ -32,23 +33,59 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
   activeClassIds: string[];
   fullName: string;
 } {
-  let activeId = inMemoryActiveStudentId;
+  let activeId: string | null = inMemoryActiveStudentId;
 
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && MOCK_STUDENTS_STORE.some((s) => s.id === saved)) {
-      activeId = saved;
+  // 1. If no explicit in-memory student set, check authoritative session
+  if (!activeId) {
+    try {
+      const session = managementAuthService.getSession();
+      if (session && session.id) {
+        // Only use session if it's a student or a custom authenticated user (not a pure staff/management session)
+        const isManagementStaff = ['ADMIN', 'TEACHER', 'CONTENT_MANAGER', 'SUPPORT'].includes(session.role);
+        if (!isManagementStaff || session.role === 'STUDENT') {
+          activeId = session.id;
+        }
+      }
+    } catch {
+      // ignore
     }
   }
 
-  const student = MOCK_STUDENTS_STORE.find((s) => s.id === activeId) || MOCK_STUDENTS_STORE[0];
-  const enrolledClassIds = teacherPortalService.getActiveClassIdsForStudent(student.id);
+  // 2. Check localStorage if still not resolved
+  if (!activeId && typeof window !== 'undefined' && window.localStorage) {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (saved && saved.trim()) {
+      activeId = saved.trim();
+    }
+  }
 
+  // 3. Fallback to default demo student if unauthenticated/unselected
+  if (!activeId) {
+    activeId = DEFAULT_DEMO_STUDENT_ID;
+  }
+
+  // Check if activeId is one of the mock students in teacher portal
+  const mockStudent = MOCK_STUDENTS_STORE.find((s) => s.id === activeId);
+  if (mockStudent) {
+    const enrolledClassIds = teacherPortalService.getActiveClassIdsForStudent(mockStudent.id);
+    return {
+      ...mockStudent,
+      fullName: mockStudent.name,
+      enrolledClassIds,
+      activeClassIds: enrolledClassIds,
+    };
+  }
+
+  // Real or registered custom user session
+  const session = managementAuthService.getSession();
   return {
-    ...student,
-    fullName: student.name,
-    enrolledClassIds,
-    activeClassIds: enrolledClassIds,
+    id: activeId,
+    name: session?.name || 'Học viên',
+    email: session?.email || '',
+    avatarUrl: session?.avatarUrl,
+    fullName: session?.name || 'Học viên',
+    enrolledClassIds: [],
+    activeClassIds: [],
   };
 }
 
@@ -57,16 +94,30 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
  * Dispatches an event so all listening components update synchronously.
  */
 export function setDevStudentIdentity(studentId: string): void {
-  const found = MOCK_STUDENTS_STORE.find((s) => s.id === studentId);
-  if (!found) {
-    console.warn(`[StudentIdentityAdapter] Student ID "${studentId}" not found in mock store.`);
-    return;
-  }
+  if (!studentId || !studentId.trim()) return;
 
-  inMemoryActiveStudentId = studentId;
+  const cleanId = studentId.trim();
+  inMemoryActiveStudentId = cleanId;
+
   if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.setItem(STORAGE_KEY, studentId);
-    window.dispatchEvent(new CustomEvent('zh_student_identity_changed', { detail: { studentId } }));
+    window.localStorage.setItem(STORAGE_KEY, cleanId);
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('zh_student_identity_changed', { detail: { studentId: cleanId } }));
+  }
+}
+
+/**
+ * Clears active student identity on logout or account switch.
+ */
+export function clearStudentIdentity(): void {
+  inMemoryActiveStudentId = null;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.removeItem(STORAGE_KEY);
+  }
+  teacherPortalService.clearEnrolledClassesCache();
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('zh_student_identity_changed', { detail: { studentId: null } }));
   }
 }
 
@@ -84,14 +135,42 @@ export function useCurrentStudent() {
   const [identity, setIdentity] = useState(getCurrentStudentIdentity);
 
   useEffect(() => {
+    let isCancelled = false;
+
+    const fetchRealEnrollments = async (current: ReturnType<typeof getCurrentStudentIdentity>) => {
+      const isMockStudent = MOCK_STUDENTS_STORE.some((s) => s.id === current.id);
+      if (!isMockStudent && current.id) {
+        try {
+          const classIds = await teacherPortalService.getActiveClassIdsForStudentAsync(current.id);
+          if (!isCancelled) {
+            setIdentity((prev) => {
+              if (prev.id !== current.id) return prev;
+              return {
+                ...prev,
+                enrolledClassIds: classIds,
+                activeClassIds: classIds,
+              };
+            });
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    fetchRealEnrollments(identity);
+
     const handler = () => {
-      setIdentity(getCurrentStudentIdentity());
+      const next = getCurrentStudentIdentity();
+      setIdentity(next);
+      fetchRealEnrollments(next);
     };
 
     window.addEventListener('zh_student_identity_changed', handler);
     window.addEventListener('storage', handler);
 
     return () => {
+      isCancelled = true;
       window.removeEventListener('zh_student_identity_changed', handler);
       window.removeEventListener('storage', handler);
     };

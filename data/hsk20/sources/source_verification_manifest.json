@@ -1,0 +1,81 @@
+{
+  "sources": {
+    "plaktos_hsk1": {
+      "url": "https://raw.githubusercontent.com/plaktos/hsk_csv/master/hsk1.csv",
+      "local_path": "data\\hsk20\\sources\\plaktos_hsk1.csv",
+      "items_count": 150,
+      "status": "VERIFIED"
+    },
+    "plaktos_hsk2": {
+      "url": "https://raw.githubusercontent.com/plaktos/hsk_csv/master/hsk2.csv",
+      "local_path": "data\\hsk20\\sources\\plaktos_hsk2.csv",
+      "items_count": 150,
+      "status": "VERIFIED"
+    },
+    "plaktos_hsk3": {
+      "url": "https://raw.githubusercontent.com/plaktos/hsk_csv/master/hsk3.csv",
+      "local_path": "data\\hsk20\\sources\\plaktos_hsk3.csv",
+      "items_count": 299,
+      "status": "VERIFIED"
+    },
+    "plaktos_hsk4": {
+      "url": "https://raw.githubusercontent.com/plaktos/hsk_csv/master/hsk4.csv",
+      "local_path": "data\\hsk20\\sources\\plaktos_hsk4.csv",
+      "items_count": 601,
+      "status": "VERIFIED"
+    },
+    "drkameleon_hsk1": {
+      "url": "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/old/1.json",
+      "local_path": "data\\hsk20\\sources\\drkameleon_hsk1.json",
+      "items_count": 150,
+      "status": "VERIFIED"
+    },
+    "drkameleon_hsk2": {
+      "url": "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/old/2.json",
+      "local_path": "data\\hsk20\\sources\\drkameleon_hsk2.json",
+      "items_count": 147,
+      "status": "VERIFIED"
+    },
+    "drkameleon_hsk3": {
+      "url": "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/old/3.json",
+      "local_path": "data\\hsk20\\sources\\drkameleon_hsk3.json",
+      "items_count": 298,
+      "status": "VERIFIED"
+    },
+    "drkameleon_hsk4": {
+      "url": "https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/old/4.json",
+      "local_path": "data\\hsk20\\sources\\drkameleon_hsk4.json",
+      "items_count": 598,
+      "status": "VERIFIED"
+    },
+    "allset_grammar_hsk1": {
+      "url": "https://raw.githubusercontent.com/krmanik/Chinese-Grammar/master/CSV%20Files%20HSK1%20-%20HSK6/hsk1.csv",
+      "local_path": "data\\hsk20\\sources\\allset_grammar_hsk1.csv",
+      "distinct_points": 50,
+      "examples_count": 625,
+      "status": "VERIFIED"
+    },
+    "allset_grammar_hsk2": {
+      "url": "https://raw.githubusercontent.com/krmanik/Chinese-Grammar/master/CSV%20Files%20HSK1%20-%20HSK6/hsk2.csv",
+      "local_path": "data\\hsk20\\sources\\allset_grammar_hsk2.csv",
+      "distinct_points": 75,
+      "examples_count": 972,
+      "status": "VERIFIED"
+    },
+    "allset_grammar_hsk3": {
+      "url": "https://raw.githubusercontent.com/krmanik/Chinese-Grammar/master/CSV%20Files%20HSK1%20-%20HSK6/hsk3.csv",
+      "local_path": "data\\hsk20\\sources\\allset_grammar_hsk3.csv",
+      "distinct_points": 79,
+      "examples_count": 931,
+      "status": "VERIFIED"
+    },
+    "allset_grammar_hsk4": {
+      "url": "https://raw.githubusercontent.com/krmanik/Chinese-Grammar/master/CSV%20Files%20HSK1%20-%20HSK6/hsk4.csv",
+      "local_path": "data\\hsk20\\sources\\allset_grammar_hsk4.csv",
+      "distinct_points": 107,
+      "examples_count": 1162,
+      "status": "VERIFIED"
+    }
+  },
+  "summary": {}
+}

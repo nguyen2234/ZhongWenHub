@@ -5,11 +5,9 @@ import {
   Search,
   Menu,
   X,
-  ShieldCheck,
   Languages,
-  PanelLeftClose,
-  PanelLeftOpen,
   ChevronDown,
+  LogOut,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
@@ -17,21 +15,52 @@ import { StudentSearchModal } from './components/StudentSearchModal';
 import { StudentBottomNav } from './components/StudentBottomNav';
 import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
+import { useAuthContext } from '../features/auth/context/AuthContext';
+import { PortalSwitcher, getActivePortalLabel } from '../management/shared/components/PortalSwitcher';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const { currentHskLevel, streakDays, xpTotal } = useLearningState();
+  const { user, isAuthenticated, logout } = useAuthContext();
+
+  const isAdmin = Boolean(
+    user && (user.role === 'ADMIN' || user.roles?.includes('ADMIN'))
+  );
+  const displayName = user?.fullName || user?.email || 'Học viên';
+  const displayEmail = user?.email || '';
+  const displayInitials = (displayName || 'U')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .slice(-2)
+    .join('')
+    .toUpperCase();
+  const displayRoleLabel = isAdmin
+    ? 'Quản trị viên'
+    : (user?.role === 'TEACHER' ? 'Giáo viên' : `Học viên HSK ${user?.currentHskLevel || 1}`);
+
+  const activeHskLevel = user?.currentHskLevel ?? currentHskLevel;
+  const activeStreak = user?.streakDays ?? streakDays;
+  const activeXp = user?.xpPoints ?? xpTotal;
 
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isPinyinActive, setIsPinyinActive] = useState(true);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const mainScrollRef = useRef<HTMLDivElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('zwh_sidebar_collapsed') === 'true';
   });
+
+  // Reset independent main content scroll position cleanly when switching student routes
+  useEffect(() => {
+    if (mainScrollRef.current) {
+      mainScrollRef.current.scrollTop = 0;
+    }
+  }, [pathname]);
 
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed((prev) => {
@@ -91,8 +120,8 @@ export const StudentLayout: React.FC = () => {
 
   const getPageTitle = () => {
     if (pathname.startsWith('/ai-tutor')) return 'Không gian AI Tutor Chuyên nghiệp';
-    if (pathname.startsWith('/ai-live')) return 'Luyện giao tiếp AI Live';
-    if (pathname.startsWith('/ai-grading')) return 'AI Chấm điểm & Sửa văn';
+    if (pathname.startsWith('/ai-live') || pathname.startsWith('/conversation')) return 'Hội thoại AI Live';
+    if (pathname.startsWith('/ai-grading') || pathname.startsWith('/letter-writing')) return 'Viết thư & AI Chấm điểm';
     if (pathname.startsWith('/ai-analytics')) return 'Phân tích Năng lực AI';
     if (pathname.startsWith('/homework')) return 'Bài tập & Bài kiểm tra';
     if (pathname.startsWith('/vocabulary')) return 'Kho từ vựng & Spaced Repetition';
@@ -108,160 +137,227 @@ export const StudentLayout: React.FC = () => {
     if (pathname.startsWith('/profile')) return 'Hồ sơ Học viên';
     if (pathname.startsWith('/settings')) return 'Cài đặt Hệ thống';
     if (pathname.startsWith('/learning-path')) return 'Lộ trình HSK';
-    if (pathname.startsWith('/practice')) return 'Trung tâm Luyện tập';
+    if (pathname.startsWith('/practice')) return 'Bài tập luyện tiếng Trung';
     if (pathname.startsWith('/design-system')) return 'Design System Showcase';
     return 'Dashboard Học tập';
   };
 
+  const activeSidebarWidth = isSidebarCollapsed
+    ? 'var(--student-sidebar-collapsed-width, 72px)'
+    : 'var(--student-sidebar-width, 256px)';
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--background)' }}>
+    <div
+      className="student-app-shell"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'auto minmax(0, 1fr)',
+        gridTemplateRows: 'var(--app-header-height, 64px) minmax(0, 1fr)',
+        gridTemplateAreas: '"sidebar header" "sidebar main"',
+        height: '100dvh',
+        maxHeight: '100dvh',
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: 'var(--background)',
+      }}
+    >
       {/* =====================================================================
-          1. HANBEEGO-INSPIRED TOP HEADER
+          1. FIXED APP SHELL SIDEBAR (CSS Grid Left Column: Unified Logo + Scrollable Nav)
+          ===================================================================== */}
+      <aside
+        className="desktop-sidebar-wrapper student-sidebar-wrapper"
+        style={{
+          gridArea: 'sidebar',
+          width: activeSidebarWidth,
+          height: '100%',
+          minHeight: 0,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <StudentSidebar
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+          showBrandHeader={true}
+        />
+      </aside>
+
+      {/* Mobile Slide-in Drawer (< 1024px) */}
+      {isMobileDrawerOpen && (
+        <div
+          className="mobile-sidebar-drawer-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 'var(--z-drawer)',
+            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+            display: 'flex',
+            overscrollBehavior: 'none',
+            touchAction: 'none',
+          }}
+          onClick={() => setIsMobileDrawerOpen(false)}
+        >
+          <div
+            className="mobile-sidebar-drawer"
+            style={{
+              width: 'min(300px, 85vw)',
+              height: '100dvh',
+              maxHeight: '100dvh',
+              backgroundColor: '#ffffff',
+              boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Điều hướng học viên"
+          >
+            <div
+              style={{
+                padding: '14px 16px',
+                borderBottom: '1.5px solid #f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--primary)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'var(--font-hanzi)',
+                    fontWeight: 700,
+                    fontSize: '16px',
+                  }}
+                >
+                  华
+                </div>
+                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800 }}>ZhongWenHub</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileDrawerOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+                aria-label="Đóng thanh điều hướng"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <StudentSidebar
+                isCollapsed={false}
+                showBrandHeader={false}
+                onNavigate={() => setIsMobileDrawerOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          2. FIXED APP SHELL HEADER (CSS Grid Top Row: Search, Stats & Profile)
           ===================================================================== */}
       <header
+        className="student-app-header"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
+          gridArea: 'header',
+          position: 'relative',
+          zIndex: 20,
           display: 'flex',
-          height: 'var(--app-header-height)',
+          height: 'var(--app-header-height, 64px)',
+          minWidth: 0,
           alignItems: 'center',
           borderBottom: '1px solid var(--border)',
           backgroundColor: 'var(--surface)',
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Left section: Aligned with the Sidebar width (256px or 72px) */}
-        <div
-          style={{
-            display: 'flex',
-            height: '100%',
-            alignItems: 'center',
-            justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
-            gap: '10px',
-            padding: isSidebarCollapsed ? '0 10px' : '0 16px',
-            width: isSidebarCollapsed ? '72px' : '256px',
-            borderRight: '1.5px solid #f1f5f9',
-            flexShrink: 0,
-            boxSizing: 'border-box',
-            transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-          className="header-brand-box"
-        >
-          {/* Mobile Menu Hamburger button */}
-          <button
-            type="button"
-            aria-label="Mở menu"
-            onClick={() => setIsMobileDrawerOpen(true)}
-            className="mobile-hamburger-btn"
+          {/* Mobile-only Hamburger & Brand Logo (Hidden on Desktop >= 1024px) */}
+          <div
             style={{
               display: 'none',
-              width: '36px',
-              height: '36px',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: '#334155',
+              height: '100%',
               alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: 0,
+              gap: '8px',
+              padding: '0 8px 0 12px',
+              flexShrink: 0,
+              boxSizing: 'border-box',
             }}
+            className="mobile-header-left header-brand-box"
           >
-            <Menu size={20} />
-          </button>
-
-          {/* Logo & Brand text */}
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => navigate('/dashboard')}
-            title="Về Trang chủ ZhongWenHub"
-          >
-            <div
-              style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '12px',
-                backgroundColor: 'var(--primary)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-hanzi)',
-                fontWeight: 700,
-                fontSize: '20px',
-                boxShadow: '0 3px 0 0 #B80010',
-                flexShrink: 0,
-              }}
-            >
-              华
-            </div>
-            {!isSidebarCollapsed && (
-              <div style={{ display: 'flex', flexDirection: 'column' }} className="header-brand-title">
-                <span style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
-                  ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
-                </span>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
-                  Học tiếng Trung dễ dàng
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Desktop Sidebar Toggle icon */}
-          {!isSidebarCollapsed && (
+            {/* Mobile Menu Hamburger button */}
             <button
               type="button"
-              onClick={toggleSidebarCollapse}
-              aria-label="Thu gọn thanh điều hướng"
-              className="desktop-sidebar-toggle-btn"
+              aria-label="Mở menu"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="mobile-hamburger-btn"
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
+                display: 'none',
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--radius-md)',
                 border: 'none',
                 backgroundColor: 'transparent',
-                color: '#94a3b8',
+                color: '#334155',
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 padding: 0,
               }}
-              title="Thu gọn sidebar"
             >
-              <PanelLeftClose size={16} />
+              <Menu size={20} />
             </button>
-          )}
-        </div>
 
-        {/* Center / Search Input Trigger */}
-        <div className="header-search-container" style={{ flex: 1, padding: '0 12px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          {/* Quick Expand button when sidebar is collapsed (Desktop only) */}
-          {isSidebarCollapsed && (
-            <button
-              type="button"
-              onClick={toggleSidebarCollapse}
-              aria-label="Mở rộng thanh điều hướng"
-              className="desktop-sidebar-expand-btn"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
-                color: '#64748b',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              title="Mở rộng sidebar"
+            {/* Mobile Logo & Brand text */}
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}
+              onClick={() => navigate('/dashboard')}
+              title="Về Trang chủ ZhongWenHub"
             >
-              <PanelLeftOpen size={16} />
-            </button>
-          )}
+              <div
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  backgroundColor: 'var(--primary)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-hanzi)',
+                  fontWeight: 700,
+                  fontSize: '18px',
+                  boxShadow: '0 2px 0 0 #B80010',
+                  flexShrink: 0,
+                }}
+              >
+                华
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }} className="header-brand-title">
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
+                  ZhongWen<span style={{ color: 'var(--primary)' }}>Hub</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Center / Search Input Trigger */}
+          <div className="header-search-container" style={{ flex: 1, padding: '0 12px 0 16px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
 
           {/* Desktop/Tablet Full Search Bar */}
           <button
@@ -371,133 +467,269 @@ export const StudentLayout: React.FC = () => {
             <span>pīn</span>
           </button>
 
-          <div className="header-hsk-badge">
-            <HSKLevel level={(currentHskLevel >= 7 ? '7-9' : currentHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9'} />
-          </div>
-
-          {/* Streak Flame Pill */}
-          <div
-            className="header-streak-pill"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 8px',
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--streak-bg)',
-              border: '1px solid var(--streak-border)',
-              color: 'var(--streak)',
-              fontSize: '11px',
-              fontWeight: 700,
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-            title={`Chuỗi ${streakDays} ngày học liên tiếp`}
-          >
-            <Flame size={14} />
-            <span className="header-streak-label">{streakDays}N</span>
-          </div>
-
-          <div className="header-xp-pill">
-            <XPIndicator amount={xpTotal} variant="pill" />
-          </div>
-
-          {/* User Account Dropdown Trigger & Popover */}
-          <div ref={accountMenuRef} style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => setIsAccountMenuOpen((prev) => !prev)}
-              aria-expanded={isAccountMenuOpen}
-              aria-haspopup="true"
-              aria-label="Tài khoản học viên Minh Anh"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '2px 6px 2px 2px',
-                borderRadius: '9999px',
-                border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
-                backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              title="Menu tài khoản (Hồ sơ, Cài đặt)"
-            >
-              <div
+          {/* Conditional Header Content: Guest vs Authenticated */}
+          {!isAuthenticated ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="ds-btn ds-btn-ghost"
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--primary)',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                }}
-              >
-                MA
-              </div>
-              <ChevronDown
-                size={14}
-                style={{
-                  color: '#64748b',
-                  transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.15s ease',
-                }}
-              />
-            </button>
-
-            {/* Account Popover Menu */}
-            {isAccountMenuOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 'calc(100% + 8px)',
-                  width: '240px',
-                  backgroundColor: '#ffffff',
-                  borderRadius: '14px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#334155',
+                  borderRadius: '8px',
                   border: '1px solid #e2e8f0',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  zIndex: 50,
-                  padding: '6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px',
+                  backgroundColor: '#ffffff',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {/* User Identity Header */}
-                <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>Minh Anh</div>
-                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>student@zhongwenhub.edu.vn</div>
-                  <div
+                Đăng nhập
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="ds-btn ds-btn-primary"
+                style={{
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  backgroundColor: 'var(--primary, #E60012)',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Đăng ký
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="header-hsk-badge">
+                <HSKLevel level={((activeHskLevel >= 7 ? '7-9' : activeHskLevel) as 1 | 2 | 3 | 4 | 5 | 6 | '7-9')} />
+              </div>
+
+              {/* Streak Flame Pill */}
+              <div
+                className="header-streak-pill"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--streak-bg)',
+                  border: '1px solid var(--streak-border)',
+                  color: 'var(--streak)',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+                title={`Chuỗi ${activeStreak} ngày học liên tiếp`}
+              >
+                <Flame size={14} />
+                <span className="header-streak-label">{activeStreak}N</span>
+              </div>
+
+              <div className="header-xp-pill">
+                <XPIndicator amount={activeXp} variant="pill" />
+              </div>
+
+              {/* User Account Dropdown Trigger & Popover */}
+              <div ref={accountMenuRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAccountMenuOpen((prev) => !prev)}
+                  aria-expanded={isAccountMenuOpen}
+                  aria-haspopup="true"
+                  aria-label={`Tài khoản ${displayName} - ${getActivePortalLabel(pathname)}`}
+                  data-testid="profile-menu-trigger"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '2px 8px 2px 2px',
+                    borderRadius: '9999px',
+                    border: isAccountMenuOpen ? '1.5px solid var(--primary)' : '1.5px solid #cbd5e1',
+                    backgroundColor: isAccountMenuOpen ? '#eef2ff' : '#ffffff',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Tài khoản, Hồ sơ & Chuyển cổng"
+                >
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={displayName}
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        backgroundColor: 'var(--primary, #E60012)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {displayInitials}
+                    </div>
+                  )}
+                  <span
+                    className="header-profile-name"
                     style={{
-                      display: 'inline-block',
-                      marginTop: '6px',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      backgroundColor: '#e0e7ff',
-                      color: '#4338ca',
-                      fontSize: '10px',
+                      fontSize: '12px',
                       fontWeight: 700,
+                      color: '#0f172a',
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    Học viên HSK 2
-                  </div>
-                </div>
+                    {displayName}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      color: '#64748b',
+                      transform: isAccountMenuOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s ease',
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
 
-                {/* Primary Account Items: Profile, Settings, Classes */}
-                {ACCOUNT_MENU_ITEMS.map((item) => {
-                  const ItemIcon = item.icon;
-                  return (
+                {/* Account Popover Menu */}
+                {isAccountMenuOpen && (
+                  <div
+                    role="menu"
+                    data-testid="profile-menu-dropdown"
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 'calc(100% + 8px)',
+                      width: 'min(276px, calc(100vw - 24px))',
+                      maxHeight: 'calc(100dvh - 80px)',
+                      overflowY: 'auto',
+                      backgroundColor: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                      zIndex: 70,
+                      padding: '6px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                    }}
+                  >
+                    {/* User Identity Header */}
+                    <div style={{ padding: '10px 12px 8px 12px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{displayName}</div>
+                      {displayEmail && (
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {displayEmail}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: isAdmin ? '#fef2f2' : '#e0e7ff',
+                            color: isAdmin ? '#dc2626' : '#4338ca',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {displayRoleLabel}
+                        </span>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#ecfdf5',
+                            color: '#047857',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {getActivePortalLabel(pathname)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Primary Account Items: Profile, Settings, Classes */}
+                    {ACCOUNT_MENU_ITEMS.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsAccountMenuOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            color: '#334155',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'background-color 0.1s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <ItemIcon size={16} style={{ color: '#64748b' }} />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+
+                    {/* RBAC Portal Switcher integrated inside Profile Menu */}
+                    <PortalSwitcher
+                      variant="menu"
+                      onPortalChange={() => setIsAccountMenuOpen(false)}
+                    />
+
+                    <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+
+                    {/* Logout Action */}
                     <button
-                      key={item.id}
                       type="button"
-                      onClick={() => {
-                        navigate(item.path);
+                      onClick={async () => {
                         setIsAccountMenuOpen(false);
+                        await logout();
+                        navigate('/login');
                       }}
                       style={{
                         display: 'flex',
@@ -508,189 +740,49 @@ export const StudentLayout: React.FC = () => {
                         borderRadius: '8px',
                         border: 'none',
                         backgroundColor: 'transparent',
-                        color: '#334155',
+                        color: '#e11d48',
                         fontSize: '12px',
-                        fontWeight: 600,
+                        fontWeight: 700,
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'background-color 0.1s ease',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fff1f2')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <ItemIcon size={16} style={{ color: '#64748b' }} />
-                      <span>{item.label}</span>
+                      <LogOut size={16} style={{ color: '#e11d48' }} />
+                      <span>Đăng xuất</span>
                     </button>
-                  );
-                })}
-
-                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
-
-                {/* Management Portal Shortcut */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('/management/admin/dashboard');
-                    setIsAccountMenuOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#4338ca',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <ShieldCheck size={16} style={{ color: '#4338ca' }} />
-                  <span>Cổng Quản trị hệ thống</span>
-                </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Quick Management Switch */}
-          <Link
-            to="/management/admin/dashboard"
-            className="header-admin-link"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              height: '32px',
-              padding: '0 10px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid #e2e8f0',
-              backgroundColor: '#ffffff',
-              color: '#64748b',
-              fontSize: '11px',
-              fontWeight: 600,
-              textDecoration: 'none',
-            }}
-            title="Cổng Quản trị"
-          >
-            <ShieldCheck size={14} />
-            <span className="header-admin-text">Quản trị</span>
-          </Link>
+            </>
+          )}
         </div>
       </header>
 
       {/* =====================================================================
-          2. HANBEEGO-STYLE TWO-PANE BODY (Sticky Sidebar + Main Content)
+          3. SCROLLABLE MAIN CONTENT PANE (Only this region scrolls vertically)
           ===================================================================== */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 'calc(100vh - 64px)' }}>
-        {/* Persistent Desktop Sidebar */}
-        <div className="desktop-sidebar-wrapper" style={{ display: 'block' }}>
-          <div
-            style={{
-              position: 'sticky',
-              top: 'var(--app-header-height)',
-              height: 'calc(100vh - var(--app-header-height))',
-            }}
-          >
-            <StudentSidebar
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={toggleSidebarCollapse}
-            />
-          </div>
-        </div>
-
-        {/* Mobile Slide-in Drawer */}
-        {isMobileDrawerOpen && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 'var(--z-drawer)',
-              backgroundColor: 'rgba(15, 23, 42, 0.5)',
-              display: 'flex',
-            }}
-            onClick={() => setIsMobileDrawerOpen(false)}
-          >
-            <div
-              style={{
-                width: '280px',
-                height: '100%',
-                backgroundColor: '#ffffff',
-                boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Điều hướng học viên"
-            >
-              <div
-                style={{
-                  padding: '14px 16px',
-                  borderBottom: '1.5px solid #f1f5f9',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--primary)',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'var(--font-hanzi)',
-                      fontWeight: 700,
-                      fontSize: '16px',
-                    }}
-                  >
-                    华
-                  </div>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800 }}>ZhongWenHub</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileDrawerOpen(false)}
-                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div style={{ flex: 1, overflowY: 'auto' }} className="student-sidebar-scroll">
-                <StudentSidebar
-                  isCollapsed={false}
-                  onNavigate={() => setIsMobileDrawerOpen(false)}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content Viewport hosting Outlet and Footer */}
-        <div
-          style={{
-            minWidth: 0,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'var(--background)',
-          }}
-        >
-          <main className="student-main-viewport" style={{ flex: 1, width: '100%', boxSizing: 'border-box' }}>
-            <Outlet />
-          </main>
+      <div
+        ref={mainScrollRef}
+        className="student-main-pane student-main-scroll"
+        style={{
+          gridArea: 'main',
+          minWidth: 0,
+          minHeight: 0,
+          height: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'var(--background)',
+          boxSizing: 'border-box',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        <main className="student-main-viewport" style={{ flex: '1 0 auto', width: '100%', boxSizing: 'border-box' }}>
+          <Outlet />
+        </main>
 
           {/* Clean Responsive Footer */}
           <footer
@@ -731,7 +823,6 @@ export const StudentLayout: React.FC = () => {
               </div>
             </div>
           </footer>
-        </div>
       </div>
 
       {/* Mobile-First Fixed Bottom Navigation */}
@@ -742,28 +833,32 @@ export const StudentLayout: React.FC = () => {
 
       {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (max-width: 1024px) {
+        @media (max-width: 1023px) {
+          .student-app-shell {
+            grid-template-columns: minmax(0, 1fr) !important;
+            grid-template-areas:
+              "header"
+              "main" !important;
+          }
           .desktop-sidebar-wrapper {
             display: none !important;
           }
-          .mobile-hamburger-btn {
-            display: none !important;
+          .student-main-pane {
+            width: 100% !important;
           }
-          .header-brand-box {
-            width: auto !important;
-            border-right: none !important;
-            padding: 0 8px 0 12px !important;
+          .mobile-header-left {
+            display: flex !important;
+          }
+          .mobile-hamburger-btn {
+            display: inline-flex !important;
+          }
+          .header-search-container {
+            padding: 0 12px !important;
           }
           .header-admin-link {
             display: none !important;
           }
           .header-admin-text {
-            display: none !important;
-          }
-          .desktop-sidebar-toggle-btn {
-            display: none !important;
-          }
-          .desktop-sidebar-expand-btn {
             display: none !important;
           }
           .student-main-viewport {
@@ -788,6 +883,9 @@ export const StudentLayout: React.FC = () => {
             display: none !important;
           }
           .header-hsk-badge {
+            display: none !important;
+          }
+          .header-profile-name {
             display: none !important;
           }
           .header-right-actions {

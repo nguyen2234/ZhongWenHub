@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { curriculumService } from '../../admin/content/services/curriculum.service';
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
@@ -24,21 +24,25 @@ export const TeacherDashboardPage: React.FC = () => {
   // State
   const [dashboardData, setDashboardData] = useState<TeacherDashboardDTO | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
   const [hskLevels, setHskLevels] = useState<HskLevel[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
 
   // Load dashboard data from service abstraction
-  const loadDashboardData = useCallback(() => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = teacherPortalService.getDashboard();
+      setError(null);
+      const data = await teacherPortalService.getDashboard();
       const levels = hskRepositoryService.getLevels();
       const courseList = curriculumService.getCourses();
 
       setDashboardData(data);
       setHskLevels(levels);
       setCourses(courseList);
+    } catch (err: any) {
+      setError(err?.message || 'Đã xảy ra lỗi khi tải dữ liệu bảng điều khiển giảng viên.');
     } finally {
       setLoading(false);
     }
@@ -50,16 +54,53 @@ export const TeacherDashboardPage: React.FC = () => {
 
   // Handle Create Class
   const handleCreateClass = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
-    teacherPortalService.createClass(dto as CreateTeachingClassDTO);
-    loadDashboardData();
+    await teacherPortalService.createClass(dto as CreateTeachingClassDTO);
+    await loadDashboardData();
   };
 
-  if (loading || !dashboardData) {
+  if (loading) {
     return (
       <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--muted)' }}>
         Đang tải dữ liệu Teacher Dashboard...
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: 'var(--space-12)',
+          textAlign: 'center',
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-xl)',
+          margin: 'var(--space-6) 0',
+        }}
+      >
+        <div style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+          <AlertCircle size={36} />
+        </div>
+        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '8px' }}>
+          Không thể tải dữ liệu Dashboard
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-4)' }}>
+          {error}
+        </p>
+        <button
+          type="button"
+          onClick={loadDashboardData}
+          className="ds-btn ds-btn-primary ds-btn-sm"
+          style={{ gap: '6px' }}
+        >
+          <RefreshCw size={14} /> Thử lại
+        </button>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return null;
   }
 
   return (

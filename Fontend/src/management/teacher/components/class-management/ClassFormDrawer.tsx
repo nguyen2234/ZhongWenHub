@@ -3,6 +3,7 @@ import { X, Plus, Trash2, AlertCircle } from 'lucide-react';
 import type { Course, HskLevel } from '../../../admin/content/types';
 import type {
   ClassLifecycleStatus,
+  ClassSchedule,
   ClassSummaryDTO,
   CreateTeachingClassDTO,
   DayOfWeek,
@@ -18,6 +19,7 @@ export interface ClassFormDrawerProps {
   onClose: () => void;
   onSubmit: (data: CreateTeachingClassDTO | UpdateTeachingClassDTO) => Promise<void>;
   editingClass?: TeachingClass | ClassSummaryDTO | null;
+  initialSchedules?: ClassSchedule[];
   hskLevels: HskLevel[];
   courses: Course[];
 }
@@ -37,6 +39,7 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
   onClose,
   onSubmit,
   editingClass,
+  initialSchedules,
   hskLevels,
   courses,
 }) => {
@@ -55,20 +58,7 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
   const [meetingUrl, setMeetingUrl] = useState('');
   const [roomLocation, setRoomLocation] = useState('');
   const [status, setStatus] = useState<ClassLifecycleStatus>('UPCOMING');
-  const [schedules, setSchedules] = useState<ScheduleRowState[]>([
-    {
-      dayOfWeek: 'TUESDAY',
-      startTime: '19:00',
-      endTime: '20:30',
-      locationType: 'ONLINE',
-    },
-    {
-      dayOfWeek: 'THURSDAY',
-      startTime: '19:00',
-      endTime: '20:30',
-      locationType: 'ONLINE',
-    },
-  ]);
+  const [schedules, setSchedules] = useState<ScheduleRowState[]>([]);
 
   // Validation Errors & Loading
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -92,11 +82,10 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
       setRoomLocation(editingClass.roomLocation || '');
       setStatus(editingClass.status);
 
-      // Load schedules for editingClass
-      const classSchedules = teacherPortalService.getClassSchedules(editingClass.id);
-      if (classSchedules.length > 0) {
+      // Reset schedules to prevent retaining previous class's schedules
+      if (initialSchedules !== undefined) {
         setSchedules(
-          classSchedules.map((s) => ({
+          initialSchedules.map((s) => ({
             id: s.id,
             dayOfWeek: s.dayOfWeek,
             startTime: s.startTime,
@@ -106,6 +95,33 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
             roomLocation: s.roomLocation,
           }))
         );
+      } else {
+        setSchedules([]);
+        let isCancelled = false;
+        teacherPortalService
+          .getClassSchedules(editingClass.id)
+          .then((classSchedules) => {
+            if (!isCancelled && classSchedules) {
+              setSchedules(
+                classSchedules.map((s) => ({
+                  id: s.id,
+                  dayOfWeek: s.dayOfWeek,
+                  startTime: s.startTime,
+                  endTime: s.endTime,
+                  locationType: s.locationType,
+                  meetingUrl: s.meetingUrl,
+                  roomLocation: s.roomLocation,
+                }))
+              );
+            }
+          })
+          .catch((err) => {
+            console.warn('[ClassFormDrawer] Error fetching class schedules:', err);
+          });
+
+        return () => {
+          isCancelled = true;
+        };
       }
     } else {
       // Default for Create
@@ -122,23 +138,11 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
       setMeetingUrl('https://zoom.us/j/84920491029');
       setRoomLocation('');
       setStatus('UPCOMING');
-      setSchedules([
-        {
-          dayOfWeek: 'TUESDAY',
-          startTime: '19:00',
-          endTime: '20:30',
-          locationType: 'ONLINE',
-        },
-        {
-          dayOfWeek: 'THURSDAY',
-          startTime: '19:00',
-          endTime: '20:30',
-          locationType: 'ONLINE',
-        },
-      ]);
+      // Clean slate - allow empty schedules
+      setSchedules([]);
     }
     setErrors({});
-  }, [isOpen, editingClass, hskLevels]);
+  }, [isOpen, editingClass, initialSchedules, hskLevels]);
 
   if (!isOpen) return null;
 
@@ -211,23 +215,44 @@ export const ClassFormDrawer: React.FC<ClassFormDrawerProps> = ({
     }
 
     // Validate schedules
+    const TIME_REGEX = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
     for (let i = 0; i < schedules.length; i++) {
       const sch = schedules[i];
-      if (sch.startTime >= sch.endTime) {
-        newErrors.schedules = `Buổi thứ ${i + 1} (${sch.dayOfWeek}): Giờ bắt đầu phải nhỏ hơn giờ kết thúc.`;
+      if (!sch.startTime || !TIME_REGEX.test(sch.startTime.trim())) {
+        newErrors.schedules = `Buổi thứ ${i + 1} (${sch.dayOfWeek}): Định dạng giờ bắt đầu '${sch.startTime}' không hợp lệ (yêu cầu định dạng HH:mm, ví dụ 19:00).`;
+        break;
+      }
+      if (!sch.endTime || !TIME_REGEX.test(sch.endTime.trim())) {
+        newErrors.schedules = `Buổi thứ ${i + 1} (${sch.dayOfWeek}): Định dạng giờ kết thúc '${sch.endTime}' không hợp lệ (yêu cầu định dạng HH:mm, ví dụ 20:30).`;
+        break;
+      }
+      if (sch.startTime.trim() >= sch.endTime.trim()) {
+        newErrors.schedules = `Buổi thứ ${i + 1} (${sch.dayOfWeek}): Khung giờ không hợp lệ (${sch.startTime} - ${sch.endTime}): Giờ bắt đầu phải nhỏ hơn giờ kết thúc.`;
         break;
       }
     }
 
-    // Check duplicate days
-    const scheduleKeys = new Set<string>();
-    for (const sch of schedules) {
-      const key = `${sch.dayOfWeek}-${sch.startTime}`;
-      if (scheduleKeys.has(key)) {
-        newErrors.schedules = `Trùng lịch học vào ${sch.dayOfWeek} lúc ${sch.startTime}.`;
-        break;
+    // Check schedule overlap on the same day
+    if (!newErrors.schedules) {
+      const dayGroups: Record<string, ScheduleRowState[]> = {};
+      for (const sch of schedules) {
+        const day = sch.dayOfWeek;
+        if (!dayGroups[day]) dayGroups[day] = [];
+        dayGroups[day].push(sch);
       }
-      scheduleKeys.add(key);
+
+      for (const [day, daySchedules] of Object.entries(dayGroups)) {
+        const sorted = [...daySchedules].sort((a, b) => a.startTime.trim().localeCompare(b.startTime.trim()));
+        for (let i = 0; i < sorted.length - 1; i++) {
+          const curEnd = sorted[i].endTime.trim();
+          const nextStart = sorted[i + 1].startTime.trim();
+          if (curEnd > nextStart) {
+            newErrors.schedules = `Khung giờ học trên cùng ngày ${DAY_OF_WEEK_LABELS[day as DayOfWeek]?.full || day} bị trùng lặp: Buổi học ${sorted[i].startTime}–${sorted[i].endTime} đè lên buổi học ${sorted[i + 1].startTime}–${sorted[i + 1].endTime}.`;
+            break;
+          }
+        }
+        if (newErrors.schedules) break;
+      }
     }
 
     setErrors(newErrors);

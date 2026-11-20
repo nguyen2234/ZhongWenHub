@@ -1,0 +1,25 @@
+{
+  "phase": "9.4",
+  "hskLevel": 4,
+  "targetDatabase": "ZhongWenHub_Test",
+  "targetServer": "DESKTOP-CFII6FK\\SQLEXPRESS",
+  "status": "COMMITTED_SUCCESSFULLY",
+  "preImportSnapshot": {
+    "lessons": 20,
+    "vocabularies": 0,
+    "exercises": 40,
+    "sha256": "36795ff12092354f831f16b3af3db3d0a51b1b23cad897f0d46a0bf0b1dc4609"
+  },
+  "postImportState": {
+    "lessons": 20,
+    "vocabularies": 1000,
+    "exercises": 80,
+    "sha256": "30584f084e059edbc419b33df171cbaf92a2427eb4ce4b4f511e41d3cd235304"
+  },
+  "operations": {
+    "vocabulariesInserted": 1000,
+    "exercisesUpdated": 40,
+    "exercisesInserted": 40,
+    "readingPassagesAttached": 5
+  }
+}

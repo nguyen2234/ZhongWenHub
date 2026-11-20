@@ -1,0 +1,2857 @@
+{
+  "standard": "HSK_2_0",
+  "level": 1,
+  "totalCount": 50,
+  "grammarPoints": [
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-001",
+      "title": "Biểu thị hành động đang diễn ra với \"在\"",
+      "titleEn": "Expressing actions in progress with \"zai\"",
+      "category": "Describing actions, Indicating conditions, Referring to the present",
+      "structure": "Subj. + 在 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị hành động đang diễn ra với \"在\"' (Expressing actions in progress with \"zai\"). Cấu trúc cấu thành câu: Subj. + 在 + Verb + Obj.. Dùng trong các ngữ cảnh: Describing actions, Indicating conditions, Referring to the present.",
+      "examples": [
+        {
+          "chinese": "她在看书。",
+          "pinyin": "tā zài kàn shū 。",
+          "meaningVi": "Cô ấy đang đọc sách."
+        },
+        {
+          "chinese": "妈妈在打电话。",
+          "pinyin": "māmā zài dǎ diànhuà 。",
+          "meaningVi": "Mom is calling."
+        },
+        {
+          "chinese": "谁在里面洗澡？",
+          "pinyin": "shúi zài lǐmiàn xǐzǎo ？",
+          "meaningVi": "Who is taking a bath inside?"
+        },
+        {
+          "chinese": "阿姨正在打扫我们的房间。",
+          "pinyin": "āyí zhèngzài dǎsǎo wǒmen de fángjiān 。",
+          "meaningVi": "The aunt is cleaning our room."
+        },
+        {
+          "chinese": "昨天晚上七点，我们在吃饭。",
+          "pinyin": "zuótiān wǎnshàng qīdiǎn，wǒmen zài chīfàn 。",
+          "meaningVi": "At 7 o'clock last night, we were eating."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 在 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG846EA"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-002",
+      "title": "Phủ định của \"有\" bằng \"没\"",
+      "titleEn": "Negation of \"you\" with \"mei\"",
+      "category": "Negating, Denying and refusing",
+      "structure": "没 + 有 (+ Obj.)",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Phủ định của \"有\" bằng \"没\"' (Negation of \"you\" with \"mei\"). Cấu trúc cấu thành câu: 没 + 有 (+ Obj.). Dùng trong các ngữ cảnh: Negating, Denying and refusing.",
+      "examples": [
+        {
+          "chinese": "我没有问题。",
+          "pinyin": "wǒ méiyǒu wèntí 。",
+          "meaningVi": "I have no problem."
+        },
+        {
+          "chinese": "我们现在没有钱。",
+          "pinyin": "wǒmen xiànzài méiyǒu qián 。",
+          "meaningVi": "We have no money now."
+        },
+        {
+          "chinese": "他没有工作吗？",
+          "pinyin": "tā méiyǒu gōngzuò ma ？",
+          "meaningVi": "Is he not working?"
+        },
+        {
+          "chinese": "他们没有爸爸妈妈。",
+          "pinyin": "tāmen méiyǒu bàbà māmā 。",
+          "meaningVi": "They don't have parents."
+        },
+        {
+          "chinese": "我们在北京没有房子。",
+          "pinyin": "wǒmen zài běijīng méiyǒu fángzǐ 。",
+          "meaningVi": "We don't have a house in Beijing."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 没 + 有 (+ Obj.)",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGPNV3Q"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-003",
+      "title": "Phủ định tiêu chuẩn với phó từ \"不\"",
+      "titleEn": "Standard negation with \"bu\"",
+      "category": "Negating, Describing actions, Denying and refusing, Referring to habitual actions, Referring to the present, Referring to the future",
+      "structure": "Subj. + 不 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Phủ định tiêu chuẩn với phó từ \"不\"' (Standard negation with \"bu\"). Cấu trúc cấu thành câu: Subj. + 不 + Verb + Obj.. Dùng trong các ngữ cảnh: Negating, Describing actions, Denying and refusing, Referring to habitual actions, Referring to the present, Referring to the future.",
+      "examples": [
+        {
+          "chinese": "他们不是坏孩子。",
+          "pinyin": "tāmen bù shì huài háizǐ 。",
+          "meaningVi": "They are not bad boys."
+        },
+        {
+          "chinese": "我们不喝酒。",
+          "pinyin": "wǒmen bù hē jǐu 。",
+          "meaningVi": "We don't drink."
+        },
+        {
+          "chinese": "我今天不想工作。",
+          "pinyin": "wǒ jīntiān bù xiǎng gōngzuò 。",
+          "meaningVi": "I don't want to work today."
+        },
+        {
+          "chinese": "你不喜欢我吗？",
+          "pinyin": "nǐ bù xǐhuān wǒ ma ？",
+          "meaningVi": "Don't you like me?"
+        },
+        {
+          "chinese": "为什么你不喜欢喝咖啡？",
+          "pinyin": "wèishíyāo nǐ bù xǐhuān hē kāfēi ？",
+          "meaningVi": "Why don't you like coffee?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 不 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGIPYFV"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-004",
+      "title": "Phó từ chỉ toàn thể \"都\" (đều)",
+      "titleEn": "The \"all\" adverb \"dou\"",
+      "category": "Emphasizing, Expressing quantity",
+      "structure": "Subj. + 都 + [Verb Phrase]",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Phó từ chỉ toàn thể \"都\" (đều)' (The \"all\" adverb \"dou\"). Cấu trúc cấu thành câu: Subj. + 都 + [Verb Phrase]. Dùng trong các ngữ cảnh: Emphasizing, Expressing quantity.",
+      "examples": [
+        {
+          "chinese": "你们都认识John吗？",
+          "pinyin": "nǐmen dū rènshì John ma ？",
+          "meaningVi": "Do you all know John?"
+        },
+        {
+          "chinese": "他们都在上海。",
+          "pinyin": "tāmen dū zài shànghǎi 。",
+          "meaningVi": "They are all in Shanghai."
+        },
+        {
+          "chinese": "明天我们都可以去。",
+          "pinyin": "míngtiān wǒmen dū kěyǐ qù 。",
+          "meaningVi": "We can all go tomorrow."
+        },
+        {
+          "chinese": "你们都用wiki吗？",
+          "pinyin": "nǐmen dū yòng wiki ma ？",
+          "meaningVi": "Do you all use wiki?"
+        },
+        {
+          "chinese": "我们都要冰水。",
+          "pinyin": "wǒmen dū yào bīngshǔi 。",
+          "meaningVi": "We all have ice water."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 都 + [Verb Phrase]",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG9YK09"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-005",
+      "title": "Phó từ \"也\" (cũng)",
+      "titleEn": "The \"also\" adverb \"ye\"",
+      "category": "Adding more explanation",
+      "structure": "Subj. + 也 + Verb / [Verb Phrase]",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Phó từ \"也\" (cũng)' (The \"also\" adverb \"ye\"). Cấu trúc cấu thành câu: Subj. + 也 + Verb / [Verb Phrase]. Dùng trong các ngữ cảnh: Adding more explanation.",
+      "examples": [
+        {
+          "chinese": "我也喜欢。",
+          "pinyin": "wǒ yě xǐhuān 。",
+          "meaningVi": "I would also like."
+        },
+        {
+          "chinese": "我也是学生。",
+          "pinyin": "wǒ yě shì xuéshēng 。",
+          "meaningVi": "I am a student too."
+        },
+        {
+          "chinese": "她也有一个儿子。",
+          "pinyin": "tā yě yǒu yīgè érzǐ 。",
+          "meaningVi": "She also has a son."
+        },
+        {
+          "chinese": "他们也是法国人吗？",
+          "pinyin": "tāmen yě shì fǎguó rén ma ？",
+          "meaningVi": "Are they also French?"
+        },
+        {
+          "chinese": "我也想学中文。",
+          "pinyin": "wǒ yě xiǎng xué zhōngwén 。",
+          "meaningVi": "I also want to learn Chinese."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 也 + Verb / [Verb Phrase]",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGG25MD"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-006",
+      "title": "Hỏi mức độ, kích thước với \"多\"",
+      "titleEn": "Asking about degree with \"duo\"",
+      "category": "Asking questions, Adding more explanation, Expressing quality",
+      "structure": "Subj. + 多 + Adj. ?",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Hỏi mức độ, kích thước với \"多\"' (Asking about degree with \"duo\"). Cấu trúc cấu thành câu: Subj. + 多 + Adj. ?. Dùng trong các ngữ cảnh: Asking questions, Adding more explanation, Expressing quality.",
+      "examples": [
+        {
+          "chinese": "她多高？",
+          "pinyin": "tā duō gāo ？",
+          "meaningVi": "How tall is she?"
+        },
+        {
+          "chinese": "你家多大？",
+          "pinyin": "nǐjiā duō dà ？",
+          "meaningVi": "How big is your home?"
+        },
+        {
+          "chinese": "你的孩子多大？",
+          "pinyin": "nǐ de háizǐ duō dà ？",
+          "meaningVi": "How old are you children?"
+        },
+        {
+          "chinese": "黄河多长？",
+          "pinyin": "huánghé duō cháng ？",
+          "meaningVi": "How long is the Yellow River?"
+        },
+        {
+          "chinese": "你家离这儿多远？",
+          "pinyin": "nǐ jiā lí zhèér duō yuǎn ？",
+          "meaningVi": "How far is your home from here?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 多 + Adj. ?",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG9LLJU"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-007",
+      "title": "Biểu thị không lắm với \"不太\"",
+      "titleEn": "Expressing \"not very\" with \"bu tai\"",
+      "category": "Adding more explanation",
+      "structure": "Subj. + 不太 + Adj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị không lắm với \"不太\"' (Expressing \"not very\" with \"bu tai\"). Cấu trúc cấu thành câu: Subj. + 不太 + Adj.. Dùng trong các ngữ cảnh: Adding more explanation.",
+      "examples": [
+        {
+          "chinese": "我家不太大。",
+          "pinyin": "wǒ jiā bù tài dà 。",
+          "meaningVi": "My home is not too big."
+        },
+        {
+          "chinese": "那个地方不太远。",
+          "pinyin": "nà gè dìfāng bù tài yuǎn 。",
+          "meaningVi": "That place is not too far away."
+        },
+        {
+          "chinese": "老板今天不太高兴。",
+          "pinyin": "lǎobǎn jīntiān bù tài gāoxīng 。",
+          "meaningVi": "The boss is not very happy today."
+        },
+        {
+          "chinese": "这个店的衣服不太贵。",
+          "pinyin": "zhè gè diàn de yīfú bù tài gùi 。",
+          "meaningVi": "The clothes in this shop are not too expensive."
+        },
+        {
+          "chinese": "我觉得他不太聪明。",
+          "pinyin": "wǒ juédé tā bù tài cōngmíng 。",
+          "meaningVi": "I think he is not very smart."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 不太 + Adj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGUNMHU"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-008",
+      "title": "Biểu đạt \"và / cùng\" với \"和\"",
+      "titleEn": "Expressing \"and\" with \"he\"",
+      "category": "Listing",
+      "structure": "Noun 1 + 和 + Noun 2",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"và / cùng\" với \"和\"' (Expressing \"and\" with \"he\"). Cấu trúc cấu thành câu: Noun 1 + 和 + Noun 2. Dùng trong các ngữ cảnh: Listing.",
+      "examples": [
+        {
+          "chinese": "你和我",
+          "pinyin": "nǐ hé wǒ",
+          "meaningVi": "you and me"
+        },
+        {
+          "chinese": "老板喜欢咖啡和茶。",
+          "pinyin": "lǎobǎn xǐhuān kāfēi hé chá 。",
+          "meaningVi": "The boss likes coffee and tea."
+        },
+        {
+          "chinese": "我的爷爷和奶奶都70岁。",
+          "pinyin": "wǒ de yéyé hé nǎinǎi dū 70 sùi 。",
+          "meaningVi": "My grandpa and grandma are both 70 years old."
+        },
+        {
+          "chinese": "他和他女朋友都喜欢中国菜。",
+          "pinyin": "tā hé tā nv̌péngyǒu dū xǐhuān zhōngguó cài 。",
+          "meaningVi": "He and his girlfriend love Chinese food."
+        },
+        {
+          "chinese": "你爸爸和你妈妈都是美国人吗？",
+          "pinyin": "nǐ bàbà hé nǐ māmā dū shì měiguó rén ma ？",
+          "meaningVi": "Are your father and mother both American?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Noun 1 + 和 + Noun 2",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGP0KFF"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-009",
+      "title": "Biểu thị sau một mốc thời gian với \"以后\"",
+      "titleEn": "After a specific time with \"yihou\"",
+      "category": "Sequencing events in time, Expressing time and date",
+      "structure": "Time / Verb + 以后, ....",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị sau một mốc thời gian với \"以后\"' (After a specific time with \"yihou\"). Cấu trúc cấu thành câu: Time / Verb + 以后, ..... Dùng trong các ngữ cảnh: Sequencing events in time, Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "下午三点以后，我不在家。",
+          "pinyin": "xiàwǔ sāndiǎn yǐhòu， wǒ bù zài jiā 。",
+          "meaningVi": "After three in the afternoon, I am not at home."
+        },
+        {
+          "chinese": "来中国以后，她认识了她的老公。",
+          "pinyin": "lái zhōngguó yǐhòu， tā rènshì le tā de lǎogōng 。",
+          "meaningVi": "After coming to China, she met her husband."
+        },
+        {
+          "chinese": "她一个月以后开始上班。",
+          "pinyin": "tā yīgèyuè yǐhòu kāishǐ shàngbān 。",
+          "meaningVi": "She started work one month later."
+        },
+        {
+          "chinese": "吃完午饭以后，我们要开会。",
+          "pinyin": "chī wán wǔfàn yǐhòu ， wǒmen yào kāihùi 。",
+          "meaningVi": "After lunch, we have a meeting."
+        },
+        {
+          "chinese": "几年以后，我们公司会更大。",
+          "pinyin": "jīnián yǐhòu ，wǒmen gōngsī hùi gèng dà 。",
+          "meaningVi": "In a few years, our company will be bigger."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Time / Verb + 以后, ....",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGRLQGY"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-010",
+      "title": "Biểu thị trước một mốc thời gian với \"以前\"",
+      "titleEn": "Before a specific time with \"yiqian\"",
+      "category": "Referring to the past, Sequencing events in time, Expressing time and date",
+      "structure": "Time / Verb + 以前 ，⋯⋯",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị trước một mốc thời gian với \"以前\"' (Before a specific time with \"yiqian\"). Cấu trúc cấu thành câu: Time / Verb + 以前 ，⋯⋯. Dùng trong các ngữ cảnh: Referring to the past, Sequencing events in time, Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "吃饭以前，你洗手了吗？",
+          "pinyin": "chīfàn yǐqián ，nǐ xǐ shǒu le ma ？",
+          "meaningVi": "Did you wash your hands before eating?"
+        },
+        {
+          "chinese": "睡觉以前，不要吃东西。",
+          "pinyin": "shùijué yǐqián ，bùyào chī dōngxī 。",
+          "meaningVi": "Don't eat anything before going to bed."
+        },
+        {
+          "chinese": "两年以前，你认识他吗？",
+          "pinyin": "liǎng nián yǐqián ， nǐ rènshì tā ma ？",
+          "meaningVi": "Did you know him two years ago?"
+        },
+        {
+          "chinese": "星期五以前，你要做完这些工作。",
+          "pinyin": "xīngqīwǔ yǐqián ，nǐ yào zuò wán zhèxiē gōngzuò 。",
+          "meaningVi": "Before Friday, you have to finish these tasks."
+        },
+        {
+          "chinese": "上大学以前，你来过上海吗？",
+          "pinyin": "shàng dàxué yǐqián，nǐ lái guò shànghǎi ma ？",
+          "meaningVi": "Have you been to Shanghai before going to university?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Time / Verb + 以前 ，⋯⋯",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGJ2OJC"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-011",
+      "title": "Trật tự của từ chỉ thời gian trong câu",
+      "titleEn": "Time words and word order",
+      "category": "Sentence Patterns, Sequencing events in time, Expressing time and date",
+      "structure": "Subj. + Time + Verb + Obj. / Time + Subj. + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Trật tự của từ chỉ thời gian trong câu' (Time words and word order). Cấu trúc cấu thành câu: Subj. + Time + Verb + Obj. / Time + Subj. + Verb + Obj.. Dùng trong các ngữ cảnh: Sentence Patterns, Sequencing events in time, Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "昨天我去了酒吧。",
+          "pinyin": "zuótiān wǒ qù le jǐuba 。",
+          "meaningVi": "I went to the bar yesterday."
+        },
+        {
+          "chinese": "我昨天去了酒吧。",
+          "pinyin": "wǒ zuótiān qù le jǐuba 。",
+          "meaningVi": "I went to the bar yesterday."
+        },
+        {
+          "chinese": "下个星期他要回国。",
+          "pinyin": "xià gè xīngqī tā yào húi guó 。",
+          "meaningVi": "He will return to China next week."
+        },
+        {
+          "chinese": "他下个星期要回国。",
+          "pinyin": "tā xià gè xīngqī yào húi guó 。",
+          "meaningVi": "He will return home next week."
+        },
+        {
+          "chinese": "明年我要开一个公司。",
+          "pinyin": "míngnián wǒ yào kāi yī gè gōngsī 。",
+          "meaningVi": "I will start a company next year."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + Time + Verb + Obj. / Time + Subj. + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG5RWKO"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-012",
+      "title": "Nói về tuổi tác với lượng từ \"岁\"",
+      "titleEn": "Age with \"sui\"",
+      "category": "Introducing people, Describing people",
+      "structure": "Subj. + Number + 岁",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Nói về tuổi tác với lượng từ \"岁\"' (Age with \"sui\"). Cấu trúc cấu thành câu: Subj. + Number + 岁. Dùng trong các ngữ cảnh: Introducing people, Describing people.",
+      "examples": [
+        {
+          "chinese": "我20岁。",
+          "pinyin": "wǒ 20 sùi 。",
+          "meaningVi": "I am 20 years old."
+        },
+        {
+          "chinese": "我儿子一岁。",
+          "pinyin": "wǒ érzǐ yī sùi 。",
+          "meaningVi": "My son is one year old."
+        },
+        {
+          "chinese": "我妈妈今年45岁。",
+          "pinyin": "wǒ māmā jīnnián 45 sùi 。",
+          "meaningVi": "My mother is 45 years old this year."
+        },
+        {
+          "chinese": "你爷爷今年80岁吗？",
+          "pinyin": "nǐ yéyé jīnnián 80 sùi ma ？",
+          "meaningVi": "Is your grandpa 80 years old this year?"
+        },
+        {
+          "chinese": "他女朋友也20岁吗？",
+          "pinyin": "tā nv̌péngyǒu yě 20 sùi ma ？",
+          "meaningVi": "Is his girlfriend 20 years old?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + Number + 岁",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGQUKJF"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-013",
+      "title": "Chủ điểm ngữ pháp: Measure word \"ge\"",
+      "titleEn": "Measure word \"ge\"",
+      "category": "Expressing quantity",
+      "structure": "Number + 个 + Noun",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Measure word \"ge\"' (Measure word \"ge\"). Cấu trúc cấu thành câu: Number + 个 + Noun. Dùng trong các ngữ cảnh: Expressing quantity.",
+      "examples": [
+        {
+          "chinese": "十个男人，七个傻，八个坏。",
+          "pinyin": "shí gè nánrén， qī gè shǎ， bā gè huài 。",
+          "meaningVi": "Ten men, seven silly, and eight bad."
+        },
+        {
+          "chinese": "他是个老外。",
+          "pinyin": "tā shì gè lǎowài 。",
+          "meaningVi": "He is a foreigner."
+        },
+        {
+          "chinese": "我有个儿子。",
+          "pinyin": "wǒ yǒu gè érzǐ 。",
+          "meaningVi": "I have a son."
+        },
+        {
+          "chinese": "她是个好老师。",
+          "pinyin": "tā shì gè hǎo lǎoshī 。",
+          "meaningVi": "She is a good teacher."
+        },
+        {
+          "chinese": "你想吃个包子吗？",
+          "pinyin": "nǐ xiǎng chī gè bāozǐ ma ？",
+          "meaningVi": "Do you want to eat a bun?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Number + 个 + Noun",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGI0T9S"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-014",
+      "title": "Chủ điểm ngữ pháp: Structure of dates",
+      "titleEn": "Structure of dates",
+      "category": "Expressing time and date",
+      "structure": "x 年 + y 月 + z （日 /  号）",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Structure of dates' (Structure of dates). Cấu trúc cấu thành câu: x 年 + y 月 + z （日 /  号）. Dùng trong các ngữ cảnh: Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "1910年8月9号",
+          "pinyin": "1910 nián 8 yuè 9 hào",
+          "meaningVi": "9-Aug-10"
+        },
+        {
+          "chinese": "2001年7月20日",
+          "pinyin": "2001 nián 7 yuè 20 rì",
+          "meaningVi": "20-Jul-01"
+        },
+        {
+          "chinese": "1月1日是新年。",
+          "pinyin": "1 yuè 1 rì shì xīnnián 。",
+          "meaningVi": "January 1st is the new year."
+        },
+        {
+          "chinese": "12月24日是平安夜。",
+          "pinyin": "12 yuè 24 rì shì píngānyè 。",
+          "meaningVi": "December 24 is Christmas Eve."
+        },
+        {
+          "chinese": "10月1号我们去上海。",
+          "pinyin": "10 yuè 1 hào wǒmen qù shànghǎi 。",
+          "meaningVi": "We will go to Shanghai on October 1."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: x 年 + y 月 + z （日 /  号）",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGT3KF6"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-015",
+      "title": "Chủ điểm ngữ pháp: Structure of times (advanced)",
+      "titleEn": "Structure of times (advanced)",
+      "category": "Expressing time and date",
+      "structure": "x 点 零 y 分",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Structure of times (advanced)' (Structure of times (advanced)). Cấu trúc cấu thành câu: x 点 零 y 分. Dùng trong các ngữ cảnh: Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "两点零九分",
+          "pinyin": "liǎng diǎn líng jǐufēn",
+          "meaningVi": "2:09"
+        },
+        {
+          "chinese": "三点零八分",
+          "pinyin": "sān diǎn líng bā fēn",
+          "meaningVi": "3.08"
+        },
+        {
+          "chinese": "五点零三分",
+          "pinyin": "wǔ diǎn líng sān fēn",
+          "meaningVi": "5.03"
+        },
+        {
+          "chinese": "七点零一分",
+          "pinyin": "qī diǎn líng yī fēn",
+          "meaningVi": "7:01"
+        },
+        {
+          "chinese": "八点零五分",
+          "pinyin": "bā diǎn líng wǔ fēn",
+          "meaningVi": "8.05"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: x 点 零 y 分",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGDTO07"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-016",
+      "title": "Chủ điểm ngữ pháp: Structure of times (basic)",
+      "titleEn": "Structure of times (basic)",
+      "category": "Expressing time and date",
+      "structure": "Hour + 点 + 差 + Minutes + 分",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Structure of times (basic)' (Structure of times (basic)). Cấu trúc cấu thành câu: Hour + 点 + 差 + Minutes + 分. Dùng trong các ngữ cảnh: Expressing time and date.",
+      "examples": [
+        {
+          "chinese": "差五分八点半",
+          "pinyin": "chà wǔ fēn bā diǎn bàn",
+          "meaningVi": "5:08:30"
+        },
+        {
+          "chinese": "十点差两分",
+          "pinyin": "shí diǎn chà liǎng fēn",
+          "meaningVi": "Ten points to two points"
+        },
+        {
+          "chinese": "上午七点",
+          "pinyin": "shàngwǔ qī diǎn",
+          "meaningVi": "Seven o'clock in the morning"
+        },
+        {
+          "chinese": "下午四点",
+          "pinyin": "xiàwǔ sì diǎn",
+          "meaningVi": "Four p.m"
+        },
+        {
+          "chinese": "中午十二点",
+          "pinyin": "zhōngwǔ shíèr diǎn",
+          "meaningVi": "at noon"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Hour + 点 + 差 + Minutes + 分",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGN6BBU"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-017",
+      "title": "Chủ điểm ngữ pháp: Expressing close possession without \"de\"",
+      "titleEn": "Expressing close possession without \"de\"",
+      "category": "Expressing possession",
+      "structure": "x 点 + 半",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing close possession without \"de\"' (Expressing close possession without \"de\"). Cấu trúc cấu thành câu: x 点 + 半. Dùng trong các ngữ cảnh: Expressing possession.",
+      "examples": [
+        {
+          "chinese": "昨天晚上七点半",
+          "pinyin": "zuótiān wǎnshàng qī diǎn bàn",
+          "meaningVi": "Last night at 7:30"
+        },
+        {
+          "chinese": "今天下午四点半",
+          "pinyin": "jīntiān xiàwǔ sì diǎn bàn",
+          "meaningVi": "This afternoon at 4:30"
+        },
+        {
+          "chinese": "我家很大。",
+          "pinyin": "wǒ jiā hěn dà 。",
+          "meaningVi": "My family is very big."
+        },
+        {
+          "chinese": "你哥哥很高。",
+          "pinyin": "nǐ gēgē hěn gāo 。",
+          "meaningVi": "Your brother is tall."
+        },
+        {
+          "chinese": "这是我女朋友。",
+          "pinyin": "zhè shì wǒ nv̌péngyǒu 。",
+          "meaningVi": "This is my girlfriend."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: x 点 + 半",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGCI0KG"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-018",
+      "title": "Chủ điểm ngữ pháp: Expressing completion with \"le\"",
+      "titleEn": "Expressing completion with \"le\"",
+      "category": "Describing actions, Referring to the past, Expressing completion",
+      "structure": "Pronoun + Noun",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing completion with \"le\"' (Expressing completion with \"le\"). Cấu trúc cấu thành câu: Pronoun + Noun. Dùng trong các ngữ cảnh: Describing actions, Referring to the past, Expressing completion.",
+      "examples": [
+        {
+          "chinese": "我女儿会说英语。",
+          "pinyin": "wǒ nv̌ér hùi shuō yīngyǔ 。",
+          "meaningVi": "My daughter speaks English."
+        },
+        {
+          "chinese": "他爸爸是我们公司的老板。",
+          "pinyin": "tā bàbà shì wǒmen gōngsī de lǎobǎn 。",
+          "meaningVi": "His father is the boss of our company."
+        },
+        {
+          "chinese": "他们到了。",
+          "pinyin": "tāmen dào le 。",
+          "meaningVi": "They arrived."
+        },
+        {
+          "chinese": "我买了。",
+          "pinyin": "wǒ mǎi le 。",
+          "meaningVi": "I bought it."
+        },
+        {
+          "chinese": "我们都去了。",
+          "pinyin": "wǒmen dū qù le 。",
+          "meaningVi": "We have all gone."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Pronoun + Noun",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGAGDCQ"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-019",
+      "title": "Biểu đạt \"not anymore\" với \"le\"",
+      "titleEn": "Expressing \"not anymore\" with \"le\"",
+      "category": "Referring to changes of situation",
+      "structure": "Subj. + Verb + 了 + [Number + Measure Word] + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"not anymore\" với \"le\"' (Expressing \"not anymore\" with \"le\"). Cấu trúc cấu thành câu: Subj. + Verb + 了 + [Number + Measure Word] + Obj.. Dùng trong các ngữ cảnh: Referring to changes of situation.",
+      "examples": [
+        {
+          "chinese": "我喝了两杯咖啡。",
+          "pinyin": "wǒ hē le liǎng bēi kāfēi 。",
+          "meaningVi": "I drank two cups of coffee."
+        },
+        {
+          "chinese": "我喝了两杯咖啡。",
+          "pinyin": "wǒ hē le liǎng bēi kāfēi 。",
+          "meaningVi": "I drank two cups of coffee."
+        },
+        {
+          "chinese": "我不想吃了。",
+          "pinyin": "wǒ bù xiǎng chī le 。",
+          "meaningVi": "I don't want to eat anymore."
+        },
+        {
+          "chinese": "你不喜欢我了吗？",
+          "pinyin": "nǐ bù xǐhuān wǒ le ma ？",
+          "meaningVi": "Don't you like me?"
+        },
+        {
+          "chinese": "你们不能打了。",
+          "pinyin": "nǐmen bù néng dǎ le 。",
+          "meaningVi": "You can't fight anymore."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + Verb + 了 + [Number + Measure Word] + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGFR96B"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-020",
+      "title": "Biểu đạt \"now\" với \"le\"",
+      "titleEn": "Expressing \"now\" with \"le\"",
+      "category": "Referring to changes of situation",
+      "structure": "已经 + 不 + [Verb Phrase] + 了",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"now\" với \"le\"' (Expressing \"now\" with \"le\"). Cấu trúc cấu thành câu: 已经 + 不 + [Verb Phrase] + 了. Dùng trong các ngữ cảnh: Referring to changes of situation.",
+      "examples": [
+        {
+          "chinese": "他们已经不在一起了。",
+          "pinyin": "tāmen yǐjīng bù zài yīqǐ le 。",
+          "meaningVi": "They are no longer together."
+        },
+        {
+          "chinese": "我们已经没有钱了。",
+          "pinyin": "wǒmen yǐjīng méiyǒu qián le 。",
+          "meaningVi": "We have no money."
+        },
+        {
+          "chinese": "知道了。",
+          "pinyin": "zhīdào le 。",
+          "meaningVi": "Got it."
+        },
+        {
+          "chinese": "懂了。",
+          "pinyin": "dǒng le 。",
+          "meaningVi": "understood."
+        },
+        {
+          "chinese": "我20岁了！",
+          "pinyin": "wǒ 20 sùi le ！",
+          "meaningVi": "I am 20 years old!"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 已经 + 不 + [Verb Phrase] + 了",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGE5Q4J"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-021",
+      "title": "Chủ điểm ngữ pháp: Expressing possession with \"de\"",
+      "titleEn": "Expressing possession with \"de\"",
+      "category": "Expressing possession",
+      "structure": "[New Situation] + 了",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing possession with \"de\"' (Expressing possession with \"de\"). Cấu trúc cấu thành câu: [New Situation] + 了. Dùng trong các ngữ cảnh: Expressing possession.",
+      "examples": [
+        {
+          "chinese": "我去睡觉了。",
+          "pinyin": "wǒ qù shùijué le 。",
+          "meaningVi": "I'm going to bed."
+        },
+        {
+          "chinese": "快点儿，开会了！",
+          "pinyin": "kuài diǎnér ，kāihùi le ！",
+          "meaningVi": "Hurry up, it's time for a meeting!"
+        },
+        {
+          "chinese": "你的手机",
+          "pinyin": "nǐ de shǒujī",
+          "meaningVi": "your phone"
+        },
+        {
+          "chinese": "我们的钱",
+          "pinyin": "wǒmen de qián",
+          "meaningVi": "Our money"
+        },
+        {
+          "chinese": "他们的东西",
+          "pinyin": "tāmen de dōngxī",
+          "meaningVi": "Their stuff"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: [New Situation] + 了",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGUHQD3"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-022",
+      "title": "Câu hỏi tỉnh lược với trợ từ ngữ khí \"呢\"",
+      "titleEn": "Questions with \"ne\"",
+      "category": "Asking questions, Expressing attitude",
+      "structure": "Noun 1 + 的 + Noun 2",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Câu hỏi tỉnh lược với trợ từ ngữ khí \"呢\"' (Questions with \"ne\"). Cấu trúc cấu thành câu: Noun 1 + 的 + Noun 2. Dùng trong các ngữ cảnh: Asking questions, Expressing attitude.",
+      "examples": [
+        {
+          "chinese": "上海的天气",
+          "pinyin": "shànghǎi de tiānqì",
+          "meaningVi": "Weather in Shanghai"
+        },
+        {
+          "chinese": "老师的朋友",
+          "pinyin": "lǎoshī de péngyǒu",
+          "meaningVi": "Teacher friend"
+        },
+        {
+          "chinese": "这个很好，那个呢？",
+          "pinyin": "zhè gè hěn hǎo ， nà gè ní ？",
+          "meaningVi": "This is good, what about that?"
+        },
+        {
+          "chinese": "这个很好，那个呢？",
+          "pinyin": "zhè gè hěn hǎo ， nà gè ní ？",
+          "meaningVi": "This is good, what about that?"
+        },
+        {
+          "chinese": "这个用中文怎么说？",
+          "pinyin": "zhè gè yòng zhōngwén zěnyāo shuō ？",
+          "meaningVi": "How do you say this in Chinese?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Noun 1 + 的 + Noun 2",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGMJHZO"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-023",
+      "title": "Chủ điểm ngữ pháp: Softening speech with \"ba\"",
+      "titleEn": "Softening speech with \"ba\"",
+      "category": "Expressing attitude",
+      "structure": "[Missing Person / Thing] + 呢 ？",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Softening speech with \"ba\"' (Softening speech with \"ba\"). Cấu trúc cấu thành câu: [Missing Person / Thing] + 呢 ？. Dùng trong các ngữ cảnh: Expressing attitude.",
+      "examples": [
+        {
+          "chinese": "你妈妈呢？",
+          "pinyin": "nǐ māmā ní ？",
+          "meaningVi": "where is your mom?"
+        },
+        {
+          "chinese": "我的手机呢？",
+          "pinyin": "wǒ de shǒujī ní ？",
+          "meaningVi": "What about my cell phone?"
+        },
+        {
+          "chinese": "这不太好吧。",
+          "pinyin": "zhè bù tài hǎo ba 。",
+          "meaningVi": "This is not so good."
+        },
+        {
+          "chinese": "算了吧。",
+          "pinyin": "suànle ba 。",
+          "meaningVi": "forget it."
+        },
+        {
+          "chinese": "应该是吧。",
+          "pinyin": "yìnggāi shì ba 。",
+          "meaningVi": "probably."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: [Missing Person / Thing] + 呢 ？",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGDHC1H"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-024",
+      "title": "Câu đề nghị, khuyên nhủ với trợ từ ngữ khí \"吧\"",
+      "titleEn": "Suggestions with \"ba\"",
+      "category": "Requesting, Expressing attitude",
+      "structure": "Statement + 吧",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Câu đề nghị, khuyên nhủ với trợ từ ngữ khí \"吧\"' (Suggestions with \"ba\"). Cấu trúc cấu thành câu: Statement + 吧. Dùng trong các ngữ cảnh: Requesting, Expressing attitude.",
+      "examples": [
+        {
+          "chinese": "太贵了吧，我不买了。",
+          "pinyin": "tài gùi le ba ， wǒ bù mǎi le 。",
+          "meaningVi": "It's too expensive, I won't buy it."
+        },
+        {
+          "chinese": "那个地方太远了吧，我不想去。",
+          "pinyin": "nà gè dìfāng tài yuǎn le ba，wǒ bù xiǎng qù 。",
+          "meaningVi": "That place is too far away, I don't want to go."
+        },
+        {
+          "chinese": "我们走吧。",
+          "pinyin": "wǒmen zǒu ba 。",
+          "meaningVi": "Let's go."
+        },
+        {
+          "chinese": "你说吧。",
+          "pinyin": "nǐ shuō ba 。",
+          "meaningVi": "You say it."
+        },
+        {
+          "chinese": "快点吃吧。",
+          "pinyin": "kuài diǎn chī ba 。",
+          "meaningVi": "Eat quickly."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Statement + 吧",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGMPZ6D"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-025",
+      "title": "Động từ chỉ xu hướng cơ bản \"来\" và \"去\"",
+      "titleEn": "Directional verbs \"lai\" and \"qu\"",
+      "category": "Expressing movement",
+      "structure": "Command + 吧",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Động từ chỉ xu hướng cơ bản \"来\" và \"去\"' (Directional verbs \"lai\" and \"qu\"). Cấu trúc cấu thành câu: Command + 吧. Dùng trong các ngữ cảnh: Expressing movement.",
+      "examples": [
+        {
+          "chinese": "我们结婚吧。",
+          "pinyin": "wǒmen jiéhūn ba 。",
+          "meaningVi": "Let's get married."
+        },
+        {
+          "chinese": "老板，便宜一点吧。",
+          "pinyin": "lǎobǎn ，biànyí yīdiǎn ba 。",
+          "meaningVi": "Boss, cheaper."
+        },
+        {
+          "chinese": "妈妈要去超市。",
+          "pinyin": "māmā yào qù chāoshì 。",
+          "meaningVi": "Mom is going to the supermarket."
+        },
+        {
+          "chinese": "老板今天来公司吗？",
+          "pinyin": "lǎobǎn jīntiān lái gōngsī ma ？",
+          "meaningVi": "Does the boss come to the company today?"
+        },
+        {
+          "chinese": "你现在来南京路吧。",
+          "pinyin": "nǐ xiànzài láinánjīng lù ba 。",
+          "meaningVi": "Come to Nanjing Road now."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Command + 吧",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGRBKSL"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-026",
+      "title": "Chủ điểm ngữ pháp: Expressing existence in a place with \"zai\"",
+      "titleEn": "Expressing existence in a place with \"zai\"",
+      "category": "Indicating conditions, Expressing existence, Expressing location",
+      "structure": "来 / 去 + Place",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing existence in a place with \"zai\"' (Expressing existence in a place with \"zai\"). Cấu trúc cấu thành câu: 来 / 去 + Place. Dùng trong các ngữ cảnh: Indicating conditions, Expressing existence, Expressing location.",
+      "examples": [
+        {
+          "chinese": "爸爸明天去北京出差。",
+          "pinyin": "bàbà míngtiān qù běijīng chūchà 。",
+          "meaningVi": "Dad will go on a business trip to Beijing tomorrow."
+        },
+        {
+          "chinese": "我今天不上班，你们可以来我家吃饭。",
+          "pinyin": "wǒ jīntiān bù shàngbān，nǐmen kěyǐ lái wǒ jiā chīfàn 。",
+          "meaningVi": "I don't go to work today, you can come to my house for dinner."
+        },
+        {
+          "chinese": "我在上海。",
+          "pinyin": "wǒ zài shànghǎi 。",
+          "meaningVi": "I am in Shanghai."
+        },
+        {
+          "chinese": "他们在英国。",
+          "pinyin": "tāmen zài yīngguó 。",
+          "meaningVi": "They are in the UK."
+        },
+        {
+          "chinese": "老板在外面。",
+          "pinyin": "lǎobǎn zài wàimiàn 。",
+          "meaningVi": "The boss is outside."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 来 / 去 + Place",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGLRWT8"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-027",
+      "title": "Biểu thị sự tồn tại hoặc sở hữu với \"有\"",
+      "titleEn": "Expressing existence with \"you\"",
+      "category": "Indicating conditions, Describing places, Expressing existence",
+      "structure": "Subj. + 在 + Place",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu thị sự tồn tại hoặc sở hữu với \"有\"' (Expressing existence with \"you\"). Cấu trúc cấu thành câu: Subj. + 在 + Place. Dùng trong các ngữ cảnh: Indicating conditions, Describing places, Expressing existence.",
+      "examples": [
+        {
+          "chinese": "我和朋友在酒吧。",
+          "pinyin": "wǒ hé péngyǒu zài jǐuba 。",
+          "meaningVi": "My friend and I are at the bar."
+        },
+        {
+          "chinese": "你们明天在北京吗？",
+          "pinyin": "nǐmen míngtiān zài běijīng ma ？",
+          "meaningVi": "Are you in Beijing tomorrow?"
+        },
+        {
+          "chinese": "我家有很多小狗。",
+          "pinyin": "wǒ jiā yǒu hěn duō xiǎo gǒu 。",
+          "meaningVi": "There are many puppies in my family."
+        },
+        {
+          "chinese": "我们学校有很多帅哥。",
+          "pinyin": "wǒmen xuéxiào yǒu hěn duō shuàigē 。",
+          "meaningVi": "There are many handsome guys in our school."
+        },
+        {
+          "chinese": "日本有很多中国人。",
+          "pinyin": "rìběn yǒu hěn duō zhōngguórén 。",
+          "meaningVi": "There are many Chinese in Japan."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 在 + Place",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG04ZCI"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-028",
+      "title": "Chủ điểm ngữ pháp: Expressing possession with \"you\"",
+      "titleEn": "Expressing possession with \"you\"",
+      "category": "Expressing possession",
+      "structure": "Place + 有 + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing possession with \"you\"' (Expressing possession with \"you\"). Cấu trúc cấu thành câu: Place + 有 + Obj.. Dùng trong các ngữ cảnh: Expressing possession.",
+      "examples": [
+        {
+          "chinese": "我的手机里有你的号码。",
+          "pinyin": "wǒ de shǒujī lǐ yǒu nǐ de hàomǎ 。",
+          "meaningVi": "I have your number in my mobile phone."
+        },
+        {
+          "chinese": "现在办公室里有人吗？",
+          "pinyin": "xiànzài bàngōngshì lǐ yǒu rén ma ？",
+          "meaningVi": "Is anyone in the office now?"
+        },
+        {
+          "chinese": "我有钱。",
+          "pinyin": "wǒ yǒu qián 。",
+          "meaningVi": "I have money."
+        },
+        {
+          "chinese": "你有房子吗？",
+          "pinyin": "nǐ yǒu fángzǐ ma ？",
+          "meaningVi": "Do you have a house"
+        },
+        {
+          "chinese": "她没有车。",
+          "pinyin": "tā méi yǒu chē 。",
+          "meaningVi": "She has no car."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Place + 有 + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGOOCVO"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-029",
+      "title": "Chủ điểm ngữ pháp: Polite requests with \"qing\"",
+      "titleEn": "Polite requests with \"qing\"",
+      "category": "Requesting",
+      "structure": "Subj. + 有 + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Polite requests with \"qing\"' (Polite requests with \"qing\"). Cấu trúc cấu thành câu: Subj. + 有 + Obj.. Dùng trong các ngữ cảnh: Requesting.",
+      "examples": [
+        {
+          "chinese": "我爸爸没有工作。",
+          "pinyin": "wǒbàbà méi yǒu gōngzuò 。",
+          "meaningVi": "My dad has no job."
+        },
+        {
+          "chinese": "今天你有课吗？",
+          "pinyin": "jīntiān nǐ yǒu kè ma ？",
+          "meaningVi": "Do you have class today?"
+        },
+        {
+          "chinese": "请进。",
+          "pinyin": "qǐng jìn 。",
+          "meaningVi": "Please come in."
+        },
+        {
+          "chinese": "请坐。",
+          "pinyin": "qǐng zuò 。",
+          "meaningVi": "Please sit down."
+        },
+        {
+          "chinese": "请说。",
+          "pinyin": "qǐng shuō 。",
+          "meaningVi": "Please speak."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 有 + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG25C48"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-030",
+      "title": "Chủ điểm ngữ pháp: Using the verb \"jiao\"",
+      "titleEn": "Using the verb \"jiao\"",
+      "category": "Introducing people",
+      "structure": "请 (+ 你) + Verb Phrase",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using the verb \"jiao\"' (Using the verb \"jiao\"). Cấu trúc cấu thành câu: 请 (+ 你) + Verb Phrase. Dùng trong các ngữ cảnh: Introducing people.",
+      "examples": [
+        {
+          "chinese": "你能不能……？",
+          "pinyin": "nǐ néng bù néng …… ？",
+          "meaningVi": "Can you……?"
+        },
+        {
+          "chinese": "麻烦你……",
+          "pinyin": "máfán nǐ ……",
+          "meaningVi": "Trouble you ..."
+        },
+        {
+          "chinese": "我叫Tom。",
+          "pinyin": "wǒ jiào Tom 。",
+          "meaningVi": "My name is Tom."
+        },
+        {
+          "chinese": "他叫李小龙。",
+          "pinyin": "tā jiào lǐxiǎolóng 。",
+          "meaningVi": "His name is Bruce Lee."
+        },
+        {
+          "chinese": "我哥哥叫老马。",
+          "pinyin": "wǒ gēgē jiào lǎomǎ 。",
+          "meaningVi": "My brother is called Lao Ma."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 请 (+ 你) + Verb Phrase",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGUGWVZ"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-031",
+      "title": "Chủ điểm ngữ pháp: Using the verb \"qu\"",
+      "titleEn": "Using the verb \"qu\"",
+      "category": "Expressing movement",
+      "structure": "Subj. + 叫 + [Name]",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Using the verb \"qu\"' (Using the verb \"qu\"). Cấu trúc cấu thành câu: Subj. + 叫 + [Name]. Dùng trong các ngữ cảnh: Expressing movement.",
+      "examples": [
+        {
+          "chinese": "这个地方叫外滩。",
+          "pinyin": "zhè gè dìfāng jiào wàitān 。",
+          "meaningVi": "This place is called the Bund."
+        },
+        {
+          "chinese": "你叫什么名字？",
+          "pinyin": "nǐ jiào shíyāo míngzì ？",
+          "meaningVi": "What's your name?"
+        },
+        {
+          "chinese": "我去公司。",
+          "pinyin": "wǒ qù gōngsī 。",
+          "meaningVi": "I go to the company."
+        },
+        {
+          "chinese": "你去洗手间吗？",
+          "pinyin": "nǐ qù xǐshǒujiān ma ？",
+          "meaningVi": "Are you going to the bathroom?"
+        },
+        {
+          "chinese": "下午我会去超市。",
+          "pinyin": "xiàwǔ wǒ hùi qù chāoshì 。",
+          "meaningVi": "In the afternoon I will go to the supermarket."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 叫 + [Name]",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGFYNCL"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-032",
+      "title": "Chủ điểm ngữ pháp: Expressing ability or possibility with \"neng\"",
+      "titleEn": "Expressing ability or possibility with \"neng\"",
+      "category": "Expressing possibility, Expressing ability",
+      "structure": "Subj. + 去 + Verb",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing ability or possibility with \"neng\"' (Expressing ability or possibility with \"neng\"). Cấu trúc cấu thành câu: Subj. + 去 + Verb. Dùng trong các ngữ cảnh: Expressing possibility, Expressing ability.",
+      "examples": [
+        {
+          "chinese": "我们去吃饭吧。",
+          "pinyin": "wǒmen qù chīfàn ba 。",
+          "meaningVi": "Let's go and eat."
+        },
+        {
+          "chinese": "九点我们去买。",
+          "pinyin": "jǐu diǎn wǒmen qù mǎi 。",
+          "meaningVi": "We will buy it at nine."
+        },
+        {
+          "chinese": "我能吃四十个饺子。",
+          "pinyin": "wǒ néng chī sì shí gè jiǎozǐ 。",
+          "meaningVi": "I can eat forty dumplings."
+        },
+        {
+          "chinese": "他能工作24个小时。",
+          "pinyin": "tā néng gōngzuò 24 gè xiǎoshí 。",
+          "meaningVi": "He can work 24 hours."
+        },
+        {
+          "chinese": "你能帮我找到他吗？",
+          "pinyin": "nǐ néng bāng wǒ zhǎodào tā ma ？",
+          "meaningVi": "Can you help me find him?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 去 + Verb",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG9PQ40"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-033",
+      "title": "Chủ điểm ngữ pháp: Expressing a learned skill with \"hui\"",
+      "titleEn": "Expressing a learned skill with \"hui\"",
+      "category": "Expressing ability",
+      "structure": "Subj. + 能 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Expressing a learned skill with \"hui\"' (Expressing a learned skill with \"hui\"). Cấu trúc cấu thành câu: Subj. + 能 + Verb + Obj.. Dùng trong các ngữ cảnh: Expressing ability.",
+      "examples": [
+        {
+          "chinese": "上课的时候不能说英文。",
+          "pinyin": "shàngkè de shíhòu bù néng shuō yīngwén 。",
+          "meaningVi": "English cannot be spoken during class."
+        },
+        {
+          "chinese": "工作的时候不能玩手机。",
+          "pinyin": "gōngzuò de shíhòu bù néng wán shǒujī 。",
+          "meaningVi": "Can't play mobile phone while working."
+        },
+        {
+          "chinese": "他会说中文。",
+          "pinyin": "tā hùi shuō zhōngwén 。",
+          "meaningVi": "He can speak Chinese."
+        },
+        {
+          "chinese": "我会写汉字。",
+          "pinyin": "wǒ hùi xiě hànzì 。",
+          "meaningVi": "I can write Chinese characters."
+        },
+        {
+          "chinese": "你会做饭吗？",
+          "pinyin": "nǐ hùi zuòfàn ma ？",
+          "meaningVi": "Can you cook?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 能 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGRHM0E"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-034",
+      "title": "Biểu đạt \"will\" với \"hui\"",
+      "titleEn": "Expressing \"will\" with \"hui\"",
+      "category": "Referring to the future, Sequencing events in time, Expressing ability",
+      "structure": "Subj. + 不 + 会 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"will\" với \"hui\"' (Expressing \"will\" with \"hui\"). Cấu trúc cấu thành câu: Subj. + 不 + 会 + Verb + Obj.. Dùng trong các ngữ cảnh: Referring to the future, Sequencing events in time, Expressing ability.",
+      "examples": [
+        {
+          "chinese": "我奶奶不会用电脑。",
+          "pinyin": "wǒ nǎinǎi bùhùi yòng diànnǎo 。",
+          "meaningVi": "My grandma can't use a computer."
+        },
+        {
+          "chinese": "你不会开车吗？",
+          "pinyin": "nǐ bùhùi kāichē ma ？",
+          "meaningVi": "Won't you drive"
+        },
+        {
+          "chinese": "明天你会来吗？",
+          "pinyin": "míngtiān nǐ hùi lái ma ？",
+          "meaningVi": "Will you come tomorrow?"
+        },
+        {
+          "chinese": "他会来看你吗？",
+          "pinyin": "tā hùi lái kàn nǐ ma ？",
+          "meaningVi": "Will he come to see you?"
+        },
+        {
+          "chinese": "明天会下雨吗？",
+          "pinyin": "míngtiān hùi xiàyǔ ma ？",
+          "meaningVi": "is it going to rain tomorrow?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 不 + 会 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGW9737"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-035",
+      "title": "Biểu đạt \"would like to\" với \"xiang\"",
+      "titleEn": "Expressing \"would like to\" with \"xiang\"",
+      "category": "Expressing desires, Expressing purpose",
+      "structure": "Subj. + 不 + 会 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"would like to\" với \"xiang\"' (Expressing \"would like to\" with \"xiang\"). Cấu trúc cấu thành câu: Subj. + 不 + 会 + Verb + Obj.. Dùng trong các ngữ cảnh: Expressing desires, Expressing purpose.",
+      "examples": [
+        {
+          "chinese": "他不会跟你结婚。",
+          "pinyin": "tā bù hùi gēn nǐ jiéhūn 。",
+          "meaningVi": "He will not marry you."
+        },
+        {
+          "chinese": "今晚我不会在外面吃饭。",
+          "pinyin": "jīnwǎn wǒ bù hùi zài wàimiàn chīfàn 。",
+          "meaningVi": "I will not eat out tonight."
+        },
+        {
+          "chinese": "你想去吗？",
+          "pinyin": "nǐ xiǎng qù ma ？",
+          "meaningVi": "do you want to go?"
+        },
+        {
+          "chinese": "我想吃面。",
+          "pinyin": "wǒ xiǎng chī miàn 。",
+          "meaningVi": "I want to eat noodles."
+        },
+        {
+          "chinese": "你想喝水吗？",
+          "pinyin": "nǐ xiǎng hē shǔi ma ？",
+          "meaningVi": "Do you want to drink water?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 不 + 会 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGT97VF"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-036",
+      "title": "Hỏi cách thức thực hiện hành động với \"怎么\"",
+      "titleEn": "How to do something with \"zenme\"",
+      "category": "Asking questions",
+      "structure": "Subj. + 不 + 想 + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Hỏi cách thức thực hiện hành động với \"怎么\"' (How to do something with \"zenme\"). Cấu trúc cấu thành câu: Subj. + 不 + 想 + Verb + Obj.. Dùng trong các ngữ cảnh: Asking questions.",
+      "examples": [
+        {
+          "chinese": "那个地方很近，我不想开车。",
+          "pinyin": "nàgè dìfāng hěn jìn，wǒ bù xiǎng kāichē 。",
+          "meaningVi": "That place is close, I don't want to drive."
+        },
+        {
+          "chinese": "他不想花父母的钱。",
+          "pinyin": "tā bù xiǎng huā fùmǔ de qián 。",
+          "meaningVi": "He didn't want to spend his parents' money."
+        },
+        {
+          "chinese": "你们怎么学中文？",
+          "pinyin": "nǐmen zěnyāo xué zhōngwén ？",
+          "meaningVi": "How do you learn Chinese?"
+        },
+        {
+          "chinese": "你怎么上班？",
+          "pinyin": "nǐ zěnyāo shàngbān ？",
+          "meaningVi": "How do you go to work?"
+        },
+        {
+          "chinese": "你知道怎么去外滩吗？",
+          "pinyin": "nǐ zhīdào zěnyāo qù wàitān ma ？",
+          "meaningVi": "Do you know how to get to the Bund?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 不 + 想 + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGH2MNO"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-037",
+      "title": "Chủ điểm ngữ pháp: Indicating location with \"zai\" before verbs",
+      "titleEn": "Indicating location with \"zai\" before verbs",
+      "category": "Expressing location",
+      "structure": "Topic + 怎么 + Verb",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Indicating location with \"zai\" before verbs' (Indicating location with \"zai\" before verbs). Cấu trúc cấu thành câu: Topic + 怎么 + Verb. Dùng trong các ngữ cảnh: Expressing location.",
+      "examples": [
+        {
+          "chinese": "中国菜怎么做？",
+          "pinyin": "zhōngguó cài zěnyāo zuò ？",
+          "meaningVi": "How to make Chinese food?"
+        },
+        {
+          "chinese": "Apple怎么说？",
+          "pinyin": "Apple zěnyāo shuō ？",
+          "meaningVi": "What does Apple say?"
+        },
+        {
+          "chinese": "我在上海上大学。",
+          "pinyin": "wǒ zài shànghǎi shàngdàxué 。",
+          "meaningVi": "I go to university in Shanghai."
+        },
+        {
+          "chinese": "你一直在这家公司工作吗？",
+          "pinyin": "nǐ yīzhí zài zhè jiā gōngsī gōngzuò ma ？",
+          "meaningVi": "Have you always worked in this company?"
+        },
+        {
+          "chinese": "我周末想在家睡觉。",
+          "pinyin": "wǒ zhōumò xiǎng zài jiā shùijué 。",
+          "meaningVi": "I want to sleep at home on the weekend."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Topic + 怎么 + Verb",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGX0Z0N"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-038",
+      "title": "Chủ điểm ngữ pháp: Negation of past actions with \"meiyou\"",
+      "titleEn": "Negation of past actions with \"meiyou\"",
+      "category": "Denying and refusing, Referring to the past",
+      "structure": "Subj. + 在 + Place + Verb + Obj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Negation of past actions with \"meiyou\"' (Negation of past actions with \"meiyou\"). Cấu trúc cấu thành câu: Subj. + 在 + Place + Verb + Obj.. Dùng trong các ngữ cảnh: Denying and refusing, Referring to the past.",
+      "examples": [
+        {
+          "chinese": "老板在会议室见客户。",
+          "pinyin": "lǎobǎn zài hùiyìshì jiàn kèhù 。",
+          "meaningVi": "The boss meets the customer in the meeting room."
+        },
+        {
+          "chinese": "你在外面吃过晚饭了吗？",
+          "pinyin": "nǐ zài wàimiàn chī guò wǎnfàn le ma ？",
+          "meaningVi": "Have you eaten dinner outside?"
+        },
+        {
+          "chinese": "我没有去上班。",
+          "pinyin": "wǒ méiyǒu qù shàngbān 。",
+          "meaningVi": "I didn't go to work."
+        },
+        {
+          "chinese": "他们没有说话。",
+          "pinyin": "tāmen méiyǒu shuōhuà 。",
+          "meaningVi": "They did not speak."
+        },
+        {
+          "chinese": "我没有喝你的啤酒。",
+          "pinyin": "wǒ méiyǒu hē nǐ de píjǐu 。",
+          "meaningVi": "I didn't drink your beer."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 在 + Place + Verb + Obj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGAUCXK"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-039",
+      "title": "Chủ điểm ngữ pháp: Connecting nouns with \"shi\"",
+      "titleEn": "Connecting nouns with \"shi\"",
+      "category": "Introducing people, Describing people, Expressing existence, Referring to the present",
+      "structure": "Subj. + 没有 / 没 + Verb",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Connecting nouns with \"shi\"' (Connecting nouns with \"shi\"). Cấu trúc cấu thành câu: Subj. + 没有 / 没 + Verb. Dùng trong các ngữ cảnh: Introducing people, Describing people, Expressing existence, Referring to the present.",
+      "examples": [
+        {
+          "chinese": "妈妈晚上没做饭。",
+          "pinyin": "māmā wǎnshàng méi zuòfàn 。",
+          "meaningVi": "Mom didn't cook at night."
+        },
+        {
+          "chinese": "我没有做。",
+          "pinyin": "wǒ méiyǒu zuò 。",
+          "meaningVi": "I didn't do it."
+        },
+        {
+          "chinese": "我是学生。",
+          "pinyin": "wǒ shì xuéshēng 。",
+          "meaningVi": "I am a student."
+        },
+        {
+          "chinese": "你是John吗？",
+          "pinyin": "nǐ shì John ma ？",
+          "meaningVi": "Are you John?"
+        },
+        {
+          "chinese": "他们是有钱人。",
+          "pinyin": "tāmen shì yǒuqián rén 。",
+          "meaningVi": "They are rich."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 没有 / 没 + Verb",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGUN7RX"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-040",
+      "title": "Biểu đạt \"excessively\" với \"tai\"",
+      "titleEn": "Expressing \"excessively\" with \"tai\"",
+      "category": "Emphasizing, Expressing quality",
+      "structure": "Noun 1 + 是 + Noun 2",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"excessively\" với \"tai\"' (Expressing \"excessively\" with \"tai\"). Cấu trúc cấu thành câu: Noun 1 + 是 + Noun 2. Dùng trong các ngữ cảnh: Emphasizing, Expressing quality.",
+      "examples": [
+        {
+          "chinese": "你到了，是吗？",
+          "pinyin": "nǐ dào le，shì ma ？",
+          "meaningVi": "Are you here, are you?"
+        },
+        {
+          "chinese": "你有两个孩子，是吗？",
+          "pinyin": "nǐ yǒu liǎng gè háizǐ，shì ma ？",
+          "meaningVi": "You have two children, are you?"
+        },
+        {
+          "chinese": "米饭太多了。",
+          "pinyin": "mǐfàn tài duō le 。",
+          "meaningVi": "There is too much rice."
+        },
+        {
+          "chinese": "现在太晚了。",
+          "pinyin": "xiànzài tài wǎn le 。",
+          "meaningVi": "it is too late now."
+        },
+        {
+          "chinese": "老板太忙了。",
+          "pinyin": "lǎobǎn tài máng le 。",
+          "meaningVi": "The boss is too busy."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Noun 1 + 是 + Noun 2",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG8HVFN"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-041",
+      "title": "Chủ điểm ngữ pháp: Simple \"noun + adjective\" sentences",
+      "titleEn": "Simple \"noun + adjective\" sentences",
+      "category": "Describing things, Expressing quality",
+      "structure": "太 + Adj. + 了",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Simple \"noun + adjective\" sentences' (Simple \"noun + adjective\" sentences). Cấu trúc cấu thành câu: 太 + Adj. + 了. Dùng trong các ngữ cảnh: Describing things, Expressing quality.",
+      "examples": [
+        {
+          "chinese": "小猫太可爱了！",
+          "pinyin": "xiǎomāo tài kěài le ！",
+          "meaningVi": "The kitten is so cute!"
+        },
+        {
+          "chinese": "你的孩子太聪明了。",
+          "pinyin": "nǐ de háizǐ tài cōngmíng le 。",
+          "meaningVi": "Your child is too smart."
+        },
+        {
+          "chinese": "我很好。",
+          "pinyin": "wǒ hěn hǎo 。",
+          "meaningVi": "I'm very good."
+        },
+        {
+          "chinese": "你很漂亮。",
+          "pinyin": "nǐ hěn piāoliàng 。",
+          "meaningVi": "you are very beautiful."
+        },
+        {
+          "chinese": "他很高兴。",
+          "pinyin": "tā hěn gāoxīng 。",
+          "meaningVi": "He is very happy."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 太 + Adj. + 了",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASG17BLH"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-042",
+      "title": "Biểu đạt \"some\" với \"yixie\"",
+      "titleEn": "Expressing \"some\" with \"yixie\"",
+      "category": "Expressing quantity",
+      "structure": "Noun + 很 + Adj.",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Biểu đạt \"some\" với \"yixie\"' (Expressing \"some\" with \"yixie\"). Cấu trúc cấu thành câu: Noun + 很 + Adj.. Dùng trong các ngữ cảnh: Expressing quantity.",
+      "examples": [
+        {
+          "chinese": "他很高。",
+          "pinyin": "tā hěn gāo 。",
+          "meaningVi": "He is tall."
+        },
+        {
+          "chinese": "他非常高。",
+          "pinyin": "tā fēicháng gāo 。",
+          "meaningVi": "He is very tall."
+        },
+        {
+          "chinese": "妈妈去超市买了一些水果。",
+          "pinyin": "māmā qù chāoshì mǎi le yīxiē shǔiguǒ 。",
+          "meaningVi": "Mother went to the supermarket and bought some fruits."
+        },
+        {
+          "chinese": "上个周末他买了一些衣服。",
+          "pinyin": "shàng gè zhōumò tā mǎile yīxiē yīfú 。",
+          "meaningVi": "He bought some clothes last weekend."
+        },
+        {
+          "chinese": "我们很快会见到一些新同事。",
+          "pinyin": "wǒmen hěn kuài hùi jiàndào yīxiē xīn tóngshì 。",
+          "meaningVi": "We will soon meet some new colleagues."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Noun + 很 + Adj.",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGWVZ0T"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-043",
+      "title": "Chủ điểm ngữ pháp: Counting money",
+      "titleEn": "Counting money",
+      "category": "Expressing quantity",
+      "structure": "一些 + Noun",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Counting money' (Counting money). Cấu trúc cấu thành câu: 一些 + Noun. Dùng trong các ngữ cảnh: Expressing quantity.",
+      "examples": [
+        {
+          "chinese": "你想在咖啡里放一些糖吗？",
+          "pinyin": "nǐ xiǎng zài kāfēi lǐ fàng yīxiē táng ma ？",
+          "meaningVi": "Do you want to put some sugar in the coffee?"
+        },
+        {
+          "chinese": "我在中国的时候，去过一些很漂亮的地方。",
+          "pinyin": "wǒ zài zhōngguó de shíhòu，qù guò yīxiē hěn piāoliàng de dìfāng 。",
+          "meaningVi": "When I was in China, I visited some beautiful places."
+        },
+        {
+          "chinese": "多少钱？",
+          "pinyin": "duōshǎo qián ？",
+          "meaningVi": "how much is it?"
+        },
+        {
+          "chinese": "你的手机多少钱？",
+          "pinyin": "nǐ de shǒujī duōshǎo qián ？",
+          "meaningVi": "How much is your mobile phone?"
+        },
+        {
+          "chinese": "我们的午饭多少钱？",
+          "pinyin": "wǒmen de wǔfàn duōshǎo qián ？",
+          "meaningVi": "How much is our lunch?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 一些 + Noun",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGL6JOE"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-044",
+      "title": "Chủ điểm ngữ pháp: Measure words in quantity questions",
+      "titleEn": "Measure words in quantity questions",
+      "category": "Asking questions",
+      "structure": "Number + 块 + Number + 毛",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Measure words in quantity questions' (Measure words in quantity questions). Cấu trúc cấu thành câu: Number + 块 + Number + 毛. Dùng trong các ngữ cảnh: Asking questions.",
+      "examples": [
+        {
+          "chinese": "二十三块八毛",
+          "pinyin": "èrshí sān kuài bāmáo",
+          "meaningVi": "Twenty-three pieces"
+        },
+        {
+          "chinese": "五十块五毛",
+          "pinyin": "wǔshí kuài wǔ máo",
+          "meaningVi": "Fifty dollars"
+        },
+        {
+          "chinese": "他有几个孩子？",
+          "pinyin": "tā yǒu jī gè háizǐ ？",
+          "meaningVi": "How many children does he have?"
+        },
+        {
+          "chinese": "你家有几个房间？",
+          "pinyin": "nǐ jiā yǒu jī gè fángjiān ？",
+          "meaningVi": "How many rooms does your family have?"
+        },
+        {
+          "chinese": "他们在这里住几个星期？",
+          "pinyin": "tāmen zài zhèlǐ zhù jī gè xīngqī ？",
+          "meaningVi": "How many weeks do they live here?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Number + 块 + Number + 毛",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGL9KQM"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-045",
+      "title": "Chủ điểm ngữ pháp: Asking how something is with \"zenmeyang\"",
+      "titleEn": "Asking how something is with \"zenmeyang\"",
+      "category": "Asking questions, Expressing attitude",
+      "structure": "Subj. + Verb + 多少 + Measure Word + Noun ？",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Asking how something is with \"zenmeyang\"' (Asking how something is with \"zenmeyang\"). Cấu trúc cấu thành câu: Subj. + Verb + 多少 + Measure Word + Noun ？. Dùng trong các ngữ cảnh: Asking questions, Expressing attitude.",
+      "examples": [
+        {
+          "chinese": "他们昨天请了多少个朋友？",
+          "pinyin": "tāmen zuótiān qǐng le duōshǎo gè péngyǒu ？",
+          "meaningVi": "How many friends did they invite yesterday?"
+        },
+        {
+          "chinese": "上海有多少个外国公司？",
+          "pinyin": "shànghǎi yǒu duōshǎo gè wàiguó gōngsī ？",
+          "meaningVi": "How many foreign companies are there in Shanghai?"
+        },
+        {
+          "chinese": "你最近怎么样？",
+          "pinyin": "nǐ zùijìn zěnyāoyáng ？",
+          "meaningVi": "how have you been?"
+        },
+        {
+          "chinese": "中国怎么样？",
+          "pinyin": "zhōngguó zěnyāoyáng ？",
+          "meaningVi": "How is china?"
+        },
+        {
+          "chinese": "北京冬天怎么样？",
+          "pinyin": "běijīng dōngtiān zěnyāoyáng ？",
+          "meaningVi": "How is Beijing winter?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + Verb + 多少 + Measure Word + Noun ？",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGC701A"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-046",
+      "title": "Vị trí của đại từ nghi vấn trong câu hỏi",
+      "titleEn": "Placement of question words",
+      "category": "Sentence Patterns, Asking questions",
+      "structure": "你 觉得 + Topic + 怎么样 ?",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Vị trí của đại từ nghi vấn trong câu hỏi' (Placement of question words). Cấu trúc cấu thành câu: 你 觉得 + Topic + 怎么样 ?. Dùng trong các ngữ cảnh: Sentence Patterns, Asking questions.",
+      "examples": [
+        {
+          "chinese": "你觉得我怎么样？",
+          "pinyin": "nǐ juédé wǒ zěnyāoyáng ？",
+          "meaningVi": "What do you think about me?"
+        },
+        {
+          "chinese": "你觉得中文怎么样？",
+          "pinyin": "nǐ juédé zhōngwén zěnyāoyáng ？",
+          "meaningVi": "What do you think of Chinese?"
+        },
+        {
+          "chinese": "这是什么？",
+          "pinyin": "zhè shì shíyāo ？",
+          "meaningVi": "what is this?"
+        },
+        {
+          "chinese": "你喜欢吃什么菜？",
+          "pinyin": "nǐ xǐhuān chī shíyāo cài ？",
+          "meaningVi": "what dishes do you like to eat?"
+        },
+        {
+          "chinese": "你在看什么书？",
+          "pinyin": "nǐ zài kàn shíyāo shū ？",
+          "meaningVi": "What book are you reading?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: 你 觉得 + Topic + 怎么样 ?",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGJQPSC"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-047",
+      "title": "Câu hỏi với \"le ma\"",
+      "titleEn": "Questions with \"le ma\"",
+      "category": "Asking questions",
+      "structure": "Subj. + 怎么 + Verb (+ Obj.) ?",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Câu hỏi với \"le ma\"' (Questions with \"le ma\"). Cấu trúc cấu thành câu: Subj. + 怎么 + Verb (+ Obj.) ?. Dùng trong các ngữ cảnh: Asking questions.",
+      "examples": [
+        {
+          "chinese": "你们怎么回家？",
+          "pinyin": "nǐmen zěnyāo húijiā ？",
+          "meaningVi": "How do you go home?"
+        },
+        {
+          "chinese": "你怎么买票？",
+          "pinyin": "nǐ zěnyāo mǎi piào ？",
+          "meaningVi": "How do you buy tickets?"
+        },
+        {
+          "chinese": "你吃饭了吗？",
+          "pinyin": "nǐ chīfàn le ma ？",
+          "meaningVi": "have you eaten?"
+        },
+        {
+          "chinese": "老板走了吗？",
+          "pinyin": "lǎobǎn zǒu le ma ？",
+          "meaningVi": "Is the boss gone?"
+        },
+        {
+          "chinese": "你男朋友找到新工作了吗？",
+          "pinyin": "nǐnánpéngyǒu zhǎodào xīn gōngzuò le ma ？",
+          "meaningVi": "Has your boyfriend found a new job?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 怎么 + Verb (+ Obj.) ?",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGYKDNF"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-048",
+      "title": "Chủ điểm ngữ pháp: Yes-no questions with \"ma\"",
+      "titleEn": "Yes-no questions with \"ma\"",
+      "category": "Asking questions, Requesting",
+      "structure": "Topic (+ Subj.) + Verb + 了吗?",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: Yes-no questions with \"ma\"' (Yes-no questions with \"ma\"). Cấu trúc cấu thành câu: Topic (+ Subj.) + Verb + 了吗?. Dùng trong các ngữ cảnh: Asking questions, Requesting.",
+      "examples": [
+        {
+          "chinese": "这个电影你看了吗？",
+          "pinyin": "zhè gè diànyǐng nǐ kàn le ma ？",
+          "meaningVi": "Did you watch this movie?"
+        },
+        {
+          "chinese": "我的邮件你收到了吗？",
+          "pinyin": "wǒ de yóujiàn nǐ shōudào le ma ？",
+          "meaningVi": "Have you received my mail?"
+        },
+        {
+          "chinese": "你喜欢咖啡吗？",
+          "pinyin": "nǐ xǐhuān kāfēi ma ？",
+          "meaningVi": "Do you like coffee?"
+        },
+        {
+          "chinese": "你是大学生吗？",
+          "pinyin": "nǐ shì dà xuéshēng ma ？",
+          "meaningVi": "Are you a University student?"
+        },
+        {
+          "chinese": "他是老板吗？",
+          "pinyin": "tā shì lǎobǎn ma ？",
+          "meaningVi": "Is he the boss?"
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Topic (+ Subj.) + Verb + 了吗?",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGQ2AZA"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-049",
+      "title": "Chủ điểm ngữ pháp: The \"shi... de\" construction for emphasizing details",
+      "titleEn": "The \"shi... de\" construction for emphasizing details",
+      "category": "Referring to the past, Emphasizing",
+      "structure": "[Statement] + 吗 ？",
+      "explanationVi": "Chủ điểm ngữ pháp: 'Chủ điểm ngữ pháp: The \"shi... de\" construction for emphasizing details' (The \"shi... de\" construction for emphasizing details). Cấu trúc cấu thành câu: [Statement] + 吗 ？. Dùng trong các ngữ cảnh: Referring to the past, Emphasizing.",
+      "examples": [
+        {
+          "chinese": "你喜欢中国菜吗？",
+          "pinyin": "nǐ xǐhuān zhōngguócài ma ？",
+          "meaningVi": "Do you like Chinese food?"
+        },
+        {
+          "chinese": "你不喜欢中国菜吗？",
+          "pinyin": "nǐ bù xǐhuān zhōngguócài ma ？",
+          "meaningVi": "Don't you like Chinese food?"
+        },
+        {
+          "chinese": "昨天我去杭州了。",
+          "pinyin": "zuótiān wǒ qù hángzhōu le 。",
+          "meaningVi": "I went to Hangzhou yesterday."
+        },
+        {
+          "chinese": "你是怎么去的？",
+          "pinyin": "nǐ shì zěnyāo qù de ？",
+          "meaningVi": "How did you get there"
+        },
+        {
+          "chinese": "我是坐火车去的。",
+          "pinyin": "wǒ shì zuò huǒchē qù de 。",
+          "meaningVi": "I went by train."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: [Statement] + 吗 ？",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGE662E"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    },
+    {
+      "standard": "HSK_2_0",
+      "level": 1,
+      "code": "GP-HSK1-050",
+      "title": "So sánh và phân biệt \"bu\" and \"mei\"",
+      "titleEn": "Comparing \"bu\" and \"mei\"",
+      "category": "Negating, Describing actions, Denying and refusing",
+      "structure": "Subj. + 是 + [Information to be Emphasized] + Verb + 的",
+      "explanationVi": "Chủ điểm ngữ pháp: 'So sánh và phân biệt \"bu\" and \"mei\"' (Comparing \"bu\" and \"mei\"). Cấu trúc cấu thành câu: Subj. + 是 + [Information to be Emphasized] + Verb + 的. Dùng trong các ngữ cảnh: Negating, Describing actions, Denying and refusing.",
+      "examples": [
+        {
+          "chinese": "那次我们是用Skype开会的。",
+          "pinyin": "nàcì wǒmen shì yòng Skype kāi hùi de 。",
+          "meaningVi": "We used Skype for the meeting."
+        },
+        {
+          "chinese": "我们平时是用Skype开会的。",
+          "pinyin": "wǒmen píngshí shì yòng Skype kāi hùi de 。",
+          "meaningVi": "We usually use Skype for meetings."
+        },
+        {
+          "chinese": "我今天晚上不喝酒。",
+          "pinyin": "wǒ jīntiān wǎnshàng bù hējǐu 。",
+          "meaningVi": "I don't drink alcohol tonight."
+        },
+        {
+          "chinese": "爸爸不回来吃晚饭。",
+          "pinyin": "bàbà bù húilái chī wǎnfàn 。",
+          "meaningVi": "Dad doesn't come back for dinner."
+        },
+        {
+          "chinese": "老板明天不来。",
+          "pinyin": "lǎobǎn míngtiān bù lái 。",
+          "meaningVi": "The boss will not come tomorrow."
+        }
+      ],
+      "commonMistakes": [
+        "Sai trật tự từ trong cấu trúc: Subj. + 是 + [Information to be Emphasized] + Verb + 的",
+        "Nhầm lẫn hoàn cảnh giao tiếp hoặc phó từ đi kèm."
+      ],
+      "sources": [
+        {
+          "sourceType": "GRAMMAR_WIKI",
+          "name": "AllSet Learning Chinese Grammar Wiki",
+          "url": "https://resources.allsetlearning.com/chinese/grammar/ASGRJ1BI"
+        },
+        {
+          "sourceType": "CURRICULUM_TEXTBOOK",
+          "name": "BLCUP HSK Standard Course 2.0",
+          "reference": "HSK 1 Language Points (语言点)",
+          "location": "resources/hsk-standard-course-2.0/HSK1/Textbook/"
+        }
+      ],
+      "verificationStatus": "VERIFIED",
+      "reviewStatus": "PENDING",
+      "metadataNotes": "Điểm ngữ pháp thuộc khung tham chiếu AllSet Learning Chinese Grammar Wiki tương ứng với cấp độ HSK 2.0. Số lượng 311 là tổng số chủ điểm được quy chuẩn hóa trong bộ dữ liệu này, không phải chỉ tiêu thi cử cứng nhắc của Hanban."
+    }
+  ]
+}

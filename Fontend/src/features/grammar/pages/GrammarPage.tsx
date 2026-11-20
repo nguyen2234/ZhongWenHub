@@ -1,16 +1,19 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BookText,
   Search,
   Volume2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   X,
   RotateCcw,
   CheckCircle2,
   AlertCircle,
   HelpCircle,
   Play,
+  Loader2,
 } from 'lucide-react';
 import { GrammarService } from '../services/grammar.service';
 import type { GrammarPoint } from '../types/grammar.types';
@@ -20,7 +23,16 @@ export const GrammarPage: React.FC = () => {
   const [selectedHsk, setSelectedHsk] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>('g-hsk1-01');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Pagination & Async Data State
+  const [points, setPoints] = useState<GrammarPoint[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Practice Modal State
   const [practicingPoint, setPracticingPoint] = useState<GrammarPoint | null>(null);
@@ -51,13 +63,43 @@ export const GrammarPage: React.FC = () => {
     { label: 'HSK 6', val: 6 },
   ];
 
-  const points = useMemo(() => {
-    return GrammarService.getGrammarPoints({
+  // Fetch from Real SQL Server Backend via GrammarService
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    GrammarService.fetchGrammarPointsAsync({
       hskLevel: selectedHsk,
       category: selectedCategory,
       searchQuery,
-    });
-  }, [selectedHsk, selectedCategory, searchQuery]);
+      page,
+      pageSize,
+    })
+      .then((res) => {
+        if (!isMounted) return;
+        setPoints(res.items);
+        setTotalItems(res.totalItems);
+        setTotalPages(res.totalPages);
+        if (res.items.length > 0) {
+          setExpandedId(res.items[0].id);
+        } else {
+          setExpandedId(null);
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('[GrammarPage] Error fetching grammar points:', err);
+        setError('Không thể kết nối đến cơ sở dữ liệu học liệu. Vui lòng thử lại.');
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedHsk, selectedCategory, searchQuery, page]);
 
   // Audio Speech Synthesis
   const speakText = (text: string) => {
@@ -78,6 +120,22 @@ export const GrammarPage: React.FC = () => {
     setSelectedHsk(null);
     setSelectedCategory('all');
     setSearchQuery('');
+    setPage(1);
+  };
+
+  const handleHskSelect = (lvl: number | null) => {
+    setSelectedHsk(lvl);
+    setPage(1);
+  };
+
+  const handleCategorySelect = (catId: string) => {
+    setSelectedCategory(catId);
+    setPage(1);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setPage(1);
   };
 
   // Open Practice Modal
@@ -156,7 +214,7 @@ export const GrammarPage: React.FC = () => {
 
   return (
     <div className="grammar-page-container">
-      {/* 1. Header (Clean, inspiring, no tall purple banner) */}
+      {/* 1. Header */}
       <header className="grammar-header">
         <div>
           <div className="grammar-header-brand-badge">
@@ -174,8 +232,8 @@ export const GrammarPage: React.FC = () => {
 
         <div className="grammar-header-stats">
           <div className="grammar-stat-chip">
-            <span className="grammar-stat-chip-number">{points.length}</span>
-            <span className="grammar-stat-chip-label">Điểm ngữ pháp</span>
+            <span className="grammar-stat-chip-number">{totalItems}</span>
+            <span className="grammar-stat-chip-label">Đã xuất bản</span>
           </div>
           <div className="grammar-stat-chip">
             <span className="grammar-stat-chip-number">HSK 1-6</span>
@@ -194,14 +252,14 @@ export const GrammarPage: React.FC = () => {
             className="grammar-search-input"
             placeholder="Tìm kiếm theo chữ Hán, Pinyin, cấu trúc (shì, bǐ, 把, trợ từ)..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             aria-label="Tìm kiếm ngữ pháp"
           />
           {searchQuery && (
             <button
               type="button"
               className="grammar-search-clear"
-              onClick={() => setSearchQuery('')}
+              onClick={() => handleSearchChange('')}
               aria-label="Xóa nội dung tìm kiếm"
             >
               <X size={16} />
@@ -220,7 +278,7 @@ export const GrammarPage: React.FC = () => {
                   key={String(lvl.val)}
                   type="button"
                   className={`grammar-pill ${isActive ? 'active' : ''}`}
-                  onClick={() => setSelectedHsk(lvl.val)}
+                  onClick={() => handleHskSelect(lvl.val)}
                 >
                   {lvl.label}
                 </button>
@@ -240,7 +298,7 @@ export const GrammarPage: React.FC = () => {
                   key={cat.id}
                   type="button"
                   className={`grammar-pill ${isActive ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(cat.id)}
+                  onClick={() => handleCategorySelect(cat.id)}
                 >
                   {cat.label}
                 </button>
@@ -252,7 +310,7 @@ export const GrammarPage: React.FC = () => {
         {/* Filter Status & Reset */}
         <div className="grammar-filter-status-row">
           <span>
-            Hiển thị <strong>{points.length}</strong> điểm ngữ pháp phù hợp
+            Hiển thị <strong>{points.length}</strong> trên tổng số <strong>{totalItems}</strong> điểm ngữ pháp công khai
             {selectedHsk && ` · HSK ${selectedHsk}`}
             {selectedCategory !== 'all' && ` · Thể loại: ${selectedCategory}`}
           </span>
@@ -268,14 +326,41 @@ export const GrammarPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Error State */}
+      {error && (
+        <div style={{ padding: '16px 20px', borderRadius: '12px', backgroundColor: '#FFF0F1', border: '1px solid #fed7da', color: '#E60012', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertCircle size={18} />
+            <span>{error}</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            style={{ padding: '4px 12px', borderRadius: '6px', border: '1px solid #E60012', backgroundColor: '#ffffff', color: '#E60012', cursor: 'pointer', fontWeight: 700 }}
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {/* Loading Indicator */}
+      {loading && points.length === 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', gap: '12px', color: '#64748b' }}>
+          <Loader2 size={32} style={{ animation: 'grammarSpin 1s linear infinite', color: 'var(--primary, #E60012)' }} />
+          <span style={{ fontSize: '14px', fontWeight: 600 }}>Đang tải kho ngữ pháp HSK từ SQL Server...</span>
+        </div>
+      )}
+
       {/* 3. Grammar Point Accordion Cards */}
       <main className="grammar-list" aria-label="Danh sách điểm ngữ pháp">
-        {points.length === 0 ? (
+        {!loading && points.length === 0 ? (
           <div className="grammar-empty-state">
             <HelpCircle className="grammar-empty-icon" />
             <h3 className="grammar-empty-title">Không tìm thấy điểm ngữ pháp phù hợp</h3>
             <p className="grammar-empty-desc">
-              Không có kết quả nào khớp với từ khóa hoặc bộ lọc bạn đã chọn. Vui lòng thử từ khóa khác hoặc xóa bộ lọc.
+              {selectedHsk
+                ? `Cấp độ HSK ${selectedHsk} hiện chưa có điểm ngữ pháp công khai nào hoặc các điểm đang nằm trong quy trình kiểm duyệt nội bộ.`
+                : 'Không có kết quả nào khớp với từ khóa hoặc bộ lọc bạn đã chọn. Vui lòng thử từ khóa khác hoặc xóa bộ lọc.'}
             </p>
             <button
               type="button"
@@ -389,6 +474,37 @@ export const GrammarPage: React.FC = () => {
           })
         )}
       </main>
+
+      {/* Pagination Bar */}
+      {totalPages > 1 && (
+        <nav className="grammar-pagination" aria-label="Điều hướng phân trang ngữ pháp">
+          <button
+            type="button"
+            className="grammar-pagination-btn"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            aria-label="Trang trước"
+          >
+            <ChevronLeft size={16} />
+            <span>Trang trước</span>
+          </button>
+
+          <span className="grammar-pagination-info">
+            Trang {page} / {totalPages} ({totalItems} mục)
+          </span>
+
+          <button
+            type="button"
+            className="grammar-pagination-btn"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            aria-label="Trang sau"
+          >
+            <span>Trang sau</span>
+            <ChevronRight size={16} />
+          </button>
+        </nav>
+      )}
 
       {/* 4. Dedicated Grammar Practice Modal */}
       {practicingPoint && (
@@ -564,3 +680,5 @@ export const GrammarPage: React.FC = () => {
     </div>
   );
 };
+
+export default GrammarPage;

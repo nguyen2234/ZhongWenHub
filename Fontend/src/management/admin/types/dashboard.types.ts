@@ -14,7 +14,7 @@ export interface StatMetricItem {
   totalLabel: string; // e.g. "Tổng tích lũy hiện tại"
   deltaInRange: MetricDelta;
   deltaLabel: string; // e.g. "Mới trong kỳ"
-  iconType: 'learners' | 'teachers' | 'lessons' | 'activity';
+  iconType: 'learners' | 'teachers' | 'lessons' | 'activity' | 'staff' | 'classes' | 'support';
 }
 
 export interface LearningActivityPoint {

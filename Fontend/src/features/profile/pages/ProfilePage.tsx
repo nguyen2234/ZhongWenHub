@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Edit3,
@@ -10,15 +10,90 @@ import {
   Users,
   Settings,
   ChevronRight,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import { authService } from '../../auth/services/authService';
+import { useLearningState } from '../../learning';
+import { learningApiService } from '../../learning/services/learning-api.service';
+import type { AuthUser } from '../../auth/types/auth.types';
+
+function getInitials(name?: string): string {
+  if (!name || !name.trim()) return 'ZH';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function formatStudentCode(id?: string): string {
+  if (!id) return 'ZWH-2026';
+  const clean = id.replace(/-/g, '').toUpperCase();
+  return `ZWH-${clean.substring(0, 8)}`;
+}
+
+function formatJoinDate(dateStr?: string): string {
+  if (!dateStr) return 'Tháng 11/2026';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'Tháng 11/2026';
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `Tháng ${month}/${year}`;
+  } catch {
+    return 'Tháng 11/2026';
+  }
+}
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('Trần Minh Anh');
-  const [email] = useState('minhanh.tran@zhongwenhub.edu.vn');
+  const { state: learningState, selectHskLevel } = useLearningState();
+
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [hskGoal, setHskGoal] = useState<number>(3);
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState<number>(30);
-  const [isSaved, setIsSaved] = useState(false);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Sync initial user profile from real backend
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
+    authService.getCurrentUser()
+      .then((currUser) => {
+        if (!isMounted) return;
+        if (currUser) {
+          setUser(currUser);
+          setName(currUser.fullName || '');
+          setEmail(currUser.email || '');
+        }
+      })
+      .catch((err) => {
+        console.warn('[ProfilePage] Error fetching current user:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Sync initial learning goals from learning state
+  useEffect(() => {
+    if (learningState.selectedHskLevel) {
+      setHskGoal(learningState.selectedHskLevel);
+    }
+    if (learningState.dailyGoal?.targetMinutes) {
+      setDailyGoalMinutes(learningState.dailyGoal.targetMinutes);
+    }
+  }, [learningState.selectedHskLevel, learningState.dailyGoal?.targetMinutes]);
 
   const secondaryShortcuts = [
     { label: 'Sổ từ vựng SRS', desc: 'Ôn tập Spaced Repetition thông minh', path: '/vocabulary', icon: BookOpen, color: '#0284c7', bg: '#f0f9ff' },
@@ -28,10 +103,45 @@ export const ProfilePage: React.FC = () => {
     { label: 'Cài đặt hệ thống', desc: 'Tùy chọn hiển thị Pinyin, âm thanh & thông báo', path: '/settings', icon: Settings, color: '#475569', bg: '#f8fafc' },
   ];
 
-  const handleSave = () => {
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+  const handleSave = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setErrorMessage('Họ và tên không được để trống.');
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      // 1. Update personal information (DisplayName) in SQL Server via Backend API
+      const updatedUser = await authService.updateProfile({
+        displayName: trimmedName,
+      });
+      setUser(updatedUser);
+
+      // 2. Update learning goals in SQL Server via Learning API & Context
+      selectHskLevel(hskGoal);
+      await learningApiService.updatePreferences({
+        selectedHskLevel: hskGoal,
+        targetDailyMinutes: dailyGoalMinutes,
+      });
+
+      // 3. Mark success
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Không thể lưu thay đổi. Vui lòng thử lại.';
+      setErrorMessage(msg);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const initials = getInitials(name || user?.fullName);
+  const studentCode = formatStudentCode(user?.id);
+  const joinDate = formatJoinDate(user?.createdAt);
+  const roleLabel = user?.roles?.includes('ADMIN') ? 'QUẢN TRỊ VIÊN' : 'HỌC VIÊN CHÍNH THỨC';
 
   return (
     <div className="student-content-container profile-page-root" style={{ maxWidth: '960px' }}>
@@ -51,33 +161,47 @@ export const ProfilePage: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div
-            style={{
-              width: '68px',
-              height: '68px',
-              borderRadius: '50%',
-              backgroundColor: '#4338ca',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px',
-              fontWeight: 800,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            }}
-          >
-            MA
-          </div>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={name || 'Avatar'}
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '68px',
+                height: '68px',
+                borderRadius: '50%',
+                backgroundColor: '#4338ca',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: 800,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}
+            >
+              {initials}
+            </div>
+          )}
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '9999px', fontSize: '11px', fontWeight: 700, marginBottom: '6px' }}>
               <Shield size={13} />
-              <span>HỌC VIÊN CHÍNH THỨC</span>
+              <span>{roleLabel}</span>
             </div>
             <h1 style={{ margin: '0 0 4px 0', fontSize: '24px', fontWeight: 800 }}>
-              {name}
+              {isLoading ? 'Đang tải hồ sơ...' : (name || 'Học viên ZhongWenHub')}
             </h1>
             <p style={{ margin: 0, fontSize: '13px', opacity: 0.8 }}>
-              Mã học viên: ZWH-2026-8942 • Tham gia: Tháng 09/2026
+              Mã học viên: {studentCode} • Tham gia: {joinDate}
             </p>
           </div>
         </div>
@@ -173,6 +297,27 @@ export const ProfilePage: React.FC = () => {
           Thông tin Cá nhân & Mục tiêu Học tập
         </h3>
 
+        {/* Error message alert */}
+        {errorMessage && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 16px',
+              backgroundColor: '#fef2f2',
+              color: '#b91c1c',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 600,
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '20px' }}>
           {/* Full Name */}
           <div>
@@ -182,7 +327,9 @@ export const ProfilePage: React.FC = () => {
             <input
               type="text"
               value={name}
+              disabled={isLoading || isSaving}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Nhập họ và tên..."
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -204,6 +351,7 @@ export const ProfilePage: React.FC = () => {
               type="email"
               value={email}
               disabled
+              title="Địa chỉ email được bảo vệ và không thể thay đổi trực tiếp."
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -214,6 +362,7 @@ export const ProfilePage: React.FC = () => {
                 fontSize: '14px',
                 outline: 'none',
                 boxSizing: 'border-box',
+                cursor: 'not-allowed',
               }}
             />
           </div>
@@ -225,6 +374,7 @@ export const ProfilePage: React.FC = () => {
             </label>
             <select
               value={hskGoal}
+              disabled={isLoading || isSaving}
               onChange={(e) => setHskGoal(Number(e.target.value))}
               style={{
                 width: '100%',
@@ -241,6 +391,8 @@ export const ProfilePage: React.FC = () => {
               <option value={2}>HSK 2 (300 từ - Giao tiếp hàng ngày)</option>
               <option value={3}>HSK 3 (600 từ - Trung cấp 1)</option>
               <option value={4}>HSK 4 (1200 từ - Lưu loát)</option>
+              <option value={5}>HSK 5 (2500 từ - Nâng cao)</option>
+              <option value={6}>HSK 6 (5000+ từ - Chuyên gia)</option>
             </select>
           </div>
 
@@ -251,6 +403,7 @@ export const ProfilePage: React.FC = () => {
             </label>
             <select
               value={dailyGoalMinutes}
+              disabled={isLoading || isSaving}
               onChange={(e) => setDailyGoalMinutes(Number(e.target.value))}
               style={{
                 width: '100%',
@@ -274,6 +427,7 @@ export const ProfilePage: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
           <button
             type="button"
+            disabled={isLoading || isSaving}
             onClick={handleSave}
             style={{
               display: 'inline-flex',
@@ -282,16 +436,31 @@ export const ProfilePage: React.FC = () => {
               padding: '10px 24px',
               borderRadius: '10px',
               border: 'none',
-              backgroundColor: isSaved ? '#16a34a' : '#4338ca',
+              backgroundColor: isSaved ? '#16a34a' : (isSaving ? '#6366f1' : '#4338ca'),
               color: '#ffffff',
               fontSize: '13px',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: isSaving ? 'wait' : 'pointer',
               transition: 'all 0.2s ease',
+              opacity: isSaving ? 0.8 : 1,
             }}
           >
-            {isSaved ? <Check size={16} /> : <Edit3 size={16} />}
-            <span>{isSaved ? 'Đã lưu thay đổi!' : 'Lưu thông tin'}</span>
+            {isSaving ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Đang lưu...</span>
+              </>
+            ) : isSaved ? (
+              <>
+                <Check size={16} />
+                <span>Đã lưu thay đổi!</span>
+              </>
+            ) : (
+              <>
+                <Edit3 size={16} />
+                <span>Lưu thông tin</span>
+              </>
+            )}
           </button>
         </div>
       </div>

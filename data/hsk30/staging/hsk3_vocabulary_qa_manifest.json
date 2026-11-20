@@ -1,0 +1,102 @@
+{
+  "curriculumLevel": "HSK 3",
+  "totalWords": 500,
+  "totalLessons": 20,
+  "wordsPerLesson": 25,
+  "coverageRate": 1.0,
+  "humanReviewStatus": "PENDING_HUMAN_EXPERT_SIGN_OFF",
+  "linguisticAuditPassed": true,
+  "dictionaryTrapsFixed": [
+    {
+      "word": "沙发",
+      "lesson": 10,
+      "trap": "internet slang in raw definition",
+      "status": "FIXED"
+    },
+    {
+      "word": "鸡",
+      "lesson": 18,
+      "trap": "vulgar slang in raw definition",
+      "status": "FIXED"
+    },
+    {
+      "word": "东方",
+      "lesson": 19,
+      "trap": "surname regex trap in raw definition",
+      "status": "FIXED"
+    },
+    {
+      "word": "黄色",
+      "lesson": 19,
+      "trap": "vulgar definition in raw definition",
+      "status": "FIXED"
+    },
+    {
+      "word": "故事",
+      "lesson": 6,
+      "trap": "definition trap 'tục lệ cũ' -> 'câu chuyện'",
+      "status": "FIXED"
+    },
+    {
+      "word": "节",
+      "lesson": 6,
+      "trap": "definition trap 'tiết xương' -> 'tiết học, ngày lễ'",
+      "status": "FIXED"
+    },
+    {
+      "word": "越",
+      "lesson": 6,
+      "trap": "definition trap 'tộc Việt' -> 'càng'",
+      "status": "FIXED"
+    },
+    {
+      "word": "页",
+      "lesson": 7,
+      "trap": "definition trap 'đầu' -> 'trang sách'",
+      "status": "FIXED"
+    },
+    {
+      "word": "加",
+      "lesson": 9,
+      "trap": "definition trap 'Canada' -> 'thêm, cộng'",
+      "status": "FIXED"
+    },
+    {
+      "word": "把",
+      "lesson": 9,
+      "trap": "definition trap 'đỡ em bé...' -> 'cầm, nắm, lượng từ/câu chữ 把'",
+      "status": "FIXED"
+    },
+    {
+      "word": "刚",
+      "lesson": 14,
+      "trap": "definition trap 'cứng' -> 'vừa mới'",
+      "status": "FIXED"
+    },
+    {
+      "word": "挺",
+      "lesson": 14,
+      "trap": "definition trap 'chĩa ra' -> 'rất, khá'",
+      "status": "FIXED"
+    },
+    {
+      "word": "胖",
+      "lesson": 19,
+      "trap": "definition trap 'khoẻ mạnh' -> 'béo, mập'",
+      "status": "FIXED"
+    },
+    {
+      "word": "脏",
+      "lesson": 20,
+      "trap": "definition trap 'nội tạng (zàng)' -> 'bẩn, dơ (zāng)'",
+      "status": "FIXED"
+    }
+  ],
+  "validationSummary": {
+    "pinyinTonesVerified": true,
+    "sentenceLengthMin": 10,
+    "sentenceLengthMax": 40,
+    "vietnameseTranslationNatural": true,
+    "zeroEmptyExamples": true
+  }
+}

@@ -53,6 +53,7 @@ export function adaptExerciseDtoToLegacy(
     promptHanzi: dto.promptHanzi,
     promptPinyin: dto.promptPinyin,
     promptVietnamese: dto.promptVietnamese,
+    audioUrl: dto.audioUrl,
     options: dto.options,
     correctOptionIndex: dto.correctOptionIndex,
     matchingPairs: dto.matchingPairs,
@@ -235,6 +236,7 @@ export function adaptLessonDetailToPlayer(
       hanzi: v.simplified,
       pinyin: v.pinyin,
       meaning: v.meaningVi,
+      audioUrl: v.audioUrl,
       exampleHanzi: v.customExampleZh || '',
       examplePinyin: v.customExamplePinyin || '',
       exampleMeaning: v.customExampleVi || '',
@@ -245,6 +247,35 @@ export function adaptLessonDetailToPlayer(
 
   // 2. Grammar Step Presentation
   const primaryGrammar = lesson.grammars?.[0];
+  const primaryEx = primaryGrammar?.examples?.[0];
+  const fallbackQuickPractice = primaryEx
+    ? {
+        question: primaryEx.meaningVi || 'Chọn câu ví dụ đúng theo cấu trúc:',
+        pinyin: primaryEx.pinyin || '',
+        blankWordTranslation: primaryGrammar?.title || '',
+        options: [
+          primaryEx.zh,
+          ...((lesson.grammars || [])
+            .flatMap((g) => g.examples || [])
+            .map((e) => e.zh)
+            .filter((zh) => zh && zh !== primaryEx.zh)
+            .slice(0, 2)),
+        ],
+        correctIndex: 0,
+        explanation: primaryGrammar?.explanation || `Áp dụng công thức: ${primaryGrammar?.structureFormula || ''}`,
+      }
+    : {
+        question: 'Chọn câu vận dụng đúng cấu trúc ngữ pháp trọng tâm:',
+        pinyin: '',
+        blankWordTranslation: primaryGrammar?.title || 'Ngữ pháp bài học',
+        options: [
+          primaryGrammar?.structureFormula || 'Chủ ngữ + Động từ + Tân ngữ',
+          'Sai trật tự từ',
+        ],
+        correctIndex: 0,
+        explanation: primaryGrammar?.explanation || 'Xem giải thích ngữ pháp bài học.',
+      };
+
   const grammar: GrammarData = {
     title: primaryGrammar?.title || 'Điểm ngữ pháp trọng tâm',
     subtitle: primaryGrammar?.explanation || 'Cấu trúc bài học',
@@ -276,6 +307,7 @@ export function adaptLessonDetailToPlayer(
         'Lỗi đặt sai trật tự từ trong câu.',
       right:
         primaryGrammar?.commonMistake?.right ||
+        primaryEx?.zh ||
         'Trật tự chuẩn xác theo ngữ pháp.',
       note:
         primaryGrammar?.commonMistake?.note ||
@@ -283,20 +315,19 @@ export function adaptLessonDetailToPlayer(
     },
     quickPractice: {
       question:
-        primaryGrammar?.quickPractice?.question || '我 ___ 学习汉语。',
-      pinyin: primaryGrammar?.quickPractice?.pinyin || 'Wǒ ___ xuéxí Hànyǔ.',
+        primaryGrammar?.quickPractice?.question || fallbackQuickPractice.question,
+      pinyin: primaryGrammar?.quickPractice?.pinyin ?? fallbackQuickPractice.pinyin,
       blankWordTranslation:
-        primaryGrammar?.quickPractice?.blankWordTranslation || 'muốn',
-      options: primaryGrammar?.quickPractice?.options || [
-        '想',
-        '是',
-        '有',
-        '在',
-      ],
+        primaryGrammar?.quickPractice?.blankWordTranslation ||
+        fallbackQuickPractice.blankWordTranslation,
+      options:
+        primaryGrammar?.quickPractice?.options && primaryGrammar.quickPractice.options.length > 0
+          ? primaryGrammar.quickPractice.options
+          : fallbackQuickPractice.options,
       correctIndex: primaryGrammar?.quickPractice?.correctIndex ?? 0,
       explanation:
         primaryGrammar?.quickPractice?.explanation ||
-        'Dùng trợ động từ để diễn đạt nguyện vọng.',
+        fallbackQuickPractice.explanation,
     },
   };
 
@@ -310,6 +341,7 @@ export function adaptLessonDetailToPlayer(
       hanzi: l.zh,
       pinyin: l.pinyin,
       meaning: l.meaningVi,
+      audioUrl: l.audioUrl,
     })
   );
 
@@ -325,6 +357,7 @@ export function adaptLessonDetailToPlayer(
   // 4. Listening Step Presentation
   const primaryListening = lesson.listenings?.[0];
   const listening: ListeningData = {
+    audioUrl: primaryListening?.audioUrl,
     audioHanzi: primaryListening?.transcriptZh || '',
     audioPinyin: primaryListening?.transcriptPinyin || '',
     audioMeaning: primaryListening?.transcriptVi || '',

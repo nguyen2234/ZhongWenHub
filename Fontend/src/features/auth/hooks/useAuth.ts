@@ -1,11 +1,13 @@
+import { useAuthContext } from '../context/AuthContext';
 import { useState, useCallback } from 'react';
 import { authService } from '../services/authService';
-import type { LoginRequest, RegisterRequest, AuthUser } from '../types/auth.types';
+import type { LoginRequest, RegisterRequest, ResetPasswordRequest, AuthUser } from '../types/auth.types';
 
 export function useAuth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiSuccess, setApiSuccess] = useState<string | null>(null);
+  const authContext = useAuthContext();
 
   const clearMessages = useCallback(() => {
     setApiError(null);
@@ -19,7 +21,7 @@ export function useAuth() {
       setApiSuccess(null);
 
       try {
-        const response = await authService.login(request);
+        const response = await authContext.login(request);
         if (response.success && response.user) {
           setApiSuccess(response.message || 'Đăng nhập thành công!');
           setTimeout(() => {
@@ -43,7 +45,7 @@ export function useAuth() {
       setApiSuccess(null);
 
       try {
-        const response = await authService.register(request);
+        const response = await authContext.register(request);
         if (response.success && response.user) {
           setApiSuccess(response.message || 'Đăng ký thành công!');
           setTimeout(() => {
@@ -57,7 +59,7 @@ export function useAuth() {
         setIsSubmitting(false);
       }
     },
-    []
+    [authContext]
   );
 
   const loginWithGoogle = useCallback(
@@ -106,6 +108,28 @@ export function useAuth() {
     []
   );
 
+  const resetPassword = useCallback(
+    async (request: ResetPasswordRequest, onSuccess: () => void) => {
+      setIsSubmitting(true);
+      setApiError(null);
+      setApiSuccess(null);
+
+      try {
+        const response = await authService.resetPassword(request);
+        if (response.success) {
+          setApiSuccess(response.message);
+          onSuccess();
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Không thể đặt lại mật khẩu.';
+        setApiError(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    []
+  );
+
   return {
     isSubmitting,
     apiError,
@@ -114,6 +138,7 @@ export function useAuth() {
     register,
     loginWithGoogle,
     forgotPassword,
+    resetPassword,
     clearMessages,
   };
 }

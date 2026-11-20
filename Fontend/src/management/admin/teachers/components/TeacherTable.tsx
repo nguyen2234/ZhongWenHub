@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Eye, Edit2, CalendarCheck, Lock, Unlock } from 'lucide-react';
+import { Eye, Edit2, CalendarCheck, Lock, Unlock, Trash2 } from 'lucide-react';
 import { StatusBadge, ManagementDataTable } from '../../../shared/components';
 import type { TableColumn, RowAction } from '../../../shared/types';
 import type {
@@ -20,6 +20,7 @@ export interface TeacherTableProps {
   onEditTeacher: (teacher: TeacherListItem) => void;
   onChangeTeachingStatus: (teacher: TeacherListItem) => void;
   onToggleLockAccount: (teacher: TeacherListItem) => void;
+  onDeleteTeacher?: (teacher: TeacherListItem) => void;
   sort: TeacherSort;
   onSortChange: (field: TeacherSortField) => void;
 }
@@ -34,6 +35,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
   onEditTeacher,
   onChangeTeachingStatus,
   onToggleLockAccount,
+  onDeleteTeacher,
   sort,
   onSortChange,
 }) => {
@@ -140,9 +142,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         align: 'center',
         width: '80px',
         render: (teacher) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {teacher.classCount}
-          </span>
+          teacher.classCount ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {teacher.classCount}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa hỗ trợ
+            </span>
+          )
         ),
       },
       {
@@ -153,9 +161,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         align: 'center',
         width: '100px',
         render: (teacher) => (
-          <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {teacher.studentCount}
-          </span>
+          teacher.studentCount ? (
+            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {teacher.studentCount}
+            </span>
+          ) : (
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic' }}>
+              Chưa hỗ trợ
+            </span>
+          )
         ),
       },
       {
@@ -207,8 +221,15 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         variant: 'danger',
         onClick: (teacher: TeacherListItem) => onToggleLockAccount(teacher),
       },
+      {
+        key: 'delete_teacher',
+        label: 'Vô hiệu hóa tài khoản',
+        icon: <Trash2 size={15} style={{ color: '#dc2626' }} />,
+        variant: 'danger',
+        onClick: (teacher: TeacherListItem) => onDeleteTeacher && onDeleteTeacher(teacher),
+      },
     ],
-    [onSelectTeacher, onEditTeacher, onChangeTeachingStatus, onToggleLockAccount]
+    [onSelectTeacher, onEditTeacher, onChangeTeachingStatus, onToggleLockAccount, onDeleteTeacher]
   );
 
   return (

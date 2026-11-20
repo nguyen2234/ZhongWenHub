@@ -1,144 +1,95 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import type { AITutorContext } from '../types';
-import { ContextBuilder } from '../services/ContextBuilder';
 import { StickerIllustration } from '../../../design-system';
 
 interface AITutorHeaderProps {
-  context: AITutorContext | null;
+  context?: AITutorContext | null;
   onClose: () => void;
-  onClearContext: () => void;
+  onClearContext?: () => void;
 }
 
 export const AITutorHeader: React.FC<AITutorHeaderProps> = ({
-  context,
   onClose,
-  onClearContext,
 }) => {
-  const info = ContextBuilder.getReadableHeader(context);
-
   return (
     <header
+      className="ai-tutor-drawer-header"
       style={{
-        padding: 'var(--space-3-5) var(--space-4)',
-        borderBottom: '1px solid var(--border)',
-        backgroundColor: 'var(--surface)',
+        padding: '12px 16px',
+        borderBottom: '1px solid #e2e8f0',
+        backgroundColor: '#ffffff',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        flexShrink: 0,
       }}
     >
-      {/* Top Row: AI Brand, Close & Clear Context */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
+      {/* Left: Preserved AI ZhongWen character icon, Title & Minimal Subtitle */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <div
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: 'var(--radius-lg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <StickerIllustration name="aiTutor" size="sm" decorative />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <h3
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              margin: 0,
+              fontSize: 'var(--text-sm)',
+              fontWeight: 800,
+              color: '#0f172a',
+              lineHeight: 1.25,
             }}
           >
-            <StickerIllustration name="aiTutor" size="sm" decorative />
-          </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--foreground)' }}>
-              Trợ giảng AI ZhongWen
-            </h3>
-            <span style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 600 }}>
-              AI Contextual Tutor · HSK 1-6
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {context && context.source !== 'general' && (
-            <button
-              type="button"
-              onClick={onClearContext}
-              style={{
-                fontSize: '11px',
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--background)',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)',
-                cursor: 'pointer',
-                fontWeight: 600,
-                transition: 'all 0.15s ease',
-              }}
-              title="Xóa context hiện tại để chuyển sang chế độ gia sư tự do"
-            >
-              Xóa context ✕
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: 'var(--radius-full)',
-              border: 'none',
-              backgroundColor: 'var(--background)',
-              color: 'var(--muted)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            title="Đóng trợ giảng"
-          >
-            <X size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Context Badge Row */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: 'var(--background)',
-          padding: '6px 10px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border)',
-          fontSize: '11px',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <strong style={{ color: 'var(--foreground)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-            {info.title}
-          </strong>
-          <span style={{ color: 'var(--muted)', fontSize: '10px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-            {info.sublabel}
-          </span>
-        </div>
-
-        {info.tag && (
+            Trợ giảng AI ZhongWen
+          </h3>
           <span
             style={{
-              padding: '2px 6px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              color: 'var(--primary)',
-              fontWeight: 700,
-              fontSize: '10px',
-              flexShrink: 0,
+              display: 'block',
+              fontSize: '11px',
+              color: '#64748b',
+              fontWeight: 500,
+              lineHeight: 1.3,
             }}
           >
-            {info.tag}
+            AI Contextual Tutor
           </span>
-        )}
+        </div>
       </div>
+
+      {/* Right: Close Button */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Đóng Trợ giảng AI"
+        title="Đóng trợ giảng"
+        style={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '9999px',
+          border: '1px solid #e2e8f0',
+          backgroundColor: '#f8fafc',
+          color: '#64748b',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'background-color 0.15s ease, color 0.15s ease',
+        }}
+      >
+        <X size={16} />
+      </button>
     </header>
   );
 };

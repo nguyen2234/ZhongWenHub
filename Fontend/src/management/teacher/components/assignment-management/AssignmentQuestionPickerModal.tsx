@@ -141,7 +141,7 @@ export const AssignmentQuestionPickerModal: React.FC<AssignmentQuestionPickerMod
           </div>
           <button
             type="button"
-            className="tp-btn tp-btn--ghost"
+            className="ds-btn ds-btn-ghost"
             onClick={onClose}
             aria-label="Đóng"
           >
@@ -207,7 +207,7 @@ export const AssignmentQuestionPickerModal: React.FC<AssignmentQuestionPickerMod
           {/* Select All Toggle */}
           <button
             type="button"
-            className="tp-btn tp-btn--secondary"
+            className="ds-btn ds-btn-secondary"
             onClick={handleSelectAllFiltered}
             style={{ fontSize: '12px' }}
           >
@@ -531,14 +531,14 @@ export const AssignmentQuestionPickerModal: React.FC<AssignmentQuestionPickerMod
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button
               type="button"
-              className="tp-btn tp-btn--secondary"
+              className="ds-btn ds-btn-secondary"
               onClick={onClose}
             >
               Hủy
             </button>
             <button
               type="button"
-              className="tp-btn tp-btn--primary"
+              className="ds-btn ds-btn-primary"
               onClick={handleConfirm}
             >
               <Check size={16} />

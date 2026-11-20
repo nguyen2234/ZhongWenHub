@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ZhongWenHubResult",
+  "description": "Schema for execution results and test evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "task_revision",
+    "execution_id",
+    "executor",
+    "commit_sha",
+    "branch",
+    "changed_files",
+    "started_at",
+    "finished_at",
+    "status",
+    "test_results",
+    "evidence_links",
+    "warnings",
+    "blockers"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0.0"]
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_-]{5,64}$"
+    },
+    "task_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "execution_id": {
+      "type": "string"
+    },
+    "executor": {
+      "type": "string"
+    },
+    "commit_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{7,40}$"
+    },
+    "branch": {
+      "type": "string"
+    },
+    "changed_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "BLOCKED", "PARTIAL"]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "test_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "test_id",
+          "test_name",
+          "command",
+          "test_type",
+          "environment",
+          "commit_sha",
+          "passed_count",
+          "failed_count",
+          "skipped_count",
+          "status",
+          "execution_timestamp"
+        ],
+        "properties": {
+          "test_id": { "type": "string" },
+          "test_name": { "type": "string" },
+          "command": { "type": "string" },
+          "test_type": {
+            "type": "string",
+            "enum": ["UNIT", "INTEGRATION", "E2E", "LINT", "BUILD", "SECURITY", "PROTOCOL"]
+          },
+          "environment": { "type": "string" },
+          "commit_sha": { "type": "string" },
+          "passed_count": { "type": "integer", "minimum": 0 },
+          "failed_count": { "type": "integer", "minimum": 0 },
+          "skipped_count": { "type": "integer", "minimum": 0 },
+          "status": {
+            "type": "string",
+            "enum": ["PASS", "FAIL", "SKIP", "NOT_TESTED", "BLOCKED"]
+          },
+          "artifact_url": { "type": ["string", "null"] },
+          "execution_timestamp": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_links": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "checkpoint_path": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

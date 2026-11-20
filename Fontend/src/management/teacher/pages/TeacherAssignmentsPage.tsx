@@ -19,8 +19,7 @@ import {
   AssignmentTable,
   AssignmentToolbar,
 } from '../components';
-import { assignmentService } from '../services';
-import { INITIAL_TEACHING_CLASSES, CURRENT_TEACHER_ID } from '../data/mockTeacherPortalData';
+import { assignmentService, teacherPortalService } from '../services';
 import type {
   AssignmentDetailDTO,
   AssignmentFilters,
@@ -86,10 +85,14 @@ export const TeacherAssignmentsPage: React.FC = () => {
     const levels = hskRepositoryService.getLevels();
     setHskLevels(levels);
 
-    const classes = INITIAL_TEACHING_CLASSES
-      .filter((c) => c.teacherId === CURRENT_TEACHER_ID)
-      .map((c) => ({ id: c.id, name: c.name }));
-    setOwnedClasses(classes);
+    teacherPortalService
+      .getClasses({ search: '', hskLevelId: 'ALL', status: 'ALL', locationType: 'ALL' }, { page: 1, pageSize: 100 })
+      .then((res) => {
+        setOwnedClasses(res.items.map((c) => ({ id: c.id, name: c.name })));
+      })
+      .catch(() => {
+        setOwnedClasses([]);
+      });
   }, []);
 
   // Fetch assignments
@@ -280,7 +283,7 @@ export const TeacherAssignmentsPage: React.FC = () => {
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <button
               type="button"
-              className="tp-btn tp-btn--secondary"
+              className="ds-btn ds-btn-secondary"
               onClick={loadAssignments}
               title="Tải lại danh sách"
             >
@@ -289,7 +292,7 @@ export const TeacherAssignmentsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              className="tp-btn tp-btn--primary"
+              className="ds-btn ds-btn-primary"
               onClick={handleCreate}
             >
               <Plus size={15} />

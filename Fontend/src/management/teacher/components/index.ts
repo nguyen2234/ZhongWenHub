@@ -19,8 +19,10 @@ export * from './class-detail/ClassDetailHeader';
 export * from './class-detail/ClassOverviewTab';
 export * from './class-detail/ClassStudentsTab';
 export * from './class-detail/ClassScheduleTab';
-export * from './class-detail/ClassAssignmentsPlaceholderTab';
-export * from './class-detail/ClassPerformancePlaceholderTab';
+export * from './class-detail/ClassCurriculumTab';
+export * from './class-detail/ClassAssignmentsTab';
+export * from './class-detail/ClassPerformanceTab';
+export * from './class-detail/ClassAttendanceModal';
 
 // Assignment Management Components
 export * from './assignment-management';

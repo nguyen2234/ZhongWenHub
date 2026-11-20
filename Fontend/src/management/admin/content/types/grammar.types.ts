@@ -17,12 +17,18 @@ export interface GrammarPoint {
   hskLevelId: string;
   code: string; // e.g. 'HSK1_G01', 'HSK2_G05'
   title: string;
+  pinyinTitle?: string;
+  category?: string;
   structureFormula: string;
   explanation: string;
+  difficulty?: string;
   commonMistake?: GrammarCommonMistake;
   examples: GrammarExample[];
   status: ContentStatus;
-  source: string;
+  source?: string;
+  reviewedByUserId?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,9 +43,13 @@ export interface UpdateGrammarDTO {
   hskLevelId: string;
   code: string;
   title: string;
+  pinyinTitle?: string;
+  category?: string;
   structureFormula: string;
   explanation: string;
+  difficulty?: string;
   commonMistake?: GrammarCommonMistake;
   examples: GrammarExample[];
   status: ContentStatus;
+  reviewNotes?: string;
 }

@@ -5,6 +5,14 @@ import type {
   RoleDetail,
   SystemRoleCode,
 } from '../types/role-permission.types';
+import { authTokenService } from '../../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
 
 // Mock storage for roles
 let INITIAL_ROLES: RoleDetail[] = [
@@ -14,7 +22,7 @@ let INITIAL_ROLES: RoleDetail[] = [
     name: 'Quản trị viên',
     description: 'Toàn quyền điều hành, giám sát hoạt động và cấu hình nền tảng ZhongWenHub.',
     systemRole: true,
-    userCount: 1,
+    userCount: 0,
     permissions: [...ALL_PERMISSION_CODES],
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -25,7 +33,7 @@ let INITIAL_ROLES: RoleDetail[] = [
     name: 'Giáo viên',
     description: 'Giảng dạy, quản lý tài liệu học tập, soạn đề thi và chấm điểm bài tập học viên.',
     systemRole: true,
-    userCount: 85,
+    userCount: 0,
     permissions: [
       'TEACHER_VIEW',
       'CONTENT_VIEW',
@@ -48,7 +56,7 @@ let INITIAL_ROLES: RoleDetail[] = [
     name: 'Quản lý học liệu & Kiểm duyệt',
     description: 'Chuyên trách kho học liệu HSK, ngân hàng câu hỏi, phê duyệt bài học, tự xuất bản và xử lý lỗi từ Support.',
     systemRole: true,
-    userCount: 4,
+    userCount: 0,
     permissions: [
       'CONTENT_VIEW',
       'CONTENT_CREATE',
@@ -75,7 +83,7 @@ let INITIAL_ROLES: RoleDetail[] = [
     name: 'Nhân viên hỗ trợ',
     description: 'Tiếp nhận, xử lý vé hỗ trợ, giải đáp thắc mắc và hỗ trợ kỹ thuật cho người dùng.',
     systemRole: true,
-    userCount: 12,
+    userCount: 0,
     permissions: [
       'USER_VIEW',
       'SUPPORT_STAFF_VIEW',
@@ -94,7 +102,7 @@ let INITIAL_ROLES: RoleDetail[] = [
     name: 'Học viên',
     description: 'Học tập các bài giảng HSK, luyện phát âm, làm bài tập và gửi yêu cầu trợ giúp.',
     systemRole: true,
-    userCount: 1420,
+    userCount: 0,
     permissions: ['CONTENT_VIEW', 'ASSIGNMENT_VIEW'],
     createdAt: '2024-01-10T00:00:00Z',
     updatedAt: '2024-03-01T09:00:00Z',
@@ -182,7 +190,56 @@ class RolePermissionService {
    * Cập nhật mô tả vai trò
    * Cho phép chỉnh sửa mô tả cho TEACHER, SUPPORT, STUDENT
    */
-  updateRoleDescription(roleCode: SystemRoleCode, description: string): RoleDetail {
+  public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const token = authTokenService.getAccessToken();
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(getApiUrl('admin/users/roles'), {
+        headers,
+        credentials: 'include',
+      });
+
+      if (!res.ok) return { success: false, error: 'HTTP ' + res.status };
+
+      const roles = await res.json();
+      if (Array.isArray(roles) && roles.length > 0) {
+        roles.forEach((r: any) => {
+          const found = INITIAL_ROLES.find((ir) => ir.code === r.name);
+          if (found) {
+            found.userCount = r.userCount ?? found.userCount;
+            if (r.description) found.description = r.description;
+          }
+        });
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message };
+    }
+  }
+
+  public async updateRoleDescription(roleCode: SystemRoleCode, description: string): Promise<RoleDetail> {
+    const token = authTokenService.getAccessToken();
+    if (!token) {
+      throw new Error('Yêu cầu phiên đăng nhập quản trị viên để cập nhật vai trò.');
+    }
+
+    const res = await fetch(getApiUrl(`admin/users/roles/${roleCode}/description`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ description }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => null);
+      throw new Error(errData?.detail || errData?.message || 'Không thể lưu mô tả vai trò trên máy chủ.');
+    }
+
     const index = INITIAL_ROLES.findIndex((r) => r.code === roleCode);
     if (index === -1) {
       throw new Error(`Không tìm thấy vai trò với mã: ${roleCode}`);

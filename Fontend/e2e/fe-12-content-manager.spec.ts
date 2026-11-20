@@ -16,10 +16,11 @@ test.describe('FE-12: Content Manager Workspace Acceptance Suite', () => {
       await expect(sidebar).toBeVisible();
       await expect(sidebar.getByRole('link', { name: 'Tổng quan' })).toBeVisible();
       await expect(sidebar.getByRole('link', { name: 'Kho HSK' })).toBeVisible();
-      await expect(sidebar.getByRole('link', { name: 'Giáo trình & Bài học' })).toBeVisible();
-      await expect(sidebar.getByRole('link', { name: 'Trình biên tập bài học' })).toBeVisible();
+      await expect(sidebar.getByRole('link', { name: 'Giáo trình', exact: true })).toBeVisible();
+      await expect(sidebar.getByRole('link', { name: 'Trình biên tập bài học' })).toHaveCount(0);
       await expect(sidebar.getByRole('link', { name: 'Ngữ pháp' })).toBeVisible();
       await expect(sidebar.getByRole('link', { name: 'Ngân hàng câu hỏi' })).toBeVisible();
+      await expect(sidebar.getByRole('link', { name: 'Kho đề thi' })).toBeVisible();
       await expect(sidebar.getByRole('link', { name: 'Học liệu video' })).toBeVisible();
       await expect(sidebar.getByRole('link', { name: /Kiểm duyệt & Xuất bản/ })).toBeVisible();
       await expect(sidebar.getByRole('link', { name: /Báo cáo lỗi học liệu/ })).toBeVisible();
@@ -124,7 +125,7 @@ test.describe('FE-12: Content Manager Workspace Acceptance Suite', () => {
 
     // Should redirect to Content Manager curriculum route
     expect(page.url()).toContain('/management/content-manager/curriculum');
-    await expect(page.locator('text=Giáo trình & Bài học').first()).toBeVisible();
+    await expect(page.locator('text=Giáo trình').first()).toBeVisible();
   });
 
   test('Lesson Editor Workspace Isolation: Back button stays within Content Manager', async ({ page }) => {

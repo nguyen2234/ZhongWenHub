@@ -6,18 +6,22 @@ import {
   Calendar,
   CheckSquare,
   BarChart3,
+  BookOpen,
   ArrowLeft,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { curriculumService } from '../../admin/content/services/curriculum.service';
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
 import type { Course, HskLevel } from '../../admin/content/types';
 import { ConfirmDialog } from '../../shared/components';
 import {
-  ClassAssignmentsPlaceholderTab,
+  ClassAssignmentsTab,
+  ClassCurriculumTab,
   ClassDetailHeader,
   ClassFormDrawer,
   ClassOverviewTab,
-  ClassPerformancePlaceholderTab,
+  ClassPerformanceTab,
   ClassScheduleTab,
   ClassStudentsTab,
 } from '../components';
@@ -29,7 +33,7 @@ import type {
   UpdateTeachingClassDTO,
 } from '../types';
 
-type ActiveTab = 'overview' | 'students' | 'schedule' | 'assignments' | 'performance';
+type ActiveTab = 'overview' | 'students' | 'schedule' | 'curriculum' | 'assignments' | 'performance';
 
 export const TeacherClassDetailPage: React.FC = () => {
   const { classId } = useParams<{ classId: string }>();
@@ -44,25 +48,30 @@ export const TeacherClassDetailPage: React.FC = () => {
   const [hskLevels, setHskLevels] = useState<HskLevel[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Dialog & Drawer
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
-  const loadClassDetail = useCallback(() => {
+  const loadClassDetail = useCallback(async () => {
     if (!classId) return;
     setLoading(true);
+    setError(null);
     try {
-      const data = teacherPortalService.getClassById(classId);
+      const data = await teacherPortalService.getClassById(classId);
       if (data) {
         setDetail(data);
-        const memberList = teacherPortalService.getClassMembers(classId);
+        const memberList = await teacherPortalService.getClassMembers(classId);
         setMembers(memberList);
       } else {
         setDetail(null);
       }
       setHskLevels(hskRepositoryService.getLevels());
       setCourses(curriculumService.getCourses());
+    } catch (err: any) {
+      setError(err?.message || 'Đã xảy ra lỗi khi tải thông tin lớp học.');
+      setDetail(null);
     } finally {
       setLoading(false);
     }
@@ -74,13 +83,13 @@ export const TeacherClassDetailPage: React.FC = () => {
 
   const handleUpdateClass = async (dto: CreateTeachingClassDTO | UpdateTeachingClassDTO) => {
     if (!classId) return;
-    teacherPortalService.updateClass(classId, dto as UpdateTeachingClassDTO);
-    loadClassDetail();
+    await teacherPortalService.updateClass(classId, dto as UpdateTeachingClassDTO);
+    await loadClassDetail();
   };
 
-  const handleConfirmArchive = () => {
+  const handleConfirmArchive = async () => {
     if (!classId) return;
-    teacherPortalService.archiveClass(classId);
+    await teacherPortalService.archiveClass(classId);
     setIsArchiveDialogOpen(false);
     navigate('/management/teacher/classes');
   };
@@ -89,6 +98,48 @@ export const TeacherClassDetailPage: React.FC = () => {
     return (
       <div style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--muted)' }}>
         Đang tải thông tin lớp học...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: 'var(--space-12)',
+          textAlign: 'center',
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-xl)',
+        }}
+      >
+        <div style={{ color: 'var(--destructive, #ef4444)', marginBottom: 'var(--space-2)', display: 'flex', justifyContent: 'center' }}>
+          <AlertCircle size={36} />
+        </div>
+        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, marginBottom: '8px' }}>
+          Không thể tải thông tin lớp học
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginBottom: 'var(--space-4)' }}>
+          {error}
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center' }}>
+          <button
+            type="button"
+            onClick={loadClassDetail}
+            className="ds-btn ds-btn-primary ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Thử lại
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/management/teacher/classes')}
+            className="ds-btn ds-btn-outline ds-btn-sm"
+            style={{ gap: '6px' }}
+          >
+            <ArrowLeft size={14} /> Quay lại danh sách lớp
+          </button>
+        </div>
       </div>
     );
   }
@@ -166,11 +217,21 @@ export const TeacherClassDetailPage: React.FC = () => {
         <button
           type="button"
           role="tab"
+          aria-selected={activeTab === 'curriculum'}
+          onClick={() => setActiveTab('curriculum')}
+          className={`tp-tab-item ${activeTab === 'curriculum' ? 'active' : ''}`}
+        >
+          <BookOpen size={16} /> Giáo Trình
+        </button>
+
+        <button
+          type="button"
+          role="tab"
           aria-selected={activeTab === 'assignments'}
           onClick={() => setActiveTab('assignments')}
           className={`tp-tab-item ${activeTab === 'assignments' ? 'active' : ''}`}
         >
-          <CheckSquare size={16} /> Bài Tập (Phase 2)
+          <CheckSquare size={16} /> Bài Tập
         </button>
 
         <button
@@ -180,16 +241,46 @@ export const TeacherClassDetailPage: React.FC = () => {
           onClick={() => setActiveTab('performance')}
           className={`tp-tab-item ${activeTab === 'performance' ? 'active' : ''}`}
         >
-          <BarChart3 size={16} /> Hiệu Suất (Phase 2)
+          <BarChart3 size={16} /> Hiệu Suất
         </button>
       </div>
 
       {/* Tab Panels */}
       {activeTab === 'overview' && <ClassOverviewTab detail={detail} />}
-      {activeTab === 'students' && <ClassStudentsTab members={members} />}
-      {activeTab === 'schedule' && <ClassScheduleTab schedules={detail.schedules} />}
-      {activeTab === 'assignments' && <ClassAssignmentsPlaceholderTab />}
-      {activeTab === 'performance' && <ClassPerformancePlaceholderTab />}
+      {activeTab === 'students' && (
+        <ClassStudentsTab
+          classId={classId}
+          members={members}
+          onMemberAdded={loadClassDetail}
+          onMemberRemoved={loadClassDetail}
+        />
+      )}
+      {activeTab === 'schedule' && (
+        <ClassScheduleTab
+          schedules={detail.schedules}
+          classId={classId}
+          className={detail.classInfo.name}
+          members={members}
+          onAttendanceSaved={loadClassDetail}
+        />
+      )}
+      {activeTab === 'curriculum' && (
+        <ClassCurriculumTab
+          classId={classId!}
+          className={detail.classInfo.name}
+        />
+      )}
+      {activeTab === 'assignments' && (
+        <ClassAssignmentsTab
+          classId={classId!}
+          className={detail.classInfo.name}
+        />
+      )}
+      {activeTab === 'performance' && (
+        <ClassPerformanceTab
+          classId={classId!}
+        />
+      )}
 
       {/* Edit Drawer */}
       <ClassFormDrawer
@@ -197,6 +288,7 @@ export const TeacherClassDetailPage: React.FC = () => {
         onClose={() => setIsEditDrawerOpen(false)}
         onSubmit={handleUpdateClass}
         editingClass={detail.classInfo}
+        initialSchedules={detail.schedules}
         hskLevels={hskLevels}
         courses={courses}
       />

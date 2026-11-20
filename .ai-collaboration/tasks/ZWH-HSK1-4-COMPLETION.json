@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-HSK1-4-COMPLETION",
+  "title": "Master HSK 1-4 Complete Curriculum Integration & Verification",
+  "description": "Master orchestration task overseeing complete curriculum integration for HSK 1 to HSK 4 (70 lessons, 2008 vocabulary, 341 grammar, 350 exercises), HSK 5-6 Coming Soon enforcement, fullstack testing, and release gate approval.",
+  "project": "ZhongWenHub",
+  "phase": "Master Curriculum Integration",
+  "owner": "ChatGPT",
+  "reviewer": "ChatGPT",
+  "executor": "Antigravity",
+  "status": "WAITING_FOR_REVIEW",
+  "revision": 1,
+  "issue_number": 17,
+  "expected_branch": "integration/zhongwenhub-sqlserver",
+  "source_commit": "3918063",
+  "input_files": [
+    "data/hsk30/reference/current_db_inventory.json",
+    "data/hsk30/staging/hsk4_phase94_checkpoint.json",
+    ".ai-collaboration/qa/functional-test-matrix.json"
+  ],
+  "expected_outputs": [
+    "docs/hsk30/HSK1_TO_HSK4_FINAL_COMPLETION_REPORT.md",
+    "data/hsk30/reference/current_db_inventory.json",
+    ".ai-collaboration/results/ZWH-HSK1-4-COMPLETION_result.json"
+  ],
+  "acceptance_criteria": [
+    "Complete HSK 1-4 curriculum: 70 lessons, 2008 vocab, 341 grammar, 350 exercises, 70 dialogues, 21 passages, 140 audios",
+    "HSK 5 and HSK 6 strictly Coming Soon with zero fake lessons, zero vocab, and DRAFT status",
+    "Zero writes to ZhongWenHub_Dev; all updates verified against ZhongWenHub_Test",
+    "100% Bun frontend unit tests (288 tests) and .NET backend unit tests (38 tests) pass",
+    "AI Collaboration Bridge schemas and QA evidence audit pass",
+    "Final completion report docs/hsk30/HSK1_TO_HSK4_FINAL_COMPLETION_REPORT.md generated",
+    "PR #16 remains Open and Draft awaiting human academic approval"
+  ],
+  "safety_constraints": [
+    "Dev DB ZhongWenHub_Dev is strictly read-only (0 writes)",
+    "Runtime check SELECT DB_NAME() == 'ZhongWenHub_Test' required for test DB modifications",
+    "Do not auto-publish lessons to students (maintain DRAFT / staging state)",
+    "Do not merge PR #16"
+  ],
+  "created_at": "2026-11-10T23:50:00Z",
+  "updated_at": "2026-11-10T23:50:00Z"
+}

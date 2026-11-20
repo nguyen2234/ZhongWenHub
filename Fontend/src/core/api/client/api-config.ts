@@ -26,12 +26,17 @@ function parseTrustedOrigins(): string[] {
     .filter((s) => s.length > 0 && s !== '*'); // Reject wildcards
 }
 
+// In Bun test runner, default to mock for unit tests. In real browser runtime, default to real HTTP API.
+const isBunTest = typeof (globalThis as unknown as { Bun?: unknown }).Bun !== 'undefined';
+
 export const defaultApiConfig: ApiConfig = {
   // Can be configured via VITE_API_BASE_URL (e.g., https://api.zhongwenhub.vn/api/v1 or http://localhost:5000/api/v1)
   baseUrl: (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1',
   timeoutMs: 15000,
-  // Flag to toggle between Mock and HTTP adapters in the service container
-  useMock: import.meta.env?.VITE_USE_MOCK_API !== 'false',
+  // Flag to toggle between Mock and HTTP adapters in the service container.
+  // In Bun test runner: true (so synchronous unit test fixtures run cleanly).
+  // In real browser runtime: false by default (real SQL Server HTTP API), unless explicitly set to 'true'.
+  useMock: isBunTest || import.meta.env?.VITE_USE_MOCK_API === 'true',
   // Standard credential mode (same-origin by default to restrict cookie leakage)
   credentials: 'same-origin',
   // Explicit trusted origins allowlist
