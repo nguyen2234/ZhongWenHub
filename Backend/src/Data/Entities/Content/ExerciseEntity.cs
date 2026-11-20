@@ -12,6 +12,7 @@ public class ExerciseEntity : BaseEntity
     public string? PromptVietnamese { get; set; }
     public string? AudioUrl { get; set; }
     public string? OptionsJson { get; set; }
+    public string? LessonPresentationJson { get; set; }
     public int? CorrectOptionIndex { get; set; }
     public string? CorrectAnswer { get; set; }
     public string? Explanation { get; set; }

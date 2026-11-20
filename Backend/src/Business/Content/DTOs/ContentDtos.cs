@@ -237,13 +237,43 @@ public class UpdateLessonDto
     public int DurationMinutes { get; set; } = 30;
     public int XpReward { get; set; } = 50;
     public int OrderIndex { get; set; } = 1;
-    public string Status { get; set; } = "PUBLISHED";
+    public string? Status { get; set; }
     public string? DialogueJson { get; set; }
     public string? ListeningJson { get; set; }
 
     public List<Guid>? LinkedVocabularyIds { get; set; }
     public List<Guid>? LinkedGrammarPointIds { get; set; }
     public List<Guid>? LinkedExerciseIds { get; set; }
+    public List<LessonExerciseEditDto>? ExerciseEdits { get; set; }
+}
+
+public class LessonExerciseEditDto
+{
+    public Guid Id { get; set; }
+    public bool IsNew { get; set; }
+    public CreateExerciseDto? Content { get; set; }
+
+    [Required]
+    public LessonExercisePresentationDto Presentation { get; set; } = new();
+}
+
+public class LessonExercisePresentationDto
+{
+    [RegularExpression("PRACTICE|QUIZ")]
+    public string Section { get; set; } = "PRACTICE";
+
+    [Range(1, int.MaxValue)]
+    public int DisplayOrder { get; set; } = 1;
+    public int? Points { get; set; }
+    public List<string>? SentenceTokens { get; set; }
+    public List<LessonExerciseMatchingPairDto>? MatchingPairs { get; set; }
+}
+
+public class LessonExerciseMatchingPairDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string Hanzi { get; set; } = string.Empty;
+    public string Meaning { get; set; } = string.Empty;
 }
 
 public class VocabularyLessonRefDto
@@ -554,6 +584,7 @@ public class ExerciseDto
     public string? PromptVietnamese { get; set; }
     public string? AudioUrl { get; set; }
     public string? OptionsJson { get; set; }
+    public string? LessonPresentationJson { get; set; }
     public int? CorrectOptionIndex { get; set; }
     public string? CorrectAnswer { get; set; }
     public string? Explanation { get; set; }

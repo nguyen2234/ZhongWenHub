@@ -992,7 +992,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.Goal)
                 .WithMany()
                 .HasForeignKey(x => x.GoalId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
             b.HasIndex(x => x.UserId).HasDatabaseName("idx_personalized_learning_paths_user");
         });
 
@@ -1039,7 +1039,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.LearningPath)
                 .WithMany()
                 .HasForeignKey(x => x.LearningPathId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
             b.HasIndex(x => new { x.UserId, x.PlanDate }).HasDatabaseName("idx_daily_learning_tasks_user_date");
             b.HasIndex(x => x.LearningPathId).HasDatabaseName("idx_daily_learning_tasks_path");
         });
@@ -1132,7 +1132,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.Schedule)
                 .WithMany()
                 .HasForeignKey(x => x.ScheduleId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             b.HasOne(x => x.Student)
                 .WithMany()

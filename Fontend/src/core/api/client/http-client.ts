@@ -327,6 +327,13 @@ export class HttpClient {
         throw ApiClientError.fromResponse(response.status, responseData);
       }
 
+      if (contentType.toLowerCase().includes('text/html')) {
+        throw new ApiClientError(
+          'Máy chủ trả về trang HTML thay vì dữ liệu API. Vui lòng kiểm tra địa chỉ API.',
+          response.status
+        );
+      }
+
       return responseData as T;
     } catch (error) {
       if (error instanceof ApiClientError) {
