@@ -64,7 +64,8 @@ export async function getPublishedCurriculum(hskLevel: number, signal?: AbortSig
       const unit = lesson.unitId ? unitsById.get(lesson.unitId) : undefined;
       if (lesson.unitId && !unit) continue;
 
-      const meta = findLessonMetadata(lesson.id);
+      const meta = findLessonMetadata(lesson.id)
+        ?? findLessonMetadata(`les-hsk${hskLevel}-${lesson.lessonNumber}`);
       const mapped: CurriculumLesson = {
         id: meta?.id || lesson.id,
         dbId: lesson.id,

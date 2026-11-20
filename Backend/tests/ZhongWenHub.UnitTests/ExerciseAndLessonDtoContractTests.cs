@@ -113,4 +113,80 @@ public class ExerciseAndLessonDtoContractTests
         Assert.Empty((await service.GetLessonByIdAsync(lesson.Id))!.Exercises);
         Assert.Null((await db.Exercises.SingleAsync()).LessonId);
     }
+
+    [Fact]
+    public async Task UpdateDraftLesson_CanLinkAndEditAnExistingUnassignedExercise()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var db = new ApplicationDbContext(options);
+        var course = new CourseEntity { HskLevel = 2, Status = "PUBLISHED" };
+        var lesson = new LessonEntity { CourseId = course.Id, Status = "DRAFT" };
+        var existingExercise = new ExerciseEntity
+        {
+            Id = Guid.NewGuid(),
+            LessonId = null,
+            Title = "Bài tập chưa gán",
+            Instruction = "Hướng dẫn ban đầu",
+            Status = "DRAFT"
+        };
+        db.AddRange(course, lesson, existingExercise);
+        await db.SaveChangesAsync();
+
+        var edit = new LessonExerciseEditDto
+        {
+            Id = existingExercise.Id,
+            IsNew = false,
+            Content = new CreateExerciseDto
+            {
+                Title = "Bài tập đã được gán và sửa",
+                Instruction = "Hướng dẫn cập nhật"
+            },
+            Presentation = new LessonExercisePresentationDto
+            {
+                Section = "PRACTICE",
+                DisplayOrder = 2,
+                Points = 10
+            }
+        };
+
+        var update = new UpdateLessonDto
+        {
+            TitleZh = "学习",
+            TitleVi = "Học tập",
+            LinkedExerciseIds = [existingExercise.Id],
+            ExerciseEdits = [edit]
+        };
+
+        var service = new ContentService(db);
+        var result = await service.UpdateLessonAsync(lesson.Id, update);
+        Assert.NotNull(result);
+
+        db.ChangeTracker.Clear();
+        var updatedExercise = await db.Exercises.SingleAsync(e => e.Id == existingExercise.Id);
+        Assert.Equal(lesson.Id, updatedExercise.LessonId);
+        Assert.Equal("Bài tập đã được gán và sửa", updatedExercise.Title);
+        Assert.NotNull(updatedExercise.LessonPresentationJson);
+        Assert.Contains("\"section\":\"PRACTICE\"", updatedExercise.LessonPresentationJson);
+    }
+
+    [Fact]
+    public void DatabaseMigrations_DiscoversVocabularyAndLessonPresentationMigrationsInCorrectOrder()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer("Server=fake;Database=fake;Trusted_Connection=True;Encrypt=False;")
+            .Options;
+        using var db = new ApplicationDbContext(options);
+
+        var migrations = db.Database.GetMigrations().ToList();
+
+        Assert.Contains("20261104130000_AddVocabularySourceMetadata", migrations);
+        Assert.Contains("20261120075241_AddLessonExercisePresentation", migrations);
+
+        var vocabIndex = migrations.IndexOf("20261104130000_AddVocabularySourceMetadata");
+        var presIndex = migrations.IndexOf("20261120075241_AddLessonExercisePresentation");
+
+        Assert.True(vocabIndex < presIndex, "Vocabulary migration must precede LessonExercisePresentation migration.");
+    }
 }
