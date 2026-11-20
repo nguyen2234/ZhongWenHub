@@ -3,9 +3,30 @@ import type {
   TicketFilters,
   TicketStatus,
   SupportMetrics,
+  CreateTicketPayload,
 } from '../types/support-ticket.types';
 import { contentIssuesService } from '../../content-manager/services/content-issues.service';
 import type { ContentIssueType, ModerationContentType } from '../../content-manager/types/content-manager.types';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const token = authTokenService.getAccessToken();
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 const INITIAL_TICKETS: SupportTicket[] = [
   {
@@ -162,7 +183,7 @@ const INITIAL_TICKETS: SupportTicket[] = [
         author: 'Trần Thuỳ Trang',
         content: 'Đã hoàn tất thủ tục chuyển lớp sang CLS-HSK4-02 của cô Linh.',
         createdAt: '2026-10-25T10:30:00Z',
-        isInternal: false,
+        isInternal: true,
       },
     ],
     history: [
@@ -170,7 +191,7 @@ const INITIAL_TICKETS: SupportTicket[] = [
         id: 'hist-5',
         actorName: 'Trần Thuỳ Trang',
         actorRole: 'SUPPORT',
-        action: 'Đã giải quyết yêu cầu chuyển lớp thành công.',
+        action: 'Xác nhận đổi lớp và hoàn tất xử lý vé.',
         timestamp: '2026-10-25T10:30:00Z',
       },
     ],
@@ -179,10 +200,228 @@ const INITIAL_TICKETS: SupportTicket[] = [
 
 class SupportTicketService {
   private tickets: SupportTicket[] = structuredClone(INITIAL_TICKETS);
+  private isSyncing = false;
+  private hasSynced = false;
+
+  constructor() {
+    this.syncFromBackend().catch(() => {});
+  }
 
   resetToInitial(): void {
     this.tickets = structuredClone(INITIAL_TICKETS);
   }
+
+  public get isSynced(): boolean {
+    return this.hasSynced;
+  }
+
+  public async syncFromBackend(): Promise<{ success: boolean; error?: string }> {
+    if (this.isSyncing) return { success: true };
+    this.isSyncing = true;
+
+    try {
+      const res = await fetch(getApiUrl('support/tickets?page=1&pageSize=100'), {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        this.isSyncing = false;
+        return { success: false, error: `HTTP ${res.status}` };
+      }
+
+      const data = await res.json();
+      if (data && Array.isArray(data.items) && data.items.length > 0) {
+        this.tickets = data.items.map((b: any) => ({
+          id: b.ticketNumber || b.id,
+          studentId: b.reporterId || '',
+          studentName: b.reporterName || 'Học viên',
+          studentEmail: b.reporterEmail || '',
+          subject: b.subject,
+          description: b.description || b.subject,
+          category: b.category || 'OTHER',
+          priority: b.priority || 'MEDIUM',
+          status: b.status || 'NEW',
+          assigneeId: b.assigneeId,
+          assigneeName: b.assigneeName || 'Chưa phân công',
+          createdAt: b.createdAt,
+          updatedAt: b.updatedAt || b.createdAt,
+          slaDeadline: b.slaDeadline || b.createdAt,
+          isOverdue: Boolean(b.isOverdue),
+          contentIssueId: b.contentIssueId,
+          notes: [],
+          history: [],
+        }));
+      }
+      this.hasSynced = true;
+      this.isSyncing = false;
+      return { success: true };
+    } catch (err: any) {
+      this.isSyncing = false;
+      return { success: false, error: err?.message };
+    }
+  }
+
+  // --- Real Async Backend Methods ---
+
+  public async createTicketAsync(payload: CreateTicketPayload): Promise<SupportTicket> {
+    const res = await fetch(getApiUrl('support/tickets'), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || `Gửi báo cáo sự cố thất bại (HTTP ${res.status}).`);
+    }
+
+    const created = await res.json();
+    const mapped: SupportTicket = {
+      id: created.ticketNumber || created.id,
+      studentId: created.reporterId || '',
+      studentName: created.reporterName || 'Người gửi',
+      studentEmail: created.reporterEmail || '',
+      subject: created.subject,
+      description: created.description,
+      category: created.category,
+      priority: created.priority,
+      status: created.status,
+      assigneeId: created.assigneeId,
+      assigneeName: created.assigneeName || 'Chưa phân công',
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt || created.createdAt,
+      slaDeadline: created.slaDeadline,
+      isOverdue: created.isOverdue,
+      contentIssueId: created.contentIssueId,
+      notes: (created.messages || []).map((m: any) => ({
+        id: m.id,
+        author: m.senderName,
+        content: m.message,
+        createdAt: m.createdAt,
+        isInternal: m.isInternal,
+      })),
+      history: (created.history || []).map((h: any) => ({
+        id: h.id,
+        actorName: h.actorName,
+        actorRole: h.actorRole,
+        action: h.action,
+        timestamp: h.timestamp,
+      })),
+    };
+
+    // Prepend to local tickets cache
+    this.tickets.unshift(mapped);
+    return mapped;
+  }
+
+  public async fetchMyReportsAsync(page = 1, pageSize = 20): Promise<{ items: SupportTicket[]; total: number }> {
+    const res = await fetch(getApiUrl(`support/tickets/my-reports?page=${page}&pageSize=${pageSize}`), {
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      return { items: [], total: 0 };
+    }
+
+    const data = await res.json();
+    const items: SupportTicket[] = (data.items || []).map((b: any) => ({
+      id: b.ticketNumber || b.id,
+      studentId: b.reporterId || '',
+      studentName: b.reporterName || 'Tôi',
+      studentEmail: b.reporterEmail || '',
+      subject: b.subject,
+      description: b.subject,
+      category: b.category,
+      priority: b.priority,
+      status: b.status,
+      assigneeId: b.assigneeId,
+      assigneeName: b.assigneeName || 'Chưa phân công',
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt || b.createdAt,
+      slaDeadline: b.slaDeadline,
+      isOverdue: Boolean(b.isOverdue),
+      contentIssueId: b.contentIssueId,
+      notes: [],
+      history: [],
+    }));
+
+    return { items, total: data.totalCount || items.length };
+  }
+
+  public async fetchTicketDetailAsync(id: string): Promise<SupportTicket | null> {
+    const res = await fetch(getApiUrl(`support/tickets/${id}`), {
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+
+    if (!res.ok) return null;
+    const b = await res.json();
+
+    return {
+      id: b.ticketNumber || b.id,
+      studentId: b.reporterId || '',
+      studentName: b.reporterName,
+      studentEmail: b.reporterEmail,
+      subject: b.subject,
+      description: b.description,
+      category: b.category,
+      priority: b.priority,
+      status: b.status,
+      assigneeId: b.assigneeId,
+      assigneeName: b.assigneeName || 'Chưa phân công',
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt || b.createdAt,
+      slaDeadline: b.slaDeadline,
+      isOverdue: Boolean(b.isOverdue),
+      contentIssueId: b.contentIssueId,
+      notes: (b.messages || []).map((m: any) => ({
+        id: m.id,
+        author: m.senderName,
+        content: m.message,
+        createdAt: m.createdAt,
+        isInternal: m.isInternal,
+      })),
+      history: (b.history || []).map((h: any) => ({
+        id: h.id,
+        actorName: h.actorName,
+        actorRole: h.actorRole,
+        action: h.action,
+        timestamp: h.timestamp,
+      })),
+    };
+  }
+
+  public async addMessageAsync(id: string, message: string, isInternal = false): Promise<void> {
+    const res = await fetch(getApiUrl(`support/tickets/${id}/messages`), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ message, isInternal }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || `Gửi phản hồi thất bại (HTTP ${res.status}).`);
+    }
+  }
+
+  public async reopenTicketAsync(id: string): Promise<void> {
+    const res = await fetch(getApiUrl(`support/tickets/${id}/reopen`), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || `Mở lại vé thất bại (HTTP ${res.status}).`);
+    }
+  }
+
+  // --- Synchronous Facade (Preserving full compatibility with existing components) ---
 
   getTickets(filters?: TicketFilters): SupportTicket[] {
     let result = structuredClone(this.tickets);
@@ -262,6 +501,15 @@ class SupportTicketService {
     };
 
     this.tickets[index] = updated;
+
+    // Trigger async backend update in background
+    fetch(getApiUrl(`support/tickets/${id}/status`), {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ status: newStatus, note }),
+    }).catch(() => {});
+
     return structuredClone(updated);
   }
 
@@ -294,6 +542,7 @@ class SupportTicketService {
     };
 
     this.tickets[index] = updated;
+
     return structuredClone(updated);
   }
 
@@ -335,13 +584,18 @@ class SupportTicketService {
     };
 
     this.tickets[index] = updated;
+
+    // Trigger async backend message creation in background
+    fetch(getApiUrl(`support/tickets/${id}/messages`), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ message: content, isInternal }),
+    }).catch(() => {});
+
     return structuredClone(updated);
   }
 
-  /**
-   * C3. ESCALATION TO CONTENT MANAGER
-   * Chuyển tiếp lỗi học liệu trực tiếp sang Content Manager workspace!
-   */
   escalateToContentManager(
     ticketId: string,
     payload: {
@@ -361,7 +615,6 @@ class SupportTicketService {
 
     const staffName = payload.supportStaffName || 'Trần Thuỳ Trang (Support)';
 
-    // 1. Tạo issue mới bên Content Manager
     const createdIssue = contentIssuesService.createIssue({
       targetContentId: payload.targetContentId,
       targetContentType: payload.targetContentType,
@@ -374,7 +627,6 @@ class SupportTicketService {
       supportStaffName: staffName,
     });
 
-    // 2. Cập nhật ticket hiện tại
     const existing = this.tickets[index];
     const now = new Date().toISOString();
 
@@ -404,6 +656,15 @@ class SupportTicketService {
     };
 
     this.tickets[index] = updated;
+
+    // Trigger async escalation in backend
+    fetch(getApiUrl(`support/tickets/${ticketId}/escalate-content`), {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ note: `Chuyển tiếp lỗi học liệu sang Content Manager [${createdIssue.id}]` }),
+    }).catch(() => {});
+
     return { ticket: structuredClone(updated), contentIssueId: createdIssue.id };
   }
 

@@ -828,14 +828,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   </span>
                 </div>
                 <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
-                  {weakGrammar ? weakGrammar.topicTitle : 'Cấu trúc câu chữ 是 / 的'}
+                  {weakGrammar ? weakGrammar.topicTitle : 'Khởi động bài tập củng cố'}
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
-                  Rèn luyện phản xạ với bài tập trắc nghiệm chọn đáp án đúng theo ngữ cảnh.
+                  {weakGrammar
+                    ? `Độ chính xác hiện tại: ${weakGrammar.accuracy}% · Hãy luyện tập để nâng cao thành tích.`
+                    : 'Chưa ghi nhận điểm yếu. Hãy làm bài tập để hệ thống đề xuất chính xác.'}
                 </p>
               </div>
               <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#2563eb' }}>
-                <span>Khắc phục lỗi</span>
+                <span>{weakGrammar ? 'Khắc phục lỗi' : 'Bắt đầu luyện tập'}</span>
                 <ChevronRight size={14} />
               </div>
             </div>

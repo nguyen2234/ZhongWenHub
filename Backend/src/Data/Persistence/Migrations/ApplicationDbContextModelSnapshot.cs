@@ -381,6 +381,88 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("ai_messages", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiProviderConfigEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BaseUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrentUsageUsd")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EncryptedApiKey")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("HealthStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastCheckedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("LatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MaskedApiKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModelNamesJson")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("MonthlyBudgetUsd")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProviderCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("RateLimitPerMinute")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderCode")
+                        .IsUnique();
+
+                    b.ToTable("ai_provider_configs", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiSpeakingAttempt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2668,6 +2750,212 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssigneeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssigneeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContentIssueId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ContextModule")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ContextUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<bool>("IsOverdue")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ReporterEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("ReporterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReporterName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ReporterRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("SlaDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("TicketNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssigneeId")
+                        .HasDatabaseName("idx_support_tickets_assignee");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("idx_support_tickets_category");
+
+                    b.HasIndex("ContentIssueId")
+                        .HasDatabaseName("idx_support_tickets_content_issue");
+
+                    b.HasIndex("Priority")
+                        .HasDatabaseName("idx_support_tickets_priority");
+
+                    b.HasIndex("ReporterId")
+                        .HasDatabaseName("idx_support_tickets_reporter");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("idx_support_tickets_status");
+
+                    b.HasIndex("TicketNumber")
+                        .IsUnique();
+
+                    b.ToTable("support_tickets", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketHistoryEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("ActorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActorName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ActorRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("idx_ticket_history_ticket");
+
+                    b.ToTable("support_ticket_history", (string)null);
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketMessageEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsInternal")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SenderRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId")
+                        .HasDatabaseName("idx_ticket_messages_sender");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("idx_ticket_messages_ticket");
+
+                    b.ToTable("support_ticket_messages", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentQuestion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3746,6 +4034,28 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketHistoryEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Support.SupportTicketEntity", "Ticket")
+                        .WithMany("History")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketMessageEntity", b =>
+                {
+                    b.HasOne("ZhongWenHub.Data.Entities.Support.SupportTicketEntity", "Ticket")
+                        .WithMany("Messages")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.AssignmentQuestion", b =>
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", "Assignment")
@@ -3997,6 +4307,13 @@ namespace ZhongWenHub.Data.Persistence.Migrations
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", b =>
                 {
                     b.Navigation("Milestones");
+                });
+
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.Support.SupportTicketEntity", b =>
+                {
+                    b.Navigation("History");
+
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("ZhongWenHub.Data.Entities.Teacher.TeachingAssignment", b =>

@@ -36,6 +36,12 @@ export const StudentHomeworkDetailPage: React.FC = () => {
   const loadDetail = async () => {
     if (!assignmentId) return;
 
+    if (!currentStudent?.id) {
+      setError('Vui lòng đăng nhập với tài khoản học viên để xem thông tin bài tập.');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -76,7 +82,7 @@ export const StudentHomeworkDetailPage: React.FC = () => {
   const hasUnsupportedQuestions = unsupportedTypes.length > 0;
 
   const handleStartOrContinue = async () => {
-    if (!assignmentId || !detail || hasUnsupportedQuestions) return;
+    if (!assignmentId || !detail || hasUnsupportedQuestions || !currentStudent?.id) return;
 
     // If already active, jump straight to runner
     if (activeAttempt) {

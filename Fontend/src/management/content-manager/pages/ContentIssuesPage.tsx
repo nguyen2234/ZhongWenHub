@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
 import { contentIssuesService } from '../services/content-issues.service';
 import { IssueStatusBadge } from '../components/IssueStatusBadge';
@@ -20,6 +20,12 @@ export const ContentIssuesPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('ALL');
   const [selectedIssue, setSelectedIssue] = useState<ContentIssue | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    void contentIssuesService.syncFromBackend().then(() => {
+      setRefreshKey((k) => k + 1);
+    });
+  }, []);
 
   // Pagination state
   const [page, setPage] = useState(1);

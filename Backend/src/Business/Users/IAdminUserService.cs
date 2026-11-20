@@ -69,6 +69,13 @@ public interface IAdminUserService
         string? ipAddress,
         CancellationToken cancellationToken = default);
 
+    Task<(bool Success, string? ErrorMessage, int StatusCode)> UpdateRolePermissionsAsync(
+        string roleName,
+        List<string> permissions,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default);
+
     Task<(bool Success, string? ErrorMessage, int StatusCode)> ResetPasswordAsync(
         Guid id,
         ResetUserPasswordDto dto,

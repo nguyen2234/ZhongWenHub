@@ -1,5 +1,6 @@
 import type { UserRole } from '../../../types/roles';
 import { adminRolePermissionService } from '../../admin/roles/services/role-permission.service';
+import { isProductionEnvironment } from '../../../core/api/client/api-config';
 
 export interface ManagementSession {
   id: string;
@@ -62,8 +63,10 @@ class ManagementAuthService {
   }
 
   private loadInitialSession(): ManagementSession | null {
-    // SECURITY: Strictly unauthenticated by default.
-    // Never auto-elevate to ADMIN or guess roles from URL or uncontrolled storage.
+    // SECURITY: Strictly unauthenticated in production.
+    if (isProductionEnvironment()) {
+      return null;
+    }
     // In unit test environment (e.g. Bun test), fallback allows isolated mock testing.
     if ((globalThis as any).process?.env?.NODE_ENV === 'test' || import.meta.env?.MODE === 'test') {
       return { ...DEFAULT_SESSIONS.ADMIN };

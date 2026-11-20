@@ -30,6 +30,12 @@ export const StudentHomeworkResultPage: React.FC = () => {
     async function loadSummary() {
       if (!attemptId) return;
 
+      if (!currentStudent?.id) {
+        setError('Vui lòng đăng nhập với tài khoản học viên để xem thông tin kết quả.');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -48,7 +54,7 @@ export const StudentHomeworkResultPage: React.FC = () => {
     }
 
     loadSummary();
-  }, [attemptId, currentStudent.id]);
+  }, [attemptId, currentStudent?.id]);
 
   if (loading) {
     return (
@@ -247,7 +253,7 @@ export const StudentHomeworkResultPage: React.FC = () => {
               {assignmentTitle}
             </h3>
             <span style={{ fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
-              Lớp: <strong>{className}</strong> · Học viên: <strong>{currentStudent.fullName}</strong>
+              Lớp: <strong>{className}</strong> · Học viên: <strong>{currentStudent?.fullName || 'Học viên'}</strong>
             </span>
           </div>
 

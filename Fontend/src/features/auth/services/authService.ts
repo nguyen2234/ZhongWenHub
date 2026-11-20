@@ -6,12 +6,24 @@ import type {
   AuthUser,
 } from '../types/auth.types';
 import type { UserRole } from '../../../types/roles';
-import { defaultApiConfig } from '../../../core/api/client/api-config';
+import { defaultApiConfig, isProductionEnvironment } from '../../../core/api/client/api-config';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { managementAuthService } from '../../../management/shared/services/management-auth.service';
 import { adminRolePermissionService } from '../../../management/admin/roles/services/role-permission.service';
 import { setDevStudentIdentity, clearStudentIdentity, DEFAULT_DEMO_STUDENT_ID } from './student-identity.adapter';
 import { studentAttemptService } from '../../homework/services/student-attempt.service';
+import { learningStateService } from '../../learning/services/learning-state.service';
+
+/**
+ * Determines whether mock authentication is permitted.
+ * In production environments, mock authentication is strictly forbidden.
+ */
+export function canUseMockAuth(): boolean {
+  if (isProductionEnvironment()) {
+    return false;
+  }
+  return Boolean(defaultApiConfig.useMock);
+}
 
 function getApiUrl(endpoint: string): string {
   const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
@@ -91,7 +103,13 @@ export const authService = {
       throw new Error('Mật khẩu không được để trống.');
     }
 
-    if (defaultApiConfig.useMock) {
+    if (canUseMockAuth()) {
+      // Clear previous user cache on account switch to prevent data bleeding
+      studentAttemptService.clearUserCache();
+      clearStudentIdentity();
+      learningStateService.switchStudent(null);
+      learningStateService.switchStudent(null);
+
       const emailLower = emailTrimmed.toLowerCase();
       let role: UserRole = 'STUDENT';
       let id = `usr-${emailLower.split('@')[0]}`;
@@ -147,6 +165,7 @@ export const authService = {
       });
 
       setDevStudentIdentity(mockUser.id);
+      learningStateService.switchStudent(mockUser.id);
 
       return {
         success: true,
@@ -198,6 +217,11 @@ export const authService = {
 
       const data = await response.json();
 
+      // Clear previous user cache on account switch to prevent data bleeding
+      studentAttemptService.clearUserCache();
+      clearStudentIdentity();
+      learningStateService.switchStudent(null);
+
       // Store access token in memory
       if (data.accessToken) {
         authTokenService.setSession({
@@ -220,6 +244,7 @@ export const authService = {
 
       // Sync student identity
       setDevStudentIdentity(data.user.id);
+      learningStateService.switchStudent(data.user.id);
 
       return {
         success: true,
@@ -339,7 +364,7 @@ export const authService = {
    */
   async logout(): Promise<void> {
     try {
-      if (!defaultApiConfig.useMock) {
+      if (!canUseMockAuth()) {
         await fetch(getApiUrl('auth/logout'), {
           method: 'POST',
           headers: {
@@ -355,6 +380,7 @@ export const authService = {
       managementAuthService.clearSession();
       clearStudentIdentity();
       studentAttemptService.clearUserCache();
+      learningStateService.switchStudent(null);
       if (typeof window !== 'undefined') {
         try {
           window.sessionStorage.removeItem('zwh_management_session');
@@ -442,7 +468,10 @@ export const authService = {
       throw new Error('Mật khẩu xác nhận không khớp.');
     }
 
-    if (defaultApiConfig.useMock) {
+    if (canUseMockAuth()) {
+      studentAttemptService.clearUserCache();
+      clearStudentIdentity();
+
       const mockId = `usr-st-${Date.now()}`;
       const mockUser: AuthUser = {
         id: mockId,
@@ -470,6 +499,7 @@ export const authService = {
       });
 
       setDevStudentIdentity(mockUser.id);
+      learningStateService.switchStudent(mockUser.id);
 
       return {
         success: true,
@@ -522,6 +552,9 @@ export const authService = {
 
       const data = await response.json();
 
+      studentAttemptService.clearUserCache();
+      clearStudentIdentity();
+
       if (data.accessToken) {
         authTokenService.setSession({
           accessToken: data.accessToken,
@@ -543,6 +576,7 @@ export const authService = {
 
       // Sync student identity
       setDevStudentIdentity(data.user.id);
+      learningStateService.switchStudent(data.user.id);
 
       return {
         success: true,
@@ -562,7 +596,10 @@ export const authService = {
    * Google OAuth login
    */
   async loginWithGoogle(): Promise<AuthResponse> {
-    if (defaultApiConfig.useMock) {
+    if (canUseMockAuth()) {
+      studentAttemptService.clearUserCache();
+      clearStudentIdentity();
+
       const mockUser: AuthUser = {
         id: 'usr-google-demo',
         fullName: 'Học viên Google (Demo)',
@@ -591,6 +628,7 @@ export const authService = {
       });
 
       setDevStudentIdentity(mockUser.id);
+      learningStateService.switchStudent(mockUser.id);
 
       return {
         success: true,
@@ -612,7 +650,7 @@ export const authService = {
       throw new Error('Vui lòng cung cấp địa chỉ email hợp lệ.');
     }
 
-    if (defaultApiConfig.useMock) {
+    if (canUseMockAuth()) {
       return {
         success: true,
         message: 'Nếu địa chỉ email tồn tại trên hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi đến hòm thư của bạn.',
@@ -671,7 +709,7 @@ export const authService = {
       throw new Error('Mật khẩu xác nhận không khớp.');
     }
 
-    if (defaultApiConfig.useMock) {
+    if (canUseMockAuth()) {
       return {
         success: true,
         message: 'Đặt lại mật khẩu thành công (Demo Mode)! Bạn có thể đăng nhập bằng mật khẩu mới.',

@@ -6,12 +6,91 @@ import type {
 } from '../types/content-manager.types';
 import { INITIAL_CONTENT_ISSUES } from '../data/mockContentManagerData';
 import { contentAuditService } from './content-audit.service';
+import { getApiUrl } from '../../../core/api/client/api-config';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+
+function isIsolatedTestRuntime(): boolean {
+  const procEnv = typeof globalThis !== 'undefined' ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env : undefined;
+  return Boolean(
+    procEnv?.VITEST ||
+    procEnv?.BUN_TEST ||
+    procEnv?.NODE_ENV === 'test' ||
+    import.meta.env?.MODE === 'test'
+  );
+}
+
+function getAuthHeaders(): HeadersInit {
+  const token = authTokenService.getAccessToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 class ContentIssuesService {
   private issues: ContentIssue[] = structuredClone(INITIAL_CONTENT_ISSUES);
+  private hasSynced = false;
 
   resetToInitial(): void {
     this.issues = structuredClone(INITIAL_CONTENT_ISSUES);
+    this.hasSynced = false;
+  }
+
+  public get isSynced(): boolean {
+    return this.hasSynced;
+  }
+
+  async syncFromBackend(): Promise<void> {
+    if (isIsolatedTestRuntime()) return;
+    try {
+      const res = await fetch(getApiUrl('content-manager/issues'), {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: ContentIssue[] = data.map((item: any) => ({
+            id: item.issueCode || item.id,
+            backendGuid: item.id,
+            title: item.title,
+            description: item.description,
+            issueType: item.issueType as ContentIssueType,
+            priority: item.priority as ContentPriority,
+            targetContentId: item.targetContentId,
+            targetContentType: item.targetContentType,
+            targetContentTitle: item.targetContentTitle,
+            targetContentRoute: item.targetContentRoute || '/management/content-manager/issues',
+            reportedBy: item.reportedBy,
+            supportStaffId: 'sup-001',
+            supportStaffName: item.supportStaffName || 'Support Staff',
+            contentManagerId: item.contentManagerId,
+            contentManagerName: item.contentManagerName,
+            status: item.status as ContentIssueStatus,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            resolvedAt: item.resolvedAt,
+            closedAt: item.closedAt,
+            resolutionNotes: item.resolutionNotes,
+            feedbackToSupport: item.feedbackToSupport,
+            history: Array.isArray(item.history)
+              ? item.history.map((h: any) => ({
+                  id: h.id || `act-${Date.now()}`,
+                  actorName: h.actorName,
+                  actorRole: h.actorRole,
+                  action: h.action,
+                  timestamp: h.timestamp || item.updatedAt,
+                  message: h.message,
+                }))
+              : [],
+          }));
+          this.issues = mapped;
+          this.hasSynced = true;
+        }
+      }
+    } catch {
+      // Keep existing memory issues on network error
+    }
   }
 
   getIssues(filter?: {

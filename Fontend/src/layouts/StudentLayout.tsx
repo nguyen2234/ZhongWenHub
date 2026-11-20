@@ -8,6 +8,7 @@ import {
   Languages,
   ChevronDown,
   LogOut,
+  LifeBuoy,
 } from 'lucide-react';
 import { HSKLevel, XPIndicator } from '../design-system';
 import { StudentSidebar } from './components/StudentSidebar';
@@ -17,6 +18,7 @@ import { useLearningState } from '../features/learning';
 import { ACCOUNT_MENU_ITEMS } from '../config/student-navigation.config';
 import { useAuthContext } from '../features/auth/context/AuthContext';
 import { PortalSwitcher, getActivePortalLabel } from '../management/shared/components/PortalSwitcher';
+import { ReportIncidentModal } from '../features/support/components/ReportIncidentModal';
 
 export const StudentLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ export const StudentLayout: React.FC = () => {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isPinyinActive, setIsPinyinActive] = useState(true);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const mainScrollRef = useRef<HTMLDivElement>(null);
@@ -467,6 +470,32 @@ export const StudentLayout: React.FC = () => {
             <span>pīn</span>
           </button>
 
+          {/* Quick Incident Report Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsReportModalOpen(true)}
+            className="header-report-btn"
+            style={{
+              height: '32px',
+              padding: '0 10px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid #fed7aa',
+              backgroundColor: '#fff7ed',
+              color: '#c2410c',
+              fontSize: '11.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              flexShrink: 0,
+            }}
+            title="Báo cáo sự cố hoặc gửi khiếu nại"
+          >
+            <LifeBuoy size={14} />
+            <span>Báo sự cố</span>
+          </button>
+
           {/* Conditional Header Content: Guest vs Authenticated */}
           {!isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -830,6 +859,9 @@ export const StudentLayout: React.FC = () => {
 
       {/* Global Quick Search Command Palette */}
       <StudentSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+
+      {/* Global Incident & Support Ticket Modal */}
+      <ReportIncidentModal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} />
 
       {/* Responsive Breakpoint CSS */}
       <style>{`

@@ -59,3 +59,12 @@ export interface SupportMetrics {
   avgResolutionHours: number;
   satisfactionRate: number;
 }
+
+export interface CreateTicketPayload {
+  subject: string;
+  description: string;
+  category: TicketCategory;
+  priority?: TicketPriority;
+  contextModule?: string;
+  contextUrl?: string;
+}

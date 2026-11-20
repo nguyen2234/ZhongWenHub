@@ -26,7 +26,32 @@ function parseTrustedOrigins(): string[] {
     .filter((s) => s.length > 0 && s !== '*'); // Reject wildcards
 }
 
-// In Bun test runner, default to mock for unit tests. In real browser runtime, default to real HTTP API.
+/**
+ * Returns true if the environment is a production build or explicitly forced into production mode.
+ */
+export function isProductionEnvironment(): boolean {
+  if ((globalThis as unknown as { __FORCE_PRODUCTION_AUTH_MODE__?: boolean }).__FORCE_PRODUCTION_AUTH_MODE__ === true) {
+    return true;
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env.PROD === true || import.meta.env.MODE === 'production') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Helper to build full API endpoint URL from base configuration.
+ */
+export function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+// In Bun test runner, default to mock for unit tests unless production mode is enforced.
 const isBunTest = typeof (globalThis as unknown as { Bun?: unknown }).Bun !== 'undefined';
 
 export const defaultApiConfig: ApiConfig = {
@@ -34,9 +59,10 @@ export const defaultApiConfig: ApiConfig = {
   baseUrl: (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1',
   timeoutMs: 15000,
   // Flag to toggle between Mock and HTTP adapters in the service container.
+  // In production builds: strictly false (never mock).
   // In Bun test runner: true (so synchronous unit test fixtures run cleanly).
   // In real browser runtime: false by default (real SQL Server HTTP API), unless explicitly set to 'true'.
-  useMock: isBunTest || import.meta.env?.VITE_USE_MOCK_API === 'true',
+  useMock: !isProductionEnvironment() && (isBunTest || import.meta.env?.VITE_USE_MOCK_API === 'true'),
   // Standard credential mode (same-origin by default to restrict cookie leakage)
   credentials: 'same-origin',
   // Explicit trusted origins allowlist
