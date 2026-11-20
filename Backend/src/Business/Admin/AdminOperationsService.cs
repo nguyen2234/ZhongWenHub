@@ -242,7 +242,8 @@ public class AdminOperationsService : IAdminOperationsService
             from a in _dbContext.StudentDailyActivities.AsNoTracking()
             join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
             where ur.RoleId == studentRoleId &&
-                  ((string.Compare(a.ActivityDate, cutoffDateStr) >= 0) || a.CreatedAt >= cutoffDate)
+                  ((!string.IsNullOrEmpty(a.ActivityDate) && string.Compare(a.ActivityDate, cutoffDateStr) >= 0) ||
+                   (string.IsNullOrEmpty(a.ActivityDate) && a.CreatedAt >= cutoffDate))
             select (int?)a.Minutes
         ).SumAsync(cancellationToken) ?? 0;
 
@@ -324,8 +325,8 @@ public class AdminOperationsService : IAdminOperationsService
             from a in _dbContext.StudentDailyActivities.AsNoTracking()
             join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
             where ur.RoleId == studentRoleId &&
-                  ((string.Compare(a.ActivityDate, prevStartStr) >= 0 && string.Compare(a.ActivityDate, cutoffDateStr) < 0) ||
-                   (a.CreatedAt >= previousStart && a.CreatedAt < cutoffDate))
+                  ((!string.IsNullOrEmpty(a.ActivityDate) && string.Compare(a.ActivityDate, prevStartStr) >= 0 && string.Compare(a.ActivityDate, cutoffDateStr) < 0) ||
+                   (string.IsNullOrEmpty(a.ActivityDate) && a.CreatedAt >= previousStart && a.CreatedAt < cutoffDate))
             select a.UserId
         ).ToListAsync(cancellationToken);
 
@@ -351,7 +352,8 @@ public class AdminOperationsService : IAdminOperationsService
             from a in _dbContext.StudentDailyActivities.AsNoTracking()
             join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
             where ur.RoleId == studentRoleId &&
-                  ((string.Compare(a.ActivityDate, cutoffDateStr) >= 0) || a.CreatedAt >= cutoffDate)
+                  ((!string.IsNullOrEmpty(a.ActivityDate) && string.Compare(a.ActivityDate, cutoffDateStr) >= 0) ||
+                   (string.IsNullOrEmpty(a.ActivityDate) && a.CreatedAt >= cutoffDate))
             select a.UserId
         ).ToListAsync(cancellationToken);
 

@@ -29,7 +29,8 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.Name, user.DisplayName),
             new(JwtRegisteredClaimNames.Name, user.DisplayName),
             new("username", user.Username),
-            new("status", user.Status)
+            new("status", user.Status),
+            new("security_stamp", user.SecurityStamp ?? string.Empty)
         };
 
         foreach (var role in roles)

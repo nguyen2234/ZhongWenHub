@@ -1,6 +1,8 @@
 using ZhongWenHub.Business.Content.Services.Storage;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +23,8 @@ using ZhongWenHub.Business.Learning;
 using ZhongWenHub.Business.Teacher.Services;
 using ZhongWenHub.Business.Users;
 using ZhongWenHub.Data.Constants;
+using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Business;
 
@@ -69,6 +73,67 @@ public static class DependencyInjection
                 ValidAudience = jwtSettings.Audience,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var userIdStr = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? context.Principal?.FindFirst("sub")?.Value;
+
+                    if (!Guid.TryParse(userIdStr, out var userId))
+                    {
+                        context.Fail("Mã người dùng không hợp lệ trong token.");
+                        return;
+                    }
+
+                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                    var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+
+                    if (user == null || user.IsDeleted || user.Status != UserStatus.ACTIVE)
+                    {
+                        context.Fail("Tài khoản đã bị xóa, khóa hoặc không hoạt động.");
+                        return;
+                    }
+
+                    var tokenStamp = context.Principal?.FindFirst("security_stamp")?.Value;
+                    if (!string.IsNullOrEmpty(user.SecurityStamp) &&
+                        !string.IsNullOrEmpty(tokenStamp) &&
+                        !string.Equals(tokenStamp, user.SecurityStamp, StringComparison.Ordinal))
+                    {
+                        context.Fail("Phiên làm việc đã bị hủy do thay đổi trạng thái hoặc quyền tài khoản.");
+                        return;
+                    }
+
+                    // Dynamically synchronize current active roles from database
+                    var currentRoles = await (from ur in dbContext.UserRoles.AsNoTracking()
+                                              join r in dbContext.Roles.AsNoTracking() on ur.RoleId equals r.Id
+                                              where ur.UserId == userId
+                                              select r.Name).ToListAsync();
+
+                    if (context.Principal?.Identity is ClaimsIdentity identity)
+                    {
+                        var existingRoleClaims = identity.FindAll(ClaimTypes.Role)
+                            .Concat(identity.FindAll("role"))
+                            .Concat(identity.FindAll("roles"))
+                            .ToList();
+
+                        foreach (var rc in existingRoleClaims)
+                        {
+                            identity.RemoveClaim(rc);
+                        }
+
+                        foreach (var r in currentRoles)
+                        {
+                            if (r != null)
+                            {
+                                identity.AddClaim(new Claim(ClaimTypes.Role, r));
+                                identity.AddClaim(new Claim("role", r));
+                                identity.AddClaim(new Claim("roles", r));
+                            }
+                        }
+                    }
+                }
             };
         });
 

@@ -11,6 +11,7 @@ public class UserDto
     public string? AvatarUrl { get; set; }
     public List<string> Roles { get; set; } = new();
     public string Status { get; set; } = UserStatus.ACTIVE.ToString();
+    public string? SecurityStamp { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }

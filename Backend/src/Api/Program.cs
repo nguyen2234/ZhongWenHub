@@ -74,6 +74,20 @@ builder.Services.AddRateLimiter(options =>
             });
     });
 
+    options.AddPolicy("auth-strict", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = loginPermitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
     options.AddPolicy("AITutorRateLimit", httpContext =>
     {
         var userId = httpContext.User?.FindFirst("sub")?.Value

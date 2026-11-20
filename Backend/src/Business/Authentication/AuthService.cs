@@ -385,6 +385,17 @@ public class AuthService : IAuthService
         string? ipAddress,
         CancellationToken cancellationToken = default)
     {
+        // 1. Validate email configuration upfront to fail honestly before user lookup
+        try
+        {
+            _emailSender.ValidateConfiguration();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cấu hình gửi email đặt lại mật khẩu không hợp lệ: {Message}", ex.Message);
+            return (false, "Không thể gửi email đặt lại mật khẩu do dịch vụ thư chưa được cấu hình. Vui lòng liên hệ quản trị viên.");
+        }
+
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _userManager.FindByEmailAsync(email);
 
@@ -441,7 +452,19 @@ public class AuthService : IAuthService
             return (false, "Yêu cầu đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        IdentityResult result;
+        try
+        {
+            result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Token đặt lại mật khẩu không hợp lệ hoặc bị lỗi giải mã cho user {Email}", email);
+            await RecordAuditAsync(user.Id, user.UserName, "RESET_PASSWORD_FAILED", ipAddress, null, false, "Token không hợp lệ hoặc bị lỗi giải mã.", cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return (false, "Mã token không hợp lệ hoặc đã hết hạn. Vui lòng gửi lại yêu cầu.");
+        }
+
         if (!result.Succeeded)
         {
             var firstError = result.Errors.FirstOrDefault()?.Description
@@ -478,6 +501,7 @@ public class AuthService : IAuthService
             AvatarUrl = user.AvatarUrl,
             Roles = roles.ToList(),
             Status = user.Status.ToString(),
+            SecurityStamp = user.SecurityStamp,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             LastLoginAt = user.LastLoginAt

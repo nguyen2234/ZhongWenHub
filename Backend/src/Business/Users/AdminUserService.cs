@@ -839,6 +839,8 @@ public class AdminUserService : IAdminUserService
 
         await _userManager.UpdateAsync(user);
 
+        await _userManager.UpdateSecurityStampAsync(user);
+
 
 
         // Revoke all active refresh tokens of the locked user immediately
@@ -925,6 +927,8 @@ public class AdminUserService : IAdminUserService
 
         await _userManager.UpdateAsync(user);
 
+        await _userManager.UpdateSecurityStampAsync(user);
+
 
 
         await RecordAuditAsync(currentUserId, null, "USER_UNLOCKED", ipAddress, null, true,
@@ -1002,6 +1006,20 @@ public class AdminUserService : IAdminUserService
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userManager.UpdateAsync(user);
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            if (newStatus != UserStatus.ACTIVE)
+            {
+                var activeTokens = await _dbContext.RefreshTokens
+                    .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var token in activeTokens)
+                {
+                    token.Revoke(ipAddress, $"Trạng thái tài khoản đổi sang {newStatus}");
+                }
+            }
 
 
 
@@ -1173,6 +1191,20 @@ public class AdminUserService : IAdminUserService
 
         await _userManager.UpdateAsync(user);
 
+        if (rolesToRemove.Count > 0 || rolesToAdd.Count > 0)
+        {
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            var activeTokens = await _dbContext.RefreshTokens
+                .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in activeTokens)
+            {
+                token.Revoke(ipAddress, "Quyền hạn của tài khoản đã được quản trị viên cập nhật.");
+            }
+        }
+
 
 
         await RecordAuditAsync(currentUserId, null, "USER_ROLES_UPDATED", ipAddress, null, true,
@@ -1266,6 +1298,8 @@ public class AdminUserService : IAdminUserService
 
 
         await _userManager.UpdateAsync(user);
+
+        await _userManager.UpdateSecurityStampAsync(user);
 
 
 

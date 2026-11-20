@@ -20,7 +20,7 @@ const INITIAL_AI_SERVICES: AIServiceModel[] = [
     latencyMs: null as any,
     uptime: null as any,
     usagePercent: 0,
-    status: 'IDLE',
+    status: 'UNKNOWN',
     description: 'Hỗ trợ hội thoại và phân tích ngữ pháp tiếng Trung HSK 1-6.',
   },
   {
@@ -31,7 +31,7 @@ const INITIAL_AI_SERVICES: AIServiceModel[] = [
     latencyMs: null as any,
     uptime: null as any,
     usagePercent: 0,
-    status: 'IDLE',
+    status: 'UNKNOWN',
     description: 'Chấm điểm 4 thanh điệu tiếng Trung, phát hiện phát âm sai phụ âm đầu và vần.',
   },
   {
@@ -42,7 +42,7 @@ const INITIAL_AI_SERVICES: AIServiceModel[] = [
     latencyMs: null as any,
     uptime: null as any,
     usagePercent: 0,
-    status: 'IDLE',
+    status: 'UNKNOWN',
     description: 'Hỗ trợ giáo viên chấm bài tập về nhà và gợi ý nhận xét.',
   },
   {
@@ -53,7 +53,7 @@ const INITIAL_AI_SERVICES: AIServiceModel[] = [
     latencyMs: null as any,
     uptime: null as any,
     usagePercent: 0,
-    status: 'IDLE',
+    status: 'UNKNOWN',
     description: 'Cá nhân hóa danh sách từ vựng cần ôn luyện hôm nay dựa trên SRS.',
   },
 ];
@@ -354,8 +354,10 @@ export const AdminAIManagementView: React.FC = () => {
                   </strong>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Uptime</div>
-                  <strong style={{ color: srv.uptime ? '#16a34a' : 'var(--muted)' }}>{srv.uptime || '—'}</strong>
+                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Lượt xử lý</div>
+                  <strong style={{ color: 'var(--foreground)' }}>
+                    {srv.totalEvents !== undefined && srv.totalEvents !== null ? srv.totalEvents.toLocaleString() : '—'}
+                  </strong>
                 </div>
                 <div>
                   <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Tiêu thụ</div>

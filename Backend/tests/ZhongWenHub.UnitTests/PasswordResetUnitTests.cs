@@ -180,6 +180,8 @@ public class PasswordResetUnitTests
 
         await sender.SendPasswordResetEmailAsync("learner@zhongwenhub.edu.vn", "real-smtp-token-98765");
 
+        await server.WaitForMessageAsync(TimeSpan.FromSeconds(5));
+
         lock (server.ReceivedLines)
         {
             Assert.Contains(server.ReceivedLines, l => l.Contains("learner@zhongwenhub.edu.vn"));
@@ -205,6 +207,7 @@ public class PasswordResetUnitTests
     {
         private readonly System.Net.Sockets.TcpListener _listener;
         private readonly CancellationTokenSource _cts = new();
+        private readonly TaskCompletionSource<bool> _messageReceivedTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly Task _listenTask;
         public int Port { get; }
         public List<string> ReceivedLines { get; } = new();
@@ -215,6 +218,20 @@ public class PasswordResetUnitTests
             _listener.Start();
             Port = ((System.Net.IPEndPoint)_listener.LocalEndpoint).Port;
             _listenTask = Task.Run(ListenLoop);
+        }
+
+        public async Task<bool> WaitForMessageAsync(TimeSpan timeout)
+        {
+            using var timeoutCts = new CancellationTokenSource(timeout);
+            try
+            {
+                var completedTask = await Task.WhenAny(_messageReceivedTcs.Task, Task.Delay(timeout, timeoutCts.Token));
+                return completedTask == _messageReceivedTcs.Task;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private async Task ListenLoop()
@@ -241,6 +258,7 @@ public class PasswordResetUnitTests
                         {
                             inData = false;
                             await writer.WriteLineAsync("250 2.0.0 OK message queued");
+                            _messageReceivedTcs.TrySetResult(true);
                         }
                         continue;
                     }
