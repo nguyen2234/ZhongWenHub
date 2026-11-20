@@ -899,7 +899,7 @@ public class ContentService : IContentService
                     _dbContext.Exercises.Add(exercise);
                     toLinkExercises.Add(edit.Id, exercise);
                 }
-                else if (exercise.LessonId != id)
+                else if (exercise.LessonId.HasValue && exercise.LessonId != id)
                 {
                     throw new InvalidOperationException("Bài tập vừa chỉnh sửa không còn thuộc bài học này. Hãy tải lại bài học.");
                 }
