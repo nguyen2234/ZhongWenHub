@@ -35,31 +35,52 @@ import { AchievementsPage } from '../../features/achievements/pages/Achievements
 import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
 import { VideoLibraryPage, VideoDetailPage } from '../../features/videos';
+import { AuthenticatedRouteGuard } from '../../features/auth';
 
 export const studentRoutes: RouteObject[] = [
   // Focus Mode 1: Pure Standalone Learning Mode for Lesson (no dashboard header/footer distraction)
   {
     path: '/lesson/focus',
-    element: <LessonPage />,
+    element: (
+      <AuthenticatedRouteGuard>
+        <LessonPage />
+      </AuthenticatedRouteGuard>
+    ),
   },
   {
     path: '/lesson/:lessonId/focus',
-    element: <LessonPage />,
+    element: (
+      <AuthenticatedRouteGuard>
+        <LessonPage />
+      </AuthenticatedRouteGuard>
+    ),
   },
   // Focus Mode 2: SRS Flashcard Review Session (zero distraction, no navbar, no footer)
   {
     path: '/srs-review',
-    element: <ReviewSessionPage />,
+    element: (
+      <AuthenticatedRouteGuard>
+        <ReviewSessionPage />
+      </AuthenticatedRouteGuard>
+    ),
   },
   // Focus Mode 3: Student Homework / Assignment Runner (zero distraction, no navbar, no footer)
   {
     path: '/homework/:assignmentId/run',
-    element: <StudentAssignmentRunnerPage />,
+    element: (
+      <AuthenticatedRouteGuard>
+        <StudentAssignmentRunnerPage />
+      </AuthenticatedRouteGuard>
+    ),
   },
   // Standard Student Shell Routes (Header + Collapsible Sidebar + Content + Footer)
   {
     path: '/',
-    element: <StudentLayout />,
+    element: (
+      <AuthenticatedRouteGuard>
+        <StudentLayout />
+      </AuthenticatedRouteGuard>
+    ),
     children: [
       {
         index: true,

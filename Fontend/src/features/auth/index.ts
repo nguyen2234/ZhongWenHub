@@ -24,6 +24,7 @@ export * from './components/SocialLoginButton';
 export * from './components/AuthDivider';
 export * from './components/LoginForm';
 export * from './components/RegisterForm';
+export * from './components/AuthenticatedRouteGuard';
 
 // Pages
 export * from './pages/LoginPage';
