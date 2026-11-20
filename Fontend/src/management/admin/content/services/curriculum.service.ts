@@ -15,6 +15,8 @@ import type {
   UpdateUnitDTO,
 } from '../types';
 import { httpClient } from '../../../../core/api/client/http-client';
+import { adaptBackendExerciseToShared } from '../../../../features/exercise-engine';
+import { orderLessonExercises } from '../../../../features/exercise-engine/utils/lesson-exercises';
 
 export interface LessonReleaseReadinessItem {
   lessonId: string;
@@ -400,15 +402,15 @@ class CurriculumService {
     return true;
   }
 
-  async publishLesson(lessonId: string): Promise<Lesson> {
-    await httpClient.put<any>(`/content/lessons/${lessonId}/status`, {
+  async publishLesson(lessonId: string): Promise<Pick<Lesson, 'status' | 'updatedAt'>> {
+    const { status, updatedAt } = await httpClient.put<Pick<Lesson, 'status' | 'updatedAt'>>(`/content/lessons/${lessonId}/status`, {
       status: 'PUBLISHED',
     });
-    lessons = lessons.map((l) => (l.id === lessonId ? { ...l, status: 'PUBLISHED' } : l));
+    lessons = lessons.map((l) => (l.id === lessonId ? { ...l, status, updatedAt } : l));
     if (lessonDrafts[lessonId]) {
-      lessonDrafts[lessonId].status = 'PUBLISHED';
+      lessonDrafts[lessonId] = { ...lessonDrafts[lessonId], status, updatedAt };
     }
-    return lessons.find((l) => l.id === lessonId)!;
+    return { status, updatedAt };
   }
 
   // --- Lesson Editor Aggregate Storage & Operations ---
@@ -523,30 +525,20 @@ class CurriculumService {
       };
     });
 
-    const exercises = (res.exercises || []).map((e: any, idx: number) => {
-      const options = safeJson<string[]>(e.optionsJson, Array.isArray(e.options) ? e.options : []);
-      const sharedExercise = {
-        id: String(e.id),
-        type: (e.type || 'multiple-choice') as any,
-        title: e.title || '',
-        instruction: e.instruction || '',
-        promptHanzi: e.promptHanzi || '',
-        promptPinyin: e.promptPinyin || '',
-        promptVietnamese: e.promptVietnamese || '',
-        audioUrl: e.audioUrl || '',
-        options: Array.isArray(options) ? options : [],
-        correctOptionIndex: e.correctOptionIndex ?? 0,
-        explanation: e.explanation || '',
-        xpReward: e.xpReward ?? 10,
-      };
+    const exercises = orderLessonExercises<any>(res.exercises ?? []).map(({ exercise, presentation }) => {
+      const sharedExercise = adaptBackendExerciseToShared(exercise);
       return {
-        id: `le-${res.id}-${e.id}`,
+        id: `le-${res.id}-${exercise.id}`,
         lessonId: res.id,
-        exerciseId: String(e.id),
-        section: ((e.section || '').toUpperCase() === 'QUIZ' ? 'QUIZ' : 'PRACTICE') as 'PRACTICE' | 'QUIZ',
-        displayOrder: idx + 1,
-        points: e.xpReward ?? 10,
-        exercise: sharedExercise,
+        exerciseId: String(exercise.id),
+        section: presentation.section,
+        displayOrder: presentation.displayOrder,
+        points: presentation.points ?? (presentation.section === 'QUIZ' ? exercise.xpReward : undefined),
+        exercise: {
+          ...sharedExercise,
+          matchingPairs: presentation.matchingPairs ?? sharedExercise.matchingPairs,
+          sentenceTokens: presentation.sentenceTokens ?? sharedExercise.sentenceTokens,
+        },
       };
     });
 
@@ -554,6 +546,7 @@ class CurriculumService {
       lessonId: res.id,
       unitId: res.unitId,
       lessonNumber: res.lessonNumber,
+      orderIndex: res.orderIndex,
       status: res.status,
       intro: {
         titleZh: res.titleZh,
@@ -642,8 +635,44 @@ class CurriculumService {
     };
 
     const lesson = lessons.find((l) => l.id === lessonId);
+    const previousExercises = lessonDrafts[lessonId]?.exercises ?? [];
+    const savedExercises = new Map(previousExercises.map((item) => [item.exerciseId, item]));
+    const exercisesChanged = JSON.stringify(previousExercises) !== JSON.stringify(draft.exercises);
+    const exerciseEdits = exercisesChanged ? draft.exercises.map((item) => {
+      const previous = savedExercises.get(item.exerciseId);
+      const exercise = item.exercise;
+      const contentChanged = JSON.stringify(previous?.exercise) !== JSON.stringify(exercise);
+      return {
+        id: item.exerciseId,
+        isNew: !previous,
+        content: contentChanged ? {
+          type: exercise.type,
+          skill: exercise.skill ?? 'reading',
+          title: exercise.title,
+          instruction: exercise.instruction,
+          promptHanzi: exercise.promptHanzi,
+          promptPinyin: exercise.promptPinyin,
+          promptVietnamese: exercise.promptVietnamese,
+          audioUrl: exercise.audioUrl,
+          optionsJson: JSON.stringify(exercise.options ?? []),
+          correctOptionIndex: exercise.correctOptionIndex,
+          correctAnswer: exercise.correctOptionIndex === undefined
+            ? (exercise.correctSentence || (exercise.matchingPairs?.length ? JSON.stringify(exercise.matchingPairs) : undefined))
+            : exercise.options?.[exercise.correctOptionIndex],
+          explanation: exercise.explanation,
+          xpReward: exercise.xpReward ?? 10,
+        } : undefined,
+        presentation: {
+          section: item.section,
+          displayOrder: item.displayOrder,
+          points: item.points,
+          matchingPairs: exercise.matchingPairs,
+          sentenceTokens: exercise.sentenceTokens,
+        },
+      };
+    }) : undefined;
     const payload = {
-      unitId: draft.unitId,
+      unitId: draft.unitId || undefined,
       lessonNumber: draft.lessonNumber || lesson?.lessonNumber || 1,
       titleZh: draft.intro.titleZh,
       titleVi: draft.intro.titleVi,
@@ -651,16 +680,19 @@ class CurriculumService {
       summary: draft.intro.summary || '',
       durationMinutes: draft.intro.durationMinutes,
       xpReward: draft.intro.xpReward,
-      orderIndex: lesson?.orderIndex || draft.lessonNumber || 1,
+      orderIndex: draft.orderIndex ?? lesson?.orderIndex ?? draft.lessonNumber,
       status: draft.status,
       dialogueJson: JSON.stringify(draft.dialogue),
       listeningJson: JSON.stringify(draft.listenings),
       linkedVocabularyIds: draft.vocabularies.map((v) => v.vocabularyId || v.id),
       linkedGrammarPointIds: draft.grammars.map((g) => g.grammarPointId || g.id),
       linkedExerciseIds: draft.exercises.map((e) => e.exerciseId || e.id),
+      exerciseEdits,
     };
 
-    await httpClient.put(`/content/lessons/${lessonId}`, payload);
+    const result = await httpClient.put<Pick<Lesson, 'status' | 'updatedAt'>>(`/content/lessons/${lessonId}`, payload);
+    updatedDraft.status = result.status;
+    updatedDraft.updatedAt = result.updatedAt ?? updatedDraft.updatedAt;
     lessonDrafts[lessonId] = updatedDraft;
 
     if (lesson) {
@@ -673,7 +705,7 @@ class CurriculumService {
               durationMinutes: draft.intro.durationMinutes,
               xpReward: draft.intro.xpReward,
               summary: draft.intro.summary,
-              status: draft.status,
+              status: updatedDraft.status,
               linkedVocabularyCount: draft.vocabularies.length,
               linkedGrammarCount: draft.grammars.length,
               exerciseCount: draft.exercises.length,
@@ -692,9 +724,9 @@ class CurriculumService {
     return this.saveLessonDraft(lessonId, draft);
   }
 
-  async getCoursePublicationReadiness(hskLevel: number): Promise<CoursePublicationReadiness> {
+  async getCoursePublicationReadiness(courseId: string): Promise<CoursePublicationReadiness> {
     return httpClient.get<CoursePublicationReadiness>('/content/lessons/readiness', {
-      params: { hskLevel },
+      params: { courseId },
     });
   }
 

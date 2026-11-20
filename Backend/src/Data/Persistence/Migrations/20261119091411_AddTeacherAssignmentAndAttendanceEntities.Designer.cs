@@ -3862,8 +3862,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClassSchedule", "Schedule")
                         .WithMany()
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ScheduleId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Student")
                         .WithMany()

@@ -74,8 +74,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         name: "FK_teaching_class_attendances_teaching_class_schedules_ScheduleId",
                         column: x => x.ScheduleId,
                         principalTable: "teaching_class_schedules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_teaching_class_attendances_teaching_classes_ClassId",
                         column: x => x.ClassId,

@@ -106,25 +106,26 @@ export const MockExamsPage: React.FC = () => {
 
   useEffect(() => {
     if (isIsolatedTestRuntime()) return;
-    let active = true;
-    setIsLoadingExams(true);
-    setLoadError(null);
-    httpClient
-      .get<any>('/exams', { params: { page: 1, pageSize: 50 } })
-      .then((res) => {
-        if (!active) return;
-        const rows = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
-        setExams(rows.map(mapExamSummaryToHSKExam));
+    const controller = new AbortController();
+    const { signal } = controller;
+    const getPage = (page: number) => httpClient.get<{ items: unknown[]; totalPages: number }>('/exams', {
+      params: { status: 'PUBLISHED', page, pageSize: 100 },
+      signal,
+    });
+    getPage(1)
+      .then(async (first) => {
+        const remaining = await Promise.all(
+          Array.from({ length: Math.max(0, first.totalPages - 1) }, (_, index) => getPage(index + 2))
+        );
+        if (!signal.aborted) setExams([first, ...remaining].flatMap((page) => page.items.map(mapExamSummaryToHSKExam)));
       })
       .catch((err: any) => {
-        if (active) setLoadError(err?.message || 'Không thể tải danh sách đề thi từ máy chủ.');
+        if (!signal.aborted) setLoadError(err?.message || 'Không thể tải danh sách đề thi từ máy chủ.');
       })
       .finally(() => {
-        if (active) setIsLoadingExams(false);
+        if (!signal.aborted) setIsLoadingExams(false);
       });
-    return () => {
-      active = false;
-    };
+    return () => controller.abort();
   }, []);
 
   // Filter exams by HSK level

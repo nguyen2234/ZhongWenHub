@@ -209,13 +209,14 @@ export const AdminCurriculumPage: React.FC = () => {
   const [readinessMessage, setReadinessMessage] = useState<string | null>(null);
 
   const loadReadiness = useCallback(async (preserveMessage = false) => {
+    if (!activeCourse?.id) return;
     setReadinessLoading(true);
     setReadinessError(null);
     if (!preserveMessage) {
       setReadinessMessage(null);
     }
     try {
-      const data = await curriculumService.getCoursePublicationReadiness(selectedHskNum);
+      const data = await curriculumService.getCoursePublicationReadiness(activeCourse.id);
       setReadinessData(data);
     } catch {
       setReadinessData(null);
@@ -223,7 +224,7 @@ export const AdminCurriculumPage: React.FC = () => {
     } finally {
       setReadinessLoading(false);
     }
-  }, [selectedHskNum]);
+  }, [activeCourse?.id]);
 
   useEffect(() => {
     setReadinessData(null);
@@ -231,7 +232,7 @@ export const AdminCurriculumPage: React.FC = () => {
     if (showReadinessPanel) {
       loadReadiness();
     }
-  }, [showReadinessPanel, selectedHskNum, loadReadiness]);
+  }, [showReadinessPanel, loadReadiness]);
 
   // Unit handlers
   const handleOpenAddUnit = useCallback(() => {

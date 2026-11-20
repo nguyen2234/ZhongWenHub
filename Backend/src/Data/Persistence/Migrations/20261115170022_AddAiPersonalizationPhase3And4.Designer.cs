@@ -2975,8 +2975,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", "LearningPath")
                         .WithMany()
-                        .HasForeignKey("LearningPathId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("LearningPathId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
@@ -3004,8 +3003,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Learning.StudentLearningGoalEntity", "Goal")
                         .WithMany()
-                        .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("GoalId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
