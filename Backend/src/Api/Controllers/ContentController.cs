@@ -755,7 +755,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("grammar/stats")]
     [HttpGet("/api/v1/admin/grammar/stats")]
-    [AllowAnonymous]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(AdminGrammarStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGrammarStats(CancellationToken cancellationToken)
     {
@@ -925,7 +925,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("exercises/stats")]
     [HttpGet("/api/v1/admin/exercises/stats")]
-    [AllowAnonymous]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(AdminExerciseStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetExerciseStats(CancellationToken cancellationToken)
     {
@@ -1022,7 +1022,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("characters/stats")]
     [HttpGet("/api/v1/admin/characters/stats")]
-    [AllowAnonymous]
+    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
     [ProducesResponseType(typeof(AdminHanziStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHanziStats(CancellationToken cancellationToken)
     {
