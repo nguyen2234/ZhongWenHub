@@ -178,9 +178,11 @@ public class PasswordResetUnitTests
             config,
             Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
 
-        await sender.SendPasswordResetEmailAsync("learner@zhongwenhub.edu.vn", "real-smtp-token-98765");
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        await sender.SendPasswordResetEmailAsync("learner@zhongwenhub.edu.vn", "real-smtp-token-98765", testCts.Token);
 
-        await server.WaitForMessageAsync(TimeSpan.FromSeconds(5));
+        var messageReceived = await server.WaitForMessageAsync(TimeSpan.FromSeconds(5));
+        Assert.True(messageReceived, "Mock SMTP server did not receive the queued message within 5 seconds.");
 
         lock (server.ReceivedLines)
         {
@@ -223,15 +225,12 @@ public class PasswordResetUnitTests
         public async Task<bool> WaitForMessageAsync(TimeSpan timeout)
         {
             using var timeoutCts = new CancellationTokenSource(timeout);
-            try
+            var completedTask = await Task.WhenAny(_messageReceivedTcs.Task, Task.Delay(timeout, timeoutCts.Token));
+            if (completedTask == _messageReceivedTcs.Task)
             {
-                var completedTask = await Task.WhenAny(_messageReceivedTcs.Task, Task.Delay(timeout, timeoutCts.Token));
-                return completedTask == _messageReceivedTcs.Task;
+                return await _messageReceivedTcs.Task;
             }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
 
         private async Task ListenLoop()
@@ -241,7 +240,7 @@ public class PasswordResetUnitTests
                 using var client = await _listener.AcceptTcpClientAsync(_cts.Token);
                 using var stream = client.GetStream();
                 using var reader = new StreamReader(stream, System.Text.Encoding.ASCII);
-                using var writer = new StreamWriter(stream, System.Text.Encoding.ASCII) { AutoFlush = true };
+                using var writer = new StreamWriter(stream, System.Text.Encoding.ASCII) { AutoFlush = true, NewLine = "\r\n" };
 
                 await writer.WriteLineAsync("220 localhost ESMTP ZhongWenHubMockSmtp");
 
@@ -291,6 +290,10 @@ public class PasswordResetUnitTests
                         await writer.WriteLineAsync("250 OK");
                     }
                 }
+            }
+            catch (Exception ex) when (!_cts.IsCancellationRequested)
+            {
+                _messageReceivedTcs.TrySetException(ex);
             }
             catch
             {
