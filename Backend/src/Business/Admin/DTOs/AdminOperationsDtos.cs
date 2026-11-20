@@ -10,9 +10,10 @@ public class AdminAIServiceStatusDto
     public string Role { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
     public int? LatencyMs { get; set; }
+    public double? SuccessRate { get; set; }
     public string? Uptime { get; set; }
     public double? UsagePercent { get; set; }
-    public string Status { get; set; } = "IDLE";
+    public string Status { get; set; } = "UNKNOWN";
     public string Description { get; set; } = string.Empty;
     public int TotalEvents { get; set; }
 }
@@ -20,9 +21,9 @@ public class AdminAIServiceStatusDto
 public class AdminAIOperationsStatsDto
 {
     public int TotalRequests { get; set; }
-    public int AverageLatencyMs { get; set; }
-    public double SuccessRate { get; set; }
-    public int TotalTokens { get; set; }
+    public int? AverageLatencyMs { get; set; }
+    public double? SuccessRate { get; set; }
+    public int? TotalTokens { get; set; }
     public List<AdminAIServiceStatusDto> Services { get; set; } = new();
 }
 

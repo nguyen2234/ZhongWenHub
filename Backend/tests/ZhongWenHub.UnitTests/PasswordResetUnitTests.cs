@@ -84,10 +84,49 @@ public class PasswordResetUnitTests
     }
 
     [Fact]
-    public async Task PasswordResetEmailSender_WithoutHost_LogsWarningGracefully()
+    public async Task PasswordResetEmailSender_WithoutHost_ThrowsInvalidOperationException()
     {
         var config = new TestConfiguration(new Dictionary<string, string?>
         {
+            { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" },
+            { "PasswordReset:MailHost", "" }
+        });
+
+        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+            config,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
+
+        Assert.Contains("PasswordReset:MailHost", ex.Message);
+    }
+
+    [Fact]
+    public async Task PasswordResetEmailSender_InsecureFrontendUrl_ThrowsInvalidOperationException()
+    {
+        var config = new TestConfiguration(new Dictionary<string, string?>
+        {
+            { "PasswordReset:MailHost", "smtp.example.com" },
+            { "PasswordReset:FrontendUrl", "http://insecure-site.com/reset-password" }
+        });
+
+        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+            config,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
+
+        Assert.Contains("HTTPS", ex.Message);
+    }
+
+    [Fact]
+    public async Task PasswordResetEmailSender_CancellationRequested_ThrowsOperationCanceledException()
+    {
+        var config = new TestConfiguration(new Dictionary<string, string?>
+        {
+            { "PasswordReset:MailHost", "smtp.example.com" },
             { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
         });
 
@@ -95,8 +134,159 @@ public class PasswordResetUnitTests
             config,
             Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
 
-        // Must not throw when host is missing
-        await sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123", cts.Token));
+    }
+
+    [Fact]
+    public async Task PasswordResetEmailSender_SmtpFailure_ThrowsExceptionWithoutSwallowing()
+    {
+        var config = new TestConfiguration(new Dictionary<string, string?>
+        {
+            { "PasswordReset:MailHost", "127.0.0.1" },
+            { "PasswordReset:MailPort", "59999" }, // Closed port
+            { "PasswordReset:EnableSsl", "false" },
+            { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
+        });
+
+        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+            config,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
+    }
+
+    [Fact]
+    public async Task PasswordResetEmailSender_RealSmtpSocketServer_TransmitsFullEmailAndResetLink()
+    {
+        await using var server = new LightweightMockSmtpServer();
+
+        var config = new TestConfiguration(new Dictionary<string, string?>
+        {
+            { "PasswordReset:MailHost", "127.0.0.1" },
+            { "PasswordReset:MailPort", server.Port.ToString() },
+            { "PasswordReset:EnableSsl", "false" },
+            { "PasswordReset:From", "no-reply@zhongwenhub.edu.vn" },
+            { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
+        });
+
+        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+            config,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+
+        await sender.SendPasswordResetEmailAsync("learner@zhongwenhub.edu.vn", "real-smtp-token-98765");
+
+        lock (server.ReceivedLines)
+        {
+            Assert.Contains(server.ReceivedLines, l => l.Contains("learner@zhongwenhub.edu.vn"));
+            Assert.Contains(server.ReceivedLines, l => l.Contains("RCPT TO:<learner@zhongwenhub.edu.vn>"));
+            Assert.Contains(server.ReceivedLines, l => l.Contains("MAIL FROM:<no-reply@zhongwenhub.edu.vn>"));
+
+            // Reconstruct MIME base64 payload
+            var base64Lines = server.ReceivedLines
+                .SkipWhile(l => !l.StartsWith("Content-Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
+                .Skip(1) // skip Content-Transfer-Encoding header
+                .SkipWhile(string.IsNullOrWhiteSpace)
+                .TakeWhile(l => l != ".");
+
+            var base64Body = string.Concat(base64Lines);
+            var decodedHtml = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64Body));
+
+            Assert.Contains("real-smtp-token-98765", decodedHtml);
+            Assert.Contains("https://zhongwenhub.edu.vn/reset-password", decodedHtml);
+        }
+    }
+
+    private class LightweightMockSmtpServer : IAsyncDisposable
+    {
+        private readonly System.Net.Sockets.TcpListener _listener;
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Task _listenTask;
+        public int Port { get; }
+        public List<string> ReceivedLines { get; } = new();
+
+        public LightweightMockSmtpServer()
+        {
+            _listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            _listener.Start();
+            Port = ((System.Net.IPEndPoint)_listener.LocalEndpoint).Port;
+            _listenTask = Task.Run(ListenLoop);
+        }
+
+        private async Task ListenLoop()
+        {
+            try
+            {
+                using var client = await _listener.AcceptTcpClientAsync(_cts.Token);
+                using var stream = client.GetStream();
+                using var reader = new StreamReader(stream, System.Text.Encoding.ASCII);
+                using var writer = new StreamWriter(stream, System.Text.Encoding.ASCII) { AutoFlush = true };
+
+                await writer.WriteLineAsync("220 localhost ESMTP ZhongWenHubMockSmtp");
+
+                bool inData = false;
+                while (!_cts.IsCancellationRequested)
+                {
+                    var line = await reader.ReadLineAsync(_cts.Token);
+                    if (line == null) break;
+                    lock (ReceivedLines) ReceivedLines.Add(line);
+
+                    if (inData)
+                    {
+                        if (line == ".")
+                        {
+                            inData = false;
+                            await writer.WriteLineAsync("250 2.0.0 OK message queued");
+                        }
+                        continue;
+                    }
+
+                    if (line.StartsWith("EHLO", StringComparison.OrdinalIgnoreCase) || line.StartsWith("HELO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await writer.WriteLineAsync("250-localhost");
+                        await writer.WriteLineAsync("250 OK");
+                    }
+                    else if (line.StartsWith("MAIL FROM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await writer.WriteLineAsync("250 2.1.0 Sender OK");
+                    }
+                    else if (line.StartsWith("RCPT TO", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await writer.WriteLineAsync("250 2.1.5 Recipient OK");
+                    }
+                    else if (line.StartsWith("DATA", StringComparison.OrdinalIgnoreCase))
+                    {
+                        inData = true;
+                        await writer.WriteLineAsync("354 Start mail input; end with <CRLF>.<CRLF>");
+                    }
+                    else if (line.StartsWith("QUIT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await writer.WriteLineAsync("221 2.0.0 Service closing transmission channel");
+                        break;
+                    }
+                    else
+                    {
+                        await writer.WriteLineAsync("250 OK");
+                    }
+                }
+            }
+            catch
+            {
+                // Disposed
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _cts.Cancel();
+            _listener.Stop();
+            try { await _listenTask; } catch { }
+            _cts.Dispose();
+        }
     }
 
     private class TestConfiguration : Microsoft.Extensions.Configuration.IConfiguration

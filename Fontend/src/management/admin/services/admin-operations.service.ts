@@ -13,18 +13,19 @@ export interface AIServiceModel {
   role: string;
   provider: string;
   latencyMs?: number | null;
+  successRate?: number | null;
   uptime?: string | null;
   usagePercent?: number | null;
-  status: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE' | 'IDLE' | 'ONLINE';
+  status: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE' | 'IDLE' | 'ONLINE' | 'UNKNOWN';
   description: string;
   totalEvents?: number;
 }
 
 export interface AIOperationsStats {
   totalRequests: number;
-  averageLatencyMs: number;
-  successRate: number;
-  totalTokens: number;
+  averageLatencyMs?: number | null;
+  successRate?: number | null;
+  totalTokens?: number | null;
   services: AIServiceModel[];
 }
 

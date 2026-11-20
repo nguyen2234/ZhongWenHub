@@ -65,12 +65,6 @@ export const AdminAIManagementView: React.FC = () => {
   const [services, setServices] = useState<AIServiceModel[]>(INITIAL_AI_SERVICES);
   const [aiStats, setAiStats] = useState<AIOperationsStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [serviceToggles, setServiceToggles] = useState<Record<string, boolean>>({
-    'ai-tutor': true,
-    'ai-live': true,
-    'ai-grading': true,
-    'ai-analytics': true,
-  });
 
   useEffect(() => {
     setIsLoading(true);
@@ -86,11 +80,15 @@ export const AdminAIManagementView: React.FC = () => {
     });
   }, []);
 
-  const handleToggle = (id: string) => {
-    setServiceToggles((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'ONLINE':
+        return { label: 'ONLINE', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' };
+      case 'IDLE':
+        return { label: 'IDLE (Chờ)', color: '#b45309', bg: '#fffbeb', border: '#fde68a' };
+      default:
+        return { label: 'CHƯA RÕ', color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' };
+    }
   };
 
   return (
@@ -179,7 +177,7 @@ export const AdminAIManagementView: React.FC = () => {
           <div>
             <div style={{ fontSize: '11.5px', color: 'var(--muted)' }}>Tỷ lệ thành công</div>
             <div style={{ fontSize: '18px', fontWeight: 800, color: '#16a34a' }}>
-              {isLoading ? '...' : (aiStats?.totalRequests && aiStats.totalRequests > 0 ? `${aiStats.successRate}%` : '100%')}
+              {isLoading ? '...' : (aiStats?.totalRequests && aiStats.totalRequests > 0 && aiStats.successRate !== null && aiStats.successRate !== undefined ? `${aiStats.successRate}%` : '—')}
             </div>
           </div>
         </div>
@@ -270,8 +268,8 @@ export const AdminAIManagementView: React.FC = () => {
         }}
       >
         {services.map((srv) => {
-          const isEnabled = serviceToggles[srv.id] ?? true;
           const isOverQuota = (srv.usagePercent ?? 0) >= quotaThreshold;
+          const badge = getStatusBadge(srv.status);
 
           return (
             <div
@@ -284,7 +282,6 @@ export const AdminAIManagementView: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                opacity: isEnabled ? 1 : 0.65,
                 transition: 'all 0.15s ease',
               }}
             >
@@ -296,8 +293,8 @@ export const AdminAIManagementView: React.FC = () => {
                       width: '34px',
                       height: '34px',
                       borderRadius: 'var(--radius-md)',
-                      backgroundColor: isEnabled ? 'var(--primary-light)' : 'var(--secondary)',
-                      color: isEnabled ? 'var(--primary)' : 'var(--muted)',
+                      backgroundColor: 'var(--primary-light)',
+                      color: 'var(--primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -313,17 +310,19 @@ export const AdminAIManagementView: React.FC = () => {
                   </div>
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '12px' }}>
-                  <input
-                    type="checkbox"
-                    checked={isEnabled}
-                    onChange={() => handleToggle(srv.id)}
-                    style={{ accentColor: 'var(--primary)' }}
-                  />
-                  <span style={{ fontWeight: 600, color: isEnabled ? 'var(--foreground)' : 'var(--muted)' }}>
-                    {isEnabled ? 'Bật' : 'Tắt'}
-                  </span>
-                </label>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    color: badge.color,
+                    backgroundColor: badge.bg,
+                    border: `1px solid ${badge.border}`,
+                  }}
+                >
+                  {badge.label}
+                </span>
               </div>
 
               {/* Description */}
@@ -335,9 +334,9 @@ export const AdminAIManagementView: React.FC = () => {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '8px',
-                  padding: '10px 12px',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '6px',
+                  padding: '10px 10px',
                   backgroundColor: 'var(--background)',
                   borderRadius: 'var(--radius-lg)',
                   fontSize: '11.5px',
@@ -345,15 +344,21 @@ export const AdminAIManagementView: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ color: 'var(--muted)' }}>Độ trễ</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Độ trễ</div>
                   <strong style={{ color: 'var(--foreground)' }}>{srv.latencyMs ? `${srv.latencyMs} ms` : '—'}</strong>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--muted)' }}>Khả dụng</div>
-                  <strong style={{ color: '#16a34a' }}>{srv.uptime || '—'}</strong>
+                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Thành công</div>
+                  <strong style={{ color: '#16a34a' }}>
+                    {srv.successRate !== null && srv.successRate !== undefined ? `${srv.successRate}%` : '—'}
+                  </strong>
                 </div>
                 <div>
-                  <div style={{ color: 'var(--muted)' }}>Tiêu thụ</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Uptime</div>
+                  <strong style={{ color: srv.uptime ? '#16a34a' : 'var(--muted)' }}>{srv.uptime || '—'}</strong>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--muted)', fontSize: '11px' }}>Tiêu thụ</div>
                   <strong style={{ color: isOverQuota ? '#be123c' : 'var(--foreground)' }}>
                     {srv.usagePercent !== undefined && srv.usagePercent !== null ? `${srv.usagePercent}%` : '0%'}
                   </strong>

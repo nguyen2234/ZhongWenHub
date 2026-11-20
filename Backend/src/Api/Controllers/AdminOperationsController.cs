@@ -68,14 +68,19 @@ public class AdminOperationsController : BaseApiController
             return BadRequest(new { message = "Chính sách xác thực hai yếu tố (Require2FA) chưa được hệ thống hỗ trợ. Vui lòng tắt tùy chọn này." });
         }
 
-        if (dto.SessionTimeoutMinutes < 5 || dto.SessionTimeoutMinutes > 1440)
+        if (dto.IsMaintenanceMode)
         {
-            return BadRequest(new { message = "Thời gian hết hạn phiên làm việc (SessionTimeoutMinutes) phải từ 5 đến 1440 phút." });
+            return BadRequest(new { message = "Chế độ bảo trì (IsMaintenanceMode) hiện chưa được hỗ trợ kích hoạt động từ giao diện web để đảm bảo an toàn vận hành hạ tầng." });
         }
 
-        if (dto.MaxLoginAttempts < 1 || dto.MaxLoginAttempts > 20)
+        if (dto.MaxLoginAttempts != 5)
         {
-            return BadRequest(new { message = "Số lần đăng nhập sai tối đa (MaxLoginAttempts) phải từ 1 đến 20 lần." });
+            return BadRequest(new { message = "Số lần đăng nhập tối đa (MaxLoginAttempts) hiện đang được cố định ở mức 5 lần theo chính sách ASP.NET Core Identity và chưa hỗ trợ thay đổi động từ web." });
+        }
+
+        if (dto.SessionTimeoutMinutes != 60)
+        {
+            return BadRequest(new { message = "Thời gian phiên làm việc (SessionTimeoutMinutes) hiện đang được cố định ở mức 60 phút theo chính sách bảo mật JWT và chưa hỗ trợ thay đổi động từ web." });
         }
 
         var allowedLanguages = new[] { "vi-VN", "zh-CN", "en-US" };

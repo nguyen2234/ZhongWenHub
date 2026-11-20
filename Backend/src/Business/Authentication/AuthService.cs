@@ -403,11 +403,24 @@ public class AuthService : IAuthService
         await RecordAuditAsync(user.Id, user.UserName, "FORGOT_PASSWORD_REQUEST", ipAddress, null, true, "Đã tạo token đặt lại mật khẩu.", cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Password reset token generated and email dispatched for user {Email}", email);
-
-        await _emailSender.SendPasswordResetEmailAsync(user.Email!, token, cancellationToken);
-
-        return (true, genericMessage);
+        try
+        {
+            await _emailSender.SendPasswordResetEmailAsync(user.Email!, token, cancellationToken);
+            _logger.LogInformation("Password reset token generated and email dispatched for user {Email}", email);
+            return (true, genericMessage);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Password reset email dispatch was canceled for user {Email}", email);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gửi email đặt lại mật khẩu cho {Email}: {Message}", email, ex.Message);
+            await RecordAuditAsync(user.Id, user.UserName, "FORGOT_PASSWORD_FAILED", ipAddress, null, false, $"Gửi email thất bại: {ex.Message}", cancellationToken);
+            await _dbContext.SaveChangesAsync(CancellationToken.None);
+            return (false, "Không thể gửi email đặt lại mật khẩu do lỗi dịch vụ thư. Vui lòng thử lại sau hoặc liên hệ quản trị viên.");
+        }
     }
 
     public async Task<(bool Success, string Message)> ResetPasswordAsync(

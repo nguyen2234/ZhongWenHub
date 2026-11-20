@@ -235,6 +235,11 @@ public class AuthController : BaseApiController
         var ip = GetClientIpAddress();
         var (success, message) = await _authService.ForgotPasswordAsync(request, ip, cancellationToken);
 
+        if (!success)
+        {
+            return ProblemDetailsResult(StatusCodes.Status503ServiceUnavailable, "Gửi email thất bại", message);
+        }
+
         return Ok(new
         {
             success,

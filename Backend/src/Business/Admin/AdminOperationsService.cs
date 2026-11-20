@@ -35,19 +35,22 @@ public class AdminOperationsService : IAdminOperationsService
 
     public async Task<AdminAIOperationsStatsDto> GetAIOperationsStatsAsync(CancellationToken cancellationToken = default)
     {
-        var totalRequests = await _dbContext.AiUsageLogs.CountAsync(cancellationToken);
-        var avgLatency = totalRequests > 0
-            ? (int)Math.Round(await _dbContext.AiUsageLogs.AverageAsync(x => x.LatencyMs, cancellationToken))
-            : 0;
+        // 1. Filter out mock logs to provide genuine AI telemetry
+        var realLogsQuery = _dbContext.AiUsageLogs.AsNoTracking().Where(x => !x.IsMock);
 
-        var successCount = await _dbContext.AiUsageLogs.CountAsync(x => x.Success, cancellationToken);
-        var successRate = totalRequests > 0
+        var totalRequests = await realLogsQuery.CountAsync(cancellationToken);
+        int? avgLatency = totalRequests > 0
+            ? (int)Math.Round(await realLogsQuery.AverageAsync(x => x.LatencyMs, cancellationToken))
+            : null;
+
+        var successCount = await realLogsQuery.CountAsync(x => x.Success, cancellationToken);
+        double? successRate = totalRequests > 0
             ? Math.Round((double)successCount / totalRequests * 100, 1)
-            : 100.0;
+            : null;
 
         var totalTokens = totalRequests > 0
-            ? (await _dbContext.AiUsageLogs.SumAsync(x => (int?)x.TotalTokens, cancellationToken) ?? 0)
-            : 0;
+            ? await realLogsQuery.SumAsync(x => (int?)x.TotalTokens, cancellationToken)
+            : null;
 
         var tutorCount = await _dbContext.AiConversationSessions.CountAsync(cancellationToken);
         var speakingCount = await _dbContext.AiSpeakingAttempts.CountAsync(cancellationToken);
@@ -55,8 +58,8 @@ public class AdminOperationsService : IAdminOperationsService
         var skillStatCount = await _dbContext.LearningSkillStatistics.CountAsync(cancellationToken);
         var totalEventsSum = tutorCount + speakingCount + gradingCount + skillStatCount;
 
-        // Query real aggregated feature logs from database
-        var featureStats = await _dbContext.AiUsageLogs.AsNoTracking()
+        // Query real aggregated feature logs from database (excluding mocks)
+        var featureStats = await realLogsQuery
             .GroupBy(x => x.Feature)
             .Select(g => new
             {
@@ -67,21 +70,42 @@ public class AdminOperationsService : IAdminOperationsService
             })
             .ToListAsync(cancellationToken);
 
+        // Check recent logs (within last 15 minutes) to determine actual live status,
+        // without deducing ONLINE purely from historical data.
+        var recentCutoff = DateTime.UtcNow.AddMinutes(-15);
+        var recentActiveFeatures = await realLogsQuery
+            .Where(x => x.CreatedAt >= recentCutoff)
+            .Select(x => x.Feature)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
         int? GetFeatureLatency(string keyword)
         {
             var match = featureStats.FirstOrDefault(f => f.Feature.Contains(keyword, StringComparison.OrdinalIgnoreCase));
             return match?.AvgLatency;
         }
 
-        string? GetFeatureUptime(string keyword)
+        double? GetFeatureSuccessRate(string keyword)
         {
             var match = featureStats.FirstOrDefault(f => f.Feature.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-            return match != null ? $"{match.SuccessRate}%" : null;
+            return match?.SuccessRate;
         }
 
         double? GetUsagePercent(int count)
         {
-            return totalEventsSum > 0 ? Math.Round((double)count / totalEventsSum * 100, 1) : 0;
+            return (totalEventsSum > 0 && count > 0) ? Math.Round((double)count / totalEventsSum * 100, 1) : null;
+        }
+
+        string ResolveServiceStatus(string keyword, int eventCount)
+        {
+            var hasRecentLiveActivity = recentActiveFeatures.Any(f => f.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            if (hasRecentLiveActivity)
+            {
+                return "ONLINE";
+            }
+
+            var hasAnyHistoricalData = featureStats.Any(f => f.Feature.Contains(keyword, StringComparison.OrdinalIgnoreCase)) || eventCount > 0;
+            return hasAnyHistoricalData ? "IDLE" : "UNKNOWN";
         }
 
         var services = new List<AdminAIServiceStatusDto>
@@ -92,10 +116,11 @@ public class AdminOperationsService : IAdminOperationsService
                 Name = "AI Tutor (Trợ lý đối thoại)",
                 Role = "Hội thoại tiếng Trung, giải đáp ngữ pháp và sửa lỗi ngữ cảnh",
                 Provider = "Google Gemini 2.5 Flash",
-                LatencyMs = GetFeatureLatency("TUTOR") ?? GetFeatureLatency("CONVERSATION") ?? (totalRequests > 0 ? avgLatency : null),
-                Uptime = GetFeatureUptime("TUTOR") ?? GetFeatureUptime("CONVERSATION") ?? (totalRequests > 0 ? $"{successRate}%" : null),
+                LatencyMs = GetFeatureLatency("TUTOR") ?? GetFeatureLatency("CONVERSATION"),
+                SuccessRate = GetFeatureSuccessRate("TUTOR") ?? GetFeatureSuccessRate("CONVERSATION"),
+                Uptime = null, // Do not conflate request success rate with system uptime
                 UsagePercent = GetUsagePercent(tutorCount),
-                Status = tutorCount > 0 || totalRequests > 0 ? "ONLINE" : "IDLE",
+                Status = ResolveServiceStatus("TUTOR", tutorCount),
                 Description = $"Xử lý đối thoại và ngữ pháp HSK. Tổng số phiên tích lũy: {tutorCount}.",
                 TotalEvents = tutorCount
             },
@@ -106,9 +131,10 @@ public class AdminOperationsService : IAdminOperationsService
                 Role = "Nhận diện giọng nói (ASR) và đánh giá ngữ điệu Pinyin",
                 Provider = "Whisper-Large-v3 & FunASR Speech",
                 LatencyMs = GetFeatureLatency("SPEAKING"),
-                Uptime = GetFeatureUptime("SPEAKING"),
+                SuccessRate = GetFeatureSuccessRate("SPEAKING"),
+                Uptime = null,
                 UsagePercent = GetUsagePercent(speakingCount),
-                Status = speakingCount > 0 ? "ONLINE" : "IDLE",
+                Status = ResolveServiceStatus("SPEAKING", speakingCount),
                 Description = $"Chấm điểm 4 thanh điệu tiếng Trung, phát hiện lỗi phát âm. Lượt ghi nhận: {speakingCount}.",
                 TotalEvents = speakingCount
             },
@@ -119,9 +145,10 @@ public class AdminOperationsService : IAdminOperationsService
                 Role = "Chấm điểm tự động bài tập viết chữ Hán và dịch câu",
                 Provider = "Gemini 2.5 Pro Pedagogical",
                 LatencyMs = GetFeatureLatency("EXERCISE") ?? GetFeatureLatency("GRADING"),
-                Uptime = GetFeatureUptime("EXERCISE") ?? GetFeatureUptime("GRADING"),
+                SuccessRate = GetFeatureSuccessRate("EXERCISE") ?? GetFeatureSuccessRate("GRADING"),
+                Uptime = null,
                 UsagePercent = GetUsagePercent(gradingCount),
-                Status = gradingCount > 0 ? "ONLINE" : "IDLE",
+                Status = ResolveServiceStatus("GRADING", gradingCount),
                 Description = $"Hỗ trợ giáo viên chấm bài tập về nhà và gợi ý nhận xét. Bài tập đã chấm: {gradingCount}.",
                 TotalEvents = gradingCount
             },
@@ -132,9 +159,10 @@ public class AdminOperationsService : IAdminOperationsService
                 Role = "Phân tích điểm yếu kiến thức và lập lịch ôn tập ngắt quãng (SRS)",
                 Provider = "ZhongWenHub Adaptive Pedagogical Engine",
                 LatencyMs = GetFeatureLatency("ANALYTICS") ?? GetFeatureLatency("LEARNING"),
-                Uptime = GetFeatureUptime("ANALYTICS") ?? GetFeatureUptime("LEARNING"),
+                SuccessRate = GetFeatureSuccessRate("ANALYTICS") ?? GetFeatureSuccessRate("LEARNING"),
+                Uptime = null,
                 UsagePercent = GetUsagePercent(skillStatCount),
-                Status = skillStatCount > 0 ? "ONLINE" : "IDLE",
+                Status = ResolveServiceStatus("ANALYTICS", skillStatCount),
                 Description = $"Cá nhân hóa danh sách từ vựng cần ôn luyện hôm nay dựa trên SRS. Kỹ năng theo dõi: {skillStatCount}.",
                 TotalEvents = skillStatCount
             }
@@ -152,23 +180,33 @@ public class AdminOperationsService : IAdminOperationsService
 
     public async Task<AdminAnalyticsReportDto> GetAnalyticsReportAsync(string range = "30d", CancellationToken cancellationToken = default)
     {
-        var cutoffDate = (range?.ToLowerInvariant()) switch
+        var periodDays = (range?.ToLowerInvariant()) switch
         {
-            "7d" => DateTime.UtcNow.AddDays(-7),
-            "90d" => DateTime.UtcNow.AddDays(-90),
-            "1y" or "365d" => DateTime.UtcNow.AddDays(-365),
-            _ => DateTime.UtcNow.AddDays(-30)
+            "7d" => 7,
+            "90d" => 90,
+            "1y" or "365d" => 365,
+            _ => 30
         };
 
-        var activeStudents = await _userManager.Users.AsNoTracking()
-            .CountAsync(u => !u.IsDeleted && u.Status == UserStatus.ACTIVE && (u.LastLoginAt >= cutoffDate || u.CreatedAt >= cutoffDate), cancellationToken);
+        var cutoffDate = DateTime.UtcNow.AddDays(-periodDays);
+        var cutoffDateStr = cutoffDate.ToString("yyyy-MM-dd");
 
-        var totalUsers = await _userManager.Users.AsNoTracking()
-            .CountAsync(u => !u.IsDeleted, cancellationToken);
+        // 1. Role Filtering: Only include genuine students with the STUDENT role
+        var studentRole = await _dbContext.Roles.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Name == RoleConstants.Student, cancellationToken);
+        var studentRoleId = studentRole?.Id ?? Guid.Empty;
 
-        // HSK Level Distribution from real active users in period
-        var hskRaw = await _userManager.Users.AsNoTracking()
-            .Where(u => !u.IsDeleted && (u.LastLoginAt >= cutoffDate || u.CreatedAt >= cutoffDate))
+        var studentUsersQuery = from u in _dbContext.Users.AsNoTracking()
+                                join ur in _dbContext.UserRoles.AsNoTracking() on u.Id equals ur.UserId
+                                where ur.RoleId == studentRoleId && !u.IsDeleted
+                                select u;
+
+        var activeStudents = await studentUsersQuery
+            .CountAsync(u => u.Status == UserStatus.ACTIVE && (u.LastLoginAt >= cutoffDate || u.CreatedAt >= cutoffDate), cancellationToken);
+
+        // 2. HSK Level Distribution from real active students in the selected period
+        var hskRaw = await studentUsersQuery
+            .Where(u => u.LastLoginAt >= cutoffDate || u.CreatedAt >= cutoffDate)
             .GroupBy(u => u.CurrentHskLevel ?? "HSK 1")
             .Select(g => new { Level = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
@@ -199,17 +237,33 @@ public class AdminOperationsService : IAdminOperationsService
             });
         }
 
-        // Skill Metrics filtered by cutoff date
-        var skillStats = await _dbContext.LearningSkillStatistics.AsNoTracking()
-            .Where(s => s.LastAssessedAt >= cutoffDate || s.UpdatedAt >= cutoffDate)
-            .GroupBy(s => s.SkillCategory)
-            .Select(g => new
+        // 3. Learning Hours: Calculate directly from StudentDailyActivities.Minutes
+        var totalMinutes = await (
+            from a in _dbContext.StudentDailyActivities.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId &&
+                  ((string.Compare(a.ActivityDate, cutoffDateStr) >= 0) || a.CreatedAt >= cutoffDate)
+            select (int?)a.Minutes
+        ).SumAsync(cancellationToken) ?? 0;
+
+        var totalHours = (int)Math.Round((double)totalMinutes / 60.0);
+
+        // 4. Skill Metrics: Based strictly on practice attempts generated within the period
+        // (Do NOT use cumulative statistics UpdatedAt)
+        var practiceAttempts = await (
+            from pa in _dbContext.StudentPracticeAttempts.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on pa.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId && pa.AttemptedAt >= cutoffDate
+            group pa by pa.Category.ToLower() into g
+            select new
             {
-                Skill = g.Key,
-                TotalAttempts = g.Sum(x => x.TotalAttempts),
-                AvgAccuracy = g.Average(x => (double?)x.AccuracyPercent) ?? 0.0
-            })
-            .ToListAsync(cancellationToken);
+                Category = g.Key,
+                TotalAttempts = g.Count(),
+                CorrectCount = g.Count(x => x.IsCorrect)
+            }
+        ).ToListAsync(cancellationToken);
+
+        var totalAttemptsAll = practiceAttempts.Sum(p => p.TotalAttempts);
 
         var skillLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -223,10 +277,12 @@ public class AdminOperationsService : IAdminOperationsService
         var skillMetrics = new List<AdminSkillMetricDto>();
         foreach (var kvp in skillLabels)
         {
-            var matched = skillStats.FirstOrDefault(s => string.Equals(s.Skill, kvp.Key, StringComparison.OrdinalIgnoreCase));
+            var matched = practiceAttempts.FirstOrDefault(s => string.Equals(s.Category, kvp.Key, StringComparison.OrdinalIgnoreCase));
             var attempts = matched?.TotalAttempts ?? 0;
-            var avgScore = attempts > 0 ? (int)Math.Round(matched?.AvgAccuracy ?? 0.0) : 0;
-            var hours = (int)Math.Round(attempts * 0.25);
+            var avgScore = attempts > 0 ? (int)Math.Round((double)(matched!.CorrectCount) / attempts * 100) : 0;
+            var hours = (totalAttemptsAll > 0 && totalHours > 0)
+                ? (int)Math.Round((double)attempts / totalAttemptsAll * totalHours)
+                : 0;
 
             skillMetrics.Add(new AdminSkillMetricDto
             {
@@ -236,18 +292,84 @@ public class AdminOperationsService : IAdminOperationsService
             });
         }
 
-        var completedLessonsCount = await _dbContext.StudentLessonProgresses
-            .CountAsync(p => p.Status == "COMPLETED" && (p.CompletedAt >= cutoffDate || p.UpdatedAt >= cutoffDate || p.CreatedAt >= cutoffDate), cancellationToken);
-        var totalLessonProgressCount = await _dbContext.StudentLessonProgresses
-            .CountAsync(p => p.CompletedAt >= cutoffDate || p.UpdatedAt >= cutoffDate || p.CreatedAt >= cutoffDate, cancellationToken);
+        // 5. Completion Rate: Lesson progress completed in the period
+        var completedLessonsCount = await (
+            from p in _dbContext.StudentLessonProgresses.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on p.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId && p.Status == "COMPLETED" && p.CompletedAt >= cutoffDate
+            select p.Id
+        ).CountAsync(cancellationToken);
 
-        var completionRate = totalLessonProgressCount > 0
-            ? Math.Round((double)completedLessonsCount / totalLessonProgressCount * 100, 1)
+        var activeLessonProgressCount = await (
+            from p in _dbContext.StudentLessonProgresses.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on p.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId && (p.CompletedAt >= cutoffDate || p.CreatedAt >= cutoffDate)
+            select p.Id
+        ).CountAsync(cancellationToken);
+
+        var completionRate = activeLessonProgressCount > 0
+            ? Math.Round((double)completedLessonsCount / activeLessonProgressCount * 100, 1)
             : 0.0;
 
-        var totalHours = skillMetrics.Sum(s => s.Hours);
-        var retentionRate = (totalUsers > 0 && activeStudents > 0)
-            ? Math.Round((double)activeStudents / totalUsers * 100, 1)
+        // 6. Cohort Retention: Proportion of active students from the previous period who returned in the current period
+        var previousStart = DateTime.UtcNow.AddDays(-periodDays * 2);
+        var prevStartStr = previousStart.ToString("yyyy-MM-dd");
+
+        var prevActiveLogins = await studentUsersQuery
+            .Where(u => u.LastLoginAt >= previousStart && u.LastLoginAt < cutoffDate)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var prevActiveDaily = await (
+            from a in _dbContext.StudentDailyActivities.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId &&
+                  ((string.Compare(a.ActivityDate, prevStartStr) >= 0 && string.Compare(a.ActivityDate, cutoffDateStr) < 0) ||
+                   (a.CreatedAt >= previousStart && a.CreatedAt < cutoffDate))
+            select a.UserId
+        ).ToListAsync(cancellationToken);
+
+        var prevActiveAttempts = await (
+            from pa in _dbContext.StudentPracticeAttempts.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on pa.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId && pa.AttemptedAt >= previousStart && pa.AttemptedAt < cutoffDate
+            select pa.UserId
+        ).ToListAsync(cancellationToken);
+
+        var prevCohort = prevActiveLogins
+            .Concat(prevActiveDaily)
+            .Concat(prevActiveAttempts)
+            .Distinct()
+            .ToHashSet();
+
+        var currActiveLogins = await studentUsersQuery
+            .Where(u => u.LastLoginAt >= cutoffDate || u.CreatedAt >= cutoffDate)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var currActiveDaily = await (
+            from a in _dbContext.StudentDailyActivities.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on a.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId &&
+                  ((string.Compare(a.ActivityDate, cutoffDateStr) >= 0) || a.CreatedAt >= cutoffDate)
+            select a.UserId
+        ).ToListAsync(cancellationToken);
+
+        var currActiveAttempts = await (
+            from pa in _dbContext.StudentPracticeAttempts.AsNoTracking()
+            join ur in _dbContext.UserRoles.AsNoTracking() on pa.UserId equals ur.UserId
+            where ur.RoleId == studentRoleId && pa.AttemptedAt >= cutoffDate
+            select pa.UserId
+        ).ToListAsync(cancellationToken);
+
+        var currCohort = currActiveLogins
+            .Concat(currActiveDaily)
+            .Concat(currActiveAttempts)
+            .Distinct()
+            .ToHashSet();
+
+        var retentionRate = prevCohort.Count > 0
+            ? Math.Round((double)prevCohort.Count(id => currCohort.Contains(id)) / prevCohort.Count * 100, 1)
             : 0.0;
 
         return new AdminAnalyticsReportDto
@@ -299,14 +421,19 @@ public class AdminOperationsService : IAdminOperationsService
             throw new InvalidOperationException("Chính sách xác thực 2 yếu tố (Require2FA) chưa được hỗ trợ trên hệ thống hiện tại.");
         }
 
-        if (dto.SessionTimeoutMinutes < 5 || dto.SessionTimeoutMinutes > 1440)
+        if (dto.IsMaintenanceMode)
         {
-            throw new ArgumentOutOfRangeException(nameof(dto.SessionTimeoutMinutes), "Thời gian phiên làm việc phải từ 5 đến 1440 phút.");
+            throw new InvalidOperationException("Chế độ bảo trì (IsMaintenanceMode) hiện chưa được hỗ trợ kích hoạt động từ giao diện web để đảm bảo an toàn vận hành hạ tầng.");
         }
 
-        if (dto.MaxLoginAttempts < 1 || dto.MaxLoginAttempts > 20)
+        if (dto.MaxLoginAttempts != 5)
         {
-            throw new ArgumentOutOfRangeException(nameof(dto.MaxLoginAttempts), "Số lần đăng nhập tối đa phải từ 1 đến 20 lần.");
+            throw new InvalidOperationException("Số lần đăng nhập tối đa (MaxLoginAttempts) hiện đang được cố định ở mức 5 lần theo chính sách ASP.NET Core Identity và chưa hỗ trợ thay đổi động từ web.");
+        }
+
+        if (dto.SessionTimeoutMinutes != 60)
+        {
+            throw new InvalidOperationException("Thời gian phiên làm việc (SessionTimeoutMinutes) hiện đang được cố định ở mức 60 phút theo chính sách bảo mật JWT và chưa hỗ trợ thay đổi động từ web.");
         }
 
         var allowedLangs = new[] { "vi-VN", "zh-CN", "en-US" };

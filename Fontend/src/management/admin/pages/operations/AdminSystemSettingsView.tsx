@@ -28,10 +28,8 @@ export const AdminSystemSettingsView: React.FC = () => {
     'Hệ thống sẽ tiến hành nâng cấp thuật toán AI Tutor vào 02:00 sáng ngày 01/11.'
   );
 
-  // Maintenance mode
+  // Maintenance mode (controlled at infrastructure level)
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingMaintenanceState, setPendingMaintenanceState] = useState(false);
 
   // Save feedback
   const [isSaved, setIsSaved] = useState(false);
@@ -63,19 +61,6 @@ export const AdminSystemSettingsView: React.FC = () => {
     setSaveError(null);
   };
 
-  const handleMaintenanceToggle = (checked: boolean) => {
-    setPendingMaintenanceState(checked);
-    setShowConfirmModal(true);
-  };
-
-  const confirmMaintenanceChange = () => {
-    setIsMaintenanceMode(pendingMaintenanceState);
-    setShowConfirmModal(false);
-    setHasChanges(true);
-    setIsSaved(false);
-    setSaveError(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -88,11 +73,11 @@ export const AdminSystemSettingsView: React.FC = () => {
         slogan,
         defaultLanguage,
         timezone,
-        maxLoginAttempts: maxAttempts,
-        sessionTimeoutMinutes: sessionTimeoutMin,
+        maxLoginAttempts: 5,
+        sessionTimeoutMinutes: 60,
         require2FA: false,
         systemNotice,
-        isMaintenanceMode,
+        isMaintenanceMode: false,
       });
 
       setIsSaved(true);
@@ -368,55 +353,69 @@ export const AdminSystemSettingsView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
             <Lock size={18} style={{ color: 'var(--primary)' }} />
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--foreground)' }}>
-              3. Chính sách Tài khoản & An toàn (Account Policy Mock)
+              3. Chính sách Tài khoản & An toàn (Bảo mật Hạ tầng)
             </h3>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
-                Số lần đăng nhập sai tối đa trước khi khoá tạm (lần)
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)' }}>
+                  Số lần đăng nhập sai tối đa trước khi khoá tạm
+                </label>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '1px 6px', borderRadius: 'var(--radius-sm)' }}>
+                  Cố định Identity (5 lần)
+                </span>
+              </div>
               <input
                 type="number"
-                min={1}
-                max={20}
+                disabled
                 value={maxAttempts}
-                onChange={(e) => handleFieldChange(setMaxAttempts, Number(e.target.value))}
                 style={{
                   width: '100%',
                   height: '38px',
                   padding: '0 12px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-strong)',
-                  backgroundColor: 'var(--surface)',
-                  color: 'var(--foreground)',
+                  backgroundColor: 'var(--secondary)',
+                  color: 'var(--muted)',
                   fontSize: '13px',
+                  cursor: 'not-allowed',
                 }}
               />
+              <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '4px' }}>
+                Tài khoản tự động bị tạm khóa 15 phút sau 5 lần nhập sai mật khẩu liên tiếp.
+              </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '4px' }}>
-                Thời gian hết hạn phiên làm việc không thao tác (phút)
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--foreground)' }}>
+                  Thời gian hết hạn phiên làm việc
+                </label>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', backgroundColor: '#fffbeb', border: '1px solid #fde68a', padding: '1px 6px', borderRadius: 'var(--radius-sm)' }}>
+                  Cố định JWT (60 phút)
+                </span>
+              </div>
               <input
                 type="number"
-                min={15}
-                max={480}
+                disabled
                 value={sessionTimeoutMin}
-                onChange={(e) => handleFieldChange(setSessionTimeoutMin, Number(e.target.value))}
                 style={{
                   width: '100%',
                   height: '38px',
                   padding: '0 12px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-strong)',
-                  backgroundColor: 'var(--surface)',
-                  color: 'var(--foreground)',
+                  backgroundColor: 'var(--secondary)',
+                  color: 'var(--muted)',
                   fontSize: '13px',
+                  cursor: 'not-allowed',
                 }}
               />
+              <div style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '4px' }}>
+                Thời lượng phiên JWT được cấu hình tại tầng dịch vụ xác thực máy chủ.
+              </div>
             </div>
           </div>
 
@@ -488,33 +487,49 @@ export const AdminSystemSettingsView: React.FC = () => {
             style={{
               padding: '14px',
               borderRadius: 'var(--radius-lg)',
-              backgroundColor: isMaintenanceMode ? '#fffbeb' : 'var(--background)',
-              border: `1px solid ${isMaintenanceMode ? '#fde68a' : 'var(--border)'}`,
+              backgroundColor: 'var(--background)',
+              border: '1px solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '12px',
               flexWrap: 'wrap',
+              opacity: 0.85,
             }}
           >
             <div>
-              <strong style={{ fontSize: '13.5px', color: isMaintenanceMode ? '#b45309' : 'var(--foreground)' }}>
-                Kích hoạt chế độ bảo trì hệ thống (Maintenance Mode Simulation)
-              </strong>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
-                Khi bật, chỉ tài khoản Admin mới có thể đăng nhập. Học viên và giáo viên sẽ thấy trang bảo trì.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <strong style={{ fontSize: '13.5px', color: 'var(--foreground)' }}>
+                  Kích hoạt chế độ bảo trì hệ thống (Maintenance Mode)
+                </strong>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#b45309',
+                    backgroundColor: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    padding: '1px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                  }}
+                >
+                  Chưa hỗ trợ kích hoạt từ Web
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                Để đảm bảo an toàn vận hành, chế độ bảo trì toàn hệ thống được điều khiển tại tầng hạ tầng (Reverse Proxy / Gateway).
               </div>
             </div>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'not-allowed', fontSize: '13px' }}>
               <input
                 type="checkbox"
-                checked={isMaintenanceMode}
-                onChange={(e) => handleMaintenanceToggle(e.target.checked)}
-                style={{ accentColor: 'var(--primary)', width: '18px', height: '18px' }}
+                checked={false}
+                disabled
+                style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', cursor: 'not-allowed' }}
               />
-              <span style={{ fontWeight: 700, color: isMaintenanceMode ? '#b45309' : 'var(--muted)' }}>
-                {isMaintenanceMode ? 'ĐANG BẬT BẢO TRÌ' : 'Tắt'}
+              <span style={{ fontWeight: 600, color: 'var(--muted)' }}>
+                Tắt (Khóa)
               </span>
             </label>
           </div>
@@ -565,83 +580,6 @@ export const AdminSystemSettingsView: React.FC = () => {
           </div>
         </div>
       </form>
-
-      {/* Maintenance Confirmation Dialog */}
-      {showConfirmModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="maint-dialog-title"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 'var(--z-modal)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '460px',
-              backgroundColor: 'var(--surface)',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--border-strong)',
-              padding: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: '#fffbeb',
-                  color: '#b45309',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <AlertTriangle size={20} />
-              </div>
-              <h3 id="maint-dialog-title" style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--foreground)' }}>
-                {pendingMaintenanceState ? 'Xác nhận BẬT chế độ bảo trì hệ thống?' : 'Xác nhận TẮT chế độ bảo trì?'}
-              </h3>
-            </div>
-
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--muted)', lineHeight: 1.5 }}>
-              {pendingMaintenanceState
-                ? 'Trong chế độ bảo trì, chỉ quản trị viên được phép truy cập. Các học viên và giảng viên sẽ nhận được thông báo bảo trì nâng cấp.'
-                : 'Thao tác này sẽ mở lại toàn bộ cổng học tập và phân hệ giảng dạy bình thường.'}
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
-              <button
-                type="button"
-                onClick={() => setShowConfirmModal(false)}
-                className="ds-btn ds-btn-secondary"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                onClick={confirmMaintenanceChange}
-                className={`ds-btn ${pendingMaintenanceState ? 'ds-btn-danger' : 'ds-btn-primary'}`}
-              >
-                {pendingMaintenanceState ? 'Bật bảo trì' : 'Tắt bảo trì'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

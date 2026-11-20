@@ -21,6 +21,8 @@ public class PasswordResetEmailSender : IPasswordResetEmailSender
 
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var mailHost = _configuration["PasswordReset:MailHost"] ?? _configuration["PasswordReset__MailHost"];
         var portStr = _configuration["PasswordReset:MailPort"] ?? _configuration["PasswordReset__MailPort"];
         var mailPort = int.TryParse(portStr, out var p) ? p : 587;
@@ -28,11 +30,21 @@ public class PasswordResetEmailSender : IPasswordResetEmailSender
         var username = _configuration["PasswordReset:MailUsername"] ?? _configuration["PasswordReset__MailUsername"];
         var password = _configuration["PasswordReset:MailPassword"] ?? _configuration["PasswordReset__MailPassword"];
         var frontendUrl = _configuration["PasswordReset:FrontendUrl"] ?? _configuration["PasswordReset__FrontendUrl"] ?? "https://zhongwenhub.edu.vn/reset-password";
+        var enableSslStr = _configuration["PasswordReset:EnableSsl"] ?? _configuration["PasswordReset__EnableSsl"];
+        var enableSsl = bool.TryParse(enableSslStr, out var sslVal) ? sslVal : (mailPort == 587 || mailPort == 465);
 
         if (string.IsNullOrWhiteSpace(mailHost))
         {
-            _logger.LogWarning("PasswordReset:MailHost is not configured. Reset email was skipped for recipient {Email}.", toEmail);
-            return;
+            _logger.LogError("PasswordReset:MailHost is not configured. Cannot send password reset email to {Email}.", toEmail);
+            throw new InvalidOperationException("Dịch vụ gửi email chưa được cấu hình PasswordReset:MailHost. Không thể gửi email đặt lại mật khẩu.");
+        }
+
+        if (string.IsNullOrWhiteSpace(frontendUrl) ||
+            !Uri.TryCreate(frontendUrl, UriKind.Absolute, out var frontendUri) ||
+            frontendUri.Scheme != Uri.UriSchemeHttps)
+        {
+            _logger.LogError("PasswordReset:FrontendUrl '{Url}' is invalid or not using HTTPS.", frontendUrl);
+            throw new InvalidOperationException("PasswordReset:FrontendUrl phải là URL tuyệt đối hợp lệ và bắt buộc sử dụng giao thức HTTPS bảo mật.");
         }
 
         var encodedToken = Uri.EscapeDataString(resetToken);
@@ -79,7 +91,7 @@ public class PasswordResetEmailSender : IPasswordResetEmailSender
 
         using var client = new SmtpClient(mailHost, mailPort)
         {
-            EnableSsl = true // Enables TLS / STARTTLS on port 587
+            EnableSsl = enableSsl
         };
 
         if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
@@ -91,12 +103,17 @@ public class PasswordResetEmailSender : IPasswordResetEmailSender
         try
         {
             await client.SendMailAsync(mailMessage, cancellationToken);
-            _logger.LogInformation("Password reset email sent successfully via STARTTLS to {Email}", toEmail);
+            _logger.LogInformation("Password reset email sent successfully via SMTP (SSL={Ssl}) to {Email}", enableSsl, toEmail);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Sending password reset email to {Email} was canceled.", toEmail);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset email via SMTP to {Email}", toEmail);
-            // Fail closed gracefully without leaking SMTP secrets or internal credentials
+            _logger.LogError(ex, "Failed to send password reset email via SMTP to {Email}: {Message}", toEmail, ex.Message);
+            throw;
         }
     }
 }

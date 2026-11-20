@@ -136,4 +136,31 @@ public class PasswordResetIntegrationTests : IClassFixture<CustomWebApplicationF
         });
         Assert.Equal(HttpStatusCode.OK, restoreReset.StatusCode);
     }
+
+    [Fact]
+    public async Task ForgotPassword_WhenEmailSenderFails_Returns503WithoutPretendingSuccess()
+    {
+        var failingSender = new FailingEmailSenderStub();
+
+        var client = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton<IPasswordResetEmailSender>(failingSender);
+            });
+        }).CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+
+        var request = new ForgotPasswordRequestDto { Email = "student@zhongwenhub.edu.vn" };
+        var response = await client.PostAsJsonAsync("/api/v1/auth/forgot-password", request);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+}
+
+public class FailingEmailSenderStub : IPasswordResetEmailSender
+{
+    public Task SendPasswordResetEmailAsync(string toEmail, string resetToken, CancellationToken cancellationToken = default)
+    {
+        throw new System.Net.Mail.SmtpException("SMTP host connection refused. Mail service unreachable.");
+    }
 }
