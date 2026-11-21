@@ -4,6 +4,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { studentHomeworkService } from '../../homework/services/student-homework.service';
+import { practiceQuestionBankService } from '../../practice/services/practice-question-bank.service';
 
 function isIsolatedTestRuntime(): boolean {
   const procEnv = typeof globalThis !== 'undefined' ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env : undefined;
@@ -18,7 +19,7 @@ function isIsolatedTestRuntime(): boolean {
 interface ResultItem {
   id: string;
   title: string;
-  type: 'Bài tập về nhà' | 'Bài kiểm tra tuần' | 'Thi thử HSK';
+  type: 'Bài tập về nhà' | 'Bài kiểm tra tuần' | 'Thi thử HSK' | 'Luyện tập Ngân hàng';
   date: string;
   score: number;
   maxScore: number;
@@ -70,8 +71,11 @@ export const LearningResultsPage: React.FC = () => {
     let active = true;
     setIsLoading(true);
 
-    studentHomeworkService.getMyAssignments()
-      .then((assignments) => {
+    Promise.all([
+      studentHomeworkService.getMyAssignments().catch(() => []),
+      practiceQuestionBankService.getPracticeHistory(30).catch(() => []),
+    ])
+      .then(([assignments, practiceHistory]) => {
         if (!active) return;
         const graded = (assignments || [])
           .filter((a) => a.bestScore !== undefined || a.attemptsUsed > 0)
@@ -88,7 +92,18 @@ export const LearningResultsPage: React.FC = () => {
             passed: (a.bestScore ?? 0) >= (a.passingPoints || (a.totalPoints * 0.5)),
           }));
 
-        setResults(graded);
+        const practiceResults: ResultItem[] = (practiceHistory || []).map((p: any): ResultItem => ({
+          id: p.sessionId,
+          title: `Luyện tập thích ứng HSK ${p.hskLevel} · ${p.mode}`,
+          type: 'Luyện tập Ngân hàng',
+          date: p.completedAt ? new Date(p.completedAt).toLocaleDateString('vi-VN') : 'Gần đây',
+          score: p.correctCount,
+          maxScore: p.totalQuestions,
+          teacherFeedback: p.accuracy >= 80 ? 'Độ chính xác cao, kiến thức vững chắc!' : 'Cần lưu ý các câu làm sai để củng cố thêm.',
+          passed: p.accuracy >= 60,
+        }));
+
+        setResults([...graded, ...practiceResults]);
       })
       .catch(() => {
         if (!active) return;

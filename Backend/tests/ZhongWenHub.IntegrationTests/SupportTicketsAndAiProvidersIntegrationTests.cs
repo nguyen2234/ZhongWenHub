@@ -556,4 +556,38 @@ public class SupportTicketsAndAiProvidersIntegrationTests : IClassFixture<Custom
         var v1Decrypted = AiProviderConfigService.DecryptSecret(v1Payload, secret);
         Assert.Equal(rawKey, v1Decrypted);
     }
+
+    [Fact]
+    public async Task SupportTicket_Assign_Rejects_NonStaff_Assignee_FailClosed()
+    {
+        // 1. Create a ticket
+        var studentToken = await LoginAndGetTokenAsync("student@zhongwenhub.edu.vn", "StudentPassword123!");
+        using var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/support/tickets");
+        createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        createReq.Content = JsonContent.Create(new CreateTicketRequestDto
+        {
+            Subject = "Kiểm tra phân công nhân viên không hợp lệ",
+            Description = "Mô tả sự cố",
+            Category = "ACCOUNT",
+            Priority = "MEDIUM"
+        });
+        var createRes = await _client.SendAsync(createReq);
+        Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+        var created = await createRes.Content.ReadFromJsonAsync<TicketDetailDto>();
+        Assert.NotNull(created);
+
+        // 2. Support attempts to assign to a non-existent or student GUID
+        var supportToken = await LoginAndGetTokenAsync("support@zhongwenhub.edu.vn", "SupportPassword123!");
+        var invalidStaffGuid = Guid.NewGuid();
+        using var assignReq = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/support/tickets/{created.Id}/assign");
+        assignReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supportToken);
+        assignReq.Content = JsonContent.Create(new AssignTicketRequestDto { AssigneeId = invalidStaffGuid });
+        var assignRes = await _client.SendAsync(assignReq);
+
+        // Must reject with 400, 404 or 422 (fail-closed, not accepted)
+        Assert.True(assignRes.StatusCode == HttpStatusCode.NotFound ||
+                    assignRes.StatusCode == HttpStatusCode.BadRequest ||
+                    assignRes.StatusCode == HttpStatusCode.UnprocessableEntity,
+            $"Assigning ticket to non-staff user must be rejected, received {assignRes.StatusCode}");
+    }
 }

@@ -100,12 +100,13 @@ public static class DependencyInjection
                     }
 
                     var tokenStamp = context.Principal?.FindFirst("security_stamp")?.Value;
-                    if (!string.IsNullOrEmpty(user.SecurityStamp) &&
-                        !string.IsNullOrEmpty(tokenStamp) &&
-                        !string.Equals(tokenStamp, user.SecurityStamp, StringComparison.Ordinal))
+                    if (!string.IsNullOrEmpty(user.SecurityStamp))
                     {
-                        context.Fail("Phiên làm việc đã bị hủy do thay đổi trạng thái hoặc quyền tài khoản.");
-                        return;
+                        if (string.IsNullOrEmpty(tokenStamp) || !string.Equals(tokenStamp, user.SecurityStamp, StringComparison.Ordinal))
+                        {
+                            context.Fail("Phiên làm việc đã bị hủy do thay đổi trạng thái hoặc quyền tài khoản.");
+                            return;
+                        }
                     }
 
                     // Dynamically synchronize current active roles and permissions from database
@@ -124,10 +125,33 @@ public static class DependencyInjection
                         .Distinct()
                         .ToListAsync();
 
-                    // If user is Admin and no explicit RoleClaims exist in DB yet, assign all baseline permissions
-                    if (currentRoles.Any(r => string.Equals(r, RoleConstants.Admin, StringComparison.OrdinalIgnoreCase)) && !permissions.Any())
+                    var userClaims = await dbContext.UserClaims.AsNoTracking()
+                        .Where(uc => uc.UserId == userId && (uc.ClaimType == "permission" || uc.ClaimType == "Permission"))
+                        .Select(uc => uc.ClaimValue!)
+                        .Where(cv => !string.IsNullOrEmpty(cv))
+                        .ToListAsync();
+
+                    permissions = permissions.Concat(userClaims).Distinct().ToList();
+
+                    // If user has role but no explicit RoleClaims or UserClaims exist in DB yet, assign baseline defaults per role
+                    if (!permissions.Any())
                     {
-                        permissions = new List<string> { "ADMIN_ACCESS", "USER_VIEW", "USER_CREATE", "USER_UPDATE", "USER_ROLE_ASSIGN", "SYSTEM_SETTINGS_UPDATE", "CONTENT_VIEW", "REPORT_VIEW" };
+                        if (currentRoles.Any(r => string.Equals(r, RoleConstants.Admin, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            permissions.AddRange(["ADMIN_ACCESS", "USER_VIEW", "USER_CREATE", "USER_UPDATE", "USER_ROLE_ASSIGN", "SYSTEM_SETTINGS_UPDATE", "CONTENT_VIEW", "CONTENT_MANAGE", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_DELETE", "CONTENT_PUBLISH", "REPORT_VIEW"]);
+                        }
+                        else if (currentRoles.Any(r => string.Equals(r, RoleConstants.ContentManager, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            permissions.AddRange(["CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_DELETE", "CONTENT_PUBLISH", "CONTENT_APPROVE", "CONTENT_MANAGE", "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE"]);
+                        }
+                        else if (currentRoles.Any(r => string.Equals(r, RoleConstants.Teacher, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            permissions.AddRange(["TEACHER_VIEW", "CONTENT_VIEW", "ASSIGNMENT_VIEW", "ASSIGNMENT_CREATE", "ASSIGNMENT_GRADE", "REPORT_VIEW"]);
+                        }
+                        else if (currentRoles.Any(r => string.Equals(r, RoleConstants.Support, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            permissions.AddRange(["TICKET_VIEW", "TICKET_ASSIGN", "TICKET_REPLY", "TICKET_CLOSE", "CONTENT_ISSUE_VIEW"]);
+                        }
                     }
 
                     if (context.Principal?.Identity is ClaimsIdentity identity)
@@ -182,9 +206,88 @@ public static class DependencyInjection
 
             options.AddPolicy(PolicyConstants.ContentManagementAccess, policy =>
                 policy.RequireAssertion(ctx =>
+                {
+                    if (ctx.User.IsInRole(RoleConstants.Admin))
+                    {
+                        return true;
+                    }
+
+                    if (!ctx.User.IsInRole(RoleConstants.ContentManager))
+                    {
+                        return false;
+                    }
+
+                    // Strict protection: A user with ONLY CONTENT_VIEW is denied write/mutation access
+                    return ctx.User.HasClaim(c =>
+                        (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_MANAGE" || c.Value == "CONTENT_CREATE" || c.Value == "CONTENT_UPDATE" || c.Value == "CONTENT_DELETE" || c.Value == "CONTENT_PUBLISH"));
+                }));
+
+            options.AddPolicy(PolicyConstants.ContentCreateAccess, policy =>
+                policy.RequireAssertion(ctx =>
+                {
+                    if (ctx.User.IsInRole(RoleConstants.Admin))
+                        return true;
+
+                    if (!ctx.User.IsInRole(RoleConstants.ContentManager))
+                        return false;
+
+                    return ctx.User.HasClaim(c =>
+                        (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_CREATE" || c.Value == "CONTENT_MANAGE"));
+                }));
+
+            options.AddPolicy(PolicyConstants.ContentUpdateAccess, policy =>
+                policy.RequireAssertion(ctx =>
+                {
+                    if (ctx.User.IsInRole(RoleConstants.Admin))
+                        return true;
+
+                    if (!ctx.User.IsInRole(RoleConstants.ContentManager))
+                        return false;
+
+                    return ctx.User.HasClaim(c =>
+                        (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_UPDATE" || c.Value == "CONTENT_MANAGE"));
+                }));
+
+            options.AddPolicy(PolicyConstants.ContentDeleteAccess, policy =>
+                policy.RequireAssertion(ctx =>
+                {
+                    if (ctx.User.IsInRole(RoleConstants.Admin))
+                        return true;
+
+                    if (!ctx.User.IsInRole(RoleConstants.ContentManager))
+                        return false;
+
+                    // Crucially: CONTENT_CREATE or CONTENT_UPDATE alone CANNOT delete
+                    return ctx.User.HasClaim(c =>
+                        (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_DELETE" || c.Value == "CONTENT_ARCHIVE" || c.Value == "CONTENT_MANAGE"));
+                }));
+
+            options.AddPolicy(PolicyConstants.ContentPublishAccess, policy =>
+                policy.RequireAssertion(ctx =>
+                {
+                    if (ctx.User.IsInRole(RoleConstants.Admin))
+                        return true;
+
+                    if (!ctx.User.IsInRole(RoleConstants.ContentManager))
+                        return false;
+
+                    // Crucially: CONTENT_CREATE or CONTENT_UPDATE alone CANNOT publish
+                    return ctx.User.HasClaim(c =>
+                        (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_PUBLISH" || c.Value == "CONTENT_APPROVE" || c.Value == "CONTENT_MANAGE"));
+                }));
+
+            options.AddPolicy(PolicyConstants.ContentViewAccess, policy =>
+                policy.RequireAssertion(ctx =>
                     ctx.User.IsInRole(RoleConstants.Admin) ||
                     ctx.User.IsInRole(RoleConstants.ContentManager) ||
-                    ctx.User.HasClaim(c => (c.Type == "permission" || c.Type == "Permission") && c.Value == "CONTENT_VIEW")));
+                    ctx.User.IsInRole(RoleConstants.Teacher) ||
+                    ctx.User.HasClaim(c => (c.Type == "permission" || c.Type == "Permission") &&
+                        (c.Value == "CONTENT_VIEW" || c.Value == "CONTENT_MANAGE" || c.Value == "CONTENT_CREATE" || c.Value == "CONTENT_UPDATE" || c.Value == "CONTENT_PUBLISH"))));
 
             options.AddPolicy(PolicyConstants.TeacherAccess, policy =>
                 policy.RequireRole(RoleConstants.Admin, RoleConstants.Teacher));

@@ -545,7 +545,10 @@ class SupportTicketService {
   ): Promise<SupportTicket> {
     const guid = this.resolveTicketGuid(id);
     const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(assigneeIdOrName);
-    const assigneeGuid = isGuid ? assigneeIdOrName : '2f0e465e-4c87-4729-9043-e1280a38a181';
+    if (!isGuid) {
+      throw new Error('Định danh nhân viên phân công không hợp lệ. Vui lòng chọn nhân viên từ danh sách.');
+    }
+    const assigneeGuid = assigneeIdOrName;
     const res = await fetch(getApiUrl(`support/tickets/${guid}/assign`), {
       method: 'PATCH',
       headers: getAuthHeaders(),

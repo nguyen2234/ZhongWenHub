@@ -42,6 +42,8 @@ export const LearningGamesPage: React.FC = () => {
   const [combo, setCombo] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [persistStatus, setPersistStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [persistMessage, setPersistMessage] = useState<string | null>(null);
 
   useEffect(() => {
     httpClient
@@ -64,6 +66,25 @@ export const LearningGamesPage: React.FC = () => {
       })
       .catch(() => {});
   }, []);
+
+  const persistGameSession = async (finalScore: number, correctCount: number, xp: number) => {
+    setPersistStatus('saving');
+    try {
+      await httpClient.post('/learning/me/practice-sessions', {
+        sessionId: `game_matching_${Date.now()}`,
+        score: finalScore,
+        totalQuestions: 6,
+        correctCount,
+        xpAwarded: xp,
+        mode: 'game_matching',
+      });
+      setPersistStatus('saved');
+      setPersistMessage(`Đã ghi nhận điểm số và thưởng +${xp} XP vào tiến trình học tập của bạn.`);
+    } catch {
+      setPersistStatus('error');
+      setPersistMessage('Không thể đồng bộ điểm số với máy chủ. Vui lòng kiểm tra kết nối mạng.');
+    }
+  };
 
   // Initialize and shuffle cards
   const startNewGame = () => {
@@ -97,6 +118,8 @@ export const LearningGamesPage: React.FC = () => {
     setCombo(0);
     setTimeLeft(60);
     setIsGameOver(false);
+    setPersistStatus('idle');
+    setPersistMessage(null);
     setIsPlayingGame(true);
   };
 
@@ -108,13 +131,15 @@ export const LearningGamesPage: React.FC = () => {
         if (prev <= 1) {
           clearInterval(timer);
           setIsGameOver(true);
+          const earnedXp = Math.min(20, Math.max(5, Math.round(score / 100) * 3));
+          persistGameSession(score, Math.round(score / 100), earnedXp);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [isPlayingGame, isGameOver]);
+  }, [isPlayingGame, isGameOver, score]);
 
   const handleCardClick = (card: MatchCard) => {
     if (card.isMatched || card.isSelected || selectedCards.length >= 2) return;
@@ -142,6 +167,15 @@ export const LearningGamesPage: React.FC = () => {
             const allDone = current.every((c) => c.pairId === first.pairId || c.isMatched);
             if (allDone) {
               setIsGameOver(true);
+              const finalScore = score + 100 * (combo + 1);
+              httpClient.post('/learning/me/practice-sessions', {
+                sessionId: `game_matching_${Date.now()}`,
+                score: finalScore,
+                totalQuestions: 6,
+                correctCount: 6,
+                xpAwarded: 25,
+                mode: 'game_matching',
+              }).catch(() => {});
             }
             return current;
           });
@@ -460,6 +494,23 @@ export const LearningGamesPage: React.FC = () => {
                 {score} Điểm
               </div>
               <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Thưởng: +50 XP kinh nghiệm</div>
+              {persistStatus === 'saving' && (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: '#4338ca', fontWeight: 600 }}>
+                  Đang đồng bộ kết quả với máy chủ...
+                </div>
+              )}
+              {persistMessage && (
+                <div
+                  style={{
+                    marginTop: '8px',
+                    fontSize: '12px',
+                    color: persistStatus === 'error' ? '#dc2626' : '#16a34a',
+                    fontWeight: 600,
+                  }}
+                >
+                  {persistMessage}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

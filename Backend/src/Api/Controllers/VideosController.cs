@@ -105,7 +105,7 @@ public class VideosController : BaseApiController
     /// Lấy danh sách video quản trị (bao gồm Draft, Published, Hidden)
     /// </summary>
     [HttpGet("manage")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(PagedResponse<LearningVideoDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAdminVideos(
         [FromQuery] LearningVideoAdminQueryDto query,
@@ -119,7 +119,7 @@ public class VideosController : BaseApiController
     /// Lấy thông tin chi tiết video quản trị theo Id
     /// </summary>
     [HttpGet("manage/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(LearningVideoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAdminVideoById(
@@ -139,7 +139,7 @@ public class VideosController : BaseApiController
     /// Tạo mới một video học tập
     /// </summary>
     [HttpPost("manage")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(LearningVideoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateVideo(
@@ -165,7 +165,7 @@ public class VideosController : BaseApiController
     /// Cập nhật thông tin một video học tập
     /// </summary>
     [HttpPut("manage/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(LearningVideoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -197,7 +197,7 @@ public class VideosController : BaseApiController
     /// Đổi trạng thái xuất bản của video (Draft / Published / Hidden)
     /// </summary>
     [HttpPatch("manage/{id:guid}/status")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(LearningVideoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -225,7 +225,7 @@ public class VideosController : BaseApiController
     /// Xóa một video học tập và dọn dẹp an toàn tệp lưu trữ liên quan
     /// </summary>
     [HttpDelete("manage/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteVideo(
@@ -245,7 +245,7 @@ public class VideosController : BaseApiController
     /// Tải lên tệp video nhị phân (hỗ trợ MP4, WebM, QuickTime - tối đa 100MB)
     /// </summary>
     [HttpPost("manage/upload-video")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(104857600)]
     [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
@@ -290,7 +290,7 @@ public class VideosController : BaseApiController
     /// Tải lên ảnh đại diện thumbnail (hỗ trợ JPEG, PNG, WebP - tối đa 5MB)
     /// </summary>
     [HttpPost("manage/upload-thumbnail")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(5242880)]
     [RequestFormLimits(MultipartBodyLengthLimit = 5242880)]
@@ -335,7 +335,7 @@ public class VideosController : BaseApiController
     /// Tải lên tệp tài liệu PDF transcript (hỗ trợ PDF - tối đa 20MB)
     /// </summary>
     [HttpPost("manage/upload-transcript-pdf")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(20971520)]
     [RequestFormLimits(MultipartBodyLengthLimit = 20971520)]
@@ -380,7 +380,7 @@ public class VideosController : BaseApiController
     /// Lấy thông tin cấu hình và giới hạn lưu trữ video hiện tại
     /// </summary>
     [HttpGet("manage/storage-status")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(VideoStorageStatusDto), StatusCodes.Status200OK)]
     public IActionResult GetStorageStatus()
     {
@@ -392,7 +392,7 @@ public class VideosController : BaseApiController
     /// Danh sách các tác vụ dọn dẹp tệp lưu trữ đang chờ xử lý
     /// </summary>
     [HttpGet("manage/cleanups")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(IReadOnlyList<VideoStorageCleanupJob>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingCleanups(CancellationToken cancellationToken)
     {
@@ -404,7 +404,7 @@ public class VideosController : BaseApiController
     /// Kích hoạt thủ công tiến trình thử lại các tác vụ dọn dẹp thất bại
     /// </summary>
     [HttpPost("manage/cleanups/retry")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RetryCleanups(CancellationToken cancellationToken)
     {

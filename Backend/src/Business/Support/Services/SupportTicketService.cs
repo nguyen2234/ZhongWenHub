@@ -378,7 +378,17 @@ public class SupportTicketService : ISupportTicketService
         if (ticket == null) throw new KeyNotFoundException("Không tìm thấy báo cáo sự cố yêu cầu.");
 
         var assignee = await _dbContext.Users.FindAsync(new object[] { request.AssigneeId }, cancellationToken);
-        if (assignee == null) throw new KeyNotFoundException("Không tìm thấy nhân viên hỗ trợ được chỉ định.");
+        if (assignee == null || assignee.IsDeleted) throw new KeyNotFoundException("Không tìm thấy nhân viên hỗ trợ được chỉ định.");
+
+        var isStaff = await _dbContext.UserRoles.AsNoTracking()
+            .AnyAsync(ur => ur.UserId == assignee.Id &&
+                           _dbContext.Roles.Any(r => r.Id == ur.RoleId && (r.Name == RoleConstants.Support || r.Name == RoleConstants.Admin)),
+                      cancellationToken);
+
+        if (!isStaff)
+        {
+            throw new InvalidOperationException("Người dùng được chỉ định không phải là nhân viên hỗ trợ hợp lệ hoặc tài khoản đã bị vô hiệu hóa.");
+        }
 
         var now = DateTime.UtcNow;
         ticket.AssigneeId = assignee.Id;

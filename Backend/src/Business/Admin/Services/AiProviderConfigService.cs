@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Business.Admin.DTOs;
 using ZhongWenHub.Data.Entities.AI;
@@ -28,7 +29,8 @@ public class AiProviderConfigService : IAiProviderConfigService
     public AiProviderConfigService(
         ApplicationDbContext dbContext,
         IConfiguration configuration,
-        ILogger<AiProviderConfigService> logger)
+        ILogger<AiProviderConfigService> logger,
+        IHostEnvironment? hostEnvironment = null)
     {
         _dbContext = dbContext;
         _configuration = configuration;
@@ -36,7 +38,16 @@ public class AiProviderConfigService : IAiProviderConfigService
         var key = _configuration["AiSecurity:EncryptionKey"];
         if (string.IsNullOrWhiteSpace(key))
         {
-            key = _configuration["JwtSettings:Secret"];
+            key = Environment.GetEnvironmentVariable("AI_ENCRYPTION_KEY");
+        }
+        var isProduction = hostEnvironment != null
+            ? hostEnvironment.IsProduction()
+            : string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Production", StringComparison.OrdinalIgnoreCase) ||
+              string.Equals(_configuration["ASPNETCORE_ENVIRONMENT"], "Production", StringComparison.OrdinalIgnoreCase);
+
+        if (string.IsNullOrWhiteSpace(key) && isProduction)
+        {
+            throw new InvalidOperationException("AiSecurity:EncryptionKey must be configured in production via secret manager or environment variable.");
         }
         _encryptionSecret = !string.IsNullOrWhiteSpace(key) ? key : "ZhongWenHub_Development_Encryption_Fallback_Key_32B!";
     }
@@ -170,6 +181,7 @@ public class AiProviderConfigService : IAiProviderConfigService
         // Anti-DNS-rebinding SocketsHttpHandler with ConnectCallback
         using var handler = new SocketsHttpHandler
         {
+            UseProxy = false, // explicitly disable proxy to prevent SSRF bypass
             AllowAutoRedirect = false,
             ConnectTimeout = TimeSpan.FromSeconds(5),
             ConnectCallback = async (context, ct) =>
@@ -207,6 +219,18 @@ public class AiProviderConfigService : IAiProviderConfigService
         try
         {
             using var req = new HttpRequestMessage(HttpMethod.Head, entity.BaseUrl);
+            var apiKey = DecryptSecret(entity.EncryptedApiKey, _encryptionSecret);
+            if (!string.IsNullOrWhiteSpace(apiKey))
+            {
+                if (entity.ProviderCode == "gemini")
+                {
+                    req.Headers.TryAddWithoutValidation("x-goog-api-key", apiKey);
+                }
+                else
+                {
+                    req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                }
+            }
             var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             sw.Stop();
 
@@ -236,8 +260,8 @@ public class AiProviderConfigService : IAiProviderConfigService
                 Success = isSuccess,
                 LatencyMs = (int)sw.ElapsedMilliseconds,
                 Message = isSuccess
-                    ? $"Kết nối thành công (HTTP {statusCode}). Độ trễ: {sw.ElapsedMilliseconds}ms."
-                    : $"Kết nối thất bại (HTTP {statusCode} {resp.ReasonPhrase}).",
+                    ? $"Kết nối thành công (HTTP {statusCode}). Đã xác thực endpoint."
+                    : $"Kết nối thất bại (HTTP {statusCode} {resp.ReasonPhrase}). Trạng thái sức khỏe: {entity.HealthStatus}.",
                 CheckedAt = now
             };
         }
@@ -258,77 +282,6 @@ public class AiProviderConfigService : IAiProviderConfigService
                 CheckedAt = now
             };
         }
-    }
-
-    private async Task SeedDefaultProvidersAsync(CancellationToken cancellationToken)
-    {
-        var now = DateTime.UtcNow;
-        var seedList = new List<AiProviderConfigEntity>
-        {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                ProviderCode = "gemini",
-                DisplayName = "Google Gemini 2.5",
-                BaseUrl = "https://generativelanguage.googleapis.com",
-                ModelNamesJson = JsonSerializer.Serialize(new[] { "gemini-2.5-flash", "gemini-2.5-pro" }),
-                IsEnabled = true,
-                IsDefault = true,
-                MaskedApiKey = "AIzaSy...****89A",
-                EncryptedApiKey = EncryptSecret("AIzaSyFakeKey1234567890abcdef89A", _encryptionSecret),
-                MonthlyBudgetUsd = 150.00m,
-                CurrentUsageUsd = 24.50m,
-                RateLimitPerMinute = 120,
-                HealthStatus = "HEALTHY",
-                LatencyMs = 210,
-                LastCheckedAt = now,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                ProviderCode = "whisper-speech",
-                DisplayName = "Whisper-Large & FunASR Speech",
-                BaseUrl = "https://api.openai.com/v1",
-                ModelNamesJson = JsonSerializer.Serialize(new[] { "whisper-1", "funasr-speech-v1" }),
-                IsEnabled = true,
-                IsDefault = false,
-                MaskedApiKey = "sk-proj...****X9Z",
-                EncryptedApiKey = EncryptSecret("sk-projFakeSecretKey9876543210X9Z", _encryptionSecret),
-                MonthlyBudgetUsd = 80.00m,
-                CurrentUsageUsd = 12.80m,
-                RateLimitPerMinute = 60,
-                HealthStatus = "ONLINE",
-                LatencyMs = 340,
-                LastCheckedAt = now,
-                CreatedAt = now,
-                UpdatedAt = now
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                ProviderCode = "deepseek",
-                DisplayName = "DeepSeek Pedagogical Chat",
-                BaseUrl = "https://api.deepseek.com",
-                ModelNamesJson = JsonSerializer.Serialize(new[] { "deepseek-chat", "deepseek-reasoner" }),
-                IsEnabled = true,
-                IsDefault = false,
-                MaskedApiKey = "sk-dpsk...****M3C",
-                EncryptedApiKey = EncryptSecret("sk-dpskFakeKey456789123M3C", _encryptionSecret),
-                MonthlyBudgetUsd = 50.00m,
-                CurrentUsageUsd = 6.20m,
-                RateLimitPerMinute = 60,
-                HealthStatus = "ONLINE",
-                LatencyMs = 280,
-                LastCheckedAt = now,
-                CreatedAt = now,
-                UpdatedAt = now
-            }
-        };
-
-        _dbContext.AiProviderConfigs.AddRange(seedList);
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public static async Task ValidateBaseUrlSecurityAsync(string url)
@@ -377,11 +330,16 @@ public class AiProviderConfigService : IAiProviderConfigService
         {
             var b = ip.GetAddressBytes();
             if (b[0] == 0) return true; // 0.0.0.0/8
-            if (b[0] == 10) return true; // 10.0.0.0/8
-            if (b[0] == 127) return true; // 127.0.0.0/8
+            if (b[0] == 10) return true; // 10.0.0.0/8 Private
+            if (b[0] == 100 && b[1] >= 64 && b[1] <= 127) return true; // 100.64.0.0/10 Carrier-grade NAT (CGNAT)
+            if (b[0] == 127) return true; // 127.0.0.0/8 Loopback
             if (b[0] == 169 && b[1] == 254) return true; // 169.254.0.0/16 Link-local & Cloud Metadata
-            if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true; // 172.16.0.0/12
-            if (b[0] == 192 && b[1] == 168) return true; // 192.168.0.0/16
+            if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true; // 172.16.0.0/12 Private
+            if (b[0] == 192 && b[1] == 168) return true; // 192.168.0.0/16 Private
+            if (b[0] == 192 && b[1] == 0 && b[2] == 2) return true; // 192.0.2.0/24 TEST-NET-1
+            if (b[0] == 198 && (b[1] == 18 || b[1] == 19)) return true; // 198.18.0.0/15 Benchmark
+            if (b[0] == 198 && b[1] == 51 && b[2] == 100) return true; // 198.51.100.0/24 TEST-NET-2
+            if (b[0] == 203 && b[1] == 0 && b[2] == 113) return true; // 203.0.113.0/24 TEST-NET-3
             if (b[0] >= 224 && b[0] <= 239) return true; // Multicast
             if (b[0] >= 240) return true; // Reserved
             if (b[0] == 255 && b[1] == 255 && b[2] == 255 && b[3] == 255) return true; // Broadcast
@@ -390,6 +348,11 @@ public class AiProviderConfigService : IAiProviderConfigService
         {
             if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal || ip.IsIPv6Multicast || ip.IsIPv6UniqueLocal)
                 return true;
+            if (IPAddress.IPv6None.Equals(ip) || IPAddress.IPv6Loopback.Equals(ip) || IPAddress.IPv6Any.Equals(ip))
+                return true;
+            var bytes = ip.GetAddressBytes();
+            if ((bytes[0] & 0xfe) == 0xfc) return true; // fc00::/7 Unique Local Address
+            if (bytes[0] == 0x20 && bytes[1] == 0x01 && bytes[2] == 0x0d && bytes[3] == 0xb8) return true; // 2001:db8::/32 Documentation
         }
 
         return false;

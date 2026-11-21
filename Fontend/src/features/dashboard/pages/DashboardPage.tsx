@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useLearningState, HSK_CURRICULUM } from '../../learning';
 import { HSKLevel, ProgressBar, StickerIllustration } from '../../../design-system';
-import { DEMO_VIDEOS } from '../../videos';
+import { videoLearningService, type LearningVideo } from '../../videos';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import { useAuthContext } from '../../auth/context/AuthContext';
 import '../dashboard.css';
@@ -59,6 +59,28 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   } = useLearningState();
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [publishedVideos, setPublishedVideos] = useState<LearningVideo[]>([]);
+  const [isLoadingVideos, setIsLoadingVideos] = useState<boolean>(true);
+
+  useEffect(() => {
+    let active = true;
+    videoLearningService
+      .fetchVideos({ pageSize: 3 })
+      .then((res) => {
+        if (!active) return;
+        setPublishedVideos(Array.isArray(res?.items) ? res.items : []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setPublishedVideos([]);
+      })
+      .finally(() => {
+        if (active) setIsLoadingVideos(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Default to lesson 1 for new learners when currentLesson is not yet selected
   const defaultLesson = {
@@ -202,14 +224,37 @@ export const DashboardPage: React.FC<DashboardProps> = ({
     return map;
   }, [learningState.hskProgress, learningState.lessonProgress, learningState.completedLessonIds]);
 
-  // Featured word for today
-  const todayVocab = {
-    hanzi: '坚持',
-    pinyin: 'jiānchí',
-    meaning: 'Kiên trì, bền bỉ',
-    example: '只要坚持学习，就一定能学好中文。',
-    exampleMeaning: 'Chỉ cần kiên trì học tập, nhất định sẽ học giỏi tiếng Trung.',
-  };
+  // Dynamically resolve today's focus word from real user learning weaknesses or active lesson
+  const todayVocab = useMemo(() => {
+    const weakVocab = weakKnowledge.find((w) => w.category === 'vocabulary');
+    if (weakVocab) {
+      return {
+        hanzi: weakVocab.topicTitle,
+        pinyin: 'Điểm yếu cần củng cố',
+        meaning: `Độ chính xác: ${weakVocab.accuracy}% (${weakVocab.incorrectAttempts} lỗi gần đây)`,
+        example: 'Ôn tập từ vựng này ngay hôm nay để cải thiện điểm số.',
+        exampleMeaning: 'Nhấn Bắt đầu ôn tập bên dưới để làm bài luyện tập.',
+      };
+    }
+
+    if (activeDisplayLesson && activeDisplayLesson.hanzi) {
+      return {
+        hanzi: activeDisplayLesson.hanzi,
+        pinyin: activeDisplayLesson.pinyin || 'pīnyīn',
+        meaning: activeDisplayLesson.meaning || 'Từ vựng bài học hiện tại',
+        example: `Bài ${activeDisplayLesson.lessonNumber}: ${activeDisplayLesson.hanzi}`,
+        exampleMeaning: `Ý nghĩa bài học: ${activeDisplayLesson.meaning}`,
+      };
+    }
+
+    return {
+      hanzi: '你好',
+      pinyin: 'Nǐ hǎo',
+      meaning: 'Xin chào',
+      example: '你好！欢迎来到中文 Hub。',
+      exampleMeaning: 'Chào bạn! Chào mừng đến với ZhongWenHub.',
+    };
+  }, [weakKnowledge, activeDisplayLesson]);
 
   // Top weak grammar point if any
   const weakGrammar = weakKnowledge.find((w) => w.category === 'grammar');
@@ -570,30 +615,15 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
         </section>
 
-        {/* SECTION 4: HỌC QUA VIDEO (Video Learning with Clear Status) */}
+        {/* SECTION 4: HỌC QUA VIDEO (Video Learning with Real Published Data) */}
         <section aria-label="Học qua video">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Film size={20} style={{ color: 'var(--primary, #E60012)' }} />
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
-                    Học qua Video song ngữ
-                  </h2>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '2px 6px',
-                      borderRadius: '6px',
-                      backgroundColor: 'var(--primary-light, #FFF0F1)',
-                      color: 'var(--primary, #E60012)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Demo Dataset
-                  </span>
-                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#172033', margin: 0 }}>
+                  Học qua Video song ngữ
+                </h2>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 0 0' }}>
                   Xem clip bản xứ với phụ đề chữ Hán, Pinyin và giải nghĩa tiếng Việt tương tác.
                 </p>
@@ -621,109 +651,127 @@ export const DashboardPage: React.FC<DashboardProps> = ({
           </div>
 
           <div className="video-discovery-grid">
-            {DEMO_VIDEOS.slice(0, 3).map((video) => {
-              const isPlayable = Boolean(video.hasPlayableVideo && video.videoUrl);
-              return (
-                <div
-                  key={video.id}
-                  className="video-thumb-card"
-                  onClick={() => navigate(`/videos/${video.id}`)}
-                  tabIndex={0}
-                  role="button"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      navigate(`/videos/${video.id}`);
-                    }
-                  }}
-                >
-                  <div style={{ position: 'relative', width: '100%', height: '140px', backgroundColor: '#0f172a' }}>
-                    <img
-                      src={video.thumbnailUrl}
-                      alt={video.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isPlayable ? 0.9 : 0.75 }}
-                    />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        right: '8px',
-                        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                        color: '#ffffff',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      {video.durationLabel}
-                    </div>
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '8px',
-                        left: '8px',
-                        backgroundColor: isPlayable ? 'rgba(22, 163, 74, 0.95)' : 'rgba(230, 0, 18, 0.9)',
-                        color: '#ffffff',
-                        fontSize: '10px',
-                        fontWeight: 800,
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {isPlayable ? `HSK ${video.hskLevel} • Có video` : `HSK ${video.hskLevel} • Demo phụ đề`}
-                    </div>
-                  </div>
-
-                  <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <h3
+            {publishedVideos.length > 0 ? (
+              publishedVideos.slice(0, 3).map((video) => {
+                const isPlayable = Boolean(video.videoUrl || video.youtubeVideoId || video.storagePath);
+                return (
+                  <div
+                    key={video.id}
+                    className="video-thumb-card"
+                    onClick={() => navigate(`/videos/${video.id}`)}
+                    tabIndex={0}
+                    role="button"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/videos/${video.id}`);
+                      }
+                    }}
+                  >
+                    <div style={{ position: 'relative', width: '100%', height: '140px', backgroundColor: '#0f172a' }}>
+                      <img
+                        src={video.thumbnailUrl}
+                        alt={video.title}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isPlayable ? 0.9 : 0.75 }}
+                      />
+                      <div
                         style={{
-                          fontSize: '14px',
+                          position: 'absolute',
+                          bottom: '8px',
+                          right: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                          color: '#ffffff',
+                          fontSize: '11px',
                           fontWeight: 700,
-                          color: '#172033',
-                          margin: '0 0 4px 0',
-                          lineHeight: 1.35,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
                         }}
                       >
-                        {video.title}
-                      </h3>
-                      <p
+                        {video.durationFormatted || '00:00'}
+                      </div>
+                      <div
                         style={{
-                          fontFamily: 'var(--font-hanzi, "Noto Sans SC", sans-serif)',
-                          fontSize: '12px',
-                          color: 'var(--primary, #E60012)',
-                          margin: '0 0 8px 0',
-                          fontWeight: 600,
+                          position: 'absolute',
+                          top: '8px',
+                          left: '8px',
+                          backgroundColor: isPlayable ? 'rgba(22, 163, 74, 0.95)' : 'rgba(230, 0, 18, 0.9)',
+                          color: '#ffffff',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          textTransform: 'uppercase',
                         }}
                       >
-                        {video.chineseTitle}
-                      </p>
+                        {isPlayable ? `HSK ${video.hskLevel} • Có video` : `HSK ${video.hskLevel} • Có phụ đề`}
+                      </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>
-                        {video.viewCount} lượt xem (Demo)
-                      </span>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: isPlayable ? 'var(--primary, #E60012)' : '#64748b',
-                        }}
-                      >
-                        {isPlayable ? <Play size={12} fill="currentColor" /> : <VideoOff size={12} />}
-                        <span>{isPlayable ? 'Xem video' : 'Xem phụ đề'}</span>
-                      </span>
+                    <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <h3
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: '#172033',
+                            margin: '0 0 4px 0',
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {video.title}
+                        </h3>
+                        {video.topic && (
+                          <p
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--primary, #E60012)',
+                              margin: '0 0 8px 0',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {video.topic}
+                          </p>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                          {video.viewCount ?? 0} lượt học
+                        </span>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: isPlayable ? 'var(--primary, #E60012)' : '#64748b',
+                          }}
+                        >
+                          {isPlayable ? <Play size={12} fill="currentColor" /> : <VideoOff size={12} />}
+                          <span>{isPlayable ? 'Xem video' : 'Xem phụ đề'}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  padding: '32px 16px',
+                  textAlign: 'center',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1',
+                  color: '#64748b',
+                  fontSize: '13px',
+                }}
+              >
+                {isLoadingVideos ? 'Đang tải danh sách video...' : 'Chưa có video bài giảng được xuất bản trong kho.'}
+              </div>
+            )}
           </div>
         </section>
 

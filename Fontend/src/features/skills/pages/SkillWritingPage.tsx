@@ -5,6 +5,8 @@ import {
   Sparkles,
   CheckCircle2,
   ChevronRight,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { MOCK_WRITING_EXERCISES } from '../mock/mockSkillData';
 import { normalizeAnswerText } from '../../exercise-engine';
@@ -18,6 +20,8 @@ export const SkillWritingPage: React.FC = () => {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [availableWords, setAvailableWords] = useState<string[]>(sentenceEx.scrambledWords || []);
   const [sentenceSubmitted, setSentenceSubmitted] = useState(false);
+  const [persistStatus, setPersistStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [persistMessage, setPersistMessage] = useState<string | null>(null);
 
   // Character stroke state
   const [charList, setCharList] = useState<any[]>([MOCK_WRITING_EXERCISES[1]]);
@@ -67,10 +71,39 @@ export const SkillWritingPage: React.FC = () => {
     setSelectedWords([]);
     setAvailableWords(sentenceEx.scrambledWords || []);
     setSentenceSubmitted(false);
+    setPersistStatus('idle');
+    setPersistMessage(null);
   };
 
   const isSentenceCorrect =
     normalizeAnswerText(selectedWords.join('')) === normalizeAnswerText(sentenceEx.correctSentence);
+
+  const handleSubmitSentence = async () => {
+    if (availableWords.length > 0 || persistStatus === 'saving') return;
+    setPersistStatus('saving');
+    setPersistMessage(null);
+    try {
+      const xp = isSentenceCorrect ? 15 : 5;
+      await httpClient.post('/learning/me/practice-sessions', {
+        sessionId: `writing_${Date.now()}`,
+        score: isSentenceCorrect ? 100 : 0,
+        totalQuestions: 1,
+        correctCount: isSentenceCorrect ? 1 : 0,
+        xpAwarded: xp,
+        mode: 'writing_sentence',
+      });
+      setSentenceSubmitted(true);
+      setPersistStatus('saved');
+      setPersistMessage(
+        isSentenceCorrect
+          ? `Chính xác! Đã lưu kết quả thành công và thưởng +${xp} XP vào tiến trình.`
+          : 'Đã lưu kết quả luyện viết câu vào tiến trình học tập.'
+      );
+    } catch {
+      setPersistStatus('error');
+      setPersistMessage('Không thể đồng bộ kết quả làm bài với máy chủ. Vui lòng thử lại.');
+    }
+  };
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
@@ -238,6 +271,27 @@ export const SkillWritingPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Error notice if saving failed */}
+          {persistStatus === 'error' && (
+            <div
+              style={{
+                padding: '12px 16px',
+                borderRadius: '12px',
+                backgroundColor: '#fef2f2',
+                border: '1.5px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#dc2626',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
+            >
+              <AlertCircle size={16} />
+              <span>{persistMessage || 'Lỗi kết nối máy chủ. Vui lòng thử lại.'}</span>
+            </div>
+          )}
+
           {/* Result after submit */}
           {sentenceSubmitted && (
             <div
@@ -252,9 +306,14 @@ export const SkillWritingPage: React.FC = () => {
                 <CheckCircle2 size={18} />
                 <span>{isSentenceCorrect ? 'Chính xác! Câu hoàn chỉnh đúng ngữ pháp' : 'Chưa chuẩn xác, vui lòng thử lại!'}</span>
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: 'var(--font-hanzi)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: 'var(--font-hanzi)', marginBottom: '4px' }}>
                 Đáp án chuẩn: {sentenceEx.correctSentence}
               </div>
+              {persistMessage && (
+                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                  {persistMessage}
+                </div>
+              )}
             </div>
           )}
 
@@ -263,6 +322,7 @@ export const SkillWritingPage: React.FC = () => {
             <button
               type="button"
               onClick={handleResetSentence}
+              disabled={persistStatus === 'saving'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -274,7 +334,7 @@ export const SkillWritingPage: React.FC = () => {
                 color: '#64748b',
                 fontSize: '12px',
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: persistStatus === 'saving' ? 'not-allowed' : 'pointer',
               }}
             >
               <RotateCcw size={14} />
@@ -284,20 +344,24 @@ export const SkillWritingPage: React.FC = () => {
             {!sentenceSubmitted ? (
               <button
                 type="button"
-                onClick={() => setSentenceSubmitted(true)}
-                disabled={availableWords.length > 0}
+                onClick={handleSubmitSentence}
+                disabled={availableWords.length > 0 || persistStatus === 'saving'}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   padding: '10px 24px',
                   borderRadius: '10px',
                   border: 'none',
-                  backgroundColor: availableWords.length === 0 ? '#be123c' : '#cbd5e1',
+                  backgroundColor: availableWords.length === 0 && persistStatus !== 'saving' ? '#be123c' : '#cbd5e1',
                   color: '#ffffff',
                   fontSize: '13px',
                   fontWeight: 700,
-                  cursor: availableWords.length === 0 ? 'pointer' : 'not-allowed',
+                  cursor: availableWords.length === 0 && persistStatus !== 'saving' ? 'pointer' : 'not-allowed',
                 }}
               >
-                Kiểm tra câu
+                {persistStatus === 'saving' && <Loader2 size={14} className="animate-spin" />}
+                <span>{persistStatus === 'saving' ? 'Đang lưu kết quả...' : 'Kiểm tra câu'}</span>
               </button>
             ) : (
               <button
