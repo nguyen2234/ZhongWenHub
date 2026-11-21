@@ -67,7 +67,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPost("courses")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -81,7 +81,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("courses/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] UpdateCourseDto dto, CancellationToken cancellationToken)
@@ -97,7 +97,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpDelete("courses/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCourse(Guid id, CancellationToken cancellationToken)
@@ -143,7 +143,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPost("units")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(UnitDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateUnit([FromBody] CreateUnitDto dto, CancellationToken cancellationToken)
@@ -162,7 +162,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("units/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(UnitDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUnit(Guid id, [FromBody] UpdateUnitDto dto, CancellationToken cancellationToken)
@@ -178,7 +178,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpDelete("units/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -236,7 +236,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPost("lessons")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateLesson([FromBody] CreateLessonDto dto, CancellationToken cancellationToken)
@@ -256,7 +256,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("lessons/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -281,7 +281,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpGet("lessons/readiness")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(CoursePublicationReadinessDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCourseLessonsReadiness(
@@ -298,7 +298,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPost("lessons/batch-review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchReviewLessons(
@@ -312,7 +312,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpGet("lessons/{id:guid}/release-readiness")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(LessonReleaseReadinessDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLessonReleaseReadiness(Guid id, CancellationToken cancellationToken)
@@ -326,7 +326,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("lessons/{id:guid}/status")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -355,7 +355,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpPut("lessons/{id:guid}/review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(LessonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -384,7 +384,7 @@ public class ContentController : BaseApiController
     }
 
     [HttpDelete("lessons/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -446,7 +446,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies")]
     [HttpPost("/api/v1/admin/vocabularies")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateVocabulary([FromBody] CreateVocabularyDto dto, CancellationToken cancellationToken)
@@ -466,7 +466,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("vocabularies/{id:guid}")]
     [HttpPut("/api/v1/admin/vocabularies/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -491,7 +491,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/import-csv")]
     [HttpPost("/api/v1/admin/vocabularies/import-csv")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(50 * 1024 * 1024)]
@@ -528,7 +528,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/import-preview")]
     [HttpPost("/api/v1/admin/vocabularies/import-preview")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(50 * 1024 * 1024)]
@@ -541,7 +541,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("vocabularies/import-template")]
     [HttpGet("/api/v1/admin/vocabularies/import-template")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> DownloadVocabularyExcelTemplate(CancellationToken cancellationToken)
     {
@@ -554,7 +554,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("vocabularies/export-excel")]
     [HttpGet("/api/v1/admin/vocabularies/export-excel")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> ExportVocabulariesExcel(
         [FromQuery] int? hskLevel = null,
@@ -575,7 +575,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/import-excel/preview")]
     [HttpPost("/api/v1/admin/vocabularies/import-excel/preview")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(50 * 1024 * 1024)]
@@ -588,7 +588,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/import-excel")]
     [HttpPost("/api/v1/admin/vocabularies/import-excel")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(VocabularyImportResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(50 * 1024 * 1024)]
@@ -625,7 +625,7 @@ public class ContentController : BaseApiController
 
     [HttpDelete("vocabularies/{id:guid}")]
     [HttpDelete("/api/v1/admin/vocabularies/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteVocabulary(Guid id, CancellationToken cancellationToken)
@@ -640,7 +640,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/batch-publish")]
     [HttpPost("/api/v1/admin/vocabularies/batch-publish")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchPublishResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchPublishVocabularies(
@@ -658,7 +658,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/batch-update-meanings")]
     [HttpPost("/api/v1/admin/vocabularies/batch-update-meanings")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(BatchUpdateMeaningsResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchUpdateMeanings(
@@ -676,7 +676,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("vocabularies/{id:guid}/review")]
     [HttpPut("/api/v1/admin/vocabularies/{id:guid}/review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(VocabularyDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -709,7 +709,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("vocabularies/batch-review")]
     [HttpPost("/api/v1/admin/vocabularies/batch-review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchReviewVocabularies(
@@ -755,7 +755,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("grammar/stats")]
     [HttpGet("/api/v1/admin/grammar/stats")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(AdminGrammarStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetGrammarStats(CancellationToken cancellationToken)
     {
@@ -781,7 +781,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("grammar")]
     [HttpPost("/api/v1/admin/grammar")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(GrammarPointDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateGrammarPoint([FromBody] CreateGrammarPointDto dto, CancellationToken cancellationToken)
     {
@@ -793,7 +793,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("grammar/{id:guid}")]
     [HttpPut("/api/v1/admin/grammar/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(GrammarPointDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateGrammarPoint(Guid id, [FromBody] UpdateGrammarPointDto dto, CancellationToken cancellationToken)
@@ -810,7 +810,7 @@ public class ContentController : BaseApiController
 
     [HttpDelete("grammar/{id:guid}")]
     [HttpDelete("/api/v1/admin/grammar/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteGrammarPoint(Guid id, CancellationToken cancellationToken)
@@ -825,7 +825,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("grammar/{id:guid}/review")]
     [HttpPut("/api/v1/admin/grammar/{id:guid}/review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(GrammarPointDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -858,7 +858,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("grammar/batch-review")]
     [HttpPost("/api/v1/admin/grammar/batch-review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchReviewResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchReviewGrammarPoints(
@@ -881,7 +881,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("grammar/batch-publish")]
     [HttpPost("/api/v1/admin/grammar/batch-publish")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchPublishResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BatchPublishGrammarPoints(
@@ -925,7 +925,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("exercises/stats")]
     [HttpGet("/api/v1/admin/exercises/stats")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(AdminExerciseStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetExerciseStats(CancellationToken cancellationToken)
     {
@@ -951,7 +951,7 @@ public class ContentController : BaseApiController
 
     [HttpPost("exercises")]
     [HttpPost("/api/v1/admin/exercises")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(ExerciseDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateExercise([FromBody] CreateExerciseDto dto, CancellationToken cancellationToken)
     {
@@ -963,7 +963,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("exercises/{id:guid}")]
     [HttpPut("/api/v1/admin/exercises/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(ExerciseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateExercise(Guid id, [FromBody] UpdateExerciseDto dto, CancellationToken cancellationToken)
@@ -980,7 +980,7 @@ public class ContentController : BaseApiController
 
     [HttpDelete("exercises/{id:guid}")]
     [HttpDelete("/api/v1/admin/exercises/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -1022,7 +1022,7 @@ public class ContentController : BaseApiController
 
     [HttpGet("characters/stats")]
     [HttpGet("/api/v1/admin/characters/stats")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(AdminHanziStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHanziStats(CancellationToken cancellationToken)
     {
@@ -1047,7 +1047,7 @@ public class ContentController : BaseApiController
 
     [HttpPut("characters/{id:guid}")]
     [HttpPut("/api/v1/admin/characters/{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(HanziCharacterDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

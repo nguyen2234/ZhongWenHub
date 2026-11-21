@@ -81,6 +81,7 @@ export interface ContentIssueActivity {
 
 export interface ContentIssue {
   id: string; // e.g. 'ISS-2026-001'
+  backendGuid?: string;
   title: string;
   description: string;
   issueType: ContentIssueType;

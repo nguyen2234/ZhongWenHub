@@ -1,0 +1,124 @@
+name: Fullstack E2E & SQL Integration CI
+
+on:
+  pull_request:
+    paths:
+      - 'Backend/**'
+      - 'Fontend/**'
+      - '.github/workflows/fullstack-e2e-integration.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-and-e2e:
+    name: SQL Integration & Playwright E2E Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'YourStrong!Passw0rd'
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      ConnectionStrings__DefaultConnection: "Server=127.0.0.1,1433;Database=ZhongWenHub_Test;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true;"
+      ConnectionStrings__TestConnection: "Server=127.0.0.1,1433;Database=ZhongWenHub_Test;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true;"
+      ASPNETCORE_ENVIRONMENT: "Testing"
+      AI_ENCRYPTION_KEY: "ZhongWenHub_Testing_Managed_Key_32ByteLength!"
+      AiSecurity__EncryptionKey: "ZhongWenHub_Testing_Managed_Key_32ByteLength!"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Frontend Dependencies
+        working-directory: Fontend
+        run: bun install --frozen-lockfile
+
+      - name: Preflight Database Identity Verification (Zero-Write Guard) & Container DB Init
+        run: |
+          echo "Verifying target database identity..."
+          echo "Connection String targets Database=ZhongWenHub_Test"
+          if [[ "${{ env.ConnectionStrings__DefaultConnection }}" == *"ZhongWenHub_Dev"* ]]; then
+            echo "FATAL ERROR: Target connection points to ZhongWenHub_Dev! Aborting immediately."
+            exit 1
+          fi
+          echo "Database guard PASSED: ZhongWenHub_Dev is strictly protected from CI writes."
+
+          CONTAINER_ID=$(docker ps -q --filter ancestor=mcr.microsoft.com/mssql/server:2022-latest)
+          echo "Target SQL Container ID: $CONTAINER_ID"
+          docker exec $CONTAINER_ID /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -C -Q "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'ZhongWenHub_Test') CREATE DATABASE ZhongWenHub_Test;"
+          echo "SQL Server Database ZhongWenHub_Test initialized successfully."
+
+      - name: Run Backend SQL Server Integration Tests
+        run: |
+          dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj \
+            --configuration Release \
+            --verbosity normal \
+            --logger "trx;LogFileName=integration_tests.trx"
+
+      - name: Install Playwright Browsers
+        working-directory: Fontend
+        run: bunx playwright install --with-deps chromium
+
+      - name: Start Backend ASP.NET Core API Server
+        run: |
+          dotnet run --project Backend/src/Api --configuration Release --urls "http://127.0.0.1:5000" &
+          echo "Waiting for Backend API to become healthy..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:5000/api/v1/system/database-environment | grep -q "ZhongWenHub_Test"; then
+              echo "Backend API is UP and connected to ZhongWenHub_Test!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Start Frontend Vite Dev Server
+        working-directory: Fontend
+        run: |
+          bun run dev -- --host 127.0.0.1 --port 5173 &
+          echo "Waiting for Frontend to respond..."
+          for i in {1..20}; do
+            if curl -s http://127.0.0.1:5173 | grep -q "html"; then
+              echo "Frontend is UP on http://127.0.0.1:5173!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run Playwright E2E Tests (Cross-Role Portal Suite)
+        working-directory: Fontend
+        run: |
+          bunx playwright test e2e/be-2-auth-rbac.spec.ts e2e/fe-10-acceptance.spec.ts e2e/fe-13-4-cross-portal-workflows.spec.ts --project=desktop-1440
+
+      - name: Upload Playwright Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-e2e-report
+          path: |
+            Fontend/playwright-report/
+            Fontend/test-results/
+          retention-days: 14

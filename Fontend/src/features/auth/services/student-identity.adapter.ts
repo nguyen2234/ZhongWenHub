@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { MOCK_STUDENTS_STORE, type MockStudentUser } from '../../../management/teacher/data/mockTeacherPortalData';
 import { teacherPortalService } from '../../../management/teacher/services/teacher-portal.service';
 import { managementAuthService } from '../../../management/shared/services/management-auth.service';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+import { defaultApiConfig, isProductionEnvironment } from '../../../core/api/client/api-config';
 
 /**
  * ============================================================================
@@ -25,43 +27,57 @@ const STORAGE_KEY = 'zh_active_student_id';
 
 let inMemoryActiveStudentId: string | null = null;
 
-/**
- * Returns the currently active student identity record.
- */
-export function getCurrentStudentIdentity(): MockStudentUser & {
+export type StudentIdentity = MockStudentUser & {
   enrolledClassIds: string[];
   activeClassIds: string[];
   fullName: string;
-} {
-  let activeId: string | null = inMemoryActiveStudentId;
+};
 
-  // 1. If no explicit in-memory student set, check authoritative session
-  if (!activeId) {
-    try {
-      const session = managementAuthService.getSession();
-      if (session && session.id) {
-        // Only use session if it's a student or a custom authenticated user (not a pure staff/management session)
-        const isManagementStaff = ['ADMIN', 'TEACHER', 'CONTENT_MANAGER', 'SUPPORT'].includes(session.role);
-        if (!isManagementStaff || session.role === 'STUDENT') {
-          activeId = session.id;
+/**
+ * Returns the currently active student identity record, or null if unauthenticated.
+ * In production mode or when unauthenticated, strictly returns null and never resurrects demo student.
+ */
+export function getCurrentStudentIdentity(): StudentIdentity | null {
+  const isProd = isProductionEnvironment();
+  const session = managementAuthService.getSession();
+  const hasAuthToken = authTokenService.isAuthenticated();
+
+  let activeId: string | null = null;
+
+  // 1. Authoritative check: management session (populated by login / AuthContext)
+  if (session && session.id) {
+    const isManagementStaff = ['ADMIN', 'TEACHER', 'CONTENT_MANAGER', 'SUPPORT'].includes(session.role);
+    if (!isManagementStaff || session.role === 'STUDENT') {
+      activeId = session.id;
+    }
+  }
+
+  // 2. In-memory override (e.g. set by setDevStudentIdentity during login or test fixtures)
+  if (!activeId && inMemoryActiveStudentId) {
+    // In production, only accept in-memory student if a valid auth token is active
+    if (!isProd || hasAuthToken) {
+      activeId = inMemoryActiveStudentId;
+    }
+  }
+
+  // 3. Fallback for non-production development/mock mode only
+  // NEVER use localStorage as independent auth proof in production.
+  if (!activeId && !isProd && defaultApiConfig.useMock) {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+        if (saved && saved.trim()) {
+          activeId = saved.trim();
         }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
     }
   }
 
-  // 2. Check localStorage if still not resolved
-  if (!activeId && typeof window !== 'undefined' && window.localStorage) {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved && saved.trim()) {
-      activeId = saved.trim();
-    }
-  }
-
-  // 3. Fallback to default demo student if unauthenticated/unselected
+  // 4. If unauthenticated, return null. NEVER fall back to demo student.
   if (!activeId) {
-    activeId = DEFAULT_DEMO_STUDENT_ID;
+    return null;
   }
 
   // Check if activeId is one of the mock students in teacher portal
@@ -77,7 +93,6 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
   }
 
   // Real or registered custom user session
-  const session = managementAuthService.getSession();
   return {
     id: activeId,
     name: session?.name || 'Học viên',
@@ -99,8 +114,13 @@ export function setDevStudentIdentity(studentId: string): void {
   const cleanId = studentId.trim();
   inMemoryActiveStudentId = cleanId;
 
-  if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.setItem(STORAGE_KEY, cleanId);
+  // Only persist to localStorage in non-production/mock environments
+  if (!isProductionEnvironment() && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, cleanId);
+    } catch {
+      // ignore
+    }
   }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('zh_student_identity_changed', { detail: { studentId: cleanId } }));
@@ -113,7 +133,11 @@ export function setDevStudentIdentity(studentId: string): void {
 export function clearStudentIdentity(): void {
   inMemoryActiveStudentId = null;
   if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.removeItem(STORAGE_KEY);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   }
   teacherPortalService.clearEnrolledClassesCache();
   if (typeof window !== 'undefined') {
@@ -132,19 +156,20 @@ export function getAllAvailableStudents(): MockStudentUser[] {
  * React hook to access current student identity and reactive class enrollments.
  */
 export function useCurrentStudent() {
-  const [identity, setIdentity] = useState(getCurrentStudentIdentity);
+  const [identity, setIdentity] = useState<StudentIdentity | null>(getCurrentStudentIdentity);
 
   useEffect(() => {
     let isCancelled = false;
 
-    const fetchRealEnrollments = async (current: ReturnType<typeof getCurrentStudentIdentity>) => {
+    const fetchRealEnrollments = async (current: StudentIdentity | null) => {
+      if (!current || !current.id) return;
       const isMockStudent = MOCK_STUDENTS_STORE.some((s) => s.id === current.id);
       if (!isMockStudent && current.id) {
         try {
           const classIds = await teacherPortalService.getActiveClassIdsForStudentAsync(current.id);
           if (!isCancelled) {
             setIdentity((prev) => {
-              if (prev.id !== current.id) return prev;
+              if (!prev || prev.id !== current.id) return prev;
               return {
                 ...prev,
                 enrolledClassIds: classIds,
@@ -183,11 +208,11 @@ export function useCurrentStudent() {
 
   return {
     student: identity,
-    studentId: identity.id,
-    studentName: identity.name,
-    studentEmail: identity.email,
-    avatarUrl: identity.avatarUrl,
-    enrolledClassIds: identity.enrolledClassIds,
+    studentId: identity?.id ?? null,
+    studentName: identity?.name ?? null,
+    studentEmail: identity?.email ?? null,
+    avatarUrl: identity?.avatarUrl,
+    enrolledClassIds: identity?.enrolledClassIds ?? [],
     switchStudent,
   };
 }

@@ -14,6 +14,7 @@ using ZhongWenHub.Business.Teacher.Services;
 namespace ZhongWenHub.Api.Controllers;
 
 [ApiController]
+[Route("")]
 [Authorize(Policy = PolicyConstants.TeacherAccess)]
 public class TeacherAssignmentsController : BaseApiController
 {
@@ -265,9 +266,10 @@ public class TeacherAssignmentsController : BaseApiController
     /// Lấy chi tiết bài nộp của học sinh (đáp án, điểm, câu tự luận cần chấm)
     /// </summary>
     [HttpGet("api/v1/teacher/submissions/{id:guid}")]
+    [HttpGet("api/v1/teacher/assignments/{assignmentId:guid}/submissions/{id:guid}")]
     [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetSubmissionDetail(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetSubmissionDetail(Guid id, [FromRoute] Guid? assignmentId, CancellationToken cancellationToken)
     {
         try
         {
@@ -293,10 +295,11 @@ public class TeacherAssignmentsController : BaseApiController
     /// Giáo viên chấm điểm và ghi nhận xét cho bài nộp của học sinh
     /// </summary>
     [HttpPost("api/v1/teacher/submissions/{id:guid}/grade")]
+    [HttpPost("api/v1/teacher/assignments/{assignmentId:guid}/submissions/{id:guid}/grade")]
     [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GradeSubmission(Guid id, [FromBody] GradeSubmissionDto dto, CancellationToken cancellationToken)
+    public async Task<IActionResult> GradeSubmission(Guid id, [FromRoute] Guid? assignmentId, [FromBody] GradeSubmissionDto dto, CancellationToken cancellationToken)
     {
         try
         {

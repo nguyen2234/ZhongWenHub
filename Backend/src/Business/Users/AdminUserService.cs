@@ -1335,6 +1335,74 @@ public class AdminUserService : IAdminUserService
 
     }
 
+    public async Task<(bool Success, string? ErrorMessage, int StatusCode)> UpdateRolePermissionsAsync(
+        string roleName,
+        List<string> permissions,
+        Guid currentUserId,
+        string? ipAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var role = await _roleManager.FindByNameAsync(roleName);
+        if (role == null)
+        {
+            return (false, $"Không tìm thấy vai trò '{roleName}'.", 404);
+        }
+
+        var isActorAdmin = await IsActorAdminAsync(currentUserId);
+        if (!isActorAdmin)
+        {
+            return (false, "Bạn không có quyền chỉnh sửa phân quyền vai trò.", 403);
+        }
+
+        // Self-escalation / Critical Permissions Protection for ADMIN role
+        if (string.Equals(role.Name, RoleConstants.Admin, StringComparison.OrdinalIgnoreCase))
+        {
+            var criticalPermissions = new[] { "ADMIN_ACCESS", "USER_ROLE_ASSIGN", "USER_VIEW" };
+            var missingCritical = criticalPermissions.Where(cp => !permissions.Any(p => string.Equals(p, cp, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (missingCritical.Any())
+            {
+                return (false, $"Không thể thu hồi các quyền quản trị tối quan trọng của vai trò ADMIN: {string.Join(", ", missingCritical)}.", 400);
+            }
+        }
+
+        // Remove existing permission claims for this role
+        var existingClaims = await _dbContext.RoleClaims
+            .Where(rc => rc.RoleId == role.Id && (rc.ClaimType == "permission" || rc.ClaimType == "Permission"))
+            .ToListAsync(cancellationToken);
+
+        _dbContext.RoleClaims.RemoveRange(existingClaims);
+
+        // Add updated permission claims
+        foreach (var p in permissions.Where(p => !string.IsNullOrWhiteSpace(p)).Distinct())
+        {
+            _dbContext.RoleClaims.Add(new Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>
+            {
+                RoleId = role.Id,
+                ClaimType = "permission",
+                ClaimValue = p.Trim()
+            });
+        }
+
+        // Invalidate SecurityStamp for all users in this role to force token refresh / permission revalidation
+        var usersInRole = await (from ur in _dbContext.UserRoles
+                                 join u in _dbContext.Users on ur.UserId equals u.Id
+                                 where ur.RoleId == role.Id
+                                 select u).ToListAsync(cancellationToken);
+
+        foreach (var u in usersInRole)
+        {
+            u.SecurityStamp = Guid.NewGuid().ToString();
+            u.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await RecordAuditAsync(currentUserId, null, "ROLE_PERMISSIONS_UPDATED", ipAddress, null, true,
+            $"Cập nhật phân quyền vai trò {role.Name}: [{string.Join(", ", permissions)}]", cancellationToken);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (true, null, 200);
+    }
+
 
 
     public async Task<List<AdminRoleItemDto>> GetRolesSummaryAsync(CancellationToken cancellationToken = default)
@@ -1361,6 +1429,15 @@ public class AdminUserService : IAdminUserService
 
 
 
+        var roleClaims = await _dbContext.RoleClaims
+            .AsNoTracking()
+            .Where(rc => rc.ClaimType == "permission")
+            .ToListAsync(cancellationToken);
+
+        var claimsByRole = roleClaims
+            .GroupBy(rc => rc.RoleId)
+            .ToDictionary(g => g.Key, g => g.Select(rc => rc.ClaimValue ?? string.Empty).Where(p => !string.IsNullOrEmpty(p)).ToList());
+
         var result = new List<AdminRoleItemDto>();
 
         foreach (var role in dbRoles)
@@ -1369,7 +1446,9 @@ public class AdminUserService : IAdminUserService
 
             var count = userCountsByRole.TryGetValue(role.Id, out var c) ? c : 0;
 
-            var permissions = GetDefaultPermissionsForRole(role.Name ?? string.Empty);
+            var permissions = claimsByRole.TryGetValue(role.Id, out var customPerms) && customPerms.Count > 0
+                ? customPerms
+                : GetDefaultPermissionsForRole(role.Name ?? string.Empty);
 
 
 
@@ -1504,8 +1583,6 @@ public class AdminUserService : IAdminUserService
         return (true, null, 200);
 
     }
-
-
 
     private static List<string> GetDefaultPermissionsForRole(string roleName)
 

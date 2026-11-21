@@ -11,7 +11,11 @@ import type {
 } from '../../lesson/types/lesson-progress.types';
 import type { PracticeSessionResult } from '../../practice/types';
 import type { SRSRating } from '../../vocabulary/types';
-import { learningStorageService, getLocalDateString } from './learning-storage.service';
+import {
+  learningStorageService,
+  getLocalDateString,
+  createEmptyStudentLearningState,
+} from './learning-storage.service';
 import { analyzeWeakKnowledge } from './weak-knowledge.service';
 import { generateRecommendations } from './recommendation.service';
 import { awardIdempotentXp, updateLearningStreak, recordStudyTime } from './learning-activity.service';
@@ -30,14 +34,18 @@ export class LearningStateService {
   private activeState: StudentLearningState;
   private listeners: Set<(state: StudentLearningState) => void> = new Set();
 
-  constructor(initialStudentId: string = 'usr-st-01') {
-    this.activeState = learningStorageService.loadLearningState(initialStudentId);
+  constructor(initialStudentId: string | null = null) {
+    if (initialStudentId && initialStudentId.trim()) {
+      this.activeState = learningStorageService.loadLearningState(initialStudentId.trim());
+    } else {
+      this.activeState = createEmptyStudentLearningState('');
+    }
     this.refreshCalculatedFields();
 
     // Listen for storage events (e.g., other tabs or dev student changes)
     if (typeof window !== 'undefined') {
       window.addEventListener('zwh_learning_state_updated', (e: any) => {
-        if (e.detail?.studentId === this.activeState.studentId) {
+        if (e.detail?.studentId && e.detail.studentId === this.activeState.studentId) {
           this.activeState = e.detail.state;
           this.notifyListeners();
         }
@@ -79,16 +87,32 @@ export class LearningStateService {
   }
 
   /**
-   * Switch the active student identity
+   * Switch the active student identity.
+   * If studentId is null, empty or unauthenticated, resets active state to clean empty state.
    */
-  public switchStudent(studentId: string): StudentLearningState {
-    this.activeState = learningStorageService.loadLearningState(studentId);
+  public switchStudent(studentId?: string | null): StudentLearningState {
+    if (!studentId || !studentId.trim()) {
+      this.activeState = createEmptyStudentLearningState('');
+      this.refreshCalculatedFields();
+      this.notifyListeners();
+      return this.getState();
+    }
+
+    const cleanId = studentId.trim();
+    this.activeState = learningStorageService.loadLearningState(cleanId);
     this.refreshCalculatedFields();
     this.notifyListeners();
-    if (learningApiService.isRealUser(studentId)) {
+    if (learningApiService.isRealUser(cleanId)) {
       this.syncWithServer();
     }
     return this.getState();
+  }
+
+  /**
+   * Reset active state to clean empty unauthenticated state.
+   */
+  public resetState(): void {
+    this.switchStudent(null);
   }
 
   /**

@@ -113,6 +113,44 @@ public class TeacherClassServiceTests
     }
 
     [Fact]
+    public async Task UpdateClassSchedulesAsync_LeavesAttendanceWhenReplacingItsSchedule()
+    {
+        await using var dbContext = CreateInMemoryDbContext();
+        var teacherId = Guid.NewGuid();
+        var service = new TeacherClassService(
+            dbContext, new FakeCurrentUserService { UserId = teacherId }, NullLogger<TeacherClassService>.Instance);
+        var created = await service.CreateClassAsync(new CreateTeachingClassDto
+        {
+            Name = "Lớp kiểm thử",
+            Code = "CLS-ATTENDANCE",
+            HskLevelId = "level-hsk-1",
+            Capacity = 10,
+            StartDate = DateTime.UtcNow,
+            Schedules = [new() { DayOfWeek = "MONDAY", StartTime = "19:00", EndTime = "20:30" }],
+        });
+        var original = await dbContext.TeachingClassSchedules.SingleAsync();
+        var attendance = new TeachingClassAttendance
+        {
+            ClassId = created.Id,
+            ScheduleId = original.Id,
+            StudentId = Guid.NewGuid(),
+            RecordedByTeacherId = teacherId,
+            AttendanceDate = DateTime.UtcNow.Date,
+        };
+        dbContext.TeachingClassAttendances.Add(attendance);
+        await dbContext.SaveChangesAsync();
+        dbContext.ChangeTracker.Clear();
+
+        await service.UpdateClassSchedulesAsync(created.Id,
+            [new() { DayOfWeek = "FRIDAY", StartTime = "19:00", EndTime = "20:30" }]);
+
+        Assert.Equal("FRIDAY", (await dbContext.TeachingClassSchedules.SingleAsync()).DayOfWeek);
+        var retained = await dbContext.TeachingClassAttendances.SingleAsync();
+        Assert.Equal(attendance.Id, retained.Id);
+        Assert.Null(retained.ScheduleId);
+    }
+
+    [Fact]
     public async Task CreateClassAsync_DuplicateCode_ThrowsInvalidOperationException()
     {
         using var dbContext = CreateInMemoryDbContext();

@@ -381,4 +381,177 @@ public class RbacAuthorizationIntegrationTests : IClassFixture<CustomWebApplicat
         var endRes = await aiClient.SendAsync(endReq);
         Assert.Equal(HttpStatusCode.NotFound, endRes.StatusCode);
     }
+
+    [Fact]
+    public async Task ContentPolicy_RoleClaimsInSql_EnforcesSegregationOfDuties_CreateOnlyCannotDeleteOrPublish()
+    {
+        var adminToken = await GetTokenForUserAsync("admin@gmail.com", "admin");
+        string? courseId = null;
+
+        try
+        {
+            // 1. Admin configures RoleClaims in SQL: CONTENT_MANAGER has ONLY CONTENT_CREATE and CONTENT_VIEW
+            using var setPermsReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/users/roles/CONTENT_MANAGER/permissions");
+            setPermsReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            setPermsReq.Content = JsonContent.Create(new
+            {
+                permissions = new List<string> { "CONTENT_CREATE", "CONTENT_VIEW" }
+            });
+            var setPermsRes = await _client.SendAsync(setPermsReq);
+            Assert.Equal(HttpStatusCode.OK, setPermsRes.StatusCode);
+
+            // 2. ContentManager logs in and acquires new JWT token
+            var cmToken = await GetTokenForUserAsync("contentmanager@zhongwenhub.edu.vn", "ContentManager123!");
+
+            // 3. ContentManager CAN CREATE a course (has CONTENT_CREATE)
+            using var createCourseReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/courses");
+            createCourseReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            createCourseReq.Content = JsonContent.Create(new
+            {
+                code = "HSK2-M1-" + Guid.NewGuid().ToString("N")[..6],
+                hskLevel = 2,
+                title = "Khóa học thử nghiệm phân quyền RBAC M1",
+                description = "Kiểm tra quyền tạo",
+                estimatedWeeks = 8,
+                levelLabel = "HSK 2 Sơ Cấp",
+                isActive = true
+            });
+            var createCourseRes = await _client.SendAsync(createCourseReq);
+            Assert.Equal(HttpStatusCode.Created, createCourseRes.StatusCode);
+
+            var createdCourse = await createCourseRes.Content.ReadFromJsonAsync<JsonElement>();
+            courseId = createdCourse.GetProperty("id").GetString()!;
+
+            // 4. ContentManager CANNOT DELETE course (lacks CONTENT_DELETE / CONTENT_MANAGE) -> 403 Forbidden
+            using var deleteCourseReq = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/content/courses/{courseId}");
+            deleteCourseReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            var deleteCourseRes = await _client.SendAsync(deleteCourseReq);
+            Assert.Equal(HttpStatusCode.Forbidden, deleteCourseRes.StatusCode);
+
+            // 5. ContentManager CANNOT PUBLISH/REVIEW lesson (lacks CONTENT_PUBLISH / CONTENT_MANAGE) -> 403 Forbidden
+            using var publishReq = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/content/lessons/{Guid.NewGuid()}/status");
+            publishReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            publishReq.Content = JsonContent.Create(new { status = "PUBLISHED" });
+            var publishRes = await _client.SendAsync(publishReq);
+            Assert.Equal(HttpStatusCode.Forbidden, publishRes.StatusCode);
+        }
+        finally
+        {
+            // Clean up the created test course to prevent polluting test database for subsequent assertions
+            if (!string.IsNullOrEmpty(courseId))
+            {
+                using var cleanupScope = _factory.Services.CreateScope();
+                var cleanupDb = cleanupScope.ServiceProvider.GetRequiredService<ZhongWenHub.Data.Persistence.ApplicationDbContext>();
+                var courseToDelete = await cleanupDb.Courses.FindAsync(Guid.Parse(courseId));
+                if (courseToDelete != null)
+                {
+                    cleanupDb.Courses.Remove(courseToDelete);
+                    await cleanupDb.SaveChangesAsync();
+                }
+            }
+
+            // Restore baseline permissions for CONTENT_MANAGER in SQL
+            using var restoreReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/users/roles/CONTENT_MANAGER/permissions");
+            restoreReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            restoreReq.Content = JsonContent.Create(new
+            {
+                permissions = new List<string>
+                {
+                    "CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_DELETE",
+                    "CONTENT_PUBLISH", "CONTENT_APPROVE", "CONTENT_MANAGE",
+                    "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE"
+                }
+            });
+            await _client.SendAsync(restoreReq);
+        }
+    }
+
+    [Fact]
+    public async Task ContentPolicy_ViewOnlyInSql_StrictlyRejectsMutations()
+    {
+        var adminToken = await GetTokenForUserAsync("admin@gmail.com", "admin");
+
+        try
+        {
+            // 1. Admin revokes all write permissions: CONTENT_MANAGER only has CONTENT_VIEW in SQL
+            using var setPermsReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/users/roles/CONTENT_MANAGER/permissions");
+            setPermsReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            setPermsReq.Content = JsonContent.Create(new
+            {
+                permissions = new List<string> { "CONTENT_VIEW" }
+            });
+            var setPermsRes = await _client.SendAsync(setPermsReq);
+            Assert.Equal(HttpStatusCode.OK, setPermsRes.StatusCode);
+
+            // 2. ContentManager logs in
+            var cmToken = await GetTokenForUserAsync("contentmanager@zhongwenhub.edu.vn", "ContentManager123!");
+
+            // 3. View-only ContentManager CAN READ courses
+            using var readReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/content/courses");
+            readReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            var readRes = await _client.SendAsync(readReq);
+            Assert.Equal(HttpStatusCode.OK, readRes.StatusCode);
+
+            // 4. View-only ContentManager CANNOT CREATE courses -> 403 Forbidden
+            using var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/content/courses");
+            createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+            createReq.Content = JsonContent.Create(new
+            {
+                code = "HSK1-VIEW-" + Guid.NewGuid().ToString("N")[..6],
+                hskLevel = 1,
+                title = "Attempted write by view-only CM",
+                description = "Should be rejected",
+                estimatedWeeks = 4,
+                levelLabel = "HSK 1",
+                isActive = true
+            });
+            var createRes = await _client.SendAsync(createReq);
+            Assert.Equal(HttpStatusCode.Forbidden, createRes.StatusCode);
+        }
+        finally
+        {
+            // Restore baseline permissions
+            using var restoreReq = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/users/roles/CONTENT_MANAGER/permissions");
+            restoreReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+            restoreReq.Content = JsonContent.Create(new
+            {
+                permissions = new List<string>
+                {
+                    "CONTENT_VIEW", "CONTENT_CREATE", "CONTENT_UPDATE", "CONTENT_DELETE",
+                    "CONTENT_PUBLISH", "CONTENT_APPROVE", "CONTENT_MANAGE",
+                    "QUESTION_BANK_VIEW", "QUESTION_BANK_CREATE", "QUESTION_BANK_UPDATE"
+                }
+            });
+            await _client.SendAsync(restoreReq);
+        }
+    }
+
+    [Fact]
+    public async Task SecurityStamp_SessionRevocation_ImmediatelyRejectsRevokedToken()
+    {
+        // 1. Student logs in and receives valid access token
+        var studentToken = await GetTokenForUserAsync("student@zhongwenhub.edu.vn", "StudentPassword123!");
+
+        // 2. Token works initially for authenticated endpoint
+        using var validReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/learning/me");
+        validReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        var validRes = await _client.SendAsync(validReq);
+        Assert.Equal(HttpStatusCode.OK, validRes.StatusCode);
+
+        // 3. Rotate SecurityStamp in database directly (simulating password reset or admin token invalidation)
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ZhongWenHub.Data.Persistence.ApplicationDbContext>();
+            var studentUser = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstAsync(
+                db.Users, u => u.Email == "student@zhongwenhub.edu.vn");
+            studentUser.SecurityStamp = Guid.NewGuid().ToString();
+            await db.SaveChangesAsync();
+        }
+
+        // 4. Same token now fails validation with 401 Unauthorized
+        using var revokedReq = new HttpRequestMessage(HttpMethod.Get, "/api/v1/learning/me");
+        revokedReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        var revokedRes = await _client.SendAsync(revokedReq);
+        Assert.Equal(HttpStatusCode.Unauthorized, revokedRes.StatusCode);
+    }
 }

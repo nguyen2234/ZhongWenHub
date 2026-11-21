@@ -15,6 +15,7 @@ namespace ZhongWenHub.Business.Content;
 
 public class ContentService : IContentService
 {
+    private static readonly JsonSerializerOptions LessonPresentationJsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ApplicationDbContext _dbContext;
 
     public ContentService(ApplicationDbContext dbContext)
@@ -435,6 +436,7 @@ public class ContentService : IContentService
         var items = await query
             .OrderBy(l => l.OrderIndex)
             .ThenBy(l => l.LessonNumber)
+            .ThenBy(l => l.Id)
             .Skip((pageClamped - 1) * pageSizeClamped)
             .Take(pageSizeClamped)
             .Select(l => new LessonDto
@@ -529,6 +531,7 @@ public class ContentService : IContentService
                 PromptVietnamese = e.PromptVietnamese,
                 AudioUrl = e.AudioUrl,
                 OptionsJson = e.OptionsJson,
+                LessonPresentationJson = e.LessonPresentationJson,
                 CorrectOptionIndex = e.CorrectOptionIndex,
                 CorrectAnswer = e.CorrectAnswer,
                 Explanation = e.Explanation,
@@ -770,6 +773,7 @@ public class ContentService : IContentService
         }
 
         lesson.UpdatedByUserId = currentUserId;
+        lesson.UpdatedAt = DateTime.UtcNow;
         if (dto.DialogueJson != null)
         {
             lesson.DialogueJson = dto.DialogueJson;
@@ -861,23 +865,54 @@ public class ContentService : IContentService
 
         if (dto.LinkedExerciseIds != null)
         {
+            var desiredIds = dto.LinkedExerciseIds.ToHashSet();
+            var edits = dto.ExerciseEdits ?? [];
+            if (edits.Any(edit => edit.Id == Guid.Empty || !desiredIds.Contains(edit.Id))
+                || edits.Select(edit => edit.Id).Distinct().Count() != edits.Count)
+            {
+                throw new InvalidOperationException("Danh sách bài tập chỉnh sửa không khớp với các bài tập của bài học.");
+            }
+
             var existingExercises = await _dbContext.Exercises
                 .Where(e => e.LessonId == id)
                 .ToListAsync(cancellationToken);
             foreach (var e in existingExercises)
             {
-                if (!dto.LinkedExerciseIds.Contains(e.Id))
+                if (!desiredIds.Contains(e.Id))
                 {
                     e.LessonId = null;
                 }
             }
 
             var toLinkExercises = await _dbContext.Exercises
-                .Where(e => dto.LinkedExerciseIds.Contains(e.Id))
-                .ToListAsync(cancellationToken);
-            foreach (var e in toLinkExercises)
+                .Where(e => desiredIds.Contains(e.Id))
+                .ToDictionaryAsync(e => e.Id, cancellationToken);
+            foreach (var edit in edits)
             {
-                e.LessonId = id;
+                if (!toLinkExercises.TryGetValue(edit.Id, out var exercise))
+                {
+                    if (!edit.IsNew || edit.Content == null)
+                    {
+                        throw new InvalidOperationException("Bài tập vừa chỉnh sửa không còn tồn tại. Hãy tải lại bài học.");
+                    }
+                    exercise = new ExerciseEntity { Id = edit.Id, Status = "DRAFT", LessonId = id };
+                    _dbContext.Exercises.Add(exercise);
+                    toLinkExercises.Add(edit.Id, exercise);
+                }
+                else if (exercise.LessonId.HasValue && exercise.LessonId != id)
+                {
+                    throw new InvalidOperationException("Bài tập vừa chỉnh sửa không còn thuộc bài học này. Hãy tải lại bài học.");
+                }
+
+                ApplyLessonExerciseEdit(exercise, edit, lesson.Course?.HskLevel ?? 1);
+            }
+            if (toLinkExercises.Count != desiredIds.Count)
+            {
+                throw new InvalidOperationException("Một bài tập được chọn không còn tồn tại. Hãy tải lại bài học.");
+            }
+            foreach (var exercise in toLinkExercises.Values)
+            {
+                exercise.LessonId = id;
             }
         }
 
@@ -903,6 +938,37 @@ public class ContentService : IContentService
             CreatedAt = lesson.CreatedAt,
             UpdatedAt = lesson.UpdatedAt
         };
+    }
+
+    private static void ApplyLessonExerciseEdit(ExerciseEntity exercise, LessonExerciseEditDto edit, int hskLevel)
+    {
+        exercise.LessonPresentationJson = JsonSerializer.Serialize(edit.Presentation, LessonPresentationJsonOptions);
+        exercise.UpdatedAt = DateTime.UtcNow;
+        if (edit.Content is not { } content)
+        {
+            return;
+        }
+
+        exercise.Type = content.Type;
+        exercise.Skill = content.Skill;
+        exercise.HskLevel = hskLevel;
+        exercise.Title = content.Title.Trim();
+        exercise.Instruction = content.Instruction.Trim();
+        exercise.PromptHanzi = content.PromptHanzi?.Trim();
+        exercise.PromptPinyin = content.PromptPinyin?.Trim();
+        exercise.PromptVietnamese = content.PromptVietnamese?.Trim();
+        exercise.AudioUrl = content.AudioUrl?.Trim();
+        exercise.OptionsJson = content.OptionsJson;
+        exercise.CorrectOptionIndex = content.CorrectOptionIndex;
+        exercise.CorrectAnswer = content.CorrectAnswer?.Trim();
+        exercise.Explanation = content.Explanation?.Trim();
+        exercise.XpReward = content.XpReward;
+        exercise.Status = "DRAFT";
+        exercise.ReviewStatus = "DRAFT";
+        exercise.ReviewedByUserId = null;
+        exercise.ReviewedAt = null;
+        exercise.QualityScore = null;
+        exercise.ContentHash = null;
     }
 
     public async Task<LessonReleaseReadinessDto?> GetLessonReleaseReadinessAsync(Guid lessonId, CancellationToken cancellationToken = default)

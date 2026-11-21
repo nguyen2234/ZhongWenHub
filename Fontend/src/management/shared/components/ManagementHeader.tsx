@@ -11,11 +11,13 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   CheckCheck,
+  LifeBuoy,
 } from 'lucide-react';
 import type { UserRole } from '../../../types';
 import { authService } from '../../../features/auth/services/authService';
 import { useAuthContext } from '../../../features/auth/context/AuthContext';
 import { PortalSwitcher, getActivePortalLabel } from './PortalSwitcher';
+import { ReportIncidentModal } from '../../../features/support/components/ReportIncidentModal';
 
 export interface ManagementHeaderProps {
   currentRole: UserRole;
@@ -39,6 +41,7 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
   const { user } = useAuthContext();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const userInitials = (userName || 'U')
     .trim()
@@ -229,6 +232,29 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           RIGHT: ENVIRONMENT BADGE, SEARCH, NOTIFICATIONS, USER MENU
           ===================================================================== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+
+        {/* Quick Report Issue Button */}
+        <button
+          type="button"
+          onClick={() => setIsReportModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '5px 10px',
+            backgroundColor: '#fff7ed',
+            border: '1px solid #fed7aa',
+            borderRadius: 'var(--radius-full)',
+            color: '#c2410c',
+            fontSize: '11.5px',
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+          title="Báo cáo sự cố hệ thống hoặc khiếu nại"
+        >
+          <LifeBuoy size={14} />
+          <span>Báo sự cố</span>
+        </button>
 
         {/* Search Shortcut */}
         <div
@@ -687,6 +713,9 @@ export const ManagementHeader: React.FC<ManagementHeaderProps> = ({
           }
         }
       `}</style>
+
+      {/* Global Incident & Support Ticket Modal */}
+      <ReportIncidentModal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} />
     </header>
   );
 };

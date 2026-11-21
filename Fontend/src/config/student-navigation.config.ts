@@ -26,6 +26,7 @@ import {
   Gamepad2,
   MessageSquare,
   Mail,
+  LifeBuoy,
 } from 'lucide-react';
 
 export interface SecondaryFeatureItem {
@@ -335,6 +336,13 @@ export const ACCOUNT_MENU_ITEMS = [
     label: 'Lớp học của tôi',
     icon: Users,
     description: 'Lớp học & giáo viên hướng dẫn',
+  },
+  {
+    id: 'reports',
+    path: '/my-reports',
+    label: 'Sự cố & Khiếu nại',
+    icon: LifeBuoy,
+    description: 'Theo dõi phản ánh & hỗ trợ',
   },
 ];
 

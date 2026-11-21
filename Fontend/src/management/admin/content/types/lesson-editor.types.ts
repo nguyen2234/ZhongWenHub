@@ -146,6 +146,7 @@ export interface LessonEditorDraft {
   lessonId: string;
   unitId: string;
   lessonNumber: number;
+  orderIndex?: number;
   status: ContentStatus;
   intro: LessonIntroData;
   vocabularies: LessonVocabularyItem[];

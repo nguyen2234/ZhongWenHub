@@ -4,6 +4,7 @@ import { adaptEditorDraftToDetailDTO } from '../adapters/lesson-player.adapter';
 import { lesson8Data } from '../data/lesson8';
 import { httpClient } from '../../../core/api/client/http-client';
 import { adaptBackendExerciseToShared } from '../../exercise-engine';
+import { orderLessonExercises } from '../../exercise-engine/utils/lesson-exercises';
 
 /**
  * Service for fetching normalized lesson content (LessonDetailDTO).
@@ -173,22 +174,16 @@ class LessonContentService {
       : [];
 
     const exercises = Array.isArray(live.exercises)
-      ? live.exercises.map((e: any, idx: number, arr: any[]) => {
+      ? orderLessonExercises<any>(live.exercises).map(({ exercise: e, presentation }) => {
           const shared = adaptBackendExerciseToShared(e);
-          // Allocate trailing MCQ exercises to Mini Quiz when DB exercises don't separate section,
-          // so Step 7 QuizStep delivers real assessment questions and non-empty practice steps.
-          const hasExplicitQuiz = arr.some((item) => item.section === 'QUIZ');
-          const quizStartIdx = arr.length >= 4 ? arr.length - 2 : arr.length >= 2 ? arr.length - 1 : arr.length;
-          const section: 'PRACTICE' | 'QUIZ' = hasExplicitQuiz
-            ? (e.section === 'QUIZ' ? 'QUIZ' : 'PRACTICE')
-            : (idx >= quizStartIdx ? 'QUIZ' : 'PRACTICE');
 
           return {
             id: e.id,
             lessonId: live.id,
             exerciseId: e.id,
-            section,
-            displayOrder: idx + 1,
+            section: presentation.section,
+            displayOrder: presentation.displayOrder,
+            points: presentation.points,
             exercise: {
               id: String(shared.id),
               type: shared.type,
@@ -200,8 +195,8 @@ class LessonContentService {
               audioUrl: shared.audioUrl,
               options: shared.options || [],
               correctOptionIndex: shared.correctOptionIndex ?? 0,
-              matchingPairs: shared.matchingPairs,
-              sentenceTokens: shared.sentenceTokens,
+              matchingPairs: presentation.matchingPairs ?? shared.matchingPairs,
+              sentenceTokens: presentation.sentenceTokens ?? shared.sentenceTokens,
               correctSentence: shared.correctSentence,
               explanation: shared.explanation,
               xpReward: shared.xpReward,

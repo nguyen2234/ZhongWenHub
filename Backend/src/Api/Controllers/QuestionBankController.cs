@@ -58,7 +58,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpGet("stats")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(QuestionBankStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStats(CancellationToken cancellationToken = default)
     {
@@ -78,7 +78,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(QuestionBankItemDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
@@ -98,7 +98,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(QuestionBankItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -121,7 +121,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -140,7 +140,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("check-duplicates")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(CheckDuplicatesResultDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CheckDuplicates(
         [FromBody] CheckDuplicatesRequestDto dto,
@@ -151,7 +151,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("import")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(ImportQuestionsResultDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> ImportQuestions(
         [FromBody] ImportQuestionsRequestDto dto,
@@ -163,7 +163,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpGet("export")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(List<QuestionBankItemDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ExportQuestions(
         [FromQuery] int? hskLevel,
@@ -179,7 +179,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("generate")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(GenerateQuestionsResultDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GenerateQuestions(
         [FromBody] GenerateQuestionsRequestDto dto,
@@ -191,7 +191,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("{id:guid}/review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(QuestionBankItemDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> ReviewQuestion(
         Guid id,
@@ -213,7 +213,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("batch-review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchActionResultDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> BatchReview(
         [FromBody] BatchReviewQuestionsRequestDto dto,
@@ -226,7 +226,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("{id:guid}/publish")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(QuestionBankItemDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> PublishQuestion(
         Guid id,
@@ -247,7 +247,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("batch-publish")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BatchActionResultDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> BatchPublish(
         [FromBody] List<Guid> questionIds,
@@ -260,7 +260,7 @@ public class QuestionBankController : BaseApiController
     }
 
     [HttpPost("administrative-approval/bulk")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(BulkAdministrativeApprovalResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BulkAdministrativeApprove(

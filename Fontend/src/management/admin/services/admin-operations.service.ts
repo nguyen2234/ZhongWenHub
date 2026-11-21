@@ -65,6 +65,45 @@ export interface SystemSettings {
   lastUpdatedAt?: string;
 }
 
+export interface AiProviderConfig {
+  id: string;
+  providerType: string;
+  name: string;
+  baseUrl?: string | null;
+  maskedApiKey?: string | null;
+  defaultModel?: string | null;
+  isEnabled: boolean;
+  priority: number;
+  lastPingStatus?: string | null;
+  lastPingLatencyMs?: number | null;
+  lastPingAt?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface CreateAiProviderPayload {
+  providerType: string;
+  name: string;
+  baseUrl?: string;
+  apiKey?: string;
+  defaultModel?: string;
+  priority?: number;
+}
+
+export interface AiProviderTestResult {
+  success: boolean;
+  latencyMs?: number;
+  message?: string;
+}
+
+export interface ApiEndpointItem {
+  method: string;
+  route: string;
+  action: string;
+  controller: string;
+  roles: string;
+}
+
 class AdminOperationsService {
   private getHeaders(): Record<string, string> {
     const token = authTokenService.getAccessToken();
@@ -131,6 +170,87 @@ class AdminOperationsService {
     }
 
     return await res.json();
+  }
+
+  public async getAiProviders(): Promise<AiProviderConfig[]> {
+    try {
+      const res = await fetch(getApiUrl('admin/operations/ai-providers'), {
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  public async createAiProvider(payload: CreateAiProviderPayload): Promise<AiProviderConfig> {
+    const res = await fetch(getApiUrl('admin/operations/ai-providers'), {
+      method: 'POST',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || `Tạo AI Provider thất bại (HTTP ${res.status}).`);
+    }
+
+    return await res.json();
+  }
+
+  public async toggleAiProvider(id: string, isEnabled: boolean): Promise<AiProviderConfig> {
+    const res = await fetch(getApiUrl(`admin/operations/ai-providers/${id}/toggle`), {
+      method: 'PATCH',
+      headers: this.getHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ isEnabled }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.detail || err?.message || `Chuyển trạng thái AI Provider thất bại.`);
+    }
+
+    return await res.json();
+  }
+
+  public async testAiProviderConnection(id: string): Promise<AiProviderTestResult> {
+    try {
+      const res = await fetch(getApiUrl(`admin/operations/ai-providers/${id}/test`), {
+        method: 'POST',
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        return {
+          success: false,
+          message: err?.detail || err?.message || `Kiểm tra thất bại (HTTP ${res.status})`,
+        };
+      }
+      return await res.json();
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Không thể kết nối đến máy chủ',
+      };
+    }
+  }
+
+  public async getApiRegistry(): Promise<ApiEndpointItem[]> {
+    try {
+      const res = await fetch(getApiUrl('admin/operations/api-registry'), {
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
   }
 }
 

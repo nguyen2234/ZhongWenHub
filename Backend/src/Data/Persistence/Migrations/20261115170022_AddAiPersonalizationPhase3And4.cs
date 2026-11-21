@@ -66,8 +66,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         name: "FK_personalized_learning_paths_student_learning_goals_GoalId",
                         column: x => x.GoalId,
                         principalTable: "student_learning_goals",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_personalized_learning_paths_users_UserId",
                         column: x => x.UserId,
@@ -105,8 +104,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                         name: "FK_daily_learning_tasks_personalized_learning_paths_LearningPathId",
                         column: x => x.LearningPathId,
                         principalTable: "personalized_learning_paths",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_daily_learning_tasks_users_UserId",
                         column: x => x.UserId,

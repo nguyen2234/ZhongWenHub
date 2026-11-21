@@ -51,7 +51,7 @@ export interface LearningStateContextType {
   addVocabularyWord: (payload: AddVocabularyPayload) => AddVocabularyResult;
   isVocabularySaved: (vocabularyIdOrHanzi: string) => boolean;
   resetDemoProgress: () => void;
-  switchStudent: (studentId: string) => void;
+  switchStudent: (studentId?: string | null) => void;
   syncWithServer?: () => Promise<StudentLearningState>;
 }
 
@@ -59,10 +59,13 @@ const LearningStateContext = createContext<LearningStateContextType | null>(null
 
 export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { studentId } = useCurrentStudent();
-  const [state, setState] = useState<StudentLearningState>(() => learningStateService.getState());
+  const [state, setState] = useState<StudentLearningState>(() => {
+    return studentId ? learningStateService.getState() : learningStateService.switchStudent(null);
+  });
 
   // Keep state synced with service subscriptions and active student changes
   useEffect(() => {
+    // When studentId is null/undefined (unauthenticated), switchStudent(null) resets to clean empty state
     learningStateService.switchStudent(studentId);
     setState(learningStateService.getState());
 
@@ -139,7 +142,7 @@ export const LearningStateProvider: React.FC<{ children: React.ReactNode }> = ({
     learningStateService.resetDemoProgress();
   }, []);
 
-  const switchStudent = useCallback((newStudentId: string) => {
+  const switchStudent = useCallback((newStudentId?: string | null) => {
     learningStateService.switchStudent(newStudentId);
   }, []);
 

@@ -165,10 +165,28 @@ class RolePermissionService {
    * Cập nhật danh sách quyền cho vai trò
    * ADMIN là vai trò bất biến toàn quyền, không bị sửa đổi
    */
-  updateRolePermissions(roleCode: SystemRoleCode, permissions: string[]): RoleDetail {
+  async updateRolePermissions(roleCode: SystemRoleCode, permissions: string[]): Promise<RoleDetail> {
     if (roleCode === 'ADMIN') {
       const adminRole = this.getRoleByCode('ADMIN')!;
       return adminRole;
+    }
+
+    const token = authTokenService.getAccessToken();
+    if (token) {
+      const res = await fetch(getApiUrl(`admin/users/roles/${roleCode}/permissions`), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ permissions }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.detail || errData?.message || 'Không thể lưu phân quyền vai trò trên máy chủ.');
+      }
     }
 
     const index = INITIAL_ROLES.findIndex((r) => r.code === roleCode);
@@ -210,6 +228,9 @@ class RolePermissionService {
           if (found) {
             found.userCount = r.userCount ?? found.userCount;
             if (r.description) found.description = r.description;
+            if (Array.isArray(r.permissions) && r.permissions.length > 0) {
+              found.permissions = [...r.permissions];
+            }
           }
         });
       }

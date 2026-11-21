@@ -34,6 +34,7 @@ import { LeaderboardPage } from '../../features/leaderboard/pages/LeaderboardPag
 import { AchievementsPage } from '../../features/achievements/pages/AchievementsPage';
 import { ProfilePage } from '../../features/profile/pages/ProfilePage';
 import { SettingsPage } from '../../features/settings/pages/SettingsPage';
+import { MyReportsPage } from '../../features/support/pages/MyReportsPage';
 import { VideoLibraryPage, VideoDetailPage } from '../../features/videos';
 import { AuthenticatedRouteGuard } from '../../features/auth';
 
@@ -239,6 +240,10 @@ export const studentRoutes: RouteObject[] = [
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: 'my-reports',
+        element: <MyReportsPage />,
       },
 
       // HỆ THỐNG

@@ -117,7 +117,7 @@ export const EscalateIssueModal: React.FC<EscalateIssueModalProps> = ({
                 Chuyển tiếp báo lỗi học liệu (Content Manager)
               </h3>
               <span style={{ fontSize: '11.5px', color: 'var(--muted)' }}>
-                Tạo hồ sơ lỗi trực tiếp vào cổng Quản lý học liệu từ vé {ticket.id}
+                Tạo hồ sơ lỗi trực tiếp vào cổng Quản lý học liệu từ vé {ticket.ticketNumber || ticket.id}
               </span>
             </div>
           </div>

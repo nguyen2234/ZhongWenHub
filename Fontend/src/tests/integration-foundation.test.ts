@@ -177,9 +177,9 @@ describe('Pre-Phase 2B.1 Integration Foundation Tests', () => {
     const defaultStudent = getCurrentStudentIdentity();
     setDevStudentIdentity('usr-st-10');
     const switchedStudent = getCurrentStudentIdentity();
-    setDevStudentIdentity(defaultStudent.id); // restore
+    setDevStudentIdentity(defaultStudent!.id); // restore
 
-    expect(defaultStudent.id).toBe('usr-st-01');
-    expect(switchedStudent.id).toBe('usr-st-10');
+    expect(defaultStudent?.id).toBe('usr-st-01');
+    expect(switchedStudent?.id).toBe('usr-st-10');
   });
 });

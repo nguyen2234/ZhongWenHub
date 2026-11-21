@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PenTool,
   RotateCcw,
   Sparkles,
   CheckCircle2,
+  ChevronRight,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { MOCK_WRITING_EXERCISES } from '../mock/mockSkillData';
 import { normalizeAnswerText } from '../../exercise-engine';
+import { httpClient } from '../../../core/api/client/http-client';
 
 export const SkillWritingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'character' | 'sentence'>('sentence');
@@ -16,9 +20,40 @@ export const SkillWritingPage: React.FC = () => {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [availableWords, setAvailableWords] = useState<string[]>(sentenceEx.scrambledWords || []);
   const [sentenceSubmitted, setSentenceSubmitted] = useState(false);
+  const [persistStatus, setPersistStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [persistMessage, setPersistMessage] = useState<string | null>(null);
 
   // Character stroke state
-  const charEx = MOCK_WRITING_EXERCISES[1];
+  const [charList, setCharList] = useState<any[]>([MOCK_WRITING_EXERCISES[1]]);
+  const [charIndex, setCharIndex] = useState(0);
+
+  useEffect(() => {
+    httpClient
+      .get<any>('/content/vocabularies', { params: { pageSize: 30 } })
+      .then((res) => {
+        const items = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        if (items.length > 0) {
+          const mapped = items
+            .map((v: any, idx: number) => ({
+              id: `cw-${v.id || idx}`,
+              type: 'character-stroke' as const,
+              hskLevel: v.hskLevel || 1,
+              hanzi: v.simplified || v.word || v.hanzi,
+              pinyin: v.pinyin,
+              meaning: v.meaningVietnamese || v.meaning,
+              strokeCount: v.strokeCount || (v.simplified ? v.simplified.length * 4 : 6),
+              radicals: v.radical || 'Bộ chữ Hán',
+            }))
+            .filter((v: any) => v.hanzi && v.hanzi.length <= 2);
+          if (mapped.length > 0) {
+            setCharList(mapped);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const charEx = charList[charIndex % charList.length] || MOCK_WRITING_EXERCISES[1];
 
   const handlePickWord = (word: string, index: number) => {
     if (sentenceSubmitted) return;
@@ -36,10 +71,39 @@ export const SkillWritingPage: React.FC = () => {
     setSelectedWords([]);
     setAvailableWords(sentenceEx.scrambledWords || []);
     setSentenceSubmitted(false);
+    setPersistStatus('idle');
+    setPersistMessage(null);
   };
 
   const isSentenceCorrect =
     normalizeAnswerText(selectedWords.join('')) === normalizeAnswerText(sentenceEx.correctSentence);
+
+  const handleSubmitSentence = async () => {
+    if (availableWords.length > 0 || persistStatus === 'saving') return;
+    setPersistStatus('saving');
+    setPersistMessage(null);
+    try {
+      const xp = isSentenceCorrect ? 15 : 5;
+      await httpClient.post('/learning/me/practice-sessions', {
+        sessionId: `writing_${Date.now()}`,
+        score: isSentenceCorrect ? 100 : 0,
+        totalQuestions: 1,
+        correctCount: isSentenceCorrect ? 1 : 0,
+        xpAwarded: xp,
+        mode: 'writing_sentence',
+      });
+      setSentenceSubmitted(true);
+      setPersistStatus('saved');
+      setPersistMessage(
+        isSentenceCorrect
+          ? `Chính xác! Đã lưu kết quả thành công và thưởng +${xp} XP vào tiến trình.`
+          : 'Đã lưu kết quả luyện viết câu vào tiến trình học tập.'
+      );
+    } catch {
+      setPersistStatus('error');
+      setPersistMessage('Không thể đồng bộ kết quả làm bài với máy chủ. Vui lòng thử lại.');
+    }
+  };
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
@@ -207,6 +271,27 @@ export const SkillWritingPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Error notice if saving failed */}
+          {persistStatus === 'error' && (
+            <div
+              style={{
+                padding: '12px 16px',
+                borderRadius: '12px',
+                backgroundColor: '#fef2f2',
+                border: '1.5px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#dc2626',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
+            >
+              <AlertCircle size={16} />
+              <span>{persistMessage || 'Lỗi kết nối máy chủ. Vui lòng thử lại.'}</span>
+            </div>
+          )}
+
           {/* Result after submit */}
           {sentenceSubmitted && (
             <div
@@ -221,9 +306,14 @@ export const SkillWritingPage: React.FC = () => {
                 <CheckCircle2 size={18} />
                 <span>{isSentenceCorrect ? 'Chính xác! Câu hoàn chỉnh đúng ngữ pháp' : 'Chưa chuẩn xác, vui lòng thử lại!'}</span>
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: 'var(--font-hanzi)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: 'var(--font-hanzi)', marginBottom: '4px' }}>
                 Đáp án chuẩn: {sentenceEx.correctSentence}
               </div>
+              {persistMessage && (
+                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                  {persistMessage}
+                </div>
+              )}
             </div>
           )}
 
@@ -232,6 +322,7 @@ export const SkillWritingPage: React.FC = () => {
             <button
               type="button"
               onClick={handleResetSentence}
+              disabled={persistStatus === 'saving'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -243,7 +334,7 @@ export const SkillWritingPage: React.FC = () => {
                 color: '#64748b',
                 fontSize: '12px',
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: persistStatus === 'saving' ? 'not-allowed' : 'pointer',
               }}
             >
               <RotateCcw size={14} />
@@ -253,20 +344,24 @@ export const SkillWritingPage: React.FC = () => {
             {!sentenceSubmitted ? (
               <button
                 type="button"
-                onClick={() => setSentenceSubmitted(true)}
-                disabled={availableWords.length > 0}
+                onClick={handleSubmitSentence}
+                disabled={availableWords.length > 0 || persistStatus === 'saving'}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   padding: '10px 24px',
                   borderRadius: '10px',
                   border: 'none',
-                  backgroundColor: availableWords.length === 0 ? '#be123c' : '#cbd5e1',
+                  backgroundColor: availableWords.length === 0 && persistStatus !== 'saving' ? '#be123c' : '#cbd5e1',
                   color: '#ffffff',
                   fontSize: '13px',
                   fontWeight: 700,
-                  cursor: availableWords.length === 0 ? 'pointer' : 'not-allowed',
+                  cursor: availableWords.length === 0 && persistStatus !== 'saving' ? 'pointer' : 'not-allowed',
                 }}
               >
-                Kiểm tra câu
+                {persistStatus === 'saving' && <Loader2 size={14} className="animate-spin" />}
+                <span>{persistStatus === 'saving' ? 'Đang lưu kết quả...' : 'Kiểm tra câu'}</span>
               </button>
             ) : (
               <button
@@ -353,8 +448,30 @@ export const SkillWritingPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center', fontSize: '13px', color: '#475569' }}>
-            Quy tắc bút thuận: <em>Từ trên xuống dưới, từ trái qua phải, chấm đầu - ngang móc - bộ tử kết thúc.</em>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ padding: '12px 16px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '13px', color: '#475569', flex: 1, minWidth: '240px' }}>
+              Quy tắc bút thuận: <em>Từ trên xuống dưới, từ trái qua phải, chấm đầu - ngang móc - bộ thủ kết thúc.</em>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCharIndex((i) => i + 1)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: '#be123c',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <span>Chữ tiếp theo ({charIndex + 1}/{charList.length})</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       )}

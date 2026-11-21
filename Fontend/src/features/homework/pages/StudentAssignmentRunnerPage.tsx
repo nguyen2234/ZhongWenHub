@@ -44,12 +44,14 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
         setRunnerData(null);
         setAttempt(null);
 
-        if (!authTokenService.isAuthenticated() && !defaultApiConfig.useMock) {
+        if (!currentStudent?.id || (!authTokenService.isAuthenticated() && !defaultApiConfig.useMock)) {
           throw new Error('Vui lòng đăng nhập với tài khoản học viên để tham gia làm bài tập.');
         }
 
+        const activeStudentId = currentStudent.id;
+
         // 1. Fetch runner question package
-        const data = await studentHomeworkService.getAssignmentRunner(assignmentId, currentStudent.id);
+        const data = await studentHomeworkService.getAssignmentRunner(assignmentId, activeStudentId);
         if (!data) {
           throw new Error('Không thể tải đề bài hoặc bạn không có quyền truy cập bài tập này.');
         }
@@ -65,9 +67,9 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
         }
 
         // 3. Resolve active attempt or start new attempt
-        let activeAttempt = await studentAttemptService.getActiveAttempt(assignmentId, currentStudent.id);
+        let activeAttempt = await studentAttemptService.getActiveAttempt(assignmentId, activeStudentId);
         if (!activeAttempt) {
-          activeAttempt = await studentAttemptService.startAttempt(assignmentId, currentStudent.id);
+          activeAttempt = await studentAttemptService.startAttempt(assignmentId, activeStudentId);
         }
 
         // If attempt is already submitted or expired, navigate to result
@@ -97,14 +99,14 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [assignmentId, currentStudent.id, navigate]);
+  }, [assignmentId, currentStudent?.id, navigate]);
 
   // Submission handler
   const handleFinalSubmit = useCallback(
     async (finalAnswers: Record<string, StudentQuestionAnswer>) => {
       if (!attempt || !assignmentId) return;
 
-      if (attempt.studentId !== currentStudent.id) {
+      if (!currentStudent?.id || attempt.studentId !== currentStudent.id) {
         alert('Phiên làm bài này thuộc về tài khoản học viên khác. Vui lòng đăng nhập đúng tài khoản để nộp bài.');
         return;
       }
@@ -125,7 +127,7 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
         setIsSubmitModalOpen(false);
       }
     },
-    [attempt, assignmentId, navigate, currentStudent.id]
+    [attempt, assignmentId, navigate, currentStudent?.id]
   );
 
   if (loading) {

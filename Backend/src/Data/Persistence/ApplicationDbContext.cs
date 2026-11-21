@@ -5,6 +5,7 @@ using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Data.Entities.Support;
 using ZhongWenHub.Data.Entities.Teacher;
 
 namespace ZhongWenHub.Data.Persistence;
@@ -72,6 +73,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AssignmentQuestion> AssignmentQuestions => Set<AssignmentQuestion>();
     public DbSet<AssignmentTarget> AssignmentTargets => Set<AssignmentTarget>();
     public DbSet<StudentAssignmentSubmission> StudentAssignmentSubmissions => Set<StudentAssignmentSubmission>();
+
+    // Support Tickets & Helpdesk DbSets
+    public DbSet<SupportTicketEntity> SupportTickets => Set<SupportTicketEntity>();
+    public DbSet<SupportTicketMessageEntity> SupportTicketMessages => Set<SupportTicketMessageEntity>();
+    public DbSet<SupportTicketHistoryEntity> SupportTicketHistories => Set<SupportTicketHistoryEntity>();
+
+    // AI Provider Configurations
+    public DbSet<AiProviderConfigEntity> AiProviderConfigs => Set<AiProviderConfigEntity>();
+
+    // Content Issues
+    public DbSet<ContentIssueEntity> ContentIssues => Set<ContentIssueEntity>();
+    public DbSet<ContentIssueActivityEntity> ContentIssueActivities => Set<ContentIssueActivityEntity>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -992,7 +1005,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.Goal)
                 .WithMany()
                 .HasForeignKey(x => x.GoalId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
             b.HasIndex(x => x.UserId).HasDatabaseName("idx_personalized_learning_paths_user");
         });
 
@@ -1039,7 +1052,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.LearningPath)
                 .WithMany()
                 .HasForeignKey(x => x.LearningPathId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
             b.HasIndex(x => new { x.UserId, x.PlanDate }).HasDatabaseName("idx_daily_learning_tasks_user_date");
             b.HasIndex(x => x.LearningPathId).HasDatabaseName("idx_daily_learning_tasks_path");
         });
@@ -1127,12 +1140,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasOne(x => x.TeachingClass)
                 .WithMany(c => c.Attendances)
                 .HasForeignKey(x => x.ClassId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             b.HasOne(x => x.Schedule)
                 .WithMany()
                 .HasForeignKey(x => x.ScheduleId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             b.HasOne(x => x.Student)
                 .WithMany()
@@ -1252,6 +1265,142 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(x => new { x.ClassId, x.Status }).HasDatabaseName("idx_student_submissions_class_status");
             b.HasIndex(x => x.StudentId).HasDatabaseName("idx_student_submissions_student");
             b.HasIndex(x => x.Status).HasDatabaseName("idx_student_submissions_status");
+        });
+
+        // Support Ticket Entity Mappings
+        builder.Entity<SupportTicketEntity>(b =>
+        {
+            b.ToTable("support_tickets");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TicketNumber).HasMaxLength(50).IsRequired();
+            b.HasIndex(x => x.TicketNumber).IsUnique();
+            b.Property(x => x.ReporterName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ReporterEmail).HasMaxLength(200).IsRequired();
+            b.Property(x => x.ReporterRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Subject).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.Category).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Priority).HasMaxLength(30).IsRequired();
+            b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.AssigneeName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ContextModule).HasMaxLength(100);
+            b.Property(x => x.ContextUrl).HasMaxLength(500);
+            b.Property(x => x.ContentIssueId).HasMaxLength(50);
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.Property(x => x.SlaDeadline).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.ClosedAt).HasColumnType("datetime2");
+
+            b.HasIndex(x => x.ReporterId).HasDatabaseName("idx_support_tickets_reporter");
+            b.HasIndex(x => x.AssigneeId).HasDatabaseName("idx_support_tickets_assignee");
+            b.HasIndex(x => x.Status).HasDatabaseName("idx_support_tickets_status");
+            b.HasIndex(x => x.Category).HasDatabaseName("idx_support_tickets_category");
+            b.HasIndex(x => x.Priority).HasDatabaseName("idx_support_tickets_priority");
+            b.HasIndex(x => x.ContentIssueId).HasDatabaseName("idx_support_tickets_content_issue");
+
+            b.HasMany(x => x.Messages)
+                .WithOne(m => m.Ticket)
+                .HasForeignKey(m => m.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasMany(x => x.History)
+                .WithOne(h => h.Ticket)
+                .HasForeignKey(h => h.TicketId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SupportTicketMessageEntity>(b =>
+        {
+            b.ToTable("support_ticket_messages");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SenderName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.SenderRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Message).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasIndex(x => x.TicketId).HasDatabaseName("idx_ticket_messages_ticket");
+            b.HasIndex(x => x.SenderId).HasDatabaseName("idx_ticket_messages_sender");
+        });
+
+        builder.Entity<SupportTicketHistoryEntity>(b =>
+        {
+            b.ToTable("support_ticket_history");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ActorName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ActorRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Action).HasMaxLength(500).IsRequired();
+            b.Property(x => x.Timestamp).HasColumnType("datetime2").IsRequired();
+
+            b.HasIndex(x => x.TicketId).HasDatabaseName("idx_ticket_history_ticket");
+        });
+
+        builder.Entity<AiProviderConfigEntity>(b =>
+        {
+            b.ToTable("ai_provider_configs");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ProviderCode).HasMaxLength(50).IsRequired();
+            b.HasIndex(x => x.ProviderCode).IsUnique();
+            b.Property(x => x.DisplayName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.BaseUrl).HasMaxLength(500).IsRequired();
+            b.Property(x => x.ModelNamesJson).HasMaxLength(2000).IsRequired();
+            b.Property(x => x.MaskedApiKey).HasMaxLength(100).IsRequired();
+            b.Property(x => x.EncryptedApiKey).HasMaxLength(2000).IsRequired();
+            b.Property(x => x.MonthlyBudgetUsd).HasPrecision(18, 2);
+            b.Property(x => x.CurrentUsageUsd).HasPrecision(18, 2);
+            b.Property(x => x.HealthStatus).HasMaxLength(30).IsRequired();
+            b.Property(x => x.LastError).HasMaxLength(1000);
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.Property(x => x.LastCheckedAt).HasColumnType("datetime2");
+        });
+
+        builder.Entity<ContentIssueEntity>(b =>
+        {
+            b.ToTable("content_issues");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.IssueCode).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Title).HasMaxLength(300).IsRequired();
+            b.Property(x => x.Description).HasColumnType("nvarchar(max)");
+            b.Property(x => x.IssueType).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Priority).HasMaxLength(30).IsRequired();
+            b.Property(x => x.TargetContentId).HasMaxLength(100).IsRequired();
+            b.Property(x => x.TargetContentType).HasMaxLength(50).IsRequired();
+            b.Property(x => x.TargetContentTitle).HasMaxLength(300);
+            b.Property(x => x.TargetContentRoute).HasMaxLength(500);
+            b.Property(x => x.ReportedBy).HasMaxLength(150);
+            b.Property(x => x.SupportStaffName).HasMaxLength(150);
+            b.Property(x => x.ContentManagerName).HasMaxLength(150);
+            b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.ResolutionNotes).HasColumnType("nvarchar(max)");
+            b.Property(x => x.FeedbackToSupport).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2");
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+            b.Property(x => x.ResolvedAt).HasColumnType("datetime2");
+            b.Property(x => x.ClosedAt).HasColumnType("datetime2");
+
+            b.HasIndex(x => x.IssueCode).IsUnique();
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.SupportTicketId);
+
+            b.HasMany(x => x.Activities)
+                .WithOne(x => x.ContentIssue)
+                .HasForeignKey(x => x.ContentIssueId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ContentIssueActivityEntity>(b =>
+        {
+            b.ToTable("content_issue_activities");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ActorName).HasMaxLength(150).IsRequired();
+            b.Property(x => x.ActorRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Action).HasMaxLength(500).IsRequired();
+            b.Property(x => x.Message).HasColumnType("nvarchar(max)");
+            b.Property(x => x.CreatedAt).HasColumnType("datetime2");
+            b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
+
+            b.HasIndex(x => x.ContentIssueId);
         });
     }
 

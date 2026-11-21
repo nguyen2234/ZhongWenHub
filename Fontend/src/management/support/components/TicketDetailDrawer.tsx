@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import type { SupportTicket, TicketStatus } from '../types/support-ticket.types';
 import type { ModerationContentType } from '../../content-manager/types/content-manager.types';
 import { EscalateIssueModal } from './EscalateIssueModal';
+import { supportTicketService } from '../services/support-ticket.service';
 
 export interface TicketDetailDrawerProps {
   ticket: SupportTicket | null;
@@ -47,6 +48,19 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
   const [noteContent, setNoteContent] = useState('');
   const [isInternal, setIsInternal] = useState(true);
   const [isEscalateModalOpen, setIsEscalateModalOpen] = useState(false);
+  const [staffList, setStaffList] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    supportTicketService.getSupportStaffAsync().then((list) => {
+      if (active && Array.isArray(list) && list.length > 0) {
+        setStaffList(list);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -116,7 +130,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                 borderRadius: 'var(--radius-sm)',
               }}
             >
-              {ticket.id}
+              {ticket.ticketNumber || ticket.id}
             </span>
             <span
               style={{
@@ -266,7 +280,7 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                 Người phụ trách
               </label>
               <select
-                value={ticket.assigneeName}
+                value={ticket.assigneeId || ticket.assigneeName}
                 onChange={(e) => onAssign(ticket.id, e.target.value)}
                 style={{
                   width: '100%',
@@ -279,10 +293,12 @@ export const TicketDetailDrawer: React.FC<TicketDetailDrawerProps> = ({
                   fontSize: '12.5px',
                 }}
               >
-                <option value="Chưa phân công">Chưa phân công</option>
-                <option value="Trần Thuỳ Trang (Support)">Trần Thuỳ Trang (Support)</option>
-                <option value="Phạm Văn Dũng (Kỹ thuật)">Phạm Văn Dũng (Kỹ thuật)</option>
-                <option value="Lê Bảo Ngọc (CSKH)">Lê Bảo Ngọc (CSKH)</option>
+                <option value="">Chưa phân công</option>
+                {staffList.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

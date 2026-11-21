@@ -23,12 +23,14 @@ export const StudentHomeworkListPage: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'dueSoon' | 'dueLate'>('dueSoon');
 
-  const isRealUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentStudent.id);
+  const isRealUser = Boolean(
+    currentStudent?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentStudent.id)
+  );
   const isAuth = authTokenService.isAuthenticated();
-  const isUnauthenticated = isRealUser && !isAuth;
+  const isUnauthenticated = !currentStudent?.id || (isRealUser && !isAuth);
 
   const loadData = async () => {
-    if (isUnauthenticated) {
+    if (isUnauthenticated || !currentStudent?.id) {
       setLoading(false);
       return;
     }
@@ -51,7 +53,7 @@ export const StudentHomeworkListPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, [currentStudent.id]);
+  }, [currentStudent?.id]);
 
   // Map of active attempts and submitted attempts by assignmentId
   const { activeAttemptMap, submittedMap } = useMemo(() => {
@@ -192,13 +194,13 @@ export const StudentHomeworkListPage: React.FC = () => {
             }}
           >
             <span style={{ color: 'var(--muted)' }}>Học viên:</span>
-            <strong style={{ color: 'var(--primary)' }}>{currentStudent.fullName}</strong>
-            {currentStudent.id.startsWith('usr-st-') && (
+            <strong style={{ color: 'var(--primary)' }}>{currentStudent?.fullName || 'Chưa đăng nhập'}</strong>
+            {currentStudent?.id && currentStudent.id.startsWith('usr-st-') && (
               <span style={{ fontSize: '10px', color: '#b45309', backgroundColor: 'rgba(245, 158, 11, 0.15)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                 Demo Phase 2
               </span>
             )}
-            <span style={{ color: 'var(--muted)' }}>({currentStudent.activeClassIds.length} lớp học)</span>
+            <span style={{ color: 'var(--muted)' }}>({currentStudent?.activeClassIds?.length ?? 0} lớp học)</span>
           </div>
         </div>
 

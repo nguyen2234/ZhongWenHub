@@ -249,6 +249,15 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
       globalThis.fetch = originalFetch;
     });
 
+    test('rejects a successful HTML page instead of reporting a successful write', async () => {
+      globalThis.fetch = async () => new Response('<html>Frontend</html>', {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+
+      await expect(new HttpClient().put('/content/lessons/123/status', { status: 'PUBLISHED' }))
+        .rejects.toThrow('Máy chủ trả về trang HTML');
+    });
+
     test('rejects immediately when passed an already-aborted signal', async () => {
       const client = new HttpClient();
       const controller = new AbortController();

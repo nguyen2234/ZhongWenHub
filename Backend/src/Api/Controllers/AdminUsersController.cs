@@ -260,6 +260,26 @@ public class AdminUsersController : BaseApiController
         return Ok(new { success = true, message = "Đã cập nhật mô tả vai trò thành công." });
     }
 
+    [HttpPut("roles/{roleName}/permissions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateRolePermissions([FromRoute] string roleName, [FromBody] UpdateRolePermissionsDto request, CancellationToken cancellationToken)
+    {
+        var currentUserId = _currentUserService.UserId ?? Guid.Empty;
+        var ipAddress = GetClientIpAddress();
+
+        var (success, errorMessage, statusCode) = await _adminUserService.UpdateRolePermissionsAsync(roleName, request.Permissions, currentUserId, ipAddress, cancellationToken);
+        if (!success)
+        {
+            return ProblemDetailsResult(statusCode, "Thao tác thất bại", errorMessage ?? "Không thể cập nhật phân quyền vai trò.");
+        }
+
+        return Ok(new { success = true, message = "Đã cập nhật phân quyền vai trò thành công." });
+    }
+
     [HttpPost("{id:guid}/reset-password")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

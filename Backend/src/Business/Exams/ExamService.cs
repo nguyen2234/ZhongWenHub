@@ -79,6 +79,7 @@ public class ExamService : IExamService
         var pageExams = await query
             .OrderBy(e => e.HskLevel)
             .ThenByDescending(e => e.UpdatedAt ?? e.CreatedAt)
+            .ThenBy(e => e.Id)
             .Skip((safePage - 1) * safeSize)
             .Take(safeSize)
             .Select(e => new

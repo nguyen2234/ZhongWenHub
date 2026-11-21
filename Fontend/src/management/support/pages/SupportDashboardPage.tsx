@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   LifeBuoy,
   Search,
@@ -23,6 +23,13 @@ export const SupportDashboardPage: React.FC = () => {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [notification, setNotification] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    void supportTicketService.syncFromBackend().then(() => {
+      setRefreshKey((k) => k + 1);
+    });
+  }, []);
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -51,36 +58,56 @@ export const SupportDashboardPage: React.FC = () => {
     return tickets.slice(start, start + pageSize);
   }, [tickets, page, pageSize]);
 
-  const handleUpdateStatus = (id: string, newStatus: TicketStatus, note?: string) => {
-    const updated = supportTicketService.updateTicketStatus(id, newStatus, 'Trần Thuỳ Trang (Support)', note);
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
-    setNotification(`Đã cập nhật vé [${id}] sang trạng thái: ${newStatus}`);
-    setTimeout(() => setNotification(null), 3000);
+  const handleUpdateStatus = async (id: string, newStatus: TicketStatus, note?: string) => {
+    try {
+      const updated = await supportTicketService.updateTicketStatus(id, newStatus, 'Trần Thuỳ Trang (Support)', note);
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+      setNotification(`Đã cập nhật vé [${id}] sang trạng thái: ${newStatus}`);
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi cập nhật trạng thái vé.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
-  const handleAssign = (id: string, assigneeName: string) => {
-    const updated = supportTicketService.assignTicket(id, assigneeName);
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
-    setNotification(`Đã phân công vé [${id}] cho: ${assigneeName}`);
-    setTimeout(() => setNotification(null), 3000);
+  const handleAssign = async (id: string, assigneeName: string) => {
+    try {
+      const updated = await supportTicketService.assignTicket(id, assigneeName);
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+      setNotification(`Đã phân công vé [${id}] cho: ${assigneeName}`);
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi phân công vé.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
-  const handleAddNote = (id: string, content: string, isInternal: boolean) => {
-    const updated = supportTicketService.addNote(id, content, 'Trần Thuỳ Trang (Support)', isInternal);
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
-    setNotification(`Đã lưu ghi chú vào vé [${id}].`);
-    setTimeout(() => setNotification(null), 3000);
+  const handleAddNote = async (id: string, content: string, isInternal: boolean) => {
+    try {
+      const updated = await supportTicketService.addNote(id, content, 'Trần Thuỳ Trang (Support)', isInternal);
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+      setNotification(`Đã lưu ghi chú vào vé [${id}].`);
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi lưu ghi chú.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
-  const handleEscalate = (ticketId: string, payload: any) => {
-    const res = supportTicketService.escalateToContentManager(ticketId, payload);
-    setSelectedTicket(res.ticket);
-    setRefreshKey((k) => k + 1);
-    setNotification(`Đã chuyển tiếp lỗi học liệu thành công! Mã hồ sơ Content Manager: [${res.contentIssueId}].`);
-    setTimeout(() => setNotification(null), 4500);
+  const handleEscalate = async (ticketId: string, payload: any) => {
+    try {
+      const res = await supportTicketService.escalateToContentManager(ticketId, payload);
+      setSelectedTicket(res.ticket);
+      setRefreshKey((k) => k + 1);
+      setNotification(`Đã chuyển tiếp lỗi học liệu thành công! Mã hồ sơ Content Manager: [${res.contentIssueId}].`);
+      setTimeout(() => setNotification(null), 4500);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi chuyển tiếp lỗi học liệu.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
   const handleExportCsv = () => {
@@ -142,6 +169,28 @@ export const SupportDashboardPage: React.FC = () => {
         >
           <CheckCircle size={16} />
           <span>{notification}</span>
+        </div>
+      )}
+
+      {/* Error Alert Banner */}
+      {errorMessage && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 16px',
+            borderRadius: 'var(--radius-lg)',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            fontSize: '13px',
+            fontWeight: 500,
+          }}
+        >
+          <AlertTriangle size={16} />
+          <span>{errorMessage}</span>
         </div>
       )}
 
@@ -549,7 +598,7 @@ export const SupportDashboardPage: React.FC = () => {
                   <tr key={ticket.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ fontWeight: 700, color: 'var(--foreground)', fontFamily: 'monospace' }}>
-                        {ticket.id}
+                        {ticket.ticketNumber || ticket.id}
                       </div>
                       {ticket.contentIssueId && (
                         <span

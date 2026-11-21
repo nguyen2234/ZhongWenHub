@@ -1,5 +1,7 @@
 import { assignmentService } from '../../../management/teacher/services/assignment.service';
 import { getCurrentStudentIdentity } from '../../auth/services/student-identity.adapter';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+import { isProductionEnvironment } from '../../../core/api/client/api-config';
 import type {
   StudentHomeworkSummaryDTO,
   StudentAssignmentDetailDTO,
@@ -9,13 +11,27 @@ import type {
 /**
  * Service for Student Portal Assignment and Homework access.
  * Directly communicates with the authoritative backend through assignmentService.
+ * Enforces that caller-supplied studentId cannot bypass authentication or spoof another user.
  */
 class StudentHomeworkService {
   /**
    * Fetches the homework assignments assigned to the current student's active classes.
    */
   async getMyAssignments(studentId?: string): Promise<StudentHomeworkSummaryDTO[]> {
-    const activeStudentId = studentId || getCurrentStudentIdentity().id;
+    const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
+    const isProd = isProductionEnvironment();
+
+    // In production, user must be authenticated; client cannot spoof another studentId
+    if (isProd && !authIdentity && !hasAuthToken) {
+      return [];
+    }
+
+    const activeStudentId = isProd
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
+
+    if (!activeStudentId) return [];
     return assignmentService.getAssignmentsForStudent(activeStudentId);
   }
 
@@ -26,7 +42,19 @@ class StudentHomeworkService {
     assignmentId: string,
     studentId?: string
   ): Promise<StudentAssignmentDetailDTO | undefined> {
-    const activeStudentId = studentId || getCurrentStudentIdentity().id;
+    const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
+    const isProd = isProductionEnvironment();
+
+    if (isProd && !authIdentity && !hasAuthToken) {
+      return undefined;
+    }
+
+    const activeStudentId = isProd
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
+
+    if (!activeStudentId) return undefined;
     return assignmentService.getStudentAssignmentDetail(assignmentId, activeStudentId);
   }
 
@@ -38,7 +66,19 @@ class StudentHomeworkService {
     assignmentId: string,
     studentId?: string
   ): Promise<StudentAssignmentRunnerDTO | undefined> {
-    const activeStudentId = studentId || getCurrentStudentIdentity().id;
+    const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
+    const isProd = isProductionEnvironment();
+
+    if (isProd && !authIdentity && !hasAuthToken) {
+      return undefined;
+    }
+
+    const activeStudentId = isProd
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
+
+    if (!activeStudentId) return undefined;
     return assignmentService.getStudentAssignmentRunner(assignmentId, activeStudentId);
   }
 

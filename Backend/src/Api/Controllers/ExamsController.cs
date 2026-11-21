@@ -51,7 +51,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpGet("stats")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentViewAccess)]
     [ProducesResponseType(typeof(ExamStatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStats(CancellationToken cancellationToken = default)
     {
@@ -75,7 +75,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpPost]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentCreateAccess)]
     [ProducesResponseType(typeof(ExamDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateExam([FromBody] CreateExamDto dto, CancellationToken cancellationToken = default)
@@ -98,7 +98,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(ExamDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -126,7 +126,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpPut("{id:guid}/questions")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentUpdateAccess)]
     [ProducesResponseType(typeof(ExamDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -157,7 +157,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpPost("{id:guid}/review")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentPublishAccess)]
     [ProducesResponseType(typeof(ExamDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -185,7 +185,7 @@ public class ExamsController : BaseApiController
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = PolicyConstants.ContentManagementAccess)]
+    [Authorize(Policy = PolicyConstants.ContentDeleteAccess)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

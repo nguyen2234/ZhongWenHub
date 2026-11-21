@@ -7,6 +7,7 @@ import {
   INITIAL_USER_VOCAB_STATES,
   INITIAL_SRS_STATES,
 } from '../../vocabulary/data/vocabularyBank';
+import { isProductionEnvironment } from '../../../core/api/client/api-config';
 
 export const LEARNING_STORAGE_KEY_PREFIX = 'zwh_learning_state_v1_';
 export const CURRENT_SCHEMA_VERSION = 1;
@@ -31,25 +32,60 @@ export function getYesterdayDateString(d: Date = new Date()): string {
 }
 
 /**
- * Builds clean default initial state for a student
+ * Builds clean unauthenticated empty state for a guest or unauthenticated session.
+ * Guarantees zero demo leaks, 0 XP, 0 streak, and empty lesson progress.
  */
-export function createInitialStudentLearningState(studentId: string = 'usr-st-01'): StudentLearningState {
+export function createEmptyStudentLearningState(studentId: string = ''): StudentLearningState {
+  const todayStr = getLocalDateString();
+  return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    studentId: studentId || '',
+    selectedHskLevel: 1,
+    currentLessonId: 'les-1',
+    completedLessonIds: [],
+    lessonProgress: {},
+    exerciseAttempts: [],
+    userVocabStates: {},
+    userSrsStates: {},
+    weakKnowledgePoints: [],
+    xpTotal: 0,
+    rewardedEventIds: [],
+    streakDays: 0,
+    lastActivityDate: todayStr,
+    dailyGoal: {
+      targetMinutes: 30,
+      targetXp: 50,
+    },
+    dailyActivityHistory: {},
+  };
+}
+
+/**
+ * Builds clean default initial state for a student.
+ * If studentId is null, empty or unauthenticated, returns clean empty state.
+ */
+export function createInitialStudentLearningState(studentId: string = ''): StudentLearningState {
+  if (!studentId || !studentId.trim()) {
+    return createEmptyStudentLearningState('');
+  }
+
+  const cleanId = studentId.trim();
   const todayStr = getLocalDateString();
   const yesterdayStr = getYesterdayDateString();
 
-  const isRealBackendUser = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId);
+  const isDemoFixtureUser = !isProductionEnvironment() && (cleanId === 'usr-st-01' || cleanId === 'usr-test-01');
 
-  if (isRealBackendUser) {
+  if (!isDemoFixtureUser) {
     return {
       schemaVersion: CURRENT_SCHEMA_VERSION,
-      studentId,
+      studentId: cleanId,
       selectedHskLevel: 1,
       currentLessonId: 'les-1',
       completedLessonIds: [],
       lessonProgress: {
         'les-1': {
           lessonId: 'les-1',
-          userId: studentId,
+          userId: cleanId,
           status: 'NOT_STARTED',
           currentStepIndex: 0,
           maxUnlockedStepIndex: 0,
@@ -193,26 +229,32 @@ export function createInitialStudentLearningState(studentId: string = 'usr-st-01
 
 export class LearningStorageService {
   /**
-   * Safe localStorage get with schema validation and fallback
+   * Safe localStorage get with schema validation and fallback.
+   * If studentId is null/empty, strictly returns clean empty unauthenticated state.
    */
   loadLearningState(studentId: string): StudentLearningState {
-    const key = `${LEARNING_STORAGE_KEY_PREFIX}${studentId}`;
+    if (!studentId || !studentId.trim()) {
+      return createEmptyStudentLearningState('');
+    }
+
+    const cleanId = studentId.trim();
+    const key = `${LEARNING_STORAGE_KEY_PREFIX}${cleanId}`;
     try {
       if (typeof window === 'undefined' || !window.localStorage) {
-        return createInitialStudentLearningState(studentId);
+        return createInitialStudentLearningState(cleanId);
       }
 
       const raw = window.localStorage.getItem(key);
       if (!raw) {
-        const initial = createInitialStudentLearningState(studentId);
+        const initial = createInitialStudentLearningState(cleanId);
         this.saveLearningState(initial);
         return initial;
       }
 
       const parsed = JSON.parse(raw);
-      if (!this.isValidState(parsed, studentId)) {
-        console.warn(`[LearningStorageService] Invalid storage state for ${studentId}, recovering...`);
-        const fallback = createInitialStudentLearningState(studentId);
+      if (!this.isValidState(parsed, cleanId)) {
+        console.warn(`[LearningStorageService] Invalid storage state for ${cleanId}, recovering...`);
+        const fallback = createInitialStudentLearningState(cleanId);
         this.saveLearningState(fallback);
         return fallback;
       }
@@ -226,16 +268,21 @@ export class LearningStorageService {
 
       return parsed as StudentLearningState;
     } catch (err) {
-      console.error(`[LearningStorageService] Error loading learning state for ${studentId}:`, err);
-      return createInitialStudentLearningState(studentId);
+      console.error(`[LearningStorageService] Error loading learning state for ${cleanId}:`, err);
+      return createInitialStudentLearningState(cleanId);
     }
   }
 
   /**
-   * Save learning state safely to localStorage
+   * Save learning state safely to localStorage.
+   * Never persists unauthenticated empty state.
    */
   saveLearningState(state: StudentLearningState): boolean {
-    const key = `${LEARNING_STORAGE_KEY_PREFIX}${state.studentId}`;
+    if (!state.studentId || !state.studentId.trim()) {
+      return false;
+    }
+
+    const key = `${LEARNING_STORAGE_KEY_PREFIX}${state.studentId.trim()}`;
     try {
       if (typeof window === 'undefined' || !window.localStorage) {
         return false;
