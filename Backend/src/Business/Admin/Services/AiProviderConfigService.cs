@@ -60,7 +60,71 @@ public class AiProviderConfigService : IAiProviderConfigService
             .ThenBy(p => p.DisplayName)
             .ToListAsync(cancellationToken);
 
+        if (entities.Count == 0)
+        {
+            await SeedDefaultProvidersAsync(cancellationToken);
+            entities = await _dbContext.AiProviderConfigs
+                .AsNoTracking()
+                .OrderByDescending(p => p.IsDefault)
+                .ThenBy(p => p.DisplayName)
+                .ToListAsync(cancellationToken);
+        }
+
         return entities.Select(MapToDto).ToList();
+    }
+
+    private async Task SeedDefaultProvidersAsync(CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+        var defaults = new List<AiProviderConfigEntity>
+        {
+            new()
+            {
+                Id = Guid.Parse("11111111-2222-3333-4444-555555555551"),
+                ProviderCode = "gemini",
+                DisplayName = "Google Gemini (Official Gateway)",
+                BaseUrl = "https://generativelanguage.googleapis.com",
+                ModelNamesJson = JsonSerializer.Serialize(new List<string> { "gemini-2.5-flash", "gemini-2.5-pro" }),
+                IsEnabled = false,
+                IsDefault = true,
+                MaskedApiKey = "AIzaSy...****DEFAULT",
+                EncryptedApiKey = string.Empty,
+                MonthlyBudgetUsd = 200.00m,
+                CurrentUsageUsd = 0.00m,
+                RateLimitPerMinute = 60,
+                HealthStatus = "UNCONFIGURED",
+                CreatedAt = now,
+                UpdatedAt = now
+            },
+            new()
+            {
+                Id = Guid.Parse("11111111-2222-3333-4444-555555555552"),
+                ProviderCode = "openai",
+                DisplayName = "OpenAI GPT (Direct)",
+                BaseUrl = "https://api.openai.com",
+                ModelNamesJson = JsonSerializer.Serialize(new List<string> { "gpt-4o-mini", "gpt-4o" }),
+                IsEnabled = false,
+                IsDefault = false,
+                MaskedApiKey = "sk-proj...****DEFAULT",
+                EncryptedApiKey = string.Empty,
+                MonthlyBudgetUsd = 300.00m,
+                CurrentUsageUsd = 0.00m,
+                RateLimitPerMinute = 120,
+                HealthStatus = "UNCONFIGURED",
+                CreatedAt = now,
+                UpdatedAt = now
+            }
+        };
+
+        _dbContext.AiProviderConfigs.AddRange(defaults);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            // Concurrent seed guard
+        }
     }
 
     public async Task<AiProviderConfigDto?> GetProviderByIdAsync(Guid id, CancellationToken cancellationToken = default)
