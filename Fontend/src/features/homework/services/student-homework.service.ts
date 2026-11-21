@@ -1,5 +1,6 @@
 import { assignmentService } from '../../../management/teacher/services/assignment.service';
 import { getCurrentStudentIdentity } from '../../auth/services/student-identity.adapter';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { isProductionEnvironment } from '../../../core/api/client/api-config';
 import type {
   StudentHomeworkSummaryDTO,
@@ -18,16 +19,17 @@ class StudentHomeworkService {
    */
   async getMyAssignments(studentId?: string): Promise<StudentHomeworkSummaryDTO[]> {
     const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
     const isProd = isProductionEnvironment();
 
     // In production, user must be authenticated; client cannot spoof another studentId
-    if (isProd && !authIdentity) {
+    if (isProd && !authIdentity && !hasAuthToken) {
       return [];
     }
 
     const activeStudentId = isProd
-      ? authIdentity?.id
-      : (studentId || authIdentity?.id);
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
 
     if (!activeStudentId) return [];
     return assignmentService.getAssignmentsForStudent(activeStudentId);
@@ -41,15 +43,16 @@ class StudentHomeworkService {
     studentId?: string
   ): Promise<StudentAssignmentDetailDTO | undefined> {
     const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
     const isProd = isProductionEnvironment();
 
-    if (isProd && !authIdentity) {
+    if (isProd && !authIdentity && !hasAuthToken) {
       return undefined;
     }
 
     const activeStudentId = isProd
-      ? authIdentity?.id
-      : (studentId || authIdentity?.id);
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
 
     if (!activeStudentId) return undefined;
     return assignmentService.getStudentAssignmentDetail(assignmentId, activeStudentId);
@@ -64,15 +67,16 @@ class StudentHomeworkService {
     studentId?: string
   ): Promise<StudentAssignmentRunnerDTO | undefined> {
     const authIdentity = getCurrentStudentIdentity();
+    const hasAuthToken = authTokenService.isAuthenticated();
     const isProd = isProductionEnvironment();
 
-    if (isProd && !authIdentity) {
+    if (isProd && !authIdentity && !hasAuthToken) {
       return undefined;
     }
 
     const activeStudentId = isProd
-      ? authIdentity?.id
-      : (studentId || authIdentity?.id);
+      ? (authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''))
+      : (studentId || authIdentity?.id || (hasAuthToken ? 'authenticated-student' : ''));
 
     if (!activeStudentId) return undefined;
     return assignmentService.getStudentAssignmentRunner(assignmentId, activeStudentId);
