@@ -112,8 +112,13 @@ public class SupportTicketsController : BaseApiController
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "AddMessage failed");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, detail = ex.ToString() });
+            _logger.LogError(ex, "GetTicketDetail failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
@@ -155,8 +160,13 @@ public class SupportTicketsController : BaseApiController
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "AddMessage failed");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, detail = ex.ToString() });
+            _logger.LogError(ex, "AddMessage failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
@@ -190,18 +200,23 @@ public class SupportTicketsController : BaseApiController
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "AddMessage failed");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, detail = ex.ToString() });
+            _logger.LogError(ex, "ReopenTicket failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
-    // --- STAFF ONLY ENDPOINTS (Support & Admin, Content Manager for linked views) ---
+    // --- STAFF ONLY ENDPOINTS (Support & Admin only) ---
 
     /// <summary>
-    /// Hộp thư tiếp nhận sự cố toàn hệ thống (Dành cho Support, Content Manager, Admin)
+    /// Hộp thư tiếp nhận sự cố toàn hệ thống (Dành cho Support, Admin)
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.Support},{RoleConstants.ContentManager}")]
+    [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.Support}")]
     [ProducesResponseType(typeof(PagedResponse<TicketSummaryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -225,6 +240,20 @@ public class SupportTicketsController : BaseApiController
     {
         var metrics = await _ticketService.GetMetricsAsync(cancellationToken);
         return Ok(metrics);
+    }
+
+    /// <summary>
+    /// Danh sách nhân viên hỗ trợ thực tế để phân công vé (Support, Admin)
+    /// </summary>
+    [HttpGet("staff")]
+    [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.Support}")]
+    [ProducesResponseType(typeof(List<SupportStaffDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetSupportStaff(CancellationToken cancellationToken)
+    {
+        var staff = await _ticketService.GetSupportStaffAsync(cancellationToken);
+        return Ok(staff);
     }
 
     /// <summary>
@@ -255,6 +284,16 @@ public class SupportTicketsController : BaseApiController
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "AssignTicket failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
@@ -292,6 +331,16 @@ public class SupportTicketsController : BaseApiController
         {
             return BadRequest(new { message = ex.Message });
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "UpdateStatus failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
     }
 
     /// <summary>
@@ -322,6 +371,16 @@ public class SupportTicketsController : BaseApiController
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "EscalateContent failed for ticket {TicketId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 }

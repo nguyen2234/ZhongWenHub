@@ -12,6 +12,7 @@ import {
   Brain,
   Award,
 } from 'lucide-react';
+import { httpClient } from '../../../core/api/client/http-client';
 
 interface MatchCard {
   id: string;
@@ -34,6 +35,7 @@ const INITIAL_PAIRS = [
 
 export const LearningGamesPage: React.FC = () => {
   const [isPlayingGame, setIsPlayingGame] = useState(false);
+  const [vocabPairs, setVocabPairs] = useState(INITIAL_PAIRS);
   const [cards, setCards] = useState<MatchCard[]>([]);
   const [selectedCards, setSelectedCards] = useState<MatchCard[]>([]);
   const [score, setScore] = useState(0);
@@ -41,10 +43,33 @@ export const LearningGamesPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [isGameOver, setIsGameOver] = useState(false);
 
+  useEffect(() => {
+    httpClient
+      .get<any>('/content/vocabularies', { params: { pageSize: 30 } })
+      .then((res) => {
+        const items = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        if (items.length >= 6) {
+          const mapped = items
+            .map((v: any, idx: number) => ({
+              pairId: `vocab-${v.id || idx}`,
+              hanzi: v.simplified || v.word || v.hanzi,
+              pinyin: v.pinyin,
+              meaning: v.meaningVietnamese || v.meaning,
+            }))
+            .filter((v: any) => v.hanzi && v.meaning);
+          if (mapped.length >= 6) {
+            setVocabPairs(mapped);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Initialize and shuffle cards
   const startNewGame = () => {
     const list: MatchCard[] = [];
-    INITIAL_PAIRS.forEach((p) => {
+    const activePairs = [...vocabPairs].sort(() => Math.random() - 0.5).slice(0, 6);
+    activePairs.forEach((p) => {
       list.push({
         id: `h-${p.pairId}`,
         pairId: p.pairId,

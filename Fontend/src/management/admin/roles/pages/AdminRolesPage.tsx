@@ -215,11 +215,13 @@ export const AdminRolesPage: React.FC = () => {
     setIsSaving(true);
     try {
       const currentDraftDesc = draftDescriptions[selectedRoleCode] || '';
+      const currentDraftPerms = draftPermissions[selectedRoleCode] || [];
       await adminRolePermissionService.updateRoleDescription(selectedRoleCode, currentDraftDesc);
+      await adminRolePermissionService.updateRolePermissions(selectedRoleCode, currentDraftPerms);
 
       setToast({
         type: 'success',
-        message: `Đã lưu mô tả cho vai trò ${selectedRoleCode} vào hệ thống thành công!`,
+        message: `Đã lưu cấu hình và phân quyền cho vai trò ${selectedRoleCode} thành công!`,
       });
       setRolesVersion((v) => v + 1);
     } catch (err: any) {
@@ -230,7 +232,7 @@ export const AdminRolesPage: React.FC = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedRoleCode, draftDescriptions]);
+  }, [selectedRoleCode, draftDescriptions, draftPermissions]);
 
   const handleCancel = useCallback(() => {
     const currentSavedRole = roles.find((r) => r.code === selectedRoleCode);

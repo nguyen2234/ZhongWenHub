@@ -14,4 +14,5 @@ public interface IAiProviderConfigService
     Task<AiProviderConfigDto> UpdateProviderAsync(Guid id, UpdateAiProviderDto dto, CancellationToken cancellationToken = default);
     Task<AiProviderConfigDto> ToggleProviderAsync(Guid id, bool isEnabled, CancellationToken cancellationToken = default);
     Task<TestAiProviderResultDto> TestConnectionAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<string> DecryptApiKeyAsync(Guid id, CancellationToken cancellationToken = default);
 }

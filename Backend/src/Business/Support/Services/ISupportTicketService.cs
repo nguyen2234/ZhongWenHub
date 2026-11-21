@@ -18,4 +18,5 @@ public interface ISupportTicketService
     Task<TicketDetailDto> UpdateStatusAsync(Guid ticketId, UpdateTicketStatusRequestDto request, Guid currentUserId, string currentUserName, string currentUserRole, CancellationToken cancellationToken = default);
     Task<TicketDetailDto> EscalateToContentIssueAsync(Guid ticketId, EscalateContentIssueRequestDto request, Guid currentUserId, string currentUserName, CancellationToken cancellationToken = default);
     Task<TicketDetailDto> ReopenTicketAsync(Guid ticketId, Guid currentUserId, string currentUserName, CancellationToken cancellationToken = default);
+    Task<List<SupportStaffDto>> GetSupportStaffAsync(CancellationToken cancellationToken = default);
 }

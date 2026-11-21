@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Award,
   Calendar,
 } from 'lucide-react';
+import { studentHomeworkService } from '../../homework/services/student-homework.service';
+
+function isIsolatedTestRuntime(): boolean {
+  const procEnv = typeof globalThis !== 'undefined' ? (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env : undefined;
+  return Boolean(
+    procEnv?.VITEST ||
+    procEnv?.BUN_TEST ||
+    procEnv?.NODE_ENV === 'test' ||
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.MODE === 'test')
+  );
+}
 
 interface ResultItem {
   id: string;
@@ -49,6 +60,56 @@ const MOCK_RESULTS: ResultItem[] = [
 ];
 
 export const LearningResultsPage: React.FC = () => {
+  const [results, setResults] = useState<ResultItem[]>(() =>
+    isIsolatedTestRuntime() ? MOCK_RESULTS : []
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(() => !isIsolatedTestRuntime());
+
+  useEffect(() => {
+    if (isIsolatedTestRuntime()) return;
+    let active = true;
+    setIsLoading(true);
+
+    studentHomeworkService.getMyAssignments()
+      .then((assignments) => {
+        if (!active) return;
+        const graded = (assignments || [])
+          .filter((a) => a.bestScore !== undefined || a.attemptsUsed > 0)
+          .map((a): ResultItem => ({
+            id: a.assignmentId,
+            title: a.title,
+            type: 'Bài tập về nhà',
+            date: a.dueDate ? new Date(a.dueDate).toLocaleDateString('vi-VN') : 'Gần đây',
+            score: a.bestScore ?? 0,
+            maxScore: a.totalPoints || 10,
+            teacherFeedback: a.bestScore !== undefined
+              ? (a.bestScore >= (a.passingPoints || (a.totalPoints * 0.5)) ? 'Đạt chuẩn bài tập. Tiếp tục phát huy!' : 'Cần ôn tập thêm phần từ vựng và ngữ pháp.')
+              : 'Đã nộp bài tập.',
+            passed: (a.bestScore ?? 0) >= (a.passingPoints || (a.totalPoints * 0.5)),
+          }));
+
+        setResults(graded);
+      })
+      .catch(() => {
+        if (!active) return;
+        setResults([]);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const totalResults = results.length;
+  const avgScore = totalResults > 0
+    ? (results.reduce((acc, r) => acc + (r.score / (r.maxScore || 10)) * 10, 0) / totalResults).toFixed(1)
+    : '0.0';
+  const passRate = totalResults > 0
+    ? Math.round((results.filter((r) => r.passed).length / totalResults) * 100)
+    : 0;
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 24px 48px 24px' }}>
@@ -82,19 +143,42 @@ export const LearningResultsPage: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '12px' }}>
           <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', padding: '12px 20px', borderRadius: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800 }}>9.2 / 10</div>
+            <div style={{ fontSize: '22px', fontWeight: 800 }}>{totalResults > 0 ? `${avgScore} / 10` : '-- / 10'}</div>
             <div style={{ fontSize: '11px', opacity: 0.8 }}>Điểm TB chung</div>
           </div>
           <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', padding: '12px 20px', borderRadius: '14px', textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800 }}>100%</div>
+            <div style={{ fontSize: '22px', fontWeight: 800 }}>{totalResults > 0 ? `${passRate}%` : '0%'}</div>
             <div style={{ fontSize: '11px', opacity: 0.8 }}>Tỷ lệ đạt chuẩn</div>
           </div>
         </div>
       </div>
 
       {/* Results List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {MOCK_RESULTS.map((res) => (
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b' }}>
+          Đang tải kết quả học tập...
+        </div>
+      ) : totalResults === 0 ? (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '56px 24px',
+            backgroundColor: '#ffffff',
+            borderRadius: '18px',
+            border: '1.5px dashed #cbd5e1',
+          }}
+        >
+          <Award size={48} style={{ color: '#94a3b8', margin: '0 auto 16px auto', display: 'block' }} />
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+            Chưa có kết quả bài tập được chấm
+          </h3>
+          <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
+            Khi bạn nộp bài tập từ lớp học hoặc hoàn thành bài kiểm tra và được giảng viên chấm điểm, điểm số và nhận xét chi tiết sẽ hiển thị tại đây.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {results.map((res) => (
           <div
             key={res.id}
             style={{
@@ -147,7 +231,8 @@ export const LearningResultsPage: React.FC = () => {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -70,7 +70,7 @@ const ExerciseEditorDialogContent: React.FC<DialogContentProps> = ({
 
   const handleSave = () => {
     const exercisePayload: SharedExerciseItem = {
-      id: initialItem?.exercise?.id || `ex-${Date.now()}`,
+      id: initialItem?.exercise?.id ?? crypto.randomUUID(),
       type: exerciseType,
       title: title.trim() || (section === 'QUIZ' ? 'Câu hỏi trắc nghiệm' : 'Bài tập tương tác'),
       instruction: instruction.trim() || 'Chọn câu trả lời đúng:',
@@ -78,6 +78,9 @@ const ExerciseEditorDialogContent: React.FC<DialogContentProps> = ({
       promptPinyin: promptPinyin.trim() || undefined,
       promptVietnamese: promptVietnamese.trim() || undefined,
       explanation: explanation.trim() || 'Hoàn thành chính xác.',
+      audioUrl: ex?.audioUrl,
+      skill: ex?.skill,
+      xpReward: ex?.xpReward,
     };
 
     if (
@@ -87,7 +90,9 @@ const ExerciseEditorDialogContent: React.FC<DialogContentProps> = ({
       exerciseType === 'vietnamese-to-chinese'
     ) {
       exercisePayload.options = options.filter((o) => o.trim().length > 0);
-      exercisePayload.correctOptionIndex = correctOptionIndex;
+      if (options[correctOptionIndex]?.trim()) {
+        exercisePayload.correctOptionIndex = options.slice(0, correctOptionIndex).filter((o) => o.trim()).length;
+      }
     } else if (exerciseType === 'sentence-order') {
       exercisePayload.sentenceTokens = sentenceTokens.filter((t) => t.trim().length > 0);
       exercisePayload.correctSentence = correctSentence.trim();
@@ -96,7 +101,7 @@ const ExerciseEditorDialogContent: React.FC<DialogContentProps> = ({
     }
 
     const lessonExerciseItem: LessonExerciseItem = {
-      id: initialItem?.id || `lex-${section.toLowerCase()}-${Date.now()}`,
+      id: initialItem?.id || `le-${lessonId}-${exercisePayload.id}`,
       lessonId,
       exerciseId: String(exercisePayload.id),
       section,

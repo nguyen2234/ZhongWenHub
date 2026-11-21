@@ -182,15 +182,15 @@ export const AdminLessonEditorPage: React.FC = () => {
 
   // Publish action
   const handlePublish = async () => {
-    if (!draftLesson) return;
+    if (!savedLesson || savedLesson.status !== 'PENDING_REVIEW' || isDirty || isSaving) return;
     setIsSaving(true);
     setSaveErrorMessage(null);
+    setSaveSuccessMessage(null);
     try {
-      const updated = { ...draftLesson, status: 'PUBLISHED' as const };
-      const persisted = await curriculumService.saveLessonDraft(lessonId, updated);
-      await curriculumService.publishLesson(lessonId);
-      setSavedLesson(JSON.parse(JSON.stringify(persisted)));
-      setDraftLesson(JSON.parse(JSON.stringify(persisted)));
+      const published = await curriculumService.publishLesson(lessonId);
+      const persisted = { ...savedLesson, status: published.status, updatedAt: published.updatedAt };
+      setSavedLesson(persisted);
+      setDraftLesson(persisted);
       setSaveSuccessMessage('Đã xuất bản bài học thành công!');
       setTimeout(() => setSaveSuccessMessage(null), 3500);
     } catch (err: any) {
@@ -564,6 +564,12 @@ export const AdminLessonEditorPage: React.FC = () => {
               />
             )}
 
+            {(activeSection === 'practice' || activeSection === 'quiz') && (
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)' }}>
+                Hãy duyệt và xuất bản câu hỏi mới hoặc vừa sửa trong Kho bài tập để học viên thấy câu hỏi.
+              </p>
+            )}
+
             {activeSection === 'practice' && (
               <PracticeSectionEditor
                 lessonId={draftLesson.lessonId}
@@ -610,6 +616,12 @@ export const AdminLessonEditorPage: React.FC = () => {
         summary={validationSummary}
         currentStatus={draftLesson.status}
         onPublish={handlePublish}
+        canPublish={savedLesson?.status === 'PENDING_REVIEW' && !isDirty && !isSaving}
+        publishHint={isDirty
+          ? 'Lưu và gửi duyệt các thay đổi trước khi xuất bản.'
+          : savedLesson?.status !== 'PENDING_REVIEW'
+            ? 'Bài học cần ở trạng thái chờ duyệt để xuất bản.'
+            : 'Người xuất bản phải khác người chỉnh sửa hoặc gửi duyệt gần nhất.'}
         onSubmitForReview={handleSubmitReview}
       />
 

@@ -1354,9 +1354,20 @@ public class AdminUserService : IAdminUserService
             return (false, "Bạn không có quyền chỉnh sửa phân quyền vai trò.", 403);
         }
 
+        // Self-escalation / Critical Permissions Protection for ADMIN role
+        if (string.Equals(role.Name, RoleConstants.Admin, StringComparison.OrdinalIgnoreCase))
+        {
+            var criticalPermissions = new[] { "ADMIN_ACCESS", "USER_ROLE_ASSIGN", "USER_VIEW" };
+            var missingCritical = criticalPermissions.Where(cp => !permissions.Any(p => string.Equals(p, cp, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (missingCritical.Any())
+            {
+                return (false, $"Không thể thu hồi các quyền quản trị tối quan trọng của vai trò ADMIN: {string.Join(", ", missingCritical)}.", 400);
+            }
+        }
+
         // Remove existing permission claims for this role
         var existingClaims = await _dbContext.RoleClaims
-            .Where(rc => rc.RoleId == role.Id && rc.ClaimType == "permission")
+            .Where(rc => rc.RoleId == role.Id && (rc.ClaimType == "permission" || rc.ClaimType == "Permission"))
             .ToListAsync(cancellationToken);
 
         _dbContext.RoleClaims.RemoveRange(existingClaims);
@@ -1370,6 +1381,18 @@ public class AdminUserService : IAdminUserService
                 ClaimType = "permission",
                 ClaimValue = p.Trim()
             });
+        }
+
+        // Invalidate SecurityStamp for all users in this role to force token refresh / permission revalidation
+        var usersInRole = await (from ur in _dbContext.UserRoles
+                                 join u in _dbContext.Users on ur.UserId equals u.Id
+                                 where ur.RoleId == role.Id
+                                 select u).ToListAsync(cancellationToken);
+
+        foreach (var u in usersInRole)
+        {
+            u.SecurityStamp = Guid.NewGuid().ToString();
+            u.UpdatedAt = DateTime.UtcNow;
         }
 
         await RecordAuditAsync(currentUserId, null, "ROLE_PERMISSIONS_UPDATED", ipAddress, null, true,

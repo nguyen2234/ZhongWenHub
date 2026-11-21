@@ -673,4 +673,20 @@ public class SupportTicketService : ISupportTicketService
             History = history
         };
     }
+
+    public async Task<List<SupportStaffDto>> GetSupportStaffAsync(CancellationToken cancellationToken = default)
+    {
+        var staffUsers = await _dbContext.Users
+            .Where(u => !u.IsDeleted && _dbContext.UserRoles.Any(ur => ur.UserId == u.Id && _dbContext.Roles.Any(r => r.Id == ur.RoleId && (r.Name == RoleConstants.Support || r.Name == RoleConstants.Admin))))
+            .OrderBy(u => u.DisplayName ?? u.UserName)
+            .Select(u => new SupportStaffDto
+            {
+                Id = u.Id,
+                Name = u.DisplayName ?? u.UserName ?? "Nhân viên hỗ trợ",
+                Email = u.Email ?? string.Empty
+            })
+            .ToListAsync(cancellationToken);
+
+        return staffUsers;
+    }
 }

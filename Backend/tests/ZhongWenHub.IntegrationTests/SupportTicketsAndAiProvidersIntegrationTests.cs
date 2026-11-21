@@ -4,10 +4,12 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using ZhongWenHub.Business.Admin.DTOs;
+using ZhongWenHub.Business.Admin.Services;
 using ZhongWenHub.Business.Common.DTOs;
 using ZhongWenHub.Business.Content.DTOs;
 using ZhongWenHub.Business.Support.DTOs;
@@ -408,5 +410,150 @@ public class SupportTicketsAndAiProvidersIntegrationTests : IClassFixture<Custom
         var verifiedTeacherRole = verifiedRoles.FirstOrDefault(r => r.Name == RoleConstants.Teacher);
         Assert.NotNull(verifiedTeacherRole);
         Assert.All(newPermissions, p => Assert.Contains(p, verifiedTeacherRole.Permissions));
+    }
+
+    [Fact]
+    public async Task ContentManager_CannotAccess_SupportGlobalInbox_Returns403()
+    {
+        var cmToken = await LoginAndGetTokenAsync("contentmanager@zhongwenhub.edu.vn", "ContentManager123!");
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/support/tickets?page=1&pageSize=10");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", cmToken);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Support_CannotAssignOrResolve_ContentIssues_Returns403()
+    {
+        var supportToken = await LoginAndGetTokenAsync("support@zhongwenhub.edu.vn", "SupportPassword123!");
+        var dummyId = Guid.NewGuid();
+
+        // 1. Assign attempt
+        using var assignReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/content-manager/issues/{dummyId}/assign");
+        assignReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supportToken);
+        assignReq.Content = JsonContent.Create(new AssignContentIssueDto { ContentManagerName = "Support Staff" });
+        var assignRes = await _client.SendAsync(assignReq);
+        Assert.Equal(HttpStatusCode.Forbidden, assignRes.StatusCode);
+
+        // 2. Resolve attempt
+        using var resolveReq = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/content-manager/issues/{dummyId}/resolve");
+        resolveReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supportToken);
+        resolveReq.Content = JsonContent.Create(new ResolveContentIssueDto { Notes = "Note", Feedback = "Feedback" });
+        var resolveRes = await _client.SendAsync(resolveReq);
+        Assert.Equal(HttpStatusCode.Forbidden, resolveRes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Admin_CannotRevokeCriticalPermissions_Returns400()
+    {
+        var adminToken = await LoginAndGetTokenAsync("admin@gmail.com", "admin");
+
+        // Attempt to remove ADMIN_ACCESS and USER_ROLE_ASSIGN from ADMIN role
+        using var req = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/admin/users/roles/{RoleConstants.Admin}/permissions");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        req.Content = JsonContent.Create(new UpdateRolePermissionsDto
+        {
+            Permissions = new List<string> { "USER_VIEW" } // Missing ADMIN_ACCESS and USER_ROLE_ASSIGN
+        });
+
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task ContentIssues_DualRouting_BothEndpointsWork()
+    {
+        var adminToken = await LoginAndGetTokenAsync("admin@gmail.com", "admin");
+
+        // 1. Primary route: /api/v1/content-manager/issues
+        using var req1 = new HttpRequestMessage(HttpMethod.Get, "/api/v1/content-manager/issues");
+        req1.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var res1 = await _client.SendAsync(req1);
+        Assert.Equal(HttpStatusCode.OK, res1.StatusCode);
+
+        // 2. Secondary alias route: /api/v1/content/issues
+        using var req2 = new HttpRequestMessage(HttpMethod.Get, "/api/v1/content/issues");
+        req2.Headers.Authorization = new AuthenticationHeaderValue("Bearer", adminToken);
+        var res2 = await _client.SendAsync(req2);
+        Assert.Equal(HttpStatusCode.OK, res2.StatusCode);
+    }
+
+    [Fact]
+    public async Task SupportTicket_AssignWithRealStaffGuid_AndRetrieveWithCanonicalGuid()
+    {
+        // 1. Student creates ticket
+        var studentToken = await LoginAndGetTokenAsync("student@zhongwenhub.edu.vn", "StudentPassword123!");
+        using var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/v1/support/tickets");
+        createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", studentToken);
+        createReq.Content = JsonContent.Create(new CreateTicketRequestDto
+        {
+            Subject = "Kiểm tra gán nhân viên bằng GUID",
+            Description = "Mô tả kiểm thử gán nhân sự hỗ trợ chính xác theo Guid",
+            Category = "TECHNICAL",
+            Priority = "MEDIUM"
+        });
+        var createRes = await _client.SendAsync(createReq);
+        Assert.Equal(HttpStatusCode.Created, createRes.StatusCode);
+        var created = await createRes.Content.ReadFromJsonAsync<TicketDetailDto>();
+        Assert.NotNull(created);
+        Assert.NotEqual(Guid.Empty, created.Id);
+        Assert.False(string.IsNullOrWhiteSpace(created.TicketNumber));
+
+        // 2. Support assigns ticket to real staff user
+        var supportToken = await LoginAndGetTokenAsync("support@zhongwenhub.edu.vn", "SupportPassword123!");
+        var realStaffGuid = Guid.Parse("2f0e465e-4c87-4729-9043-e1280a38a181");
+        using var assignReq = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/support/tickets/{created.Id}/assign");
+        assignReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supportToken);
+        assignReq.Content = JsonContent.Create(new AssignTicketRequestDto { AssigneeId = realStaffGuid });
+        var assignRes = await _client.SendAsync(assignReq);
+        Assert.Equal(HttpStatusCode.OK, assignRes.StatusCode);
+        var assigned = await assignRes.Content.ReadFromJsonAsync<TicketDetailDto>();
+        Assert.NotNull(assigned);
+        Assert.Equal(realStaffGuid, assigned.AssigneeId);
+
+        // 3. Support retrieves ticket by canonical GUID
+        using var getReq = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/support/tickets/{created.Id}");
+        getReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", supportToken);
+        var getRes = await _client.SendAsync(getReq);
+        Assert.Equal(HttpStatusCode.OK, getRes.StatusCode);
+        var retrieved = await getRes.Content.ReadFromJsonAsync<TicketDetailDto>();
+        Assert.NotNull(retrieved);
+        Assert.Equal(created.Id, retrieved.Id);
+        Assert.Equal(created.TicketNumber, retrieved.TicketNumber);
+        Assert.Equal(realStaffGuid, retrieved.AssigneeId);
+    }
+
+    [Fact]
+    public void AiProvider_AesGcm_Encryption_And_TamperProof()
+    {
+        var secret = "MyMasterSecretKeyForAesGcmTesting123!";
+        var rawKey = "AIzaSySecretApiKeyForGeminiTesting987";
+
+        // 1. Encrypt produces v2: format
+        var encrypted = AiProviderConfigService.EncryptSecret(rawKey, secret);
+        Assert.StartsWith("v2:", encrypted);
+
+        // 2. Decrypt restores raw key
+        var decrypted = AiProviderConfigService.DecryptSecret(encrypted, secret);
+        Assert.Equal(rawKey, decrypted);
+
+        // 3. Tamper detection: modifying tag or ciphertext causes failure
+        var parts = encrypted.Split(':');
+        var tamperedCipherBytes = Convert.FromBase64String(parts[3]);
+        tamperedCipherBytes[0] ^= 0xFF; // Flip bit
+        var tamperedEncrypted = $"{parts[0]}:{parts[1]}:{parts[2]}:{Convert.ToBase64String(tamperedCipherBytes)}";
+        Assert.ThrowsAny<CryptographicException>(() => AiProviderConfigService.DecryptSecret(tamperedEncrypted, secret));
+
+        // 4. Backward compatibility: v1: format is still decryptable
+        using var aes = Aes.Create();
+        aes.Key = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(secret));
+        aes.GenerateIV();
+        using var enc = aes.CreateEncryptor(aes.Key, aes.IV);
+        var pBytes = System.Text.Encoding.UTF8.GetBytes(rawKey);
+        var cBytes = enc.TransformFinalBlock(pBytes, 0, pBytes.Length);
+        var v1Payload = $"v1:{Convert.ToBase64String(aes.IV)}:{Convert.ToBase64String(cBytes)}";
+
+        var v1Decrypted = AiProviderConfigService.DecryptSecret(v1Payload, secret);
+        Assert.Equal(rawKey, v1Decrypted);
     }
 }

@@ -301,12 +301,11 @@ public class TeacherClassService : ITeacherClassService
         {
             ValidateSchedules(dto.Schedules);
 
-            _dbContext.TeachingClassSchedules.RemoveRange(classEntity.Schedules);
-            classEntity.Schedules.Clear();
+            await RemoveSchedulesAsync(classEntity, cancellationToken);
 
             foreach (var s in dto.Schedules)
             {
-                classEntity.Schedules.Add(new TeachingClassSchedule
+                _dbContext.TeachingClassSchedules.Add(new TeachingClassSchedule
                 {
                     Id = Guid.NewGuid(),
                     ClassId = classEntity.Id,
@@ -640,14 +639,13 @@ public class TeacherClassService : ITeacherClassService
 
         ValidateSchedules(schedules);
 
-        _dbContext.TeachingClassSchedules.RemoveRange(classEntity.Schedules);
-        classEntity.Schedules.Clear();
+        await RemoveSchedulesAsync(classEntity, cancellationToken);
 
         if (schedules != null)
         {
             foreach (var s in schedules)
             {
-                classEntity.Schedules.Add(new TeachingClassSchedule
+                _dbContext.TeachingClassSchedules.Add(new TeachingClassSchedule
                 {
                     Id = Guid.NewGuid(),
                     ClassId = classEntity.Id,
@@ -668,6 +666,18 @@ public class TeacherClassService : ITeacherClassService
 
         _logger.LogInformation("Đã cập nhật {Count} buổi học cho lớp {ClassId}", classEntity.Schedules.Count, classId);
         return classEntity.Schedules.Select(MapToScheduleDto).ToList();
+    }
+
+    private async Task RemoveSchedulesAsync(TeachingClass classEntity, CancellationToken cancellationToken)
+    {
+        var scheduleIds = classEntity.Schedules.Select(schedule => schedule.Id).ToList();
+        if (scheduleIds.Count == 0) return;
+
+        await _dbContext.TeachingClassAttendances
+            .Where(attendance => attendance.ScheduleId.HasValue && scheduleIds.Contains(attendance.ScheduleId.Value))
+            .LoadAsync(cancellationToken);
+        _dbContext.TeachingClassSchedules.RemoveRange(classEntity.Schedules);
+        classEntity.Schedules.Clear();
     }
 
     public async Task<TeacherDashboardDto> GetDashboardAsync(CancellationToken cancellationToken = default)

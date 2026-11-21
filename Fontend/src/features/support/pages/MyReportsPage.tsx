@@ -199,7 +199,7 @@ export const MyReportsPage: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2.5">
                   <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-md">
-                    {ticket.id}
+                    {ticket.ticketNumber || ticket.id}
                   </span>
                   {getStatusBadge(ticket.status)}
                   <span className="text-xs text-gray-400">•</span>
@@ -241,7 +241,7 @@ export const MyReportsPage: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xs font-bold text-gray-600 bg-gray-200/80 px-2 py-0.5 rounded">
-                    {selectedTicket.id}
+                    {selectedTicket.ticketNumber || selectedTicket.id}
                   </span>
                   {getStatusBadge(selectedTicket.status)}
                   {isDetailLoading && <Loader2 className="h-4 w-4 animate-spin text-primary-600" />}

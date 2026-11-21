@@ -112,6 +112,7 @@ export const VocabularyBank: React.FC<VocabularyBankProps> = ({
     const queryParams: Record<string, string | number | undefined> = {
       page,
       pageSize,
+      status: 'PUBLISHED',
     };
     if (filters.hskLevel !== 'all') {
       queryParams.hskLevel = filters.hskLevel;

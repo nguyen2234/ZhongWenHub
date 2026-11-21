@@ -1104,6 +1104,9 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.Property<Guid?>("LessonId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("LessonPresentationJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("OptionsJson")
                         .HasColumnType("nvarchar(max)");
 
@@ -3905,8 +3908,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Learning.PersonalizedLearningPathEntity", "LearningPath")
                         .WithMany()
-                        .HasForeignKey("LearningPathId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("LearningPathId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
@@ -3933,8 +3935,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                 {
                     b.HasOne("ZhongWenHub.Data.Entities.Learning.StudentLearningGoalEntity", "Goal")
                         .WithMany()
-                        .HasForeignKey("GoalId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("GoalId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "User")
                         .WithMany()
@@ -4169,8 +4170,7 @@ namespace ZhongWenHub.Data.Persistence.Migrations
 
                     b.HasOne("ZhongWenHub.Data.Entities.Teacher.TeachingClassSchedule", "Schedule")
                         .WithMany()
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ScheduleId");
 
                     b.HasOne("ZhongWenHub.Data.Entities.ApplicationUser", "Student")
                         .WithMany()

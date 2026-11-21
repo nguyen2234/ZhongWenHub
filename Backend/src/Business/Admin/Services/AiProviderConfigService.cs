@@ -33,7 +33,12 @@ public class AiProviderConfigService : IAiProviderConfigService
         _dbContext = dbContext;
         _configuration = configuration;
         _logger = logger;
-        _encryptionSecret = _configuration["JwtSettings:Secret"] ?? "ZhongWenHub_Default_AES_Secret_Key_32_Bytes!";
+        var key = _configuration["AiSecurity:EncryptionKey"];
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            key = _configuration["JwtSettings:Secret"];
+        }
+        _encryptionSecret = !string.IsNullOrWhiteSpace(key) ? key : "ZhongWenHub_Development_Encryption_Fallback_Key_32B!";
     }
 
     public async Task<List<AiProviderConfigDto>> GetProvidersAsync(CancellationToken cancellationToken = default)
@@ -43,16 +48,6 @@ public class AiProviderConfigService : IAiProviderConfigService
             .OrderByDescending(p => p.IsDefault)
             .ThenBy(p => p.DisplayName)
             .ToListAsync(cancellationToken);
-
-        if (!entities.Any())
-        {
-            await SeedDefaultProvidersAsync(cancellationToken);
-            entities = await _dbContext.AiProviderConfigs
-                .AsNoTracking()
-                .OrderByDescending(p => p.IsDefault)
-                .ThenBy(p => p.DisplayName)
-                .ToListAsync(cancellationToken);
-        }
 
         return entities.Select(MapToDto).ToList();
     }
@@ -172,11 +167,37 @@ public class AiProviderConfigService : IAiProviderConfigService
         var sw = Stopwatch.StartNew();
         var now = DateTime.UtcNow;
 
-        // Disallow auto-redirect to prevent redirect SSRF into internal networks
+        // Anti-DNS-rebinding SocketsHttpHandler with ConnectCallback
         using var handler = new SocketsHttpHandler
         {
             AllowAutoRedirect = false,
-            ConnectTimeout = TimeSpan.FromSeconds(5)
+            ConnectTimeout = TimeSpan.FromSeconds(5),
+            ConnectCallback = async (context, ct) =>
+            {
+                var host = context.DnsEndPoint.Host;
+                var port = context.DnsEndPoint.Port;
+                var addresses = await Dns.GetHostAddressesAsync(host, ct);
+                if (addresses.Length == 0)
+                {
+                    throw new HttpRequestException($"Không thể phân giải địa chỉ IP cho máy chủ '{host}'.");
+                }
+                var targetIp = addresses.FirstOrDefault(ip => !IsPrivateOrRestrictedIp(ip));
+                if (targetIp == null)
+                {
+                    throw new HttpRequestException($"Địa chỉ máy chủ '{host}' thuộc dải mạng nội bộ hoặc bị hạn chế bảo mật (SSRF Guard).");
+                }
+                var socket = new System.Net.Sockets.Socket(targetIp.AddressFamily, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                try
+                {
+                    await socket.ConnectAsync(new IPEndPoint(targetIp, port), ct);
+                    return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            }
         };
         using var client = new HttpClient(handler)
         {
@@ -189,17 +210,34 @@ public class AiProviderConfigService : IAiProviderConfigService
             var resp = await client.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             sw.Stop();
 
+            var statusCode = (int)resp.StatusCode;
+            var isSuccess = resp.IsSuccessStatusCode;
+
             entity.LatencyMs = (int)sw.ElapsedMilliseconds;
-            entity.HealthStatus = "HEALTHY";
             entity.LastCheckedAt = now;
-            entity.LastError = null;
+
+            if (isSuccess)
+            {
+                entity.HealthStatus = "HEALTHY";
+                entity.LastError = null;
+            }
+            else
+            {
+                entity.HealthStatus = (statusCode == 401 || statusCode == 403)
+                    ? "AUTH_FAILED"
+                    : (statusCode >= 500 ? "DOWN" : "DEGRADED");
+                entity.LastError = $"Máy chủ phản hồi mã lỗi HTTP {statusCode} ({resp.ReasonPhrase})";
+            }
+
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             return new TestAiProviderResultDto
             {
-                Success = true,
+                Success = isSuccess,
                 LatencyMs = (int)sw.ElapsedMilliseconds,
-                Message = $"Kết nối thành công (HTTP {(int)resp.StatusCode}). Độ trễ: {sw.ElapsedMilliseconds}ms.",
+                Message = isSuccess
+                    ? $"Kết nối thành công (HTTP {statusCode}). Độ trễ: {sw.ElapsedMilliseconds}ms."
+                    : $"Kết nối thất bại (HTTP {statusCode} {resp.ReasonPhrase}).",
                 CheckedAt = now
             };
         }
@@ -207,7 +245,7 @@ public class AiProviderConfigService : IAiProviderConfigService
         {
             sw.Stop();
             entity.LatencyMs = null;
-            entity.HealthStatus = "DEGRADED";
+            entity.HealthStatus = "DOWN";
             entity.LastCheckedAt = now;
             entity.LastError = ex.Message;
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -367,19 +405,74 @@ public class AiProviderConfigService : IAiProviderConfigService
         return $"{prefix}...****{suffix}";
     }
 
-    private static string EncryptSecret(string plaintext, string secretKey)
+    public static string EncryptSecret(string plaintext, string secretKey)
     {
         if (string.IsNullOrEmpty(plaintext)) return string.Empty;
-        using var aes = Aes.Create();
-        aes.Key = SHA256.HashData(Encoding.UTF8.GetBytes(secretKey));
-        aes.GenerateIV();
-        using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+        var key = SHA256.HashData(Encoding.UTF8.GetBytes(secretKey));
         var plainBytes = Encoding.UTF8.GetBytes(plaintext);
-        var cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
-        var combined = new byte[aes.IV.Length + cipherBytes.Length];
-        Buffer.BlockCopy(aes.IV, 0, combined, 0, aes.IV.Length);
-        Buffer.BlockCopy(cipherBytes, 0, combined, aes.IV.Length, cipherBytes.Length);
-        return Convert.ToBase64String(combined);
+        var nonce = new byte[AesGcm.NonceByteSizes.MaxSize];
+        RandomNumberGenerator.Fill(nonce);
+        var cipherBytes = new byte[plainBytes.Length];
+        var tag = new byte[AesGcm.TagByteSizes.MaxSize];
+
+        using var aesGcm = new AesGcm(key, tag.Length);
+        aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
+
+        return $"v2:{Convert.ToBase64String(nonce)}:{Convert.ToBase64String(tag)}:{Convert.ToBase64String(cipherBytes)}";
+    }
+
+    public static string DecryptSecret(string ciphertext, string secretKey)
+    {
+        if (string.IsNullOrEmpty(ciphertext)) return string.Empty;
+        var key = SHA256.HashData(Encoding.UTF8.GetBytes(secretKey));
+
+        if (ciphertext.StartsWith("v2:", StringComparison.Ordinal))
+        {
+            var parts = ciphertext.Split(':');
+            if (parts.Length != 4) throw new FormatException("Invalid encrypted payload format.");
+            var nonce = Convert.FromBase64String(parts[1]);
+            var tag = Convert.FromBase64String(parts[2]);
+            var cipherBytes = Convert.FromBase64String(parts[3]);
+            var plainBytes = new byte[cipherBytes.Length];
+
+            using var aesGcm = new AesGcm(key, tag.Length);
+            aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
+            return Encoding.UTF8.GetString(plainBytes);
+        }
+
+        if (ciphertext.StartsWith("v1:", StringComparison.Ordinal))
+        {
+            var parts = ciphertext.Split(':');
+            if (parts.Length != 3) throw new FormatException("Invalid encrypted payload format.");
+            var iv = Convert.FromBase64String(parts[1]);
+            var cipherBytes = Convert.FromBase64String(parts[2]);
+            using var aes = Aes.Create();
+            aes.Key = key;
+            using var decryptor = aes.CreateDecryptor(aes.Key, iv);
+            var plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+            return Encoding.UTF8.GetString(plainBytes);
+        }
+        else
+        {
+            var raw = Convert.FromBase64String(ciphertext);
+            if (raw.Length < 16) throw new FormatException("Invalid encrypted payload length.");
+            var iv = new byte[16];
+            var cipherBytes = new byte[raw.Length - 16];
+            Buffer.BlockCopy(raw, 0, iv, 0, 16);
+            Buffer.BlockCopy(raw, 16, cipherBytes, 0, cipherBytes.Length);
+            using var aes = Aes.Create();
+            aes.Key = key;
+            using var decryptor = aes.CreateDecryptor(aes.Key, iv);
+            var plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+            return Encoding.UTF8.GetString(plainBytes);
+        }
+    }
+
+    public async Task<string> DecryptApiKeyAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _dbContext.AiProviderConfigs.FindAsync(new object[] { id }, cancellationToken);
+        if (entity == null || string.IsNullOrEmpty(entity.EncryptedApiKey)) return string.Empty;
+        return DecryptSecret(entity.EncryptedApiKey, _encryptionSecret);
     }
 
     private static AiProviderConfigDto MapToDto(AiProviderConfigEntity entity)

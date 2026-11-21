@@ -7,6 +7,8 @@ interface ValidationModalProps {
   onClose: () => void;
   summary: LessonValidationSummary;
   onPublish: () => void;
+  canPublish: boolean;
+  publishHint: string;
   onSubmitForReview: () => void;
   currentStatus: string;
 }
@@ -26,6 +28,8 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({
   onClose,
   summary,
   onPublish,
+  canPublish,
+  publishHint,
   onSubmitForReview,
   currentStatus,
 }) => {
@@ -198,27 +202,33 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({
             Đóng
           </button>
 
-          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <button
-              type="button"
-              className="ds-btn ds-btn-outline ds-btn-sm"
-              onClick={() => {
-                onSubmitForReview();
-                onClose();
-              }}
-            >
-              <Send size={14} /> Gửi duyệt
-            </button>
-            <button
-              type="button"
-              className="ds-btn ds-btn-primary ds-btn-sm"
-              onClick={() => {
-                onPublish();
-                onClose();
-              }}
-            >
-              <Sparkles size={14} /> Xuất bản bài học
-            </button>
+          <div>
+            <p style={{ margin: '0 0 8px', fontSize: 'var(--text-xs)', color: 'var(--muted)' }}>
+              {publishHint}
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-2)', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="ds-btn ds-btn-outline ds-btn-sm"
+                onClick={() => {
+                  onSubmitForReview();
+                  onClose();
+                }}
+              >
+                <Send size={14} /> Gửi duyệt
+              </button>
+              <button
+                type="button"
+                className="ds-btn ds-btn-primary ds-btn-sm"
+                disabled={!canPublish}
+                onClick={() => {
+                  onPublish();
+                  onClose();
+                }}
+              >
+                <Sparkles size={14} /> Xuất bản bài học
+              </button>
+            </div>
           </div>
         </div>
       </div>

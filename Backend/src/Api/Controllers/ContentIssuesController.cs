@@ -14,14 +14,19 @@ namespace ZhongWenHub.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/content-manager/issues")]
+[Route("api/v1/content/issues")]
 [Authorize(Roles = $"{RoleConstants.ContentManager},{RoleConstants.Admin},{RoleConstants.Support}")]
 public class ContentIssuesController : BaseApiController
 {
     private readonly IContentIssueService _contentIssueService;
+    private readonly ILogger<ContentIssuesController> _logger;
 
-    public ContentIssuesController(IContentIssueService contentIssueService)
+    public ContentIssuesController(
+        IContentIssueService contentIssueService,
+        ILogger<ContentIssuesController> logger)
     {
         _contentIssueService = contentIssueService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -46,6 +51,7 @@ public class ContentIssuesController : BaseApiController
     }
 
     [HttpPost]
+    [Authorize(Roles = $"{RoleConstants.Admin},{RoleConstants.Support}")]
     [ProducesResponseType(typeof(ContentIssueDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateIssue([FromBody] CreateContentIssueDto dto, CancellationToken cancellationToken)
@@ -60,7 +66,9 @@ public class ContentIssuesController : BaseApiController
     }
 
     [HttpPost("{id:guid}/assign")]
+    [Authorize(Roles = $"{RoleConstants.ContentManager},{RoleConstants.Admin}")]
     [ProducesResponseType(typeof(ContentIssueDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignIssue([FromRoute] Guid id, [FromBody] AssignContentIssueDto? dto, CancellationToken cancellationToken)
     {
@@ -78,13 +86,21 @@ public class ContentIssuesController : BaseApiController
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, details = ex.ToString() });
+            _logger.LogError(ex, "AssignIssue failed for issue {IssueId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
     [HttpPost("{id:guid}/resolve")]
+    [Authorize(Roles = $"{RoleConstants.ContentManager},{RoleConstants.Admin}")]
     [ProducesResponseType(typeof(ContentIssueDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ResolveIssue([FromRoute] Guid id, [FromBody] ResolveContentIssueDto dto, CancellationToken cancellationToken)
     {
@@ -106,13 +122,21 @@ public class ContentIssuesController : BaseApiController
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, details = ex.ToString() });
+            _logger.LogError(ex, "ResolveIssue failed for issue {IssueId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
     [HttpPost("{id:guid}/reopen")]
+    [Authorize(Roles = $"{RoleConstants.Support},{RoleConstants.Admin}")]
     [ProducesResponseType(typeof(ContentIssueDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReopenIssue([FromRoute] Guid id, [FromBody] ReopenContentIssueDto dto, CancellationToken cancellationToken)
     {
@@ -134,12 +158,20 @@ public class ContentIssuesController : BaseApiController
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, details = ex.ToString() });
+            _logger.LogError(ex, "ReopenIssue failed for issue {IssueId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
     [HttpPost("{id:guid}/close")]
+    [Authorize(Roles = $"{RoleConstants.Support},{RoleConstants.Admin}")]
     [ProducesResponseType(typeof(ContentIssueDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CloseIssue([FromRoute] Guid id, CancellationToken cancellationToken)
     {
@@ -156,7 +188,13 @@ public class ContentIssuesController : BaseApiController
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message, details = ex.ToString() });
+            _logger.LogError(ex, "CloseIssue failed for issue {IssueId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Internal Server Error",
+                Detail = "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 

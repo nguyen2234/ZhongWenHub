@@ -43,28 +43,44 @@ export const AdminSupportRequestsView: React.FC = () => {
     return tickets.slice(start, start + pageSize);
   }, [tickets, page, pageSize]);
 
-  const handleUpdateStatus = (id: string, newStatus: TicketStatus, note?: string) => {
-    const updated = supportTicketService.updateTicketStatus(id, newStatus, 'Quản trị viên (Admin)', note);
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
+  const handleUpdateStatus = async (id: string, newStatus: TicketStatus, note?: string) => {
+    try {
+      const updated = await supportTicketService.updateTicketStatus(id, newStatus, 'Quản trị viên (Admin)', note);
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleAssign = (id: string, assigneeName: string) => {
-    const updated = supportTicketService.assignTicket(id, assigneeName, 'Quản trị viên (Admin)');
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
+  const handleAssign = async (id: string, assigneeName: string) => {
+    try {
+      const updated = await supportTicketService.assignTicket(id, assigneeName, 'Quản trị viên (Admin)');
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleAddNote = (id: string, content: string, isInternal: boolean) => {
-    const updated = supportTicketService.addNote(id, content, 'Quản trị viên (Admin)', isInternal);
-    setSelectedTicket(updated);
-    setRefreshKey((k) => k + 1);
+  const handleAddNote = async (id: string, content: string, isInternal: boolean) => {
+    try {
+      const updated = await supportTicketService.addNote(id, content, 'Quản trị viên (Admin)', isInternal);
+      setSelectedTicket(updated);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleEscalate = (ticketId: string, payload: any) => {
-    const res = supportTicketService.escalateToContentManager(ticketId, payload);
-    setSelectedTicket(res.ticket);
-    setRefreshKey((k) => k + 1);
+  const handleEscalate = async (ticketId: string, payload: any) => {
+    try {
+      const res = await supportTicketService.escalateToContentManager(ticketId, payload);
+      setSelectedTicket(res.ticket);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleExportCsv = () => {
@@ -314,7 +330,7 @@ export const AdminSupportRequestsView: React.FC = () => {
                 paginatedTickets.map((ticket) => (
                   <tr key={ticket.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '14px 16px' }}>
-                      <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{ticket.id}</span>
+                      <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{ticket.ticketNumber || ticket.id}</span>
                       {ticket.contentIssueId && (
                         <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 700, marginTop: '2px' }}>
                           Linked: {ticket.contentIssueId}

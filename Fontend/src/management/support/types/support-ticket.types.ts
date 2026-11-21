@@ -21,7 +21,9 @@ export interface TicketActivity {
 }
 
 export interface SupportTicket {
-  id: string;
+  id: string; // Canonical GUID for API operations
+  ticketNumber?: string; // Human-readable ticket number (e.g. TICK-2026-001) for UI display
+  backendGuid?: string;
   studentId: string;
   studentName: string;
   studentEmail: string;

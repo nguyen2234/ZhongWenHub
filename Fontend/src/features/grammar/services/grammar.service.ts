@@ -75,63 +75,38 @@ export class GrammarService {
       };
     }
 
-    try {
-      const queryParams: Record<string, string | number | undefined> = {
+    const res = await httpClient.get<any>('/content/grammar', {
+      params: {
         page,
         pageSize,
-      };
-      if (params.hskLevel && params.hskLevel > 0) {
-        queryParams.hskLevel = params.hskLevel;
-      }
-      if (params.category && params.category !== 'all') {
-        queryParams.category = params.category;
-      }
-      if (params.searchQuery && params.searchQuery.trim().length > 0) {
-        queryParams.search = params.searchQuery.trim();
-      }
+        status: 'PUBLISHED',
+        hskLevel: params.hskLevel || undefined,
+        category: params.category === 'all' ? undefined : params.category,
+        search: params.searchQuery?.trim(),
+      },
+    });
+    const rawItems = Array.isArray(res) ? res : (res?.items || []);
+    const totalItems = res?.totalItems ?? rawItems.length;
+    const items: GrammarPoint[] = rawItems.map((g: any) => ({
+      id: g.id,
+      title: g.title || '',
+      pinyinTitle: g.pinyinTitle || '',
+      hskLevel: g.hskLevel || 1,
+      category: g.category || 'cơ bản',
+      structure: g.structureFormula || g.structure || '',
+      explanation: g.explanation || '',
+      difficulty: g.difficulty || 'Dễ',
+      examples: parseExamples(g.examplesJson),
+      practice: parsePractice(g.practiceJson),
+    }));
 
-      const res = await httpClient.get<any>('/content/grammar', { params: queryParams });
-      const rawItems = Array.isArray(res) ? res : (res?.items || []);
-      const totalItems = res?.totalItems ?? rawItems.length;
-      const totalPages = res?.totalPages ?? Math.max(1, Math.ceil(totalItems / pageSize));
-
-      const items: GrammarPoint[] = rawItems.map((g: any) => {
-        const examples = parseExamples(g.examplesJson);
-        const practice = parsePractice(g.practiceJson);
-
-        return {
-          id: g.id,
-          title: g.title || '',
-          pinyinTitle: g.pinyinTitle || '',
-          hskLevel: g.hskLevel || 1,
-          category: (g.category as any) || 'cơ bản',
-          structure: g.structureFormula || g.structure || '',
-          explanation: g.explanation || '',
-          difficulty: (g.difficulty as any) || 'Dễ',
-          examples,
-          practice,
-        };
-      });
-
-      return {
-        items,
-        totalItems,
-        totalPages,
-        page: res?.pageNumber ?? res?.page ?? page,
-        pageSize,
-      };
-    } catch (err) {
-      console.warn('[GrammarService] Failed to fetch grammar from backend API, using fallback:', err);
-      const all = this.getGrammarPoints(params);
-      const start = (page - 1) * pageSize;
-      return {
-        items: all.slice(start, start + pageSize),
-        totalItems: all.length,
-        totalPages: Math.max(1, Math.ceil(all.length / pageSize)),
-        page,
-        pageSize,
-      };
-    }
+    return {
+      items,
+      totalItems,
+      totalPages: res?.totalPages ?? Math.max(1, Math.ceil(totalItems / pageSize)),
+      page: res?.pageNumber ?? res?.page ?? page,
+      pageSize,
+    };
   }
 
   /**

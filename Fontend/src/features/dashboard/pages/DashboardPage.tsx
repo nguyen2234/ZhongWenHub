@@ -60,9 +60,20 @@ export const DashboardPage: React.FC<DashboardProps> = ({
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
+  // Default to lesson 1 for new learners when currentLesson is not yet selected
+  const defaultLesson = {
+    id: 'les-1',
+    lessonNumber: 1,
+    hanzi: '你好',
+    pinyin: 'Nǐ hǎo',
+    meaning: 'Chào bạn',
+  };
+
+  const activeDisplayLesson = currentLesson || defaultLesson;
+
   // 1. Continue Learning Handler
   const handleContinueLesson = () => {
-    const targetId = currentLesson?.id || 'les-8';
+    const targetId = activeDisplayLesson.id;
     startLesson(targetId);
     if (onOpenLesson) {
       onOpenLesson(targetId);
@@ -101,9 +112,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
   };
 
   // Lesson step progress from real state
-  const lessonProgressRecord = currentLesson
-    ? learningState.lessonProgress[currentLesson.id]
-    : learningState.lessonProgress['les-8'];
+  const lessonProgressRecord = learningState.lessonProgress[activeDisplayLesson.id];
 
   const currentStep = lessonProgressRecord?.currentStepIndex ?? 0;
   const isCompleted = lessonProgressRecord?.status === 'COMPLETED';
@@ -341,7 +350,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   flexShrink: 0,
                 }}
               >
-                {currentLesson?.hanzi?.slice(0, 1) || '喝'}
+                {activeDisplayLesson.hanzi?.slice(0, 1) || '你'}
               </div>
 
               <div style={{ flex: 1, minWidth: '220px' }}>
@@ -356,7 +365,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       color: 'var(--primary, #E60012)',
                     }}
                   >
-                    Bài {currentLesson?.lessonNumber || 8}
+                    Bài {activeDisplayLesson.lessonNumber}
                   </span>
                   <span
                     style={{
@@ -366,16 +375,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       color: '#172033',
                     }}
                   >
-                    {currentLesson?.hanzi || '你想喝什么？'}
+                    {activeDisplayLesson.hanzi}
                   </span>
                 </div>
 
                 <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px', fontWeight: 500 }}>
                   <span style={{ color: 'var(--primary, #E60012)', fontWeight: 600 }}>
-                    {currentLesson?.pinyin || 'Nǐ xiǎng hē shénme?'}
+                    {activeDisplayLesson.pinyin}
                   </span>
                   {' • '}
-                  <span>{currentLesson?.meaning || 'Bạn muốn uống gì?'}</span>
+                  <span>{activeDisplayLesson.meaning}</span>
                 </div>
 
                 <div style={{ marginTop: '10px', maxWidth: '440px' }}>
@@ -391,7 +400,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                   id="btn-continue-lesson"
                 >
                   <Play size={16} fill="currentColor" />
-                  <span>Tiếp tục Bài {currentLesson?.lessonNumber || 8}</span>
+                  <span>Tiếp tục Bài {activeDisplayLesson.lessonNumber}</span>
                   <ArrowRight size={15} />
                 </button>
               </div>

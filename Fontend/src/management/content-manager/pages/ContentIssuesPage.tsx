@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, AlertTriangle } from 'lucide-react';
 import { contentIssuesService } from '../services/content-issues.service';
 import { IssueStatusBadge } from '../components/IssueStatusBadge';
 import { IssueDetailDrawer } from '../components/IssueDetailDrawer';
@@ -20,6 +20,7 @@ export const ContentIssuesPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState<string>('ALL');
   const [selectedIssue, setSelectedIssue] = useState<ContentIssue | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     void contentIssuesService.syncFromBackend().then(() => {
@@ -59,30 +60,50 @@ export const ContentIssuesPage: React.FC = () => {
     };
   }, [refreshKey]);
 
-  const handleAssignToMe = (issueId: string) => {
-    contentIssuesService.assignToContentManager(issueId);
-    setRefreshKey((k) => k + 1);
-    if (selectedIssue) {
-      setSelectedIssue(contentIssuesService.getIssueById(issueId) || null);
+  const handleAssignToMe = async (issueId: string) => {
+    try {
+      const updated = await contentIssuesService.assignToContentManager(issueId);
+      setRefreshKey((k) => k + 1);
+      if (selectedIssue) {
+        setSelectedIssue(updated);
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi tiếp nhận xử lý báo cáo lỗi.');
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
-  const handleResolveIssue = (issueId: string, notes: string, feedback: string) => {
-    contentIssuesService.resolveIssue(issueId, notes, feedback);
-    setSelectedIssue(null);
-    setRefreshKey((k) => k + 1);
+  const handleResolveIssue = async (issueId: string, notes: string, feedback: string) => {
+    try {
+      await contentIssuesService.resolveIssue(issueId, notes, feedback);
+      setSelectedIssue(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi hoàn tất xử lý báo cáo lỗi.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
-  const handleReopenIssue = (issueId: string, reason: string) => {
-    contentIssuesService.reopenIssue(issueId, reason);
-    setSelectedIssue(null);
-    setRefreshKey((k) => k + 1);
+  const handleReopenIssue = async (issueId: string, reason: string) => {
+    try {
+      await contentIssuesService.reopenIssue(issueId, reason);
+      setSelectedIssue(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi mở lại báo cáo lỗi.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
-  const handleCloseIssue = (issueId: string) => {
-    contentIssuesService.closeIssue(issueId);
-    setSelectedIssue(null);
-    setRefreshKey((k) => k + 1);
+  const handleCloseIssue = async (issueId: string) => {
+    try {
+      await contentIssuesService.closeIssue(issueId);
+      setSelectedIssue(null);
+      setRefreshKey((k) => k + 1);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Có lỗi xảy ra khi đóng báo cáo lỗi.');
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
   };
 
   return (
@@ -101,6 +122,29 @@ export const ContentIssuesPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Error Alert Banner */}
+      {errorMessage && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            fontSize: '13px',
+            fontWeight: 500,
+            marginBottom: '16px',
+          }}
+        >
+          <AlertTriangle size={16} />
+          <span>{errorMessage}</span>
+        </div>
+      )}
 
       {/* 2. Tabs */}
       <div className="cm-tab-bar">

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PenTool,
   RotateCcw,
   Sparkles,
   CheckCircle2,
+  ChevronRight,
 } from 'lucide-react';
 import { MOCK_WRITING_EXERCISES } from '../mock/mockSkillData';
 import { normalizeAnswerText } from '../../exercise-engine';
+import { httpClient } from '../../../core/api/client/http-client';
 
 export const SkillWritingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'character' | 'sentence'>('sentence');
@@ -18,7 +20,36 @@ export const SkillWritingPage: React.FC = () => {
   const [sentenceSubmitted, setSentenceSubmitted] = useState(false);
 
   // Character stroke state
-  const charEx = MOCK_WRITING_EXERCISES[1];
+  const [charList, setCharList] = useState<any[]>([MOCK_WRITING_EXERCISES[1]]);
+  const [charIndex, setCharIndex] = useState(0);
+
+  useEffect(() => {
+    httpClient
+      .get<any>('/content/vocabularies', { params: { pageSize: 30 } })
+      .then((res) => {
+        const items = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
+        if (items.length > 0) {
+          const mapped = items
+            .map((v: any, idx: number) => ({
+              id: `cw-${v.id || idx}`,
+              type: 'character-stroke' as const,
+              hskLevel: v.hskLevel || 1,
+              hanzi: v.simplified || v.word || v.hanzi,
+              pinyin: v.pinyin,
+              meaning: v.meaningVietnamese || v.meaning,
+              strokeCount: v.strokeCount || (v.simplified ? v.simplified.length * 4 : 6),
+              radicals: v.radical || 'Bộ chữ Hán',
+            }))
+            .filter((v: any) => v.hanzi && v.hanzi.length <= 2);
+          if (mapped.length > 0) {
+            setCharList(mapped);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const charEx = charList[charIndex % charList.length] || MOCK_WRITING_EXERCISES[1];
 
   const handlePickWord = (word: string, index: number) => {
     if (sentenceSubmitted) return;
@@ -353,8 +384,30 @@ export const SkillWritingPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ padding: '16px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center', fontSize: '13px', color: '#475569' }}>
-            Quy tắc bút thuận: <em>Từ trên xuống dưới, từ trái qua phải, chấm đầu - ngang móc - bộ tử kết thúc.</em>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ padding: '12px 16px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '13px', color: '#475569', flex: 1, minWidth: '240px' }}>
+              Quy tắc bút thuận: <em>Từ trên xuống dưới, từ trái qua phải, chấm đầu - ngang móc - bộ thủ kết thúc.</em>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCharIndex((i) => i + 1)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: '#be123c',
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              <span>Chữ tiếp theo ({charIndex + 1}/{charList.length})</span>
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       )}
