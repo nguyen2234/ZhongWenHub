@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
@@ -86,19 +87,85 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 db.Database.Migrate();
 
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<CustomWebApplicationFactory>>();
+
                 if (!db.Users.Any())
                 {
-                    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-                    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<CustomWebApplicationFactory>>();
-                    var hostEnv = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
-                    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-
                     DbInitializer.SeedAsync(db, userManager, roleManager, logger).GetAwaiter().GetResult();
-                    DbInitializer.SeedDevelopmentAdminAsync(db, userManager, roleManager, configuration, hostEnv, logger).GetAwaiter().GetResult();
                 }
+
+                EnsureIntegrationTestUsersSeeded(db, userManager, roleManager);
             }
         });
+    }
+
+    private static void EnsureIntegrationTestUsersSeeded(
+        ApplicationDbContext db,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager)
+    {
+        var testUsers = new[]
+        {
+            (Email: "admin@gmail.com", UserName: "admin@gmail.com", Role: RoleConstants.Admin, DisplayName: "Quản Trị Viên (Dev Admin)", Password: "admin"),
+            (Email: "student@zhongwenhub.edu.vn", UserName: "student", Role: RoleConstants.Student, DisplayName: "Nguyễn Học Viên Mới", Password: "StudentPassword123!"),
+            (Email: "teacher@zhongwenhub.edu.vn", UserName: "teacher", Role: RoleConstants.Teacher, DisplayName: "Lý Mỹ Linh (Teacher)", Password: "TeacherPassword123!"),
+            (Email: "contentmanager@zhongwenhub.edu.vn", UserName: "contentmanager", Role: RoleConstants.ContentManager, DisplayName: "Nguyễn Văn Minh (Content Manager)", Password: "ContentManager123!"),
+            (Email: "support@zhongwenhub.edu.vn", UserName: "support", Role: RoleConstants.Support, DisplayName: "Trần Thuỳ Trang (Support)", Password: "SupportPassword123!")
+        };
+
+        foreach (var def in testUsers)
+        {
+            var existingUser = userManager.FindByEmailAsync(def.Email).GetAwaiter().GetResult();
+            if (existingUser == null)
+            {
+                var user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = def.UserName,
+                    Email = def.Email,
+                    EmailConfirmed = true,
+                    DisplayName = def.DisplayName,
+                    Status = UserStatus.ACTIVE,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                user.PasswordHash = userManager.PasswordHasher.HashPassword(user, def.Password);
+                var createRes = userManager.CreateAsync(user).GetAwaiter().GetResult();
+                if (createRes.Succeeded)
+                {
+                    if (!roleManager.RoleExistsAsync(def.Role).GetAwaiter().GetResult())
+                    {
+                        roleManager.CreateAsync(new ApplicationRole(def.Role, def.Role)).GetAwaiter().GetResult();
+                    }
+                    userManager.AddToRoleAsync(user, def.Role).GetAwaiter().GetResult();
+
+                    if (def.Role == RoleConstants.Student)
+                    {
+                        db.UserWallets.Add(new UserWallet
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = user.Id,
+                            Balance = 150000m,
+                            Currency = "VND",
+                            CreatedAt = user.CreatedAt
+                        });
+                        db.UserSubscriptions.Add(new UserSubscription
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = user.Id,
+                            Plan = "Basic",
+                            Status = "ACTIVE",
+                            StartDate = user.CreatedAt,
+                            EndDate = user.CreatedAt.AddMonths(3),
+                            CreatedAt = user.CreatedAt
+                        });
+                        db.SaveChanges();
+                    }
+                }
+            }
+        }
     }
 
     public HttpClient CreateNoCookieClient()
