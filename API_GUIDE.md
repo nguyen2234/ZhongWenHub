@@ -72,11 +72,11 @@ curl -X GET "http://localhost:5000/api/v1/learning/me/hsk-progress" \
 Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tương ứng với 198 endpoints/operations:
 
 ### 3.1. Nhóm Xác thực & Người dùng (Auth)
-- **Controller:** `Backend/src/Api/Controllers/AuthController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/Auth/AuthController.cs`
 - **Route Prefix:** `/api/v1/auth`
 - **Số Endpoint:** 7
-- **Business Service:** `Backend/src/Business/Authentication/AuthService.cs` (`IAuthService`), `ITokenService`
-- **DTOs:** `Backend/src/Business/Authentication/DTOs/` (`LoginRequestDto`, `RegisterRequestDto`, `LoginResponseDto`, `RefreshTokenRequestDto`)
+- **Business Service:** `Backend/ZhongWenHub/Features/users/Auth/AuthService.cs` (`IAuthService`), `ITokenService`
+- **DTOs:** `Backend/ZhongWenHub/Features/users/Auth/` (`LoginRequestDto`, `RegisterRequestDto`, `LoginResponseDto`, `RefreshTokenRequestDto`)
 - **Entities:** `ApplicationUser`, `UserRefreshToken`
 - **Các Endpoint chính:**
   - `POST /api/v1/auth/login`: Đăng nhập, cấp JWT và refresh token.
@@ -88,15 +88,15 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.2. Nhóm AI Cá nhân hóa & Luyện tập Thích ứng (AILearningEngine)
-- **Controller:** `Backend/src/Api/Controllers/AILearningEngineController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/AILearning/AILearningEngineController.cs`
 - **Route Prefix:** `/api/v1/ai`
 - **Số Endpoint:** 21
 - **Business Services:**
-  - `Backend/src/Business/AILearning/AIExerciseService.cs` (`IAIExerciseService`)
-  - `Backend/src/Business/AILearning/AIErrorAnalysisService.cs` (`IAIErrorAnalysisService`)
-  - `Backend/src/Business/AILearning/Services/Competency/CompetencyProfileService.cs` (`ICompetencyProfileService`)
-  - `Backend/src/Business/AILearning/Services/Recommendation/RecommendationEngineV2.cs` (`IRecommendationEngineV2`)
-- **DTOs:** `Backend/src/Business/AILearning/DTOs/AILearningDtos.cs`
+  - `Backend/ZhongWenHub/Features/users/AILearning/AIExerciseService.cs` (`IAIExerciseService`)
+  - `Backend/ZhongWenHub/Features/users/AILearning/AIErrorAnalysisService.cs` (`IAIErrorAnalysisService`)
+  - `Backend/ZhongWenHub/Features/users/AILearning/CompetencyProfileService.cs` (`ICompetencyProfileService`)
+  - `Backend/ZhongWenHub/Features/users/AILearning/RecommendationEngineV2.cs` (`IRecommendationEngineV2`)
+- **DTOs:** `Backend/ZhongWenHub/Features/users/AILearning/AILearningDtos.cs`
 - **Entities:** `AiGeneratedExercise`, `AiExerciseAttempt`, `StudentPracticeAttempt`, `LearningSkillStatistic`, `StudentCompetencyProfile`
 - **Các Endpoint chính:**
   - `POST /api/v1/ai/exercises/generate`: Sinh bài tập AI cá nhân hóa theo HSK và kỹ năng.
@@ -110,10 +110,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.3. Nhóm AI Gia sư & Hội thoại (AITutor)
-- **Controller:** `Backend/src/Api/Controllers/AITutorController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/AITutor/AITutorController.cs`
 - **Route Prefix:** `/api/v1/ai-tutor`
 - **Số Endpoint:** 1
-- **Business Service:** `Backend/src/Business/AITutor/AITutorService.cs` (`IAITutorService`), `AIProviderFactory`
+- **Business Service:** `Backend/ZhongWenHub/Features/users/AITutor/AITutorService.cs` (`IAITutorService`), `AIProviderFactory`
 - **DTOs:** `AITutorChatRequestDto`, `AITutorChatResponseDto`
 - **Endpoint chính:**
   - `POST /api/v1/ai-tutor/chat`: Hội thoại tương tác trực tiếp với gia sư ảo tiếng Trung.
@@ -121,10 +121,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.4. Nhóm Quản trị Nội dung Học tập (Content)
-- **Controller:** `Backend/src/Api/Controllers/ContentController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/admin/Content/ContentController.cs`
 - **Route Prefix:** `/api/v1/content`
 - **Số Endpoint:** 88 (Khối lượng API lớn nhất trong hệ thống)
-- **Business Service:** `Backend/src/Business/Content/ContentService.cs` (`IContentService`)
+- **Business Service:** `Backend/ZhongWenHub/Features/admin/Content/ContentService.cs` (`IContentService`)
 - **Entities:** `CourseEntity`, `UnitEntity`, `LessonEntity`, `VocabularyEntity`, `GrammarPoint`, `QuestionBankEntity`
 - **Các Endpoint chính:**
   - `/api/v1/content/courses`: Quản lý danh sách khóa học HSK 1 - HSK 6.
@@ -136,10 +136,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.5. Nhóm Tiến độ Học tập & Ôn tập SRS (Learning)
-- **Controller:** `Backend/src/Api/Controllers/LearningController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/Learning/LearningController.cs`
 - **Route Prefix:** `/api/v1/learning`
 - **Số Endpoint:** 13
-- **Business Service:** `Backend/src/Business/Learning/LearningService.cs` (`ILearningService`)
+- **Business Service:** `Backend/ZhongWenHub/Features/users/Learning/LearningService.cs` (`ILearningService`)
 - **Entities:** `StudentLessonProgress`, `StudentVocabularyProgress`, `StudentDailyActivity`, `StudentXpTransaction`
 - **Các Endpoint chính:**
   - `GET /api/v1/learning/me/hsk-progress`: Tiến độ tổng thể theo từng cấp HSK của học viên.
@@ -150,10 +150,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.6. Nhóm Ngân hàng Câu hỏi & Đánh giá Đầu vào (QuestionBank)
-- **Controller:** `Backend/src/Api/Controllers/QuestionBankController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/QuestionBank/QuestionBankController.cs`
 - **Route Prefix:** `/api/v1/question-bank`
 - **Số Endpoint:** 21
-- **Business Service:** `Backend/src/Business/QuestionBank/QuestionBankService.cs`, `DiagnosticAssessmentService.cs`
+- **Business Service:** `Backend/ZhongWenHub/Features/users/QuestionBank/QuestionBankService.cs`, `DiagnosticAssessmentService.cs`
 - **Entities:** `QuestionBankEntity`, `QuestionBankPracticeSessionEntity`
 - **Các Endpoint chính:**
   - `POST /api/v1/question-bank/diagnostic/start`: Khởi tạo bài kiểm tra năng lực HSK Placement Test (snapshot xáo trộn đề, ẩn đáp án).
@@ -162,10 +162,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.7. Nhóm Bài thi & Khảo thí (Exams)
-- **Controller:** `Backend/src/Api/Controllers/ExamsController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/Exams/ExamsController.cs`
 - **Route Prefix:** `/api/v1/exams`
 - **Số Endpoint:** 8
-- **Business Service:** `Backend/src/Business/Exams/ExamService.cs` (`IExamService`)
+- **Business Service:** `Backend/ZhongWenHub/Features/users/Exams/ExamService.cs` (`IExamService`)
 - **Entities:** `ExamEntity`, `StudentExamAttempt`
 - **Các Endpoint chính:**
   - Danh sách đề thi mô phỏng HSK, bắt đầu làm bài thi và nộp bài thi tính điểm.
@@ -173,10 +173,10 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.8. Nhóm Video Học tập & Cloud Storage (Videos)
-- **Controller:** `Backend/src/Api/Controllers/VideosController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/users/Videos/VideosController.cs`
 - **Route Prefix:** `/api/v1/videos`
 - **Số Endpoint:** 14
-- **Business Service:** `Backend/src/Business/Content/LearningVideoService.cs` (`ILearningVideoService`), `IVideoStorageService`
+- **Business Service:** `Backend/ZhongWenHub/Features/users/Videos/LearningVideoService.cs` (`ILearningVideoService`), `IVideoStorageService`
 - **Entities:** `LearningVideoEntity`, `VideoStorageCleanupJob`
 - **Các Endpoint chính:**
   - Upload video bài giảng lên Cloudflare R2 / S3, đồng bộ trạng thái xử lý video và stream an toàn.
@@ -184,18 +184,18 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.9. Nhóm Quản trị Người dùng & Phân quyền (AdminUsers)
-- **Controller:** `Backend/src/Api/Controllers/AdminUsersController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/admin/Users/AdminUsersController.cs`
 - **Route Prefix:** `/api/v1/admin/users`
 - **Số Endpoint:** 15
 - **Yêu cầu quyền:** `[Authorize(Roles = "ADMIN")]`
-- **Business Service:** `Backend/src/Business/Admin/AdminUserService.cs` (`IAdminUserService`)
+- **Business Service:** `Backend/ZhongWenHub/Features/admin/Users/AdminUserService.cs` (`IAdminUserService`)
 - **Các Endpoint chính:**
   - Quản lý danh sách người dùng, phân quyền Role (`STUDENT`, `TEACHER`, `CONTENT_MANAGER`, `ADMIN`), khóa/mở khóa tài khoản, điều chỉnh số dư ví học viên.
 
 ---
 
 ### 3.10. Nhóm Dashboard Thống kê Quản trị (AdminDashboard)
-- **Controller:** `Backend/src/Api/Controllers/AdminDashboardController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/admin/Dashboard/AdminDashboardController.cs`
 - **Route Prefix:** `/api/v1/admin/dashboard`
 - **Số Endpoint:** 1
 - **Yêu cầu quyền:** `[Authorize(Roles = "ADMIN")]`
@@ -205,7 +205,7 @@ Hệ thống Backend được phân bổ thành 11 nhóm Controller chính tươ
 ---
 
 ### 3.11. Nhóm Hệ thống & Giám sát (System)
-- **Controller:** `Backend/src/Api/Controllers/SystemController.cs`
+- **Controller:** `Backend/ZhongWenHub/Features/admin/System/SystemController.cs`
 - **Route Prefix:** `/api/v1/system`
 - **Số Endpoint:** 9
 - **Các Endpoint chính:**
