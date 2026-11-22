@@ -1,4 +1,4 @@
-# Antigravity Plan — Backend Feature-Slice Restructure & Frontend Remediation
+# Antigravity Plan — Simple Feature-First Backend, FE Remediation & Multi-Provider API Management
 
 ## 1. Metadata
 
@@ -7,297 +7,314 @@
 - Executor: Antigravity
 - Source baseline: `main` at `2ff648a8a7234fbd0bd4fb3b191ab9f91f395f9a`
 - Reference repository: `nguyendz2k4/DuAnTuyenDung` at `19998ad7703644d4882934806981d3e8b2e4cb3b`
-- Target implementation branch: `refactor/backend-feature-slices-fe-remediation`
-- Protected database: `ZhongWenHub_Dev` (strict zero-write)
+- Target branch: `refactor/simple-feature-backend-multiprovider-fe-fixes`
+- Deployment profile: local-first, single machine
+- Protected database: `ZhongWenHub_Dev` (strict zero-write during automated work)
 - Test database: `ZhongWenHub_Test`
 
-## 2. Executive decision
+## 2. Revised architecture decision
 
-ZhongWenHub already has the requested three-project skeleton:
+The owner explicitly prefers the structure of `DuAnTuyenDung`. Replace the current three production projects (`Api`, `Business`, `Data`) with one ASP.NET Core Web API project organized by feature, plus one test project.
+
+Target layout:
 
 ```text
 Backend/
 ├── docs/
-├── src/
-│   ├── Api/
-│   ├── Business/
-│   └── Data/
-└── tests/
+├── ZhongWenHub.sln
+├── ZhongWenHub/
+│   ├── Common/
+│   │   ├── Api/
+│   │   ├── Auth/
+│   │   ├── Exceptions/
+│   │   ├── Extensions/
+│   │   └── AI/
+│   ├── Data/
+│   │   ├── AppDbContext.cs
+│   │   ├── DbSeeder.cs
+│   │   └── Configurations/
+│   ├── Features/
+│   │   ├── admin/
+│   │   │   ├── Accounts/
+│   │   │   ├── AiProviders/
+│   │   │   ├── Analytics/
+│   │   │   ├── Content/
+│   │   │   ├── Operations/
+│   │   │   ├── Support/
+│   │   │   └── Teachers/
+│   │   └── users/
+│   │       ├── Auth/
+│   │       ├── AITutor/
+│   │       ├── Curriculum/
+│   │       ├── Exams/
+│   │       ├── Homework/
+│   │       ├── Learning/
+│   │       ├── Practice/
+│   │       ├── Teacher/
+│   │       └── Videos/
+│   ├── Migrations/
+│   ├── Models/
+│   │   ├── AI/
+│   │   ├── Content/
+│   │   ├── Learning/
+│   │   ├── Teacher/
+│   │   └── Users/
+│   ├── Properties/
+│   ├── Program.cs
+│   ├── appsettings.json
+│   ├── appsettings.Development.json
+│   └── ZhongWenHub.csproj
+└── ZhongWenHub.Tests/
+    ├── Features/
+    ├── Integration/
+    ├── Contracts/
+    └── ZhongWenHub.Tests.csproj
 ```
 
-Do **not** replace this with the reference repository's single-project monolith. The useful pattern from `DuAnTuyenDung` is its feature-first grouping (`Features/admin/...`, `Features/users/...`). Apply that pattern inside ZhongWenHub's existing `Api`, `Business`, `Data`, and `tests` layers.
+Inside each feature, co-locate the controller, service, interface and DTOs, following the reference repository:
 
-Do not copy reference-repository security choices such as a hard-coded JWT fallback, weak password requirements, or configuration embedded in `Program.cs`.
+```text
+Features/admin/AiProviders/
+├── AiProvidersController.cs
+├── IAiProviderManagementService.cs
+├── AiProviderManagementService.cs
+├── DTO/
+│   ├── AiProviderRequest.cs
+│   └── AiProviderResponse.cs
+└── Validation/
+```
 
-The migration strategy is incremental. Preserve public routes, JSON contracts, authorization policies, EF table mappings, and migration history while moving one feature at a time.
+This is intentionally a simple modular monolith. Do not introduce Clean Architecture projects, MediatR, CQRS, a generic repository, a message bus, Kubernetes, distributed cache or secret-vault infrastructure.
 
-## 3. Current-system findings
+## 3. Simple local security profile
 
-### 3.1 Backend
+The application runs locally. Keep security understandable and minimal:
 
-The physical layers are correct, but several files have become feature monoliths:
+- ASP.NET Core Identity for users and password hashing.
+- JWT bearer authentication and ordinary role checks (`Admin`, `Teacher`, `ContentManager`, `Student`, `Support`).
+- Local CORS origins only.
+- Password minimum length 6; uppercase, digit and special-character requirements may be disabled for local development.
+- One configured JWT secret through `.env`, user-secrets or local configuration. Never commit a real secret.
+- No mandatory 2FA, WAF integration, distributed rate limiter, per-request security-stamp database lookup or enterprise key vault.
+- Keep existing working refresh-token and account-lock behavior unless removing it is required for consolidation; do not spend a phase expanding it.
+- Never log passwords, JWTs or provider API keys.
+- API keys managed by the Admin UI must be masked in responses and encrypted locally with ASP.NET Core Data Protection before database storage.
 
-| File | Current size | Problem |
+Simple does not mean placing live API keys in Git, returning them to the browser, or allowing non-admin users to edit providers.
+
+## 4. Current findings to address
+
+### Backend hotspots
+
+| File | Size | Target split |
 |---|---:|---|
-| `Business/Content/ContentService.cs` | 3,822 lines | Courses, units, lessons, vocabulary, grammar, exercises, reviews, import/export in one service |
-| `Business/QuestionBank/QuestionBankService.cs` | 2,271 lines | Query, commands, practice sessions, validation and analytics mixed together |
-| `Business/Users/AdminUserService.cs` | 1,965 lines | User lifecycle, role operations, reports and exports mixed together |
-| `Business/Teacher/Services/TeacherClassService.cs` | 1,415 lines | Class CRUD, membership, schedules and dashboards mixed together |
-| `Data/Persistence/ApplicationDbContext.cs` | 1,300 lines | Entity configuration embedded in one method |
-| `Business/Learning/LearningService.cs` | 1,117 lines | Progress, goals, dashboard and activity concerns mixed together |
-| `Api/Controllers/ContentController.cs` | 1,068 lines | Multiple resources exposed by one controller |
-| `Business/Content/DTOs/ContentDtos.cs` | 766 lines | Unrelated contracts coupled in one file |
-| `Data/Persistence/DbInitializer.cs` | 645 lines | Infrastructure initialization and multiple seed domains coupled |
-| `Api/Program.cs` | 333 lines | Composition, middleware and configuration validation are too centralized |
+| `Business/Content/ContentService.cs` | 3,822 lines | Feature services under `Features/admin/Content` and `Features/users/Curriculum` |
+| `Business/QuestionBank/QuestionBankService.cs` | 2,271 lines | `Features/admin/Content` and `Features/users/Practice` |
+| `Business/Users/AdminUserService.cs` | 1,965 lines | `Features/admin/Accounts` |
+| `Business/Teacher/Services/TeacherClassService.cs` | 1,415 lines | `Features/users/Teacher` |
+| `Data/Persistence/ApplicationDbContext.cs` | 1,300 lines | `Data/AppDbContext.cs` plus configurations |
+| `Business/Learning/LearningService.cs` | 1,117 lines | `Features/users/Learning` |
+| `Api/Controllers/ContentController.cs` | 1,068 lines | Feature controllers |
+| `Api/Program.cs` | 333 lines | Simple composition root plus extension methods |
 
-Other issues:
+Also fix backend CI: its optional SQL Server step currently targets the unit-test project instead of the integration-test project.
 
-- CI's optional SQL Server step targets `ZhongWenHub.UnitTests.csproj` instead of `ZhongWenHub.IntegrationTests.csproj`.
-- Integration and migration gates are optional, so schema regressions can reach `main` without a live SQL Server check.
-- Feature tests are not consistently mirrored by feature folders.
-- Applied migrations have previously been edited. From this plan onward, applied migrations are immutable; corrections must use a new forward-only migration.
+### Frontend hotspots
 
-### 3.2 Frontend
-
-Current inventory:
-
-- 319 `.tsx` files and 263 `.ts` files.
-- 16 production files call `fetch` directly instead of consistently using the core client.
+- 16 production files call `fetch` directly.
 - 115 production files contain explicit `any`.
 - 146 production files mention mock/demo/fallback behavior.
-- Several components exceed 40–55 KB and mix data fetching, domain rules and presentation.
+- Admin AI still has hard-coded `INITIAL_AI_SERVICES` and a non-persistent quota slider.
+- Admin operations APIs convert failures into `null`.
+- Results, dashboard videos, writing skills and several management flows still use mock/demo records.
+- Mock authentication paths must not activate accidentally in normal local real-API mode.
+- Large pages mix network calls, business rules and rendering.
 
-Confirmed remediation targets:
+## 5. Multi-Provider API Management
 
-1. `admin-operations.service.ts` converts HTTP/network failures into `null`, hiding 401/403/500 errors.
-2. `AdminAIManagementView.tsx` still initializes from `INITIAL_AI_SERVICES` and keeps a local-only quota slider that is not persisted.
-3. `LearningResultsPage.tsx` renders `MOCK_RESULTS`.
-4. `DashboardPage.tsx` imports and renders `DEMO_VIDEOS` in the product flow.
-5. `SkillWritingPage.tsx` remains mock-only; other skill pages still contain test/demo data paths.
-6. Authentication still contains mock login/register/Google/reset flows. They must never activate in a production build.
-7. Teacher, support and some admin services maintain client-side mock stores or local-only actions.
-8. API access is fragmented across raw `fetch`, the core `HttpClient`, and feature-specific error handling.
-9. Large pages such as `DashboardPage`, `SkillSpeakingPage`, `HskCurriculumView`, and admin editor pages need container/presentation separation.
+### 5.1 Supported provider types
 
-Not every fallback is invalid. Accessibility fallbacks such as speech synthesis, offline draft recovery, and clearly labeled test fixtures may remain when they do not fabricate successful server operations.
+Initial scope:
 
-## 4. Target architecture
+1. `GEMINI`
+2. `OPENAI`
+3. `OPENAI_COMPATIBLE` for DeepSeek, Groq, OpenRouter, LM Studio, Ollama gateways and other compatible endpoints
+
+Do not add separate hard-coded implementations for every compatible vendor. Use the generic OpenAI-compatible adapter when protocol-compatible.
+
+### 5.2 Data model
+
+Add `AiProviderConfiguration`:
 
 ```text
-Backend/
-├── docs/
-├── src/
-│   ├── Api/
-│   │   ├── Features/
-│   │   │   ├── Authentication/
-│   │   │   ├── Administration/
-│   │   │   ├── Curriculum/
-│   │   │   ├── QuestionBank/
-│   │   │   ├── Exams/
-│   │   │   ├── Learning/
-│   │   │   ├── Teacher/
-│   │   │   ├── AI/
-│   │   │   └── Videos/
-│   │   ├── Configuration/
-│   │   ├── Middleware/
-│   │   └── Program.cs
-│   ├── Business/
-│   │   ├── Features/
-│   │   │   └── <Feature>/
-│   │   │       ├── Contracts/
-│   │   │       ├── DTOs/
-│   │   │       ├── Services/
-│   │   │       ├── Validation/
-│   │   │       └── Mapping/
-│   │   └── Common/
-│   └── Data/
-│       ├── Entities/<Feature>/
-│       ├── Persistence/
-│       │   ├── Configurations/<Feature>/
-│       │   ├── Seeders/<Feature>/
-│       │   ├── Migrations/
-│       │   └── ApplicationDbContext.cs
-│       └── Storage/
-└── tests/
-    ├── ZhongWenHub.UnitTests/Features/<Feature>/
-    ├── ZhongWenHub.IntegrationTests/Features/<Feature>/
-    ├── Contracts/
-    └── Architecture/
+Id                    Guid
+Name                  string, unique
+ProviderType          GEMINI | OPENAI | OPENAI_COMPATIBLE
+BaseUrl               string
+EncryptedApiKey       string, nullable for local providers without a key
+DefaultModel          string
+CapabilitiesJson      JSON array: TUTOR, GRADING, EXERCISE, SPEECH, EMBEDDING
+IsEnabled             bool
+Priority              int, lower value wins
+TimeoutSeconds        int, default 60
+MaxRetries            int, default 1
+MaxTokens             int?, optional
+Temperature           decimal?, optional
+LastHealthStatus      UNKNOWN | ONLINE | DEGRADED | OFFLINE
+LastHealthMessage     string?, sanitized
+LastCheckedAt         DateTime?
+CreatedAt             DateTime
+UpdatedAt             DateTime?
 ```
 
-Dependency rules:
+Extend AI usage logs with provider ID/name, model, capability, latency, success, HTTP status/error category and token counts. Never store the raw API key or full sensitive response body in logs.
 
-- `Api` is the HTTP/composition layer and may reference `Business` and `Data` only for composition.
-- `Business` contains use-case rules and may use the current `Data` abstractions during this refactor; do not introduce a repository wrapper that merely mirrors EF Core.
-- `Data` must not reference `Api` or `Business`.
-- Controllers must not contain EF queries or business calculations.
-- DTOs must not expose EF entities.
-- Cross-feature calls go through explicit interfaces, not another feature's concrete service.
-- Preserve `/api/v1/**` routes and JSON property names unless a separately reviewed versioned contract change is approved.
+Use a new forward-only EF migration. Do not edit an already applied migration.
 
-Size objectives after extraction (guidelines, not reasons to create meaningless files):
+### 5.3 Backend services
 
-- `Program.cs` <= 150 lines.
-- Controllers <= 250 lines each.
-- Services <= 500 lines each.
-- DTO files <= 300 lines.
-- `ApplicationDbContext.cs` <= 350 lines by using `IEntityTypeConfiguration<T>`.
+Create under `Common/AI` and `Features/admin/AiProviders`:
 
-## 5. Delivery phases
+- `IAiProviderAdapter`
+- `GeminiProviderAdapter`
+- `OpenAiProviderAdapter`
+- `OpenAiCompatibleProviderAdapter`
+- `IMultiProviderAiRouter`
+- `MultiProviderAiRouter`
+- `IAiProviderSecretProtector`
+- `DataProtectionAiProviderSecretProtector`
+- `IAiProviderManagementService`
+- `AiProviderManagementService`
 
-Every phase is a separate PR. Do not mix mass moves with behavior changes in the same commit.
+Routing rules:
 
-### Phase P0 — Baseline, safety and contracts
+1. Select enabled providers that support the requested capability.
+2. Sort by priority.
+3. Try the first provider with its configured model and timeout.
+4. Fail over on timeout, connection failure, HTTP 408, 429 and 5xx.
+5. Do not fail over on request validation errors or most other 4xx responses.
+6. Stop after all eligible providers fail and return a sanitized service-unavailable error.
+7. Record one usage event per attempt, including failed attempts.
 
-1. Start from the latest `main`; include the accepted PR #32 fixes if not already merged.
-2. Capture baseline commands and counts in the PR description:
-   - backend build and unit tests;
-   - frontend lint, unit tests and production build;
-   - SQL Server integration/migration tests;
-   - OpenAPI route snapshot.
-3. Fix `.github/workflows/backend-tests.yml` so integration mode runs `ZhongWenHub.IntegrationTests.csproj`.
-4. Add architecture tests for project references and controller-to-DbContext violations.
-5. Add contract tests for route, status-code and JSON compatibility around Auth, Content, Videos, Admin, Teacher and Homework.
-6. Establish `ZhongWenHub_Test` from a fresh migration and an upgrade-from-previous-schema scenario.
+Keep retry count small. Do not multiply retries inside the adapter and router.
 
-Acceptance:
+### 5.4 Admin API
 
-- No production source move yet.
-- Baseline is reproducible in CI.
-- `ZhongWenHub_Dev` before/after evidence proves zero-write.
-- Contract snapshots and database backup/restore instructions exist.
+All endpoints require the `Admin` role:
 
-### Phase P1 — Composition root and data configuration
+```text
+GET    /api/v1/admin/ai-providers
+GET    /api/v1/admin/ai-providers/{id}
+POST   /api/v1/admin/ai-providers
+PUT    /api/v1/admin/ai-providers/{id}
+DELETE /api/v1/admin/ai-providers/{id}
+PATCH  /api/v1/admin/ai-providers/{id}/enabled
+POST   /api/v1/admin/ai-providers/{id}/test
+PUT    /api/v1/admin/ai-providers/priorities
+GET    /api/v1/admin/ai-providers/usage
+```
 
-1. Extract configuration extensions from `Program.cs`:
-   - authentication/authorization;
-   - CORS and rate limiting;
-   - OpenAPI;
-   - health checks;
-   - middleware pipeline;
-   - startup configuration validation.
-2. Keep `Program.cs` as a readable composition root.
-3. Move EF fluent mappings from `ApplicationDbContext` into `Persistence/Configurations/<Feature>` and call `ApplyConfigurationsFromAssembly`.
-4. Split `DbInitializer` into idempotent feature seeders.
-5. Do not change table/column names and do not generate a migration for a pure configuration move.
+API-key behavior:
 
-Acceptance:
+- Create accepts `apiKey`.
+- Update treats an omitted/blank `apiKey` as “keep current key”.
+- Responses return only `hasApiKey` and a short mask such as `****abcd`; never return the stored key.
+- Test-connection responses contain provider, model, latency and sanitized status only.
 
-- Empty EF migration diff for pure moves.
-- Fresh/upgrade SQL Server tests pass.
-- Existing API contract snapshot is unchanged.
+Validation:
 
-### Phase P2 — Curriculum/content vertical slice
+- `BaseUrl` must be absolute.
+- Allow HTTPS remote URLs and HTTP only for localhost/127.0.0.1 local providers.
+- Timeout range: 5–180 seconds.
+- Retry range: 0–3.
+- Priority must be non-negative and deterministic.
+- Provider name must be unique.
 
-Replace `ContentController` and `ContentService` incrementally with:
+### 5.5 Admin frontend
 
-- `CoursesController` / `CourseService`
-- `UnitsController` / `UnitService`
-- `LessonsController` / `LessonService`
-- `VocabularyController` / `VocabularyService`
-- `GrammarController` / `GrammarService`
-- `ExercisesController` / `ExerciseService`
-- `ContentReviewController` / `ContentReviewService`
-- `ContentImportExportController` / `ContentImportExportService`
+Create an Admin page at `/admin/operations/ai-providers` containing:
 
-Keep route templates compatible by using explicit `[Route]` attributes. Move DTOs and validation beside each feature. Preserve transactions for lesson aggregates, exercise presentation metadata, review gates and import operations.
+- provider table/cards with provider type, model, capabilities, priority and health;
+- create/edit drawer;
+- masked API-key input with “replace key” behavior;
+- enable/disable switch persisted through the backend;
+- connection-test action with loading and result states;
+- priority reorder controls;
+- usage and latency summary based only on real logs;
+- explicit loading, empty, error and retry states.
 
-Acceptance:
+Replace `INITIAL_AI_SERVICES` and the local-only quota slider. No mock provider or fake health status may appear when the API fails.
 
-- All Content contract tests pass without FE changes.
-- Lesson create/edit/publish, exercise link/unlink, vocabulary/grammar linking, video playback and HSK curriculum flows pass against SQL Server.
-- Old monoliths are deleted only after no callers remain.
+### 5.6 Provider acceptance tests
 
-### Phase P3 — Remaining backend feature slices
+- CRUD and role authorization.
+- API key is encrypted at rest and never serialized in responses/logs.
+- Disabled provider and capability mismatch are skipped.
+- Lowest priority enabled provider is selected first.
+- Timeout/429/5xx fails over to the next provider.
+- 400 validation error does not fan out to every provider.
+- All-provider failure returns a sanitized 503.
+- Health test updates status without exposing secrets.
+- Gemini and OpenAI-compatible mappings use fake HTTP handlers, not paid APIs.
+- Admin FE mutation survives page reload and re-fetch.
 
-Order:
+## 6. Delivery phases
 
-1. Question Bank: queries, commands, practice sessions, import and analytics.
-2. Administration/Users: lifecycle, roles, exports, operations and analytics.
-3. Teacher: classes, schedules, members, assignments, attendance and dashboard.
-4. Learning: progress, goals, daily activity, recommendations and dashboard.
-5. Exams and Homework.
-6. AI Tutor/AI Learning/Speaking.
-7. Videos and storage/outbox processing.
+Each phase is a separate Draft PR. Antigravity stops for Codex review after every phase.
 
-For each slice:
+### P0 — Baseline and branch safety
 
-- first add characterization/contract tests;
-- move one use case group;
-- keep route and authorization behavior stable;
-- run unit, integration and affected FE tests;
-- remove the old path only when references are zero.
+1. Start from latest `main` and include accepted pending fixes.
+2. Capture backend build/tests, frontend lint/tests/build and current OpenAPI routes.
+3. Fix the SQL Server CI project path.
+4. Verify fresh and upgrade migration scenarios on `ZhongWenHub_Test`.
+5. Prove no write to `ZhongWenHub_Dev` with before/after evidence.
 
-### Phase P4 — Frontend API and error-state foundation
+### P1 — Create the single feature-first backend project
 
-1. Route all normal JSON calls through `core/api/client/http-client.ts`.
-2. Permit raw `fetch` only for documented streaming/upload cases and wrap them in typed adapters.
-3. Standardize `ApiClientError`, ProblemDetails parsing, cancellation and retry rules.
-4. Replace `Promise<T | null>` error swallowing with typed success or thrown typed error.
-5. Add shared `LoadingState`, `ErrorState`, `EmptyState`, retry and unauthorized handling.
-6. Separate API DTOs from UI view models; remove `any` from touched files.
-7. Add OpenAPI contract generation or a checked-in typed-contract verification step.
+1. Create `Backend/ZhongWenHub/ZhongWenHub.csproj` as the single Web SDK project.
+2. Merge required package references from Api, Business and Data.
+3. Create `Common`, `Data`, `Features`, `Models`, `Migrations` and `Properties`.
+4. Move the composition root and make the new project build before moving features.
+5. Create `Backend/ZhongWenHub.Tests` and preserve test categories.
+6. Update solution, Docker, CI, launch settings and documentation paths.
+7. Do not delete old projects until the new application passes all baseline tests.
 
-Acceptance:
+### P2 — Move shared data and authentication
 
-- 401, 403, 404, 409, 422, 429 and 500 are visibly distinguishable.
-- No failed write is reported as successful.
-- No production page silently substitutes mock data after an API failure.
+1. Move entities into `Models` grouped by domain.
+2. Move DbContext/configurations/seeders into `Data`.
+3. Preserve table names, relationships and migration IDs.
+4. Move Auth into `Features/users/Auth`.
+5. Apply the simple local security profile; do not expand enterprise security.
+6. Verify login, refresh, role authorization and account status behavior.
 
-### Phase P5 — Frontend functional remediation
+### P3 — Move feature modules
 
-Priority P0:
+Move one module per commit: Admin Accounts/Operations; Curriculum/Content; Practice/Question Bank; Teacher/Class/Assignment/Attendance; Learning/Progress/Results; Homework/Exams; Videos/storage; AI Tutor/AI Learning; Support.
 
-1. Admin operations:
-   - remove `INITIAL_AI_SERVICES` as runtime fallback;
-   - remove or implement the local-only quota slider through a real backend contract;
-   - display telemetry loading/error/empty states;
-   - propagate API errors instead of returning `null`.
-2. Authentication:
-   - ensure production builds cannot activate mock login/register/Google/reset flows;
-   - preserve mock identities only under explicit test fixtures.
-3. Learning results and dashboard:
-   - replace `MOCK_RESULTS` and `DEMO_VIDEOS` with real endpoints;
-   - show honest empty/error states when data does not exist.
-4. Skills:
-   - replace mock-only writing flow;
-   - confine reading/listening/speaking fixtures to isolated tests;
-   - retain accessibility speech fallback, clearly separated from grading truth.
-5. Teacher/support/admin actions:
-   - remove local-only state mutations that pretend persistence;
-   - verify refresh after mutation reads the persisted backend state.
+For each module, co-locate controller/service/interface/DTO, preserve routes, run affected tests and remove old files only after reference search returns zero.
 
-Priority P1:
+### P4 — Multi-Provider API Management
 
-- Split large page components into feature hooks, containers and presentation components.
-- Add request cancellation on unmount and stale-response protection.
-- Normalize pagination and filters.
-- Remove duplicate token/header construction from feature services.
-- Replace touched-file `any` with schemas/type guards.
+Implement section 5, migrate existing AI tutor/grading calls through `IMultiProviderAiRouter`, and keep provider-specific code out of controllers.
 
-Priority P2:
+### P5 — Frontend API and functional fixes
 
-- Lazy-load heavy routes and reduce the oversized main bundle.
-- Fix unresolved dashboard asset warnings.
-- Remove unused imports and reduce lint warnings without blanket disables.
+1. Standardize normal JSON calls on the core HTTP client.
+2. Replace swallowed `null` errors with typed errors and honest UI states.
+3. Implement the Admin provider-management page.
+4. Remove production mock fallbacks from Admin AI, Results, Dashboard videos, Skills, Teacher and Support flows.
+5. Keep fixtures only in tests or an explicit local demo mode visibly labeled to the user.
+6. Split the largest pages into hooks/containers/presentation components.
+7. Remove `any` from every touched API contract.
 
-### Phase P6 — End-to-end release gate
-
-Required role flows:
-
-- student: register/login, curriculum, lesson, video, practice, homework, results;
-- teacher: class/member/schedule, assignment, attendance and grading;
-- content manager: curriculum and video CRUD, review and publication;
-- admin: user/role lifecycle, settings behavior, analytics and AI telemetry;
-- AI: success, 429, timeout, invalid payload and missing-key behavior.
-
-Required gates:
+### P6 — Final local release gate
 
 ```bash
 dotnet restore Backend/ZhongWenHub.sln
 dotnet build Backend/ZhongWenHub.sln --configuration Release --no-restore
-dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --configuration Release --no-build --filter "Category!=Integration"
-dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --configuration Release
+dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj --configuration Release --no-build
 
 cd Fontend
 bun install --frozen-lockfile
@@ -307,36 +324,38 @@ bun run build
 bunx playwright test --project=desktop-1440
 ```
 
-Release is blocked by any failed gate, API contract regression, unexpected EF migration, production mock fallback, or write to `ZhongWenHub_Dev`.
+Required flows: Admin provider CRUD/test/priority; provider failover with fake adapters; student learning flows; teacher class/assignment/attendance/grading; content/video management; mutations survive reload.
 
-## 6. Branch and PR policy
+## 7. Non-goals
 
-- Umbrella branch: `refactor/backend-feature-slices-fe-remediation`.
-- Implementation PRs should be smaller branches rebased on latest `main`, for example:
-  - `refactor/p0-contract-safety`
-  - `refactor/p1-composition-data-config`
-  - `refactor/p2-content-slice`
-  - `fix/fe-api-error-foundation`
-  - `fix/fe-remove-production-mocks`
-- Never force-push `main`.
-- Do not combine generated migrations, source moves and unrelated UI changes in one commit.
-- Commit messages must describe the bounded feature and behavior.
-- Each PR description must include commands, pass counts, SQL database name and before/after zero-write evidence.
+- No microservices or separate Domain/Application/Infrastructure projects.
+- No MediatR/CQRS or generic repository.
+- No 2FA, WAF, Kubernetes, Redis or distributed vault.
+- No real paid-provider calls in CI.
+- No redesign of the whole frontend visual system.
 
-## 7. Definition of done
+## 8. Branch and commit policy
 
-The program is complete only when:
+- Umbrella branch: `refactor/simple-feature-backend-multiprovider-fe-fixes`.
+- Phase branches: `refactor/p0-baseline`, `refactor/p1-single-project`, `refactor/p2-data-auth`, `feat/admin-ai-providers`, `fix/frontend-real-api-flows`.
+- Never force-push or merge directly to `main`.
+- Do not mix a directory move, migration and unrelated behavior change in one commit.
+- Do not rewrite applied migrations.
+- Every PR includes commands, pass counts, database name and zero-write evidence.
 
-1. Target feature-first three-layer structure is present and old monoliths have no callers.
-2. Public API and authorization contracts are preserved or explicitly versioned.
-3. No production page fabricates a successful operation or silently falls back to mock data.
-4. All supported admin, teacher, student and content-manager operations persist and survive reload.
-5. Fresh and upgrade SQL Server migration scenarios pass.
-6. Unit, integration, FE unit, build and Playwright role flows pass in CI.
-7. Architecture tests prevent regression to cross-layer or controller-DbContext coupling.
-8. `ZhongWenHub_Dev` remains unchanged.
+## 9. Definition of done
 
-## 8. Antigravity execution instruction
+1. One production ASP.NET Core project and one test project remain.
+2. Features follow the reference repository's co-located controller/service/interface/DTO style.
+3. Existing `/api/v1` contracts remain compatible or have an explicit migration note.
+4. Multi-provider management and failover work without exposing API keys.
+5. Production FE does not silently fabricate successful data or actions.
+6. All mutations survive reload.
+7. Fresh/upgrade SQL Server scenarios pass.
+8. Backend, FE and Playwright gates pass.
+9. `ZhongWenHub_Dev` remains unchanged during automated work.
 
-Antigravity must read this entire plan before editing. Start with Phase P0 only. Do not claim the whole plan complete after scaffolding. Stop after each phase, push a draft PR, attach reproducible evidence and wait for Codex review before starting the next phase.
+## 10. Antigravity instruction
+
+Read this plan completely. Begin with P0 only. Do not start the single-project move or provider feature until P0 evidence is reviewed. After each phase, create a Draft PR, attach reproducible evidence, and stop for Codex review.
 
