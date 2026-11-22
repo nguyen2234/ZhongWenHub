@@ -1,6 +1,6 @@
 ﻿ZhongWenHub Runtime OpenAPI Route Baseline (P0)
 Total Operations: 263
-Captured At: 2026-11-22T16:22:05.6414699Z
+Captured At: 2026-11-22T16:27:57.0031285Z
 
 DELETE  /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
 DELETE  /api/v1/admin/exercises/{id}                                 [Content] ()
