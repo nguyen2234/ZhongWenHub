@@ -206,13 +206,43 @@ public class SwaggerIntegrationTests
         System.Console.WriteLine($"WITH_SUMMARY:{operationsWithSummary}");
         System.Console.WriteLine($"WITH_DESCRIPTION:{operationsWithDescription}");
         System.Console.WriteLine($"WITHOUT_SUMMARY_OR_DESC:{operationsWithoutSummary}");
-        foreach (var kvp in tagCounts)
+
+        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
+        Directory.CreateDirectory(docsDir);
+
+        var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
+        await File.WriteAllTextAsync(jsonPath, json);
+
+        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
+        using var writer = new StreamWriter(txtPath, false, System.Text.Encoding.UTF8);
+        writer.WriteLine("ZhongWenHub Runtime OpenAPI Route Baseline (P0)");
+        writer.WriteLine($"Total Operations: {totalOperations}");
+        writer.WriteLine($"Captured At: {DateTime.UtcNow:O}");
+        writer.WriteLine();
+
+        var routeList = new List<string>();
+        foreach (var path in paths.EnumerateObject())
         {
-            System.Console.WriteLine($"TAG:{kvp.Key}={kvp.Value}");
+            var pathKey = path.Name;
+            foreach (var method in path.Value.EnumerateObject())
+            {
+                var httpMethod = method.Name.ToUpperInvariant();
+                var op = method.Value;
+                var opId = op.TryGetProperty("operationId", out var oid) ? oid.GetString() : "";
+                var tag = "Unknown";
+                if (op.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array && tags.GetArrayLength() > 0)
+                {
+                    tag = tags[0].GetString() ?? "Unknown";
+                }
+                var summary = op.TryGetProperty("summary", out var sm) ? sm.GetString() : "";
+                routeList.Add($"{httpMethod,-7} {pathKey,-60} [{tag}] ({opId}) {summary}".Trim());
+            }
         }
-        foreach (var item in missingSummaryList.Take(30))
+
+        routeList.Sort();
+        foreach (var line in routeList)
         {
-            System.Console.WriteLine($"MISSING_META:{item}");
+            writer.WriteLine(line);
         }
     }
 }
