@@ -22,6 +22,8 @@ using ZhongWenHub.Business.QuestionBank;
 using ZhongWenHub.Business.Learning;
 using ZhongWenHub.Business.Teacher.Services;
 using ZhongWenHub.Business.Users;
+using ZhongWenHub.Common.AI;
+using ZhongWenHub.Features.admin.AiProviders;
 
 namespace ZhongWenHub;
 
@@ -159,5 +161,16 @@ public class Program
         services.AddScoped<ISpeechRecognitionService, GeminiSpeechRecognitionService>();
         services.AddScoped<IAIPronunciationService, AIPronunciationService>();
         services.AddScoped<IAISpeakingService, AISpeakingService>();
+
+        // Multi-Provider AI Management & Router
+        services.AddSingleton<IAiProviderSecretProtector, DataProtectionAiProviderSecretProtector>();
+        services.AddHttpClient<GeminiProviderAdapter>();
+        services.AddHttpClient<OpenAiProviderAdapter>();
+        services.AddHttpClient<OpenAiCompatibleProviderAdapter>();
+        services.AddSingleton<IAiProviderAdapter, GeminiProviderAdapter>(sp => sp.GetRequiredService<GeminiProviderAdapter>());
+        services.AddSingleton<IAiProviderAdapter, OpenAiProviderAdapter>(sp => sp.GetRequiredService<OpenAiProviderAdapter>());
+        services.AddSingleton<IAiProviderAdapter, OpenAiCompatibleProviderAdapter>(sp => sp.GetRequiredService<OpenAiCompatibleProviderAdapter>());
+        services.AddScoped<IMultiProviderAiRouter, MultiProviderAiRouter>();
+        services.AddScoped<IAiProviderManagementService, AiProviderManagementService>();
     }
 }

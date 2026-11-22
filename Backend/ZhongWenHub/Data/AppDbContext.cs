@@ -67,6 +67,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<AiSpeakingAttempt> AiSpeakingAttempts => Set<AiSpeakingAttempt>();
     public DbSet<LearningSkillStatistic> LearningSkillStatistics => Set<LearningSkillStatistic>();
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
+    public DbSet<AiProviderConfiguration> AiProviderConfigurations => Set<AiProviderConfiguration>();
 
     // Teacher & Class Management DbSets
     public DbSet<TeachingClass> TeachingClasses => Set<TeachingClass>();
@@ -958,6 +959,22 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
             b.Property(x => x.UpdatedAt).HasColumnType("datetime2");
             b.HasIndex(x => new { x.UserId, x.CreatedAt }).HasDatabaseName("idx_ai_usage_logs_user_created");
+        });
+
+        builder.Entity<AiProviderConfiguration>(b =>
+        {
+            b.ToTable("AiProviderConfigurations");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ProviderType).HasMaxLength(50).IsRequired();
+            b.Property(x => x.BaseUrl).HasMaxLength(500);
+            b.Property(x => x.EncryptedApiKey).IsRequired();
+            b.Property(x => x.DefaultModel).HasMaxLength(100).IsRequired();
+            b.Property(x => x.CapabilitiesJson).HasMaxLength(1000);
+            b.Property(x => x.LastHealthStatus).HasMaxLength(50);
+            b.Property(x => x.LastHealthMessage).HasMaxLength(1000);
+            b.HasIndex(x => x.Priority);
+            b.HasIndex(x => x.IsEnabled);
         });
 
         // Phase 4 - Personalized Learning Path Entities
