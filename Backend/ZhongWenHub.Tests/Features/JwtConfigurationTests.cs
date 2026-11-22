@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business;
 using ZhongWenHub.Business.Authentication;
+using ZhongWenHub.Common.Extensions;
 
-namespace ZhongWenHub.UnitTests;
+namespace ZhongWenHub.Tests.Features;
 
 public class JwtConfigurationTests
 {
@@ -12,7 +12,8 @@ public class JwtConfigurationTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void AddBusiness_MissingSecret_ThrowsInvalidOperationException(string? secret)
+    [InlineData("short_secret_under_32_chars!")]
+    public void AddAppAuthentication_MissingOrShortSecret_FallsBackToSafeLocalSecret(string? secret)
     {
         // Arrange
         var services = new ServiceCollection();
@@ -25,36 +26,21 @@ public class JwtConfigurationTests
             })
             .Build();
 
-        // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => services.AddBusiness(configuration));
-        Assert.Contains("JwtSettings:Secret", ex.Message);
-        Assert.Contains("tối thiểu 32 ký tự", ex.Message);
-    }
+        // Act
+        services.AddAppAuthentication(configuration);
+        var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<JwtSettings>>().Value;
 
-    [Theory]
-    [InlineData("short_secret_under_32_chars!")] // 28 chars
-    [InlineData("1234567890123456789012345678901")] // 31 chars
-    public void AddBusiness_SecretShorterThan32Chars_ThrowsInvalidOperationException(string shortSecret)
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["JwtSettings:Secret"] = shortSecret,
-                ["JwtSettings:Issuer"] = "ZhongWenHub",
-                ["JwtSettings:Audience"] = "ZhongWenHub-Client"
-            })
-            .Build();
-
-        // Act & Assert
-        var ex = Assert.Throws<InvalidOperationException>(() => services.AddBusiness(configuration));
-        Assert.Contains("JwtSettings:Secret", ex.Message);
-        Assert.Contains("tối thiểu 32 ký tự", ex.Message);
+        // Assert
+        Assert.NotNull(options);
+        Assert.False(string.IsNullOrWhiteSpace(options.Secret));
+        Assert.True(options.Secret.Length >= 32, "Fallback secret must have at least 32 characters (256-bit).");
+        Assert.Equal("ZhongWenHub", options.Issuer);
+        Assert.Equal("ZhongWenHub-Client", options.Audience);
     }
 
     [Fact]
-    public void AddBusiness_ValidSecret32CharsOrLonger_SucceedsAndBindsConfiguration()
+    public void AddAppAuthentication_ValidSecret32CharsOrLonger_SucceedsAndBindsConfiguration()
     {
         // Arrange
         var validSecret = "ThisIsAValid32ByteSecretKey2026!"; // 32 chars
@@ -72,7 +58,7 @@ public class JwtConfigurationTests
             .Build();
 
         // Act
-        services.AddBusiness(configuration);
+        services.AddAppAuthentication(configuration);
         var provider = services.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<JwtSettings>>().Value;
 

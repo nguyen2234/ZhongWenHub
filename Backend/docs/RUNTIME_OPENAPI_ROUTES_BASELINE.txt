@@ -1,7 +1,8 @@
 ﻿ZhongWenHub Runtime OpenAPI Route Baseline (P0)
-Total Operations: 254
-Captured At: 2026-11-22T14:49:26.3486793Z
+Total Operations: 263
+Captured At: 2026-11-22T16:17:43.0297351Z
 
+DELETE  /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
 DELETE  /api/v1/admin/exercises/{id}                                 [Content] ()
 DELETE  /api/v1/admin/grammar/{id}                                   [Content] ()
 DELETE  /api/v1/admin/users/{id}                                     [AdminUsers] ()
@@ -14,10 +15,13 @@ DELETE  /api/v1/content/units/{id}                                   [Content] (
 DELETE  /api/v1/content/vocabularies/{id}                            [Content] ()
 DELETE  /api/v1/exams/{id}                                           [Exams] ()
 DELETE  /api/v1/question-bank/{id}                                   [QuestionBank] ()
-DELETE  /api/v1/teacher/classes/{classId}                            [TeacherClasses] () Lưu trữ lớp học (Archive)
-DELETE  /api/v1/teacher/classes/{classId}/members/{studentId}        [TeacherClasses] () Xóa học viên khỏi lớp học
-DELETE  /api/v1/teacherassignments/api/v1/teacher/assignments/{id}   [TeacherAssignments] () Xóa hoặc lưu trữ bài tập
-DELETE  /api/v1/videos/manage/{id}                                   [Videos] () Xóa một video học tập và dọn dẹp an toàn tệp lưu trữ liên quan
+DELETE  /api/v1/teacher/assignments/{id}                             [TeacherAssignments] ()
+DELETE  /api/v1/teacher/classes/{classId}                            [TeacherClasses] ()
+DELETE  /api/v1/teacher/classes/{classId}/members/{studentId}        [TeacherClasses] ()
+DELETE  /api/v1/videos/manage/{id}                                   [Videos] ()
+GET     /api/v1/admin/ai-providers                                   [AiProviders] ()
+GET     /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
+GET     /api/v1/admin/ai-providers/usage                             [AiProviders] ()
 GET     /api/v1/admin/characters                                     [Content] ()
 GET     /api/v1/admin/characters/{id}                                [Content] ()
 GET     /api/v1/admin/characters/stats                               [Content] ()
@@ -76,10 +80,10 @@ GET     /api/v1/content/vocabularies/import-template                 [Content] (
 GET     /api/v1/exams                                                [Exams] ()
 GET     /api/v1/exams/{id}                                           [Exams] ()
 GET     /api/v1/exams/stats                                          [Exams] ()
-GET     /api/v1/learning-path/current                                [LearningPath] () Lấy lộ trình học tập cá nhân hóa đang active của học viên.
-GET     /api/v1/learning-path/daily-plan                             [LearningPath] () Lấy danh sách nhiệm vụ học tập trong kế hoạch hôm nay.
-GET     /api/v1/learning-path/goals                                  [LearningPath] () Lấy thông tin thiết lập mục tiêu học tập của học viên hiện tại.
-GET     /api/v1/learning-path/progress                               [LearningPath] () Lấy tiến độ tổng thể lộ trình học tập cá nhân hóa.
+GET     /api/v1/learning-path/current                                [LearningPath] ()
+GET     /api/v1/learning-path/daily-plan                             [LearningPath] ()
+GET     /api/v1/learning-path/goals                                  [LearningPath] ()
+GET     /api/v1/learning-path/progress                               [LearningPath] ()
 GET     /api/v1/learning/me                                          [Learning] ()
 GET     /api/v1/learning/me/activities                               [Learning] ()
 GET     /api/v1/learning/me/hsk-progress                             [Learning] ()
@@ -92,8 +96,8 @@ GET     /api/v1/question-bank/practice-history                       [QuestionBa
 GET     /api/v1/question-bank/practice-sessions/{sessionId}          [QuestionBank] ()
 GET     /api/v1/question-bank/recommendations                        [QuestionBank] ()
 GET     /api/v1/question-bank/stats                                  [QuestionBank] ()
-GET     /api/v1/student/homework                                     [StudentHomework] () Lấy danh sách bài tập được giao cho học viên hiện tại qua các lớp đã tham gia
-GET     /api/v1/student/homework/submissions/{submissionId}/result   [StudentHomework] () Xem kết quả và lời giải của bài tập đã nộp (chỉ hiện đáp án nếu giáo viên cho phép)
+GET     /api/v1/student/homework                                     [StudentHomework] ()
+GET     /api/v1/student/homework/submissions/{submissionId}/result   [StudentHomework] ()
 GET     /api/v1/system/admin-test                                    [System] ()
 GET     /api/v1/system/content-manager-test                          [System] ()
 GET     /api/v1/system/database-environment                          [System] ()
@@ -103,34 +107,35 @@ GET     /api/v1/system/student-test                                  [System] ()
 GET     /api/v1/system/superadmin-test                               [System] ()
 GET     /api/v1/system/support-test                                  [System] ()
 GET     /api/v1/system/teacher-test                                  [System] ()
-GET     /api/v1/teacher/classes                                      [TeacherClasses] () Lấy danh sách lớp học có phân trang, bộ lọc và sắp xếp
-GET     /api/v1/teacher/classes/{classId}                            [TeacherClasses] () Xem thông tin chi tiết một lớp học
-GET     /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] () Lấy danh sách điểm danh của lớp theo ngày chỉ định
-GET     /api/v1/teacher/classes/{classId}/attendance/summary         [TeacherAttendance] () Lấy báo cáo thống kê tỷ lệ chuyên cần tổng quan của lớp học
-GET     /api/v1/teacher/classes/{classId}/curriculum                 [TeacherClasses] () Lấy cấu trúc giáo trình bài học của lớp học (Course, Units, Lessons)
-GET     /api/v1/teacher/classes/{classId}/members                    [TeacherClasses] () Lấy danh sách thành viên trong lớp học
-GET     /api/v1/teacher/classes/{classId}/performance                [TeacherClasses] () Lấy báo cáo hiệu suất học tập và điểm số của lớp học
-GET     /api/v1/teacher/classes/{classId}/schedules                  [TeacherClasses] () Lấy thời khóa biểu tuần của lớp học
-GET     /api/v1/teacher/classes/stats                                [TeacherClasses] () Lấy thống kê tổng quan các lớp học (KPI strip) mà không cần tải toàn bộ danh sách lớp
-GET     /api/v1/teacher/dashboard                                    [TeacherClasses] () Lấy toàn bộ dữ liệu tổng hợp cho Teacher Dashboard (KPIs, lịch dạy sắp tới, lớp đang dạy)
-GET     /api/v1/teacher/my-enrolled-classes                          [TeacherClasses] () Lấy danh sách các lớp học mà học viên hiện tại đang được ghi danh tham gia
-GET     /api/v1/teacher/my-enrolled-classes/{classId}                [TeacherClasses] () Lấy metadata lớp học mà học viên hiện tại đang được ghi danh tham gia.
-Dành riêng cho học viên (StudentAccess), chỉ cho phép truy cập các lớp mình đang được ghi danh.
-Không bao gồm danh sách thành viên hoặc dữ liệu quản trị lớp học.
-GET     /api/v1/teacherassignments/api/v1/teacher/assignments        [TeacherAssignments] () Lấy danh sách bài tập được phân trang theo bộ lọc
-GET     /api/v1/teacherassignments/api/v1/teacher/assignments/{id}   [TeacherAssignments] () Lấy chi tiết một bài tập bao gồm danh sách câu hỏi và lớp được giao
-GET     /api/v1/teacherassignments/api/v1/teacher/assignments/{id}/submissions [TeacherAssignments] () Lấy danh sách toàn bộ bài nộp của học sinh cho bài tập này
-GET     /api/v1/teacherassignments/api/v1/teacher/submissions/{id}   [TeacherAssignments] () Lấy chi tiết bài nộp của học sinh (đáp án, điểm, câu tự luận cần chấm)
-GET     /api/v1/videos                                               [Videos] () Lấy danh sách video học tiếng Trung có phân trang, tìm kiếm và lọc theo HSK, chủ đề, nguồn video
-GET     /api/v1/videos/{id}                                          [Videos] () Lấy chi tiết một video học tiếng Trung theo Id
-GET     /api/v1/videos/manage                                        [Videos] () Lấy danh sách video quản trị (bao gồm Draft, Published, Hidden)
-GET     /api/v1/videos/manage/{id}                                   [Videos] () Lấy thông tin chi tiết video quản trị theo Id
-GET     /api/v1/videos/manage/cleanups                               [Videos] () Danh sách các tác vụ dọn dẹp tệp lưu trữ đang chờ xử lý
-GET     /api/v1/videos/manage/storage-status                         [Videos] () Lấy thông tin cấu hình và giới hạn lưu trữ video hiện tại
-GET     /api/v1/videos/topics                                        [Videos] () Lấy danh sách các chủ đề video khả dụng
+GET     /api/v1/teacher/assignments                                  [TeacherAssignments] ()
+GET     /api/v1/teacher/assignments/{id}                             [TeacherAssignments] ()
+GET     /api/v1/teacher/assignments/{id}/submissions                 [TeacherAssignments] ()
+GET     /api/v1/teacher/assignments/api/v1/teacher/submissions/{id}  [TeacherAssignments] ()
+GET     /api/v1/teacher/classes                                      [TeacherClasses] ()
+GET     /api/v1/teacher/classes/{classId}                            [TeacherClasses] ()
+GET     /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] ()
+GET     /api/v1/teacher/classes/{classId}/attendance/summary         [TeacherAttendance] ()
+GET     /api/v1/teacher/classes/{classId}/curriculum                 [TeacherClasses] ()
+GET     /api/v1/teacher/classes/{classId}/members                    [TeacherClasses] ()
+GET     /api/v1/teacher/classes/{classId}/performance                [TeacherClasses] ()
+GET     /api/v1/teacher/classes/{classId}/schedules                  [TeacherClasses] ()
+GET     /api/v1/teacher/classes/stats                                [TeacherClasses] ()
+GET     /api/v1/teacher/dashboard                                    [TeacherClasses] ()
+GET     /api/v1/teacher/my-enrolled-classes                          [TeacherClasses] ()
+GET     /api/v1/teacher/my-enrolled-classes/{classId}                [TeacherClasses] ()
+GET     /api/v1/videos                                               [Videos] ()
+GET     /api/v1/videos/{id}                                          [Videos] ()
+GET     /api/v1/videos/manage                                        [Videos] ()
+GET     /api/v1/videos/manage/{id}                                   [Videos] ()
+GET     /api/v1/videos/manage/cleanups                               [Videos] ()
+GET     /api/v1/videos/manage/storage-status                         [Videos] ()
+GET     /api/v1/videos/topics                                        [Videos] ()
+PATCH   /api/v1/admin/ai-providers/{id}/enabled                      [AiProviders] ()
 PATCH   /api/v1/admin/users/{id}/status                              [AdminUsers] ()
 PATCH   /api/v1/ai/conversations/{sessionId}/preferences             [AILearningEngine] ()
-PATCH   /api/v1/videos/manage/{id}/status                            [Videos] () Đổi trạng thái xuất bản của video (Draft / Published / Hidden)
+PATCH   /api/v1/videos/manage/{id}/status                            [Videos] ()
+POST    /api/v1/admin/ai-providers                                   [AiProviders] ()
+POST    /api/v1/admin/ai-providers/{id}/test                         [AiProviders] ()
 POST    /api/v1/admin/exercises                                      [Content] ()
 POST    /api/v1/admin/grammar                                        [Content] ()
 POST    /api/v1/admin/grammar/batch-publish                          [Content] ()
@@ -187,9 +192,9 @@ POST    /api/v1/content/vocabularies/import-excel/preview            [Content] (
 POST    /api/v1/content/vocabularies/import-preview                  [Content] ()
 POST    /api/v1/exams                                                [Exams] ()
 POST    /api/v1/exams/{id}/review                                    [Exams] ()
-POST    /api/v1/learning-path/daily-plan/replan                      [LearningPath] () Điều chỉnh linh hoạt các nhiệm vụ còn lại trong ngày (Adaptive Replanning) mà không mất nhiệm vụ đã làm.
-POST    /api/v1/learning-path/daily-plan/tasks/{taskId}/complete     [LearningPath] () Đánh dấu hoàn thành một nhiệm vụ học tập trong ngày và nhận gợi ý nhiệm vụ tiếp theo.
-POST    /api/v1/learning-path/generate                               [LearningPath] () Sinh lộ trình học tập cá nhân hóa mới dựa trên mục tiêu, năng lực và kho bài học thực tế.
+POST    /api/v1/learning-path/daily-plan/replan                      [LearningPath] ()
+POST    /api/v1/learning-path/daily-plan/tasks/{taskId}/complete     [LearningPath] ()
+POST    /api/v1/learning-path/generate                               [LearningPath] ()
 POST    /api/v1/learning/me/lessons/{lessonId}/complete              [Learning] ()
 POST    /api/v1/learning/me/practice-attempts                        [Learning] ()
 POST    /api/v1/learning/me/practice-sessions                        [Learning] ()
@@ -208,21 +213,23 @@ POST    /api/v1/question-bank/generate                               [QuestionBa
 POST    /api/v1/question-bank/import                                 [QuestionBank] ()
 POST    /api/v1/question-bank/practice-sessions                      [QuestionBank] ()
 POST    /api/v1/question-bank/practice-sessions/{sessionId}/submit   [QuestionBank] ()
-POST    /api/v1/student/homework/{assignmentId}/start                [StudentHomework] () Bắt đầu một lượt làm bài mới (trả về danh sách câu hỏi đã giấu đáp án đúng)
-POST    /api/v1/student/homework/submissions/{submissionId}/submit   [StudentHomework] () Nộp bài làm của học viên để chấm tự động các câu trắc nghiệm và ghi nhận lượt làm
-POST    /api/v1/teacher/classes                                      [TeacherClasses] () Tạo lớp giảng dạy mới
-POST    /api/v1/teacher/classes/{classId}/archive                    [TeacherClasses] () Lưu trữ lớp học (Archive)
-POST    /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] () Ghi nhận hoặc cập nhật danh sách điểm danh cho buổi học
-POST    /api/v1/teacher/classes/{classId}/members                    [TeacherClasses] () Ghi danh học viên vào lớp học
-POST    /api/v1/teacherassignments/api/v1/teacher/assignments        [TeacherAssignments] () Tạo bài tập mới
-POST    /api/v1/teacherassignments/api/v1/teacher/assignments/{id}/close [TeacherAssignments] () Đóng hạn nộp bài tập
-POST    /api/v1/teacherassignments/api/v1/teacher/assignments/{id}/publish [TeacherAssignments] () Xuất bản bài tập để học sinh trong các lớp được giao có thể thấy và làm bài
-POST    /api/v1/teacherassignments/api/v1/teacher/submissions/{id}/grade [TeacherAssignments] () Giáo viên chấm điểm và ghi nhận xét cho bài nộp của học sinh
-POST    /api/v1/videos/manage                                        [Videos] () Tạo mới một video học tập
-POST    /api/v1/videos/manage/cleanups/retry                         [Videos] () Kích hoạt thủ công tiến trình thử lại các tác vụ dọn dẹp thất bại
-POST    /api/v1/videos/manage/upload-thumbnail                       [Videos] () Tải lên ảnh đại diện thumbnail (hỗ trợ JPEG, PNG, WebP - tối đa 5MB)
-POST    /api/v1/videos/manage/upload-transcript-pdf                  [Videos] () Tải lên tệp tài liệu PDF transcript (hỗ trợ PDF - tối đa 20MB)
-POST    /api/v1/videos/manage/upload-video                           [Videos] () Tải lên tệp video nhị phân (hỗ trợ MP4, WebM, QuickTime - tối đa 100MB)
+POST    /api/v1/student/homework/{assignmentId}/start                [StudentHomework] ()
+POST    /api/v1/student/homework/submissions/{submissionId}/submit   [StudentHomework] ()
+POST    /api/v1/teacher/assignments                                  [TeacherAssignments] ()
+POST    /api/v1/teacher/assignments/{id}/close                       [TeacherAssignments] ()
+POST    /api/v1/teacher/assignments/{id}/publish                     [TeacherAssignments] ()
+POST    /api/v1/teacher/assignments/api/v1/teacher/submissions/{id}/grade [TeacherAssignments] ()
+POST    /api/v1/teacher/classes                                      [TeacherClasses] ()
+POST    /api/v1/teacher/classes/{classId}/archive                    [TeacherClasses] ()
+POST    /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] ()
+POST    /api/v1/teacher/classes/{classId}/members                    [TeacherClasses] ()
+POST    /api/v1/videos/manage                                        [Videos] ()
+POST    /api/v1/videos/manage/cleanups/retry                         [Videos] ()
+POST    /api/v1/videos/manage/upload-thumbnail                       [Videos] ()
+POST    /api/v1/videos/manage/upload-transcript-pdf                  [Videos] ()
+POST    /api/v1/videos/manage/upload-video                           [Videos] ()
+PUT     /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
+PUT     /api/v1/admin/ai-providers/priorities                        [AiProviders] ()
 PUT     /api/v1/admin/characters/{id}                                [Content] ()
 PUT     /api/v1/admin/exercises/{id}                                 [Content] ()
 PUT     /api/v1/admin/grammar/{id}                                   [Content] ()
@@ -249,12 +256,12 @@ PUT     /api/v1/content/vocabularies/{id}                            [Content] (
 PUT     /api/v1/content/vocabularies/{id}/review                     [Content] ()
 PUT     /api/v1/exams/{id}                                           [Exams] ()
 PUT     /api/v1/exams/{id}/questions                                 [Exams] ()
-PUT     /api/v1/learning-path/goals                                  [LearningPath] () Cập nhật thiết lập mục tiêu học tập (Target HSK, Daily Minutes, Days/Week, Priority Skills, Intensity).
+PUT     /api/v1/learning-path/goals                                  [LearningPath] ()
 PUT     /api/v1/learning/me/lessons/{lessonId}/progress              [Learning] ()
 PUT     /api/v1/learning/me/preferences                              [Learning] ()
 PUT     /api/v1/question-bank/{id}                                   [QuestionBank] ()
-PUT     /api/v1/teacher/classes/{classId}                            [TeacherClasses] () Cập nhật thông tin lớp giảng dạy
-PUT     /api/v1/teacher/classes/{classId}/curriculum                 [TeacherClasses] () Gán hoặc cập nhật khóa học/giáo trình cho lớp học
-PUT     /api/v1/teacher/classes/{classId}/schedules                  [TeacherClasses] () Cập nhật / thay thế thời khóa biểu tuần của lớp học
-PUT     /api/v1/teacherassignments/api/v1/teacher/assignments/{id}   [TeacherAssignments] () Chỉnh sửa bài tập (chỉ cho phép khi ở trạng thái DRAFT hoặc cập nhật thông tin cho phép)
-PUT     /api/v1/videos/manage/{id}                                   [Videos] () Cập nhật thông tin một video học tập
+PUT     /api/v1/teacher/assignments/{id}                             [TeacherAssignments] ()
+PUT     /api/v1/teacher/classes/{classId}                            [TeacherClasses] ()
+PUT     /api/v1/teacher/classes/{classId}/curriculum                 [TeacherClasses] ()
+PUT     /api/v1/teacher/classes/{classId}/schedules                  [TeacherClasses] ()
+PUT     /api/v1/videos/manage/{id}                                   [Videos] ()

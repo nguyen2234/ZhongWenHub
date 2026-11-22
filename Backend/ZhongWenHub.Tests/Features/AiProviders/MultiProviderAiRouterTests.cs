@@ -227,6 +227,18 @@ public class MultiProviderAiRouterTests
     }
 
     [Fact]
+    public async Task GenerateAsync_WhenNoActiveProvidersConfigured_ThrowsAiRouterUnavailableExceptionWithoutMockFallback()
+    {
+        using var db = CreateInMemoryDbContext();
+        var protector = CreateProtector();
+        var router = new MultiProviderAiRouter(db, Array.Empty<IAiProviderAdapter>(), protector, NullLogger<MultiProviderAiRouter>.Instance);
+
+        var ex = await Assert.ThrowsAsync<AiRouterUnavailableException>(() => router.GenerateAsync("chat", "Test prompt"));
+        Assert.Contains("All AI providers are currently unavailable", ex.Message);
+        Assert.False(string.IsNullOrWhiteSpace(ex.Message));
+    }
+
+    [Fact]
     public async Task ManagementService_CRUD_And_Priorities_Work()
     {
         using var db = CreateInMemoryDbContext();

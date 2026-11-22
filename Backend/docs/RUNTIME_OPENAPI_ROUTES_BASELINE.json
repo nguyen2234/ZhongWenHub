@@ -3480,6 +3480,361 @@
         }
       }
     },
+    "/api/v1/admin/ai-providers": {
+      "get": {
+        "tags": [
+          "AiProviders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AiProviderResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AiProviderResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AiProviderResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AiProviders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiProviderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiProviderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-providers/{id}": {
+      "get": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiProviderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiProviderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiProviderResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-providers/{id}/enabled": {
+      "patch": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleEnabledRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleEnabledRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleEnabledRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-providers/{id}/test": {
+      "post": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestProviderResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestProviderResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestProviderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-providers/priorities": {
+      "put": {
+        "tags": [
+          "AiProviders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderPrioritiesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderPrioritiesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderPrioritiesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-providers/usage": {
+      "get": {
+        "tags": [
+          "AiProviders"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageSummaryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageSummaryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsageSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ai-tutor/chat": {
       "post": {
         "tags": [
@@ -11319,7 +11674,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Lấy thông tin thiết lập mục tiêu học tập của học viên hiện tại.",
         "responses": {
           "200": {
             "description": "OK",
@@ -11367,7 +11721,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Cập nhật thiết lập mục tiêu học tập (Target HSK, Daily Minutes, Days/Week, Priority Skills, Intensity).",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11456,7 +11809,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Sinh lộ trình học tập cá nhân hóa mới dựa trên mục tiêu, năng lực và kho bài học thực tế.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11545,7 +11897,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Lấy lộ trình học tập cá nhân hóa đang active của học viên.",
         "responses": {
           "200": {
             "description": "OK",
@@ -11598,7 +11949,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Lấy danh sách nhiệm vụ học tập trong kế hoạch hôm nay.",
         "responses": {
           "200": {
             "description": "OK",
@@ -11648,7 +11998,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Đánh dấu hoàn thành một nhiệm vụ học tập trong ngày và nhận gợi ý nhiệm vụ tiếp theo.",
         "parameters": [
           {
             "name": "taskId",
@@ -11749,7 +12098,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Điều chỉnh linh hoạt các nhiệm vụ còn lại trong ngày (Adaptive Replanning) mà không mất nhiệm vụ đã làm.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11818,7 +12166,6 @@
         "tags": [
           "LearningPath"
         ],
-        "summary": "Lấy tiến độ tổng thể lộ trình học tập cá nhân hóa.",
         "responses": {
           "200": {
             "description": "OK",
@@ -13179,7 +13526,6 @@
         "tags": [
           "StudentHomework"
         ],
-        "summary": "Lấy danh sách bài tập được giao cho học viên hiện tại qua các lớp đã tham gia",
         "parameters": [
           {
             "name": "status",
@@ -13227,7 +13573,6 @@
         "tags": [
           "StudentHomework"
         ],
-        "summary": "Bắt đầu một lượt làm bài mới (trả về danh sách câu hỏi đã giấu đáp án đúng)",
         "parameters": [
           {
             "name": "assignmentId",
@@ -13308,7 +13653,6 @@
         "tags": [
           "StudentHomework"
         ],
-        "summary": "Nộp bài làm của học viên để chấm tự động các câu trắc nghiệm và ghi nhận lượt làm",
         "parameters": [
           {
             "name": "submissionId",
@@ -13408,7 +13752,6 @@
         "tags": [
           "StudentHomework"
         ],
-        "summary": "Xem kết quả và lời giải của bài tập đã nộp (chỉ hiện đáp án nếu giáo viên cho phép)",
         "parameters": [
           {
             "name": "submissionId",
@@ -13589,12 +13932,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/assignments": {
+    "/api/v1/teacher/assignments": {
       "get": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Lấy danh sách bài tập được phân trang theo bộ lọc",
         "parameters": [
           {
             "name": "ClassId",
@@ -13669,7 +14011,6 @@
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Tạo bài tập mới",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13733,12 +14074,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/assignments/{id}": {
+    "/api/v1/teacher/assignments/{id}": {
       "get": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Lấy chi tiết một bài tập bao gồm danh sách câu hỏi và lớp được giao",
         "parameters": [
           {
             "name": "id",
@@ -13797,7 +14137,6 @@
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Chỉnh sửa bài tập (chỉ cho phép khi ở trạng thái DRAFT hoặc cập nhật thông tin cho phép)",
         "parameters": [
           {
             "name": "id",
@@ -13895,7 +14234,6 @@
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Xóa hoặc lưu trữ bài tập",
         "parameters": [
           {
             "name": "id",
@@ -13934,12 +14272,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/assignments/{id}/publish": {
+    "/api/v1/teacher/assignments/{id}/publish": {
       "post": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Xuất bản bài tập để học sinh trong các lớp được giao có thể thấy và làm bài",
         "parameters": [
           {
             "name": "id",
@@ -13998,12 +14335,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/assignments/{id}/close": {
+    "/api/v1/teacher/assignments/{id}/close": {
       "post": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Đóng hạn nộp bài tập",
         "parameters": [
           {
             "name": "id",
@@ -14042,12 +14378,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/assignments/{id}/submissions": {
+    "/api/v1/teacher/assignments/{id}/submissions": {
       "get": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Lấy danh sách toàn bộ bài nộp của học sinh cho bài tập này",
         "parameters": [
           {
             "name": "id",
@@ -14119,12 +14454,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/submissions/{id}": {
+    "/api/v1/teacher/assignments/api/v1/teacher/submissions/{id}": {
       "get": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Lấy chi tiết bài nộp của học sinh (đáp án, điểm, câu tự luận cần chấm)",
         "parameters": [
           {
             "name": "id",
@@ -14180,12 +14514,11 @@
         }
       }
     },
-    "/api/v1/teacherassignments/api/v1/teacher/submissions/{id}/grade": {
+    "/api/v1/teacher/assignments/api/v1/teacher/submissions/{id}/grade": {
       "post": {
         "tags": [
           "TeacherAssignments"
         ],
-        "summary": "Giáo viên chấm điểm và ghi nhận xét cho bài nộp của học sinh",
         "parameters": [
           {
             "name": "id",
@@ -14285,7 +14618,6 @@
         "tags": [
           "TeacherAttendance"
         ],
-        "summary": "Lấy danh sách điểm danh của lớp theo ngày chỉ định",
         "parameters": [
           {
             "name": "classId",
@@ -14360,7 +14692,6 @@
         "tags": [
           "TeacherAttendance"
         ],
-        "summary": "Ghi nhận hoặc cập nhật danh sách điểm danh cho buổi học",
         "parameters": [
           {
             "name": "classId",
@@ -14469,7 +14800,6 @@
         "tags": [
           "TeacherAttendance"
         ],
-        "summary": "Lấy báo cáo thống kê tỷ lệ chuyên cần tổng quan của lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -14530,7 +14860,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy toàn bộ dữ liệu tổng hợp cho Teacher Dashboard (KPIs, lịch dạy sắp tới, lớp đang dạy)",
         "responses": {
           "200": {
             "description": "OK",
@@ -14560,7 +14889,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy thống kê tổng quan các lớp học (KPI strip) mà không cần tải toàn bộ danh sách lớp",
         "responses": {
           "200": {
             "description": "OK",
@@ -14590,7 +14918,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy danh sách lớp học có phân trang, bộ lọc và sắp xếp",
         "parameters": [
           {
             "name": "Search",
@@ -14678,7 +15005,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Tạo lớp giảng dạy mới",
         "requestBody": {
           "content": {
             "application/json": {
@@ -14747,7 +15073,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Xem thông tin chi tiết một lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -14806,7 +15131,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Cập nhật thông tin lớp giảng dạy",
         "parameters": [
           {
             "name": "classId",
@@ -14904,7 +15228,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lưu trữ lớp học (Archive)",
         "parameters": [
           {
             "name": "classId",
@@ -14948,7 +15271,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lưu trữ lớp học (Archive)",
         "parameters": [
           {
             "name": "classId",
@@ -14992,7 +15314,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy danh sách thành viên trong lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15054,7 +15375,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Ghi danh học viên vào lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15154,7 +15474,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Xóa học viên khỏi lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15207,7 +15526,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy thời khóa biểu tuần của lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15255,7 +15573,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Cập nhật / thay thế thời khóa biểu tuần của lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15353,7 +15670,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy danh sách các lớp học mà học viên hiện tại đang được ghi danh tham gia",
         "responses": {
           "200": {
             "description": "OK",
@@ -15392,7 +15708,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy metadata lớp học mà học viên hiện tại đang được ghi danh tham gia.\r\nDành riêng cho học viên (StudentAccess), chỉ cho phép truy cập các lớp mình đang được ghi danh.\r\nKhông bao gồm danh sách thành viên hoặc dữ liệu quản trị lớp học.",
         "parameters": [
           {
             "name": "classId",
@@ -15453,7 +15768,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy cấu trúc giáo trình bài học của lớp học (Course, Units, Lessons)",
         "parameters": [
           {
             "name": "classId",
@@ -15512,7 +15826,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Gán hoặc cập nhật khóa học/giáo trình cho lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15575,7 +15888,6 @@
         "tags": [
           "TeacherClasses"
         ],
-        "summary": "Lấy báo cáo hiệu suất học tập và điểm số của lớp học",
         "parameters": [
           {
             "name": "classId",
@@ -15636,7 +15948,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy danh sách video học tiếng Trung có phân trang, tìm kiếm và lọc theo HSK, chủ đề, nguồn video",
         "parameters": [
           {
             "name": "Search",
@@ -15713,7 +16024,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy chi tiết một video học tiếng Trung theo Id",
         "parameters": [
           {
             "name": "id",
@@ -15774,7 +16084,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy danh sách các chủ đề video khả dụng",
         "responses": {
           "200": {
             "description": "OK",
@@ -15813,7 +16122,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy danh sách video quản trị (bao gồm Draft, Published, Hidden)",
         "parameters": [
           {
             "name": "Status",
@@ -15895,7 +16203,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Tạo mới một video học tập",
         "requestBody": {
           "content": {
             "application/json": {
@@ -15964,7 +16271,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy thông tin chi tiết video quản trị theo Id",
         "parameters": [
           {
             "name": "id",
@@ -16023,7 +16329,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Cập nhật thông tin một video học tập",
         "parameters": [
           {
             "name": "id",
@@ -16121,7 +16426,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Xóa một video học tập và dọn dẹp an toàn tệp lưu trữ liên quan",
         "parameters": [
           {
             "name": "id",
@@ -16165,7 +16469,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Đổi trạng thái xuất bản của video (Draft / Published / Hidden)",
         "parameters": [
           {
             "name": "id",
@@ -16265,7 +16568,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Tải lên tệp video nhị phân (hỗ trợ MP4, WebM, QuickTime - tối đa 100MB)",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -16335,7 +16637,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Tải lên ảnh đại diện thumbnail (hỗ trợ JPEG, PNG, WebP - tối đa 5MB)",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -16405,7 +16706,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Tải lên tệp tài liệu PDF transcript (hỗ trợ PDF - tối đa 20MB)",
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -16475,7 +16775,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Lấy thông tin cấu hình và giới hạn lưu trữ video hiện tại",
         "responses": {
           "200": {
             "description": "OK",
@@ -16505,7 +16804,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Danh sách các tác vụ dọn dẹp tệp lưu trữ đang chờ xử lý",
         "responses": {
           "200": {
             "description": "OK",
@@ -16544,7 +16842,6 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Kích hoạt thủ công tiến trình thử lại các tác vụ dọn dẹp thất bại",
         "responses": {
           "200": {
             "description": "OK"
@@ -18137,6 +18434,123 @@
         },
         "additionalProperties": false
       },
+      "AiProviderResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "maskedApiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "defaultModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxRetries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxTokens": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "lastHealthStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastHealthMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AiUsageSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalRequests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "successfulRequests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failedRequests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalTokens": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageLatencyMs": {
+            "type": "number",
+            "format": "double"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderUsageBreakdownDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ApiProblemDetailsDto": {
         "type": "object",
         "properties": {
@@ -19424,47 +19838,38 @@
           },
           "assessmentStatus": {
             "type": "string",
-            "description": "Overall assessment status: NOT_ASSESSED, IN_PROGRESS, ASSESSED, CALIBRATED.",
             "nullable": true
           },
           "selectedHskLevel": {
             "type": "integer",
-            "description": "Student's self-selected / enrolled HSK level.",
             "format": "int32"
           },
           "estimatedHskLevel": {
             "type": "integer",
-            "description": "Empirically estimated HSK level (1 to 6) based on validated cross-skill evidence.\r\nNull when NOT_ASSESSED or evidence is insufficient.",
             "format": "int32",
             "nullable": true
           },
           "confidenceScore": {
             "type": "number",
-            "description": "Statistical confidence in [0.0, 1.0] reflecting data volume and consistency.",
             "format": "double"
           },
           "overallMasteryPercent": {
             "type": "number",
-            "description": "Overall mastery percentage in [0.0, 100.0] aggregated across measured skills.",
             "format": "double"
           },
           "totalEvaluations": {
             "type": "integer",
-            "description": "Total real practice and test questions analyzed.",
             "format": "int32"
           },
           "unclassifiedEvaluationsCount": {
             "type": "integer",
-            "description": "Number of attempts whose categories could not be mapped to standard macro skills.\r\nPreserved for traceability without distorting other skills.",
             "format": "int32"
           },
           "hasSpeakingAudioData": {
-            "type": "boolean",
-            "description": "Whether speaking pronunciation has been evaluated with real audio data."
+            "type": "boolean"
           },
           "speakingAudioNote": {
             "type": "string",
-            "description": "Transparent note regarding audio speaking evaluation status.",
             "nullable": true
           },
           "macroSkills": {
@@ -19472,7 +19877,6 @@
             "items": {
               "$ref": "#/components/schemas/SkillCompetencyDto"
             },
-            "description": "Breakdown across 6 core language skills.",
             "nullable": true
           },
           "topWeakConcepts": {
@@ -19480,7 +19884,6 @@
             "items": {
               "$ref": "#/components/schemas/WeakConceptDto"
             },
-            "description": "Highest priority weak micro-concepts needing targeted remediation.",
             "nullable": true
           },
           "topStrengths": {
@@ -19488,7 +19891,6 @@
             "items": {
               "type": "string"
             },
-            "description": "Recognized strengths where mastery >= 85%.",
             "nullable": true
           },
           "lastAssessedAt": {
@@ -19588,8 +19990,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": false,
-        "description": "Extensibility contract for future STT/TTS integration. V1 processes text only and never claims pronunciation scoring."
+        "additionalProperties": false
       },
       "ConversationCorrectionDto": {
         "type": "object",
@@ -19817,6 +20218,74 @@
             "items": {
               "type": "string"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateAiProviderRequest": {
+        "required": [
+          "apiKey",
+          "defaultModel",
+          "name",
+          "providerType"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "providerType": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "baseUrl": {
+            "maxLength": 500,
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "defaultModel": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxRetries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxTokens": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },
@@ -23850,6 +24319,32 @@
         },
         "additionalProperties": { }
       },
+      "ProviderUsageBreakdownDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "nullable": true
+          },
+          "requests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "successRequests": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalTokens": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "averageLatencyMs": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "QuestionBankItemDto": {
         "type": "object",
         "properties": {
@@ -25824,8 +26319,7 @@
             "nullable": true
           }
         },
-        "additionalProperties": false,
-        "description": "Public/student practice question payload.\r\nIntentionally omits CorrectOptionIndex, CorrectAnswer, and Explanation before grading!"
+        "additionalProperties": false
       },
       "StudentTakingQuestionDto": {
         "type": "object",
@@ -26451,6 +26945,44 @@
         },
         "additionalProperties": false
       },
+      "TestProviderResponse": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "statusCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "testedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ToggleEnabledRequest": {
+        "type": "object",
+        "properties": {
+          "isEnabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "UnitDto": {
         "type": "object",
         "properties": {
@@ -26609,6 +27141,73 @@
             "items": {
               "type": "string"
             },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateAiProviderRequest": {
+        "required": [
+          "defaultModel",
+          "name",
+          "providerType"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "providerType": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "baseUrl": {
+            "maxLength": 500,
+            "type": "string",
+            "nullable": true
+          },
+          "apiKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "defaultModel": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxRetries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxTokens": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },
@@ -27281,6 +27880,33 @@
           "avatarUrl": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateProviderPrioritiesRequest": {
+        "type": "object",
+        "properties": {
+          "priorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateProviderPriorityItem"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateProviderPriorityItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -28451,7 +29077,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "description": "Nhập JWT access token vào đây. Swagger UI sẽ tự động đính kèm header 'Authorization: Bearer {token}'.",
+        "description": "Enter JWT Bearer token",
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }

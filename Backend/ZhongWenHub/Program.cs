@@ -37,6 +37,8 @@ public class Program
         builder.Services.AddAppDatabase(builder.Configuration);
         builder.Services.AddAppAuthentication(builder.Configuration);
         builder.Services.AddAppSwagger();
+        builder.Services.AddHealthChecks()
+            .AddDbContextCheck<AppDbContext>("Database");
 
         // MVC Controllers & JSON Configuration
         builder.Services.AddControllers()
@@ -46,6 +48,11 @@ public class Program
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+
+        builder.Services.Configure<RouteOptions>(options =>
+        {
+            options.LowercaseUrls = true;
+        });
 
         // Feature Services
         RegisterFeatureServices(builder.Services, builder.Configuration);
@@ -63,13 +70,55 @@ public class Program
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "ZhongWenHub API v1");
                 c.RoutePrefix = "swagger";
+                c.DocumentTitle = "ZhongWenHub API - Swagger UI";
+                c.DisplayRequestDuration();
+                c.EnablePersistAuthorization();
+                c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
             });
         }
 
         app.UseRouting();
         app.UseCors("AllowFrontend");
+
+        app.Use(async (context, next) =>
+        {
+            await next();
+
+            if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
+            {
+                context.Response.ContentType = "application/problem+json";
+                var problem = new ZhongWenHub.Business.Common.DTOs.ApiProblemDetailsDto
+                {
+                    Type = "https://httpstatuses.com/401",
+                    Title = "Yêu cầu chưa được xác thực",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Detail = "Bạn cần đăng nhập để truy cập tài nguyên này.",
+                    Instance = context.Request.Path,
+                    TraceId = context.TraceIdentifier
+                };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problem, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+            }
+            else if (context.Response.StatusCode == StatusCodes.Status403Forbidden && !context.Response.HasStarted)
+            {
+                context.Response.ContentType = "application/problem+json";
+                var problem = new ZhongWenHub.Business.Common.DTOs.ApiProblemDetailsDto
+                {
+                    Type = "https://httpstatuses.com/403",
+                    Title = "Truy cập bị từ chối",
+                    Status = StatusCodes.Status403Forbidden,
+                    Detail = "Tài khoản của bạn không có quyền thực hiện thao tác này.",
+                    Instance = context.Request.Path,
+                    TraceId = context.TraceIdentifier
+                };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(problem, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+            }
+        });
+
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.MapHealthChecks("/health");
+        app.MapHealthChecks("/api/v1/system/health");
         app.MapControllers();
 
         // Auto-migration & Seeding
