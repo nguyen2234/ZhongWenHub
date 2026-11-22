@@ -258,16 +258,101 @@ Replace `INITIAL_AI_SERVICES` and the local-only quota slider. No mock provider 
 - Gemini and OpenAI-compatible mappings use fake HTTP handlers, not paid APIs.
 - Admin FE mutation survives page reload and re-fetch.
 
-## 6. Delivery phases
+## 6. Detailed file-by-file implementation backlog
 
-Each phase is a separate Draft PR. Antigravity stops for Codex review after every phase.
+### 6.1 Backend moves and corrections
+
+| Current location | Target location | Required result |
+|---|---|---|
+| `Backend/src/Api/Program.cs` | `Backend/ZhongWenHub/Program.cs` and `Common/Extensions` | One readable composition root; local CORS, Identity/JWT, Swagger, health checks and DI still work |
+| `Backend/src/Business/DependencyInjection.cs` and `Data/DependencyInjection.cs` | `Program.cs` plus feature registration extensions | Remove cross-project registration after consolidation; registrations remain explicit and searchable |
+| `Backend/src/Api/Controllers/AuthController.cs` and `Business/Authentication/**` | `Features/users/Auth/**` | Login, register, refresh, logout, current-user, forgot/reset password remain compatible |
+| `Api/Controllers/AdminUsersController.cs` and `Business/Users/AdminUserService.cs` | `Features/admin/Accounts/**` | User CRUD, roles, status, lock/unlock, password reset, wallet and subscription persist correctly |
+| `Api/Controllers/ContentController.cs` and `Business/Content/**` | `Features/admin/Content/**` plus `Features/users/Curriculum/**` | Split course, unit, lesson, vocabulary, grammar, exercise, review and import/export services without route changes |
+| `QuestionBankController.cs` and `QuestionBankService.cs` | `Features/admin/Content/QuestionBank` and `Features/users/Practice` | CRUD/review/import/export/generation and student practice sessions remain functional |
+| Teacher controllers and services | `Features/users/Teacher/**` | Class, member, schedule, curriculum, assignment, submission, grade and attendance flows persist |
+| Learning controllers/services | `Features/users/Learning/**` | Progress, lesson completion, SRS, goals, daily plan, recommendations and results use real DB data |
+| Exam/Homework controllers/services | `Features/users/Exams` and `Features/users/Homework` | Exam CRUD/review and student homework start/submit/result flows remain compatible |
+| Video controller/storage services | `Features/users/Videos/**` and `Common/Storage` | Listing, playback, upload, update, publish, delete and cleanup remain fail-closed |
+| AI Tutor/AI Learning services | `Features/users/AITutor/**` and `Common/AI` | Existing AI use cases route through Multi-Provider without provider logic in controllers |
+| `ApplicationDbContext.cs` and entities | `Data/AppDbContext.cs`, `Models/**`, `Data/Configurations/**` | Preserve table/column names and relationships; use `ApplyConfigurationsFromAssembly` |
+| Existing migrations | `Backend/ZhongWenHub/Migrations` | Preserve migration IDs and order exactly; never rewrite an applied migration |
+| Unit and integration test projects | `Backend/ZhongWenHub.Tests` | Preserve all tests and categories in one project; SQL integration tests remain isolated |
+
+Backend defects that must be corrected during the move:
+
+1. Replace the static-regex route inventory with a runtime `EndpointDataSource` or Swagger snapshot. Resolve `[controller]`, normalize leading `/`, and capture method, route, action and authorization metadata.
+2. Compare `GetMigrations`, `GetAppliedMigrations` and `GetPendingMigrations`; explain any history entry not present in code. Do not silently delete migration history.
+3. Fix CI to run the actual consolidated test project and enable a reproducible SQL Server integration job.
+4. Keep SMTP and external provider calls bounded by configured timeouts.
+5. Return consistent ProblemDetails for validation, conflict, forbidden, not-found, throttled and unavailable failures.
+6. Avoid returning EF entities or secret configuration values from controllers.
+
+### 6.2 Frontend files and functional corrections
+
+API foundation:
+
+- `core/api/client/http-client.ts`: one typed JSON client, ProblemDetails parsing, cancellation and auth handling.
+- Replace ordinary raw `fetch` usage in Auth, Learning, Videos, Admin, Teacher and Content Manager services. Raw fetch is allowed only for documented streaming/upload cases.
+- A failed request must throw a typed error; never return `null`, an empty success object or mock records as if the server succeeded.
+
+Admin:
+
+- `management/admin/services/admin-operations.service.ts`: stop swallowing HTTP/network errors.
+- `AdminAIManagementView.tsx`: remove `INITIAL_AI_SERVICES`, fake incident data and the local-only quota slider.
+- Add `AdminAIProviderManagementView.tsx` with real CRUD/test/enable/priority/usage APIs.
+- User, role, teacher, support-staff and content pages must re-fetch persisted state after mutation.
+- System settings must either persist through the backend or be visibly read-only; no pretend-save behavior.
+- Curriculum, vocabulary, grammar, exercise, exam and question-bank editors must show server validation errors and survive reload.
+
+Student:
+
+- `features/auth/services/authService.ts`: real API is the normal mode; mock auth only under an explicit demo/test flag.
+- Remove production dependency on `student-identity.adapter.ts` and teacher mock stores.
+- `LearningResultsPage.tsx`: replace `MOCK_RESULTS` with real learning/result endpoints.
+- `DashboardPage.tsx`: replace `DEMO_VIDEOS` and demo counters with real endpoints and honest empty states.
+- `SkillWritingPage.tsx`: replace mock-only exercises with backend data.
+- Reading/listening/speaking fixtures may remain only in isolated tests or visibly labeled demo mode.
+- Curriculum, lesson progress, SRS, practice, homework, exams and videos must use persisted backend state.
+
+Teacher and support:
+
+- Replace client-only stores in `teacher-portal.service.ts`, `assignment.service.ts` and related management services.
+- Class/member/schedule, assignment/submission/grade and attendance mutations must persist and survive refresh.
+- Support tickets/replies/exports must use real endpoints or be removed from production navigation until implemented.
+
+UI quality:
+
+- Every async page gets loading, empty, error and retry states.
+- Prevent stale responses after navigation with `AbortSignal` or request identity.
+- Split oversized pages into data hooks, container components and presentation components.
+- Remove `any` from every touched API boundary.
+- Preserve accessibility fallbacks such as speech synthesis, but never present fallback scoring as genuine AI output.
+
+### 6.3 End-to-end functional matrix
+
+All rows must pass before completion:
+
+| Role/domain | Required working functions |
+|---|---|
+| Public/Auth | Register, login, refresh, logout, current profile, forgot/reset password, invalid-token errors |
+| Student | Curriculum, lesson content/progress/completion, vocabulary/SRS, practice, exams, homework, videos, results and AI tutor |
+| Teacher | Classes, members, schedules, curriculum assignment, homework creation/publication, submissions, grading and attendance |
+| Content Manager | Course/unit/lesson, vocabulary, grammar, exercises, question bank, exams and video CRUD/review/publication |
+| Admin | Dashboard, users, roles, teachers, settings behavior, analytics, AI providers, provider usage and provider health |
+| Multi-Provider | Gemini/OpenAI/compatible adapters, capability routing, priority, timeout, failover, sanitized 503 and real telemetry |
+| Storage | Upload, download/playback, replacement, deletion and cleanup without demo fallback |
+
+## 7. One-execution delivery phases
+
+Antigravity must complete all phases in one execution on one umbrella branch. Phases remain internal checkpoints and separate commits, but Antigravity does not pause for Codex review between them. Run the relevant tests after every checkpoint and create one Draft PR at the end.
 
 ### P0 — Baseline and branch safety
 
 1. Start from latest `main` and include accepted pending fixes.
-2. Capture backend build/tests, frontend lint/tests/build and current OpenAPI routes.
+2. Capture backend build/tests, frontend lint/tests/build and runtime OpenAPI routes. Do not reuse the incomplete 215-route regex snapshot from PR #33.
 3. Fix the SQL Server CI project path.
-4. Verify fresh and upgrade migration scenarios on `ZhongWenHub_Test`.
+4. Verify fresh and upgrade migration scenarios on `ZhongWenHub_Test`, and reconcile code/applied/pending migration sets.
 5. Prove no write to `ZhongWenHub_Dev` with before/after evidence.
 
 ### P1 — Create the single feature-first backend project
@@ -326,7 +411,7 @@ bunx playwright test --project=desktop-1440
 
 Required flows: Admin provider CRUD/test/priority; provider failover with fake adapters; student learning flows; teacher class/assignment/attendance/grading; content/video management; mutations survive reload.
 
-## 7. Non-goals
+## 8. Non-goals
 
 - No microservices or separate Domain/Application/Infrastructure projects.
 - No MediatR/CQRS or generic repository.
@@ -334,16 +419,17 @@ Required flows: Admin provider CRUD/test/priority; provider failover with fake a
 - No real paid-provider calls in CI.
 - No redesign of the whole frontend visual system.
 
-## 8. Branch and commit policy
+## 9. Branch and commit policy
 
 - Umbrella branch: `refactor/simple-feature-backend-multiprovider-fe-fixes`.
-- Phase branches: `refactor/p0-baseline`, `refactor/p1-single-project`, `refactor/p2-data-auth`, `feat/admin-ai-providers`, `fix/frontend-real-api-flows`.
+- Use one implementation branch: `refactor/simple-feature-backend-multiprovider-fe-fixes`.
+- Use separate commits for P0, P1, P2, P3, P4, P5 and P6 so a faulty phase can be reviewed or reverted independently.
 - Never force-push or merge directly to `main`.
 - Do not mix a directory move, migration and unrelated behavior change in one commit.
 - Do not rewrite applied migrations.
 - Every PR includes commands, pass counts, database name and zero-write evidence.
 
-## 9. Definition of done
+## 10. Definition of done
 
 1. One production ASP.NET Core project and one test project remain.
 2. Features follow the reference repository's co-located controller/service/interface/DTO style.
@@ -355,7 +441,7 @@ Required flows: Admin provider CRUD/test/priority; provider failover with fake a
 8. Backend, FE and Playwright gates pass.
 9. `ZhongWenHub_Dev` remains unchanged during automated work.
 
-## 10. Antigravity instruction
+## 11. Antigravity instruction
 
-Read this plan completely. Begin with P0 only. Do not start the single-project move or provider feature until P0 evidence is reviewed. After each phase, create a Draft PR, attach reproducible evidence, and stop for Codex review.
+Read this plan completely, then execute P0 through P6 in one continuous run. Do not stop after P0 and do not request review between phases. Preserve phase boundaries as separate commits, run tests after each phase, push only the umbrella branch, create one Draft PR, attach all reproducible evidence, and never merge `main` yourself. If a paid/external provider is unavailable, use fake HTTP handlers and continue; do not fabricate a passing live-provider result.
 
