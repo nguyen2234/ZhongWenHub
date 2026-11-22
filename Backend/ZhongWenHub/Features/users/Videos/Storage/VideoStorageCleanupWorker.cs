@@ -57,7 +57,7 @@ public class VideoStorageCleanupWorker : BackgroundService
                     _logger.LogWarning(
                         "VideoStorageCleanupWorker: {Message} " +
                         "Worker will retry every {IntervalMinutes} minute(s) until migrations are applied. " +
-                        "Run: dotnet ef database update --project Backend/src/Data -- " +
+                        "Run: dotnet ef database update --project Backend/ZhongWenHub/ZhongWenHub.csproj -- " +
                         "--connection \"<your-dev-connection-string>\"",
                         ex.Message,
                         _missingTableInterval.TotalMinutes);

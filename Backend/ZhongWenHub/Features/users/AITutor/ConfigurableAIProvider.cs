@@ -9,18 +9,15 @@ namespace ZhongWenHub.Business.AITutor;
 public sealed class ConfigurableAIProvider : IAIProvider
 {
     private readonly GeminiProvider _geminiProvider;
-    private readonly MockAIProvider _mockProvider;
     private readonly GeminiOptions _options;
     private readonly IMultiProviderAiRouter? _router;
 
     public ConfigurableAIProvider(
         GeminiProvider geminiProvider,
-        MockAIProvider mockProvider,
         IOptions<GeminiOptions> options,
         IMultiProviderAiRouter? router = null)
     {
         _geminiProvider = geminiProvider;
-        _mockProvider = mockProvider;
         _options = options.Value;
         _router = router;
     }
@@ -29,11 +26,6 @@ public sealed class ConfigurableAIProvider : IAIProvider
         AIProviderRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (string.Equals(_options.Provider?.Trim(), "Mock", StringComparison.OrdinalIgnoreCase))
-        {
-            return await _mockProvider.GenerateContentAsync(request, cancellationToken);
-        }
-
         if (_router != null)
         {
             try

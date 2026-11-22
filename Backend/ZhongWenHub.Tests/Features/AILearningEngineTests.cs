@@ -37,8 +37,7 @@ public class AILearningEngineTests
             Environment.SetEnvironmentVariable("GEMINI_API_KEY", null);
             var options = Options.Create(new GeminiOptions { Provider = "Gemini", ApiKey = string.Empty });
             var gemini = new GeminiProvider(new HttpClient(), options, NullLogger<GeminiProvider>.Instance);
-            var mock = new MockAIProvider();
-            var router = new ConfigurableAIProvider(gemini, mock, options);
+            var router = new ConfigurableAIProvider(gemini, options);
 
             var ex = await Assert.ThrowsAsync<AITutorException>(() => router.GenerateContentAsync(new AIProviderRequest
             {

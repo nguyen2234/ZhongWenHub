@@ -194,7 +194,6 @@ public class Program
         // AI Services
         services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
         services.AddHttpClient<GeminiProvider>();
-        services.AddSingleton<MockAIProvider>();
         services.AddScoped<IAIProvider, ConfigurableAIProvider>();
         services.AddScoped<IAIUsageLogger, EfAIUsageLogger>();
         services.AddScoped<IAITutorContextVerifier, EfAITutorContextVerifier>();
