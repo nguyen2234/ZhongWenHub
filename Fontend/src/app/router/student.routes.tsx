@@ -21,7 +21,7 @@ import { LearningGamesPage } from '../../features/games';
 import { StudentClassesPage } from '../../features/classes/pages/StudentClassesPage';
 import { LearningResultsPage } from '../../features/results/pages/LearningResultsPage';
 import { AILivePage } from '../../features/ai-live/pages/AILivePage';
-import { AIGradingPage } from '../../features/ai-grading/pages/AIGradingPage';
+import { AILetterWritingPage } from '../../features/ai-grading';
 import { AIAnalyticsPage } from '../../features/ai-analytics/pages/AIAnalyticsPage';
 import { ProgressPage } from '../../features/progress/pages/ProgressPage';
 import { LeaderboardPage } from '../../features/leaderboard/pages/LeaderboardPage';
@@ -167,11 +167,11 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: 'ai-grading',
-        element: <AIGradingPage />,
+        element: <AILetterWritingPage />,
       },
       {
         path: 'letter-writing',
-        element: <AIGradingPage />,
+        element: <AILetterWritingPage />,
       },
       {
         path: 'ai-analytics',

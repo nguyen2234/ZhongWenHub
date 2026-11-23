@@ -201,6 +201,7 @@ public class Program
         services.AddScoped<IAIUsageLogger, EfAIUsageLogger>();
         services.AddScoped<IAITutorContextVerifier, EfAITutorContextVerifier>();
         services.AddScoped<IAITutorService, AITutorService>();
+        services.AddScoped<IAILetterWritingService, AILetterWritingService>();
         services.AddScoped<IAIConversationService, AIConversationService>();
         services.AddScoped<IAIExerciseService, AIExerciseService>();
         services.AddScoped<IAIErrorAnalysisService, AIErrorAnalysisService>();
