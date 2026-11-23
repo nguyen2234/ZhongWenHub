@@ -6,6 +6,7 @@ using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Entities.Teacher;
+using ZhongWenHub.Api.Features.Support.Entities;
 
 namespace ZhongWenHub.Data.Persistence;
 
@@ -80,6 +81,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AssignmentQuestion> AssignmentQuestions => Set<AssignmentQuestion>();
     public DbSet<AssignmentTarget> AssignmentTargets => Set<AssignmentTarget>();
     public DbSet<StudentAssignmentSubmission> StudentAssignmentSubmissions => Set<StudentAssignmentSubmission>();
+    public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+    public DbSet<SupportTicketMessage> SupportTicketMessages => Set<SupportTicketMessage>();
+    public DbSet<SupportTicketHistory> SupportTicketHistories => Set<SupportTicketHistory>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -977,6 +981,54 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.Property(x => x.LastHealthMessage).HasMaxLength(1000);
             b.HasIndex(x => x.Priority);
             b.HasIndex(x => x.IsEnabled);
+        });
+
+        builder.Entity<SupportTicket>(b =>
+        {
+            b.ToTable("support_tickets");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.TicketNumber).HasMaxLength(50).IsRequired();
+            b.HasIndex(x => x.TicketNumber).IsUnique();
+            b.Property(x => x.ReporterName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ReporterEmail).HasMaxLength(200).IsRequired();
+            b.Property(x => x.ReporterRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Subject).HasMaxLength(250).IsRequired();
+            b.Property(x => x.Description).HasMaxLength(4000).IsRequired();
+            b.Property(x => x.Category).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Priority).HasMaxLength(30).IsRequired();
+            b.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            b.Property(x => x.AssigneeName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ContextModule).HasMaxLength(100);
+            b.Property(x => x.ContextUrl).HasMaxLength(500);
+            b.Property(x => x.ContentIssueId).HasMaxLength(50);
+            b.HasIndex(x => x.AssigneeId);
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.Priority);
+            b.HasIndex(x => x.Category);
+            b.HasIndex(x => x.ReporterId);
+            b.HasMany(x => x.Messages).WithOne(x => x.Ticket).HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.History).WithOne(x => x.Ticket).HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SupportTicketMessage>(b =>
+        {
+            b.ToTable("support_ticket_messages");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.SenderName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.SenderRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Message).HasMaxLength(4000).IsRequired();
+            b.HasIndex(x => x.TicketId);
+            b.HasIndex(x => x.SenderId);
+        });
+
+        builder.Entity<SupportTicketHistory>(b =>
+        {
+            b.ToTable("support_ticket_history");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.ActorName).HasMaxLength(100).IsRequired();
+            b.Property(x => x.ActorRole).HasMaxLength(50).IsRequired();
+            b.Property(x => x.Action).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.TicketId);
         });
 
         // Phase 4 - Personalized Learning Path Entities

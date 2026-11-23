@@ -182,6 +182,9 @@ public class Program
         services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
         services.AddScoped<IStudentHomeworkService, StudentHomeworkService>();
 
+        // Support
+        services.AddScoped<ZhongWenHub.Api.Features.Support.Services.ISupportTicketService, ZhongWenHub.Api.Features.Support.Services.SupportTicketService>();
+
         // Video Storage
         services.Configure<VideoStorageOptions>(configuration.GetSection(VideoStorageOptions.SectionName));
         services.AddHttpClient<VideoStorageService>();
