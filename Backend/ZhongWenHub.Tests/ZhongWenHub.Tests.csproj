@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZhongWenHub\ZhongWenHub.csproj" />
+    <ProjectReference Include="..\src\ZhongWenHub.Api\ZhongWenHub.Api.csproj" />
   </ItemGroup>
 
 </Project>
