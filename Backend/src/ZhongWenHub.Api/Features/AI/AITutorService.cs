@@ -20,6 +20,7 @@ public sealed class AITutorService : IAITutorService
     private readonly IAIProvider _aiProvider;
     private readonly IAITutorContextVerifier _contextVerifier;
     private readonly IAIUsageLogger? _usageLogger;
+    private readonly ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? _tokenGovernance;
     private readonly GeminiOptions _options;
     private readonly ILogger<AITutorService> _logger;
     private readonly ApplicationDbContext? _dbContext;
@@ -30,7 +31,8 @@ public sealed class AITutorService : IAITutorService
         IOptions<GeminiOptions> options,
         ILogger<AITutorService> logger,
         IAIUsageLogger? usageLogger = null,
-        ApplicationDbContext? dbContext = null)
+        ApplicationDbContext? dbContext = null,
+        ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? tokenGovernance = null)
     {
         _aiProvider = aiProvider;
         _contextVerifier = contextVerifier;
@@ -38,6 +40,7 @@ public sealed class AITutorService : IAITutorService
         _logger = logger;
         _usageLogger = usageLogger;
         _dbContext = dbContext;
+        _tokenGovernance = tokenGovernance;
     }
 
     public async Task<AITutorChatResponseDto> ChatAsync(
@@ -57,7 +60,11 @@ public sealed class AITutorService : IAITutorService
             throw AITutorException.BadRequest($"Nội dung câu hỏi tối đa {maxInputLength} ký tự (hiện tại {trimmedMessage.Length} ký tự).");
         }
 
-        if (_usageLogger is not null)
+        if (_tokenGovernance != null)
+        {
+            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_TUTOR", 1000, cancellationToken);
+        }
+        else if (_usageLogger is not null)
         {
             await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
         }

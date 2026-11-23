@@ -23,6 +23,7 @@ public class AILetterWritingService : IAILetterWritingService
     private readonly IAIProvider _aiProvider;
     private readonly IMultiProviderAiRouter? _router;
     private readonly IAIUsageLogger _usageLogger;
+    private readonly ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? _tokenGovernance;
     private readonly ILogger<AILetterWritingService> _logger;
 
     public AILetterWritingService(
@@ -30,13 +31,15 @@ public class AILetterWritingService : IAILetterWritingService
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
         ILogger<AILetterWritingService> logger,
-        IMultiProviderAiRouter? router = null)
+        IMultiProviderAiRouter? router = null,
+        ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? tokenGovernance = null)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
         _logger = logger;
         _router = router;
+        _tokenGovernance = tokenGovernance;
     }
 
     public async Task<GeneratedLetterResponseDto> GenerateLetterAsync(
@@ -49,7 +52,14 @@ public class AILetterWritingService : IAILetterWritingService
             throw AITutorException.BadRequest("Chủ đề thư không được để trống.");
         }
 
-        await _usageLogger.EnsureWithinDailyBudgetAsync(userId, ct);
+        if (_tokenGovernance != null)
+        {
+            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_LETTER_WRITING", 1500, ct);
+        }
+        else
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, ct);
+        }
 
         var systemPrompt = BuildSystemPrompt(request);
         var userPrompt = BuildUserPrompt(request);

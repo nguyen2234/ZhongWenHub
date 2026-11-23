@@ -224,5 +224,6 @@ public class Program
         services.AddSingleton<IAiProviderAdapter, OpenAiCompatibleProviderAdapter>(sp => sp.GetRequiredService<OpenAiCompatibleProviderAdapter>());
         services.AddScoped<IMultiProviderAiRouter, MultiProviderAiRouter>();
         services.AddScoped<IAiProviderManagementService, AiProviderManagementService>();
+        services.AddScoped<ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService, ZhongWenHub.Features.admin.AiGovernance.AiTokenGovernanceService>();
     }
 }

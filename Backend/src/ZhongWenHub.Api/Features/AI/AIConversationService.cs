@@ -42,6 +42,7 @@ public sealed class AIConversationService : IAIConversationService
     private readonly IAIProvider _aiProvider;
     private readonly IAIUsageLogger _usageLogger;
     private readonly ISpeechRecognitionService _sttService;
+    private readonly ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? _tokenGovernance;
     private readonly ILogger<AIConversationService> _logger;
 
     public AIConversationService(
@@ -49,13 +50,15 @@ public sealed class AIConversationService : IAIConversationService
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
         ISpeechRecognitionService sttService,
-        ILogger<AIConversationService> logger)
+        ILogger<AIConversationService> logger,
+        ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? tokenGovernance = null)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
         _sttService = sttService;
         _logger = logger;
+        _tokenGovernance = tokenGovernance;
     }
 
     public IReadOnlyList<ConversationScenarioDto> GetScenarios() => Scenarios;
@@ -98,7 +101,14 @@ public sealed class AIConversationService : IAIConversationService
         var scenario = Scenarios.FirstOrDefault(s => string.Equals(s.Code, request.ScenarioCode?.Trim(), StringComparison.OrdinalIgnoreCase))
             ?? Scenarios[0];
 
-        await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        if (_tokenGovernance != null)
+        {
+            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
+        }
+        else
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        }
 
         var session = new AiConversationSession
         {
@@ -173,7 +183,14 @@ public sealed class AIConversationService : IAIConversationService
             throw AITutorException.BadRequest("Phiên hội thoại đã kết thúc. Vui lòng tạo phiên mới.");
         }
 
-        await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        if (_tokenGovernance != null)
+        {
+            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
+        }
+        else
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        }
 
         var previousMessages = await _dbContext.AiMessages
             .AsNoTracking()
