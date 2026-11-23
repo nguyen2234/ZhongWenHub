@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZhongWenHub.Common.AI;
 using ZhongWenHub.Data;
+using ZhongWenHub.Data.Persistence;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Features.admin.AiProviders;
 using ZhongWenHub.Features.admin.AiProviders.DTO;
@@ -48,12 +49,12 @@ public class TestFakeAiProviderAdapter : IAiProviderAdapter
 
 public class MultiProviderAiRouterTests
 {
-    private AppDbContext CreateInMemoryDbContext()
+    private ApplicationDbContext CreateInMemoryDbContext()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new AppDbContext(options);
+        return new ApplicationDbContext(options);
     }
 
     private IAiProviderSecretProtector CreateProtector()

@@ -265,7 +265,7 @@ public class TeacherAssignmentsController : BaseApiController
     /// <summary>
     /// Lấy chi tiết bài nộp của học sinh (đáp án, điểm, câu tự luận cần chấm)
     /// </summary>
-    [HttpGet("api/v1/teacher/submissions/{id:guid}")]
+    [HttpGet("/api/v1/teacher/submissions/{id:guid}")]
     [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSubmissionDetail(Guid id, CancellationToken cancellationToken)
@@ -293,7 +293,7 @@ public class TeacherAssignmentsController : BaseApiController
     /// <summary>
     /// Giáo viên chấm điểm và ghi nhận xét cho bài nộp của học sinh
     /// </summary>
-    [HttpPost("api/v1/teacher/submissions/{id:guid}/grade")]
+    [HttpPost("/api/v1/teacher/submissions/{id:guid}/grade")]
     [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiProblemDetailsDto), StatusCodes.Status404NotFound)]

@@ -1,6 +1,6 @@
 ﻿ZhongWenHub Runtime OpenAPI Route Baseline (P0)
 Total Operations: 263
-Captured At: 2026-11-22T16:27:57.0031285Z
+Captured At: 2026-11-23T02:30:45.2921360Z
 
 DELETE  /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
 DELETE  /api/v1/admin/exercises/{id}                                 [Content] ()
@@ -110,7 +110,7 @@ GET     /api/v1/system/teacher-test                                  [System] ()
 GET     /api/v1/teacher/assignments                                  [TeacherAssignments] ()
 GET     /api/v1/teacher/assignments/{id}                             [TeacherAssignments] ()
 GET     /api/v1/teacher/assignments/{id}/submissions                 [TeacherAssignments] ()
-GET     /api/v1/teacher/assignments/api/v1/teacher/submissions/{id}  [TeacherAssignments] ()
+GET     /api/v1/teacher/submissions/{id}                            [TeacherAssignments] ()
 GET     /api/v1/teacher/classes                                      [TeacherClasses] ()
 GET     /api/v1/teacher/classes/{classId}                            [TeacherClasses] ()
 GET     /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] ()
@@ -218,7 +218,7 @@ POST    /api/v1/student/homework/submissions/{submissionId}/submit   [StudentHom
 POST    /api/v1/teacher/assignments                                  [TeacherAssignments] ()
 POST    /api/v1/teacher/assignments/{id}/close                       [TeacherAssignments] ()
 POST    /api/v1/teacher/assignments/{id}/publish                     [TeacherAssignments] ()
-POST    /api/v1/teacher/assignments/api/v1/teacher/submissions/{id}/grade [TeacherAssignments] ()
+POST    /api/v1/teacher/submissions/{id}/grade                      [TeacherAssignments] ()
 POST    /api/v1/teacher/classes                                      [TeacherClasses] ()
 POST    /api/v1/teacher/classes/{classId}/archive                    [TeacherClasses] ()
 POST    /api/v1/teacher/classes/{classId}/attendance                 [TeacherAttendance] ()

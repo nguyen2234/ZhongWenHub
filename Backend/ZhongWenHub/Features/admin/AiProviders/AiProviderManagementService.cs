@@ -15,13 +15,13 @@ namespace ZhongWenHub.Features.admin.AiProviders;
 
 public class AiProviderManagementService : IAiProviderManagementService
 {
-    private readonly AppDbContext _context;
+    private readonly ApplicationDbContext _context;
     private readonly IEnumerable<IAiProviderAdapter> _adapters;
     private readonly IAiProviderSecretProtector _secretProtector;
     private readonly ILogger<AiProviderManagementService> _logger;
 
     public AiProviderManagementService(
-        AppDbContext context,
+        ApplicationDbContext context,
         IEnumerable<IAiProviderAdapter> adapters,
         IAiProviderSecretProtector secretProtector,
         ILogger<AiProviderManagementService> logger)

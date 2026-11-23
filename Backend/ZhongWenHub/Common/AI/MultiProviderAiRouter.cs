@@ -23,13 +23,13 @@ public class AiRouterUnavailableException : Exception
 
 public class MultiProviderAiRouter : IMultiProviderAiRouter
 {
-    private readonly AppDbContext _dbContext;
+    private readonly ApplicationDbContext _dbContext;
     private readonly IEnumerable<IAiProviderAdapter> _adapters;
     private readonly IAiProviderSecretProtector _secretProtector;
     private readonly ILogger<MultiProviderAiRouter> _logger;
 
     public MultiProviderAiRouter(
-        AppDbContext dbContext,
+        ApplicationDbContext dbContext,
         IEnumerable<IAiProviderAdapter> adapters,
         IAiProviderSecretProtector secretProtector,
         ILogger<MultiProviderAiRouter> logger)

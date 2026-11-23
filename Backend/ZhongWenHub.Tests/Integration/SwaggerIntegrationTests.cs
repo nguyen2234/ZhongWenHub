@@ -34,24 +34,16 @@ public class SwaggerIntegrationTests
             builder.ConfigureServices(services =>
             {
                 var descriptors = services.Where(d =>
-                    d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                     d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
-                    d.ServiceType == typeof(AppDbContext) ||
                     d.ServiceType == typeof(ApplicationDbContext)).ToList();
                 foreach (var descriptor in descriptors)
                 {
                     services.Remove(descriptor);
                 }
 
-                services.AddDbContext<AppDbContext>(options =>
+                services.AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseSqlServer(TestConnectionString);
-                });
-
-                services.AddScoped<ApplicationDbContext>(sp =>
-                {
-                    var options = sp.GetRequiredService<DbContextOptions<AppDbContext>>();
-                    return new ApplicationDbContext(options);
                 });
             });
         }
@@ -70,24 +62,16 @@ public class SwaggerIntegrationTests
             builder.ConfigureServices(services =>
             {
                 var descriptors = services.Where(d =>
-                    d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                     d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
-                    d.ServiceType == typeof(AppDbContext) ||
                     d.ServiceType == typeof(ApplicationDbContext)).ToList();
                 foreach (var descriptor in descriptors)
                 {
                     services.Remove(descriptor);
                 }
 
-                services.AddDbContext<AppDbContext>(options =>
+                services.AddDbContext<ApplicationDbContext>(options =>
                 {
                     options.UseSqlServer(TestConnectionString);
-                });
-
-                services.AddScoped<ApplicationDbContext>(sp =>
-                {
-                    var options = sp.GetRequiredService<DbContextOptions<AppDbContext>>();
-                    return new ApplicationDbContext(options);
                 });
             });
         }
@@ -233,19 +217,6 @@ public class SwaggerIntegrationTests
         System.Console.WriteLine($"WITH_DESCRIPTION:{operationsWithDescription}");
         System.Console.WriteLine($"WITHOUT_SUMMARY_OR_DESC:{operationsWithoutSummary}");
 
-        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
-        Directory.CreateDirectory(docsDir);
-
-        var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
-        await File.WriteAllTextAsync(jsonPath, json);
-
-        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
-        using var writer = new StreamWriter(txtPath, false, System.Text.Encoding.UTF8);
-        writer.WriteLine("ZhongWenHub Runtime OpenAPI Route Baseline (P0)");
-        writer.WriteLine($"Total Operations: {totalOperations}");
-        writer.WriteLine($"Captured At: {DateTime.UtcNow:O}");
-        writer.WriteLine();
-
         var routeList = new List<string>();
         foreach (var path in paths.EnumerateObject())
         {
@@ -264,11 +235,47 @@ public class SwaggerIntegrationTests
                 routeList.Add($"{httpMethod,-7} {pathKey,-60} [{tag}] ({opId}) {summary}".Trim());
             }
         }
-
         routeList.Sort();
-        foreach (var line in routeList)
+
+        var updateBaseline = string.Equals(Environment.GetEnvironmentVariable("UPDATE_OPENAPI_BASELINE"), "true", StringComparison.OrdinalIgnoreCase);
+        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
+        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
+
+        if (updateBaseline && Directory.Exists(docsDir))
         {
-            writer.WriteLine(line);
+            var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
+            await File.WriteAllTextAsync(jsonPath, json);
+
+            using var writer = new StreamWriter(txtPath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("ZhongWenHub Runtime OpenAPI Route Baseline (P0)");
+            writer.WriteLine($"Total Operations: {totalOperations}");
+            writer.WriteLine($"Captured At: {DateTime.UtcNow:O}");
+            writer.WriteLine();
+            foreach (var line in routeList)
+            {
+                writer.WriteLine(line);
+            }
+        }
+        else if (File.Exists(txtPath))
+        {
+            var baselineLines = await File.ReadAllLinesAsync(txtPath);
+            var baselineOperations = baselineLines
+                .Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("ZhongWenHub") && !l.StartsWith("Total") && !l.StartsWith("Captured"))
+                .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                .Where(parts => parts.Length >= 2)
+                .Select(parts => $"{parts[0]} {parts[1]}")
+                .OrderBy(x => x)
+                .ToList();
+
+            var currentOperations = routeList
+                .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                .Where(parts => parts.Length >= 2)
+                .Select(parts => $"{parts[0]} {parts[1]}")
+                .OrderBy(x => x)
+                .ToList();
+
+            Assert.Equal(baselineOperations.Count, currentOperations.Count);
+            Assert.Equal(baselineOperations, currentOperations);
         }
     }
 }

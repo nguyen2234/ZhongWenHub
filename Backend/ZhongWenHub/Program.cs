@@ -38,7 +38,7 @@ public class Program
         builder.Services.AddAppAuthentication(builder.Configuration);
         builder.Services.AddAppSwagger();
         builder.Services.AddHealthChecks()
-            .AddDbContextCheck<AppDbContext>("Database");
+            .AddDbContextCheck<ApplicationDbContext>("Database");
 
         // MVC Controllers & JSON Configuration
         builder.Services.AddControllers()
@@ -126,7 +126,7 @@ public class Program
         {
             var sp = scope.ServiceProvider;
             var logger = sp.GetRequiredService<ILogger<Program>>();
-            var db = sp.GetRequiredService<AppDbContext>();
+            var db = sp.GetRequiredService<ApplicationDbContext>();
 
             try
             {

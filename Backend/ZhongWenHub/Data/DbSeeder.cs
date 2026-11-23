@@ -8,14 +8,14 @@ namespace ZhongWenHub.Data;
 public static class DbSeeder
 {
     public static Task SeedAsync(
-        AppDbContext context,
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         ILogger logger)
         => DbInitializer.SeedAsync(context, userManager, roleManager, logger);
 
     public static Task SeedDevelopmentAdminAsync(
-        AppDbContext context,
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         Microsoft.Extensions.Configuration.IConfiguration configuration,

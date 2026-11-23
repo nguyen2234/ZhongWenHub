@@ -29,6 +29,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
 
         var testConn = ResolveConnectionString();
+        var builderCs = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(testConn);
+        var dbName = builderCs.InitialCatalog;
+        if (!string.Equals(dbName, "ZhongWenHub_Test", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(dbName, "ZhongWenHub_FreshTest", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Safety Guard: Integration tests must connect to an approved test database (ZhongWenHub_Test or ZhongWenHub_FreshTest). Attempted: {dbName}");
+        }
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
@@ -44,11 +51,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Remove existing AppDbContext and ApplicationDbContext descriptors
+            // Remove existing ApplicationDbContext descriptors
             var descriptors = services.Where(d =>
-                d.ServiceType == typeof(DbContextOptions<AppDbContext>) ||
                 d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
-                d.ServiceType == typeof(AppDbContext) ||
                 d.ServiceType == typeof(ApplicationDbContext)).ToList();
 
             foreach (var d in descriptors)
@@ -57,15 +62,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // Register SQL Server with test database
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(testConn);
-            });
-
-            services.AddScoped<ApplicationDbContext>(sp =>
-            {
-                var options = sp.GetRequiredService<DbContextOptions<AppDbContext>>();
-                return new ApplicationDbContext(options);
             });
         });
     }

@@ -48,7 +48,7 @@ result = {
     {
       "test_id": "TEST-DOTNET-BE-ALL",
       "test_name": "Backend .NET Unit Test Suite",
-      "command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj",
+      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj",
       "test_type": "UNIT",
       "environment": "Windows .NET 10.0 SDK",
       "commit_sha": "3918063",

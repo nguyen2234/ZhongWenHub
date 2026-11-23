@@ -28,20 +28,13 @@ public static class ServiceCollectionExtensions
             throw new InvalidOperationException("DefaultConnection connection string is not configured.");
         }
 
-        services.AddDbContext<AppDbContext>(options =>
+        services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(connectionString, sqlOptions =>
             {
-                sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
                 sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
             });
-        });
-
-        // Also register ApplicationDbContext for backward compatibility
-        services.AddScoped<ZhongWenHub.Data.Persistence.ApplicationDbContext>(sp =>
-        {
-            var options = sp.GetRequiredService<DbContextOptions<AppDbContext>>();
-            return new ZhongWenHub.Data.Persistence.ApplicationDbContext(options);
         });
 
         // ASP.NET Core Identity with simple local security profile
@@ -58,7 +51,7 @@ public static class ServiceCollectionExtensions
             options.User.RequireUniqueEmail = true;
             options.SignIn.RequireConfirmedEmail = false;
         })
-        .AddEntityFrameworkStores<AppDbContext>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
         return services;
@@ -134,7 +127,7 @@ public static class ServiceCollectionExtensions
                         return;
                     }
 
-                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                    var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
                     var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
 
                     if (user == null || user.IsDeleted || user.Status != UserStatus.ACTIVE)
@@ -174,9 +167,9 @@ public static class ServiceCollectionExtensions
                         {
                             if (r != null)
                             {
-                                identity.AddClaim(new Claim(ClaimTypes.Role, r));
-                                identity.AddClaim(new Claim("role", r));
-                                identity.AddClaim(new Claim("roles", r));
+                                identity.AddClaim(new System.Security.Claims.Claim(ClaimTypes.Role, r));
+                                identity.AddClaim(new System.Security.Claims.Claim("role", r));
+                                identity.AddClaim(new System.Security.Claims.Claim("roles", r));
                             }
                         }
                     }

@@ -381,6 +381,85 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("ai_messages", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiProviderConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BaseUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CapabilitiesJson")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DefaultModel")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EncryptedApiKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastCheckedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastHealthMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("LastHealthStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double?>("Temperature")
+                        .HasColumnType("float");
+
+                    b.Property<int>("TimeoutSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsEnabled");
+
+                    b.HasIndex("Priority");
+
+                    b.ToTable("AiProviderConfigurations", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiSpeakingAttempt", b =>
                 {
                     b.Property<Guid>("Id")

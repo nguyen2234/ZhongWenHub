@@ -11,7 +11,7 @@ public static class DbInitializer
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
     public static async Task SeedAsync(
-        AppDbContext context,
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         ILogger logger)
@@ -336,7 +336,7 @@ public static class DbInitializer
         }
     }
 
-    private static async Task SeedContentAsync(AppDbContext context, ILogger logger)
+    private static async Task SeedContentAsync(ApplicationDbContext context, ILogger logger)
     {
         var hsk1CourseId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var hsk2CourseId = Guid.Parse("22222222-2222-2222-2222-222222222222");
@@ -564,7 +564,7 @@ public static class DbInitializer
     }
 
     public static async Task SeedDevelopmentAdminAsync(
-        AppDbContext context,
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         Microsoft.Extensions.Configuration.IConfiguration configuration,
