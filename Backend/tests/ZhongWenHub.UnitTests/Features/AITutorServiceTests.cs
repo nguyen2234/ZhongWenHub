@@ -1,10 +1,13 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;
 
@@ -400,5 +403,96 @@ public class AITutorServiceTests
         Assert.Equal("model", contents[1].GetProperty("role").GetString());
         Assert.Equal("user", contents[2].GetProperty("role").GetString());
         Assert.DoesNotContain("internal reasoning", res.RawText);
+    }
+
+    private static ApplicationDbContext CreateInMemoryDbContext()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new ApplicationDbContext(options);
+    }
+
+    [Fact]
+    public async Task ChatAsync_WithDbContext_PersistsSessionAndMessages()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var provider = new StubAIProvider();
+        var verifier = new StubContextVerifier();
+        var service = new AITutorService(
+            provider,
+            verifier,
+            Options.Create(new GeminiOptions()),
+            NullLogger<AITutorService>.Instance,
+            dbContext: dbContext);
+
+        var userId = Guid.NewGuid();
+        var request = new AITutorChatRequestDto
+        {
+            Message = "Học từ vựng tiếng Trung hôm nay",
+            Mode = "EXPLAIN",
+            Context = new AITutorContextDto { Source = "general", HskLevel = 2 }
+        };
+
+        var response = await service.ChatAsync(userId, request);
+
+        Assert.NotNull(response);
+        Assert.NotNull(response.ConversationId);
+        Assert.True(Guid.TryParse(response.ConversationId, out var sessionId));
+
+        var session = await dbContext.AiConversationSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
+        Assert.NotNull(session);
+        Assert.Equal(userId, session.UserId);
+        Assert.Equal("TUTOR", session.SessionType);
+        Assert.Equal(2, session.MessageCount);
+
+        var msgs = await dbContext.AiMessages.Where(m => m.SessionId == sessionId).ToListAsync();
+        Assert.Equal(2, msgs.Count);
+        Assert.Contains(msgs, m => m.Role == "user" && m.ContentZh.Contains("Học từ vựng"));
+        Assert.Contains(msgs, m => m.Role == "assistant");
+    }
+
+    [Fact]
+    public async Task SessionManagement_CrudLifecycle_Succeeds()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var provider = new StubAIProvider();
+        var verifier = new StubContextVerifier();
+        var service = new AITutorService(
+            provider,
+            verifier,
+            Options.Create(new GeminiOptions()),
+            NullLogger<AITutorService>.Instance,
+            dbContext: dbContext);
+
+        var userId = Guid.NewGuid();
+
+        // 1. Create Session
+        var sessionId = await service.CreateSessionAsync(userId, new CreateAITutorSessionDto
+        {
+            Title = "Luyện ngữ pháp HSK 3",
+            Mode = "PRACTICE",
+            HskLevel = 3
+        });
+        Assert.NotEqual(Guid.Empty, sessionId);
+
+        // 2. Get Sessions
+        var sessions = await service.GetSessionsAsync(userId);
+        Assert.Single(sessions);
+        Assert.Equal("Luyện ngữ pháp HSK 3", sessions[0].Title);
+        Assert.Equal("PRACTICE", sessions[0].Mode);
+
+        // 3. Get Session Detail
+        var detail = await service.GetSessionDetailAsync(userId, sessionId);
+        Assert.NotNull(detail);
+        Assert.Equal(sessionId, detail.SessionId);
+        Assert.Empty(detail.Messages);
+
+        // 4. Delete Session
+        var deleted = await service.DeleteSessionAsync(userId, sessionId);
+        Assert.True(deleted);
+
+        var remaining = await service.GetSessionsAsync(userId);
+        Assert.Empty(remaining);
     }
 }

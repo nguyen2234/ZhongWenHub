@@ -1,9 +1,12 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Business.AITutor;
 
@@ -19,19 +22,22 @@ public sealed class AITutorService : IAITutorService
     private readonly IAIUsageLogger? _usageLogger;
     private readonly GeminiOptions _options;
     private readonly ILogger<AITutorService> _logger;
+    private readonly ApplicationDbContext? _dbContext;
 
     public AITutorService(
         IAIProvider aiProvider,
         IAITutorContextVerifier contextVerifier,
         IOptions<GeminiOptions> options,
         ILogger<AITutorService> logger,
-        IAIUsageLogger? usageLogger = null)
+        IAIUsageLogger? usageLogger = null,
+        ApplicationDbContext? dbContext = null)
     {
         _aiProvider = aiProvider;
         _contextVerifier = contextVerifier;
         _options = options.Value;
         _logger = logger;
         _usageLogger = usageLogger;
+        _dbContext = dbContext;
     }
 
     public async Task<AITutorChatResponseDto> ChatAsync(
@@ -61,6 +67,55 @@ public sealed class AITutorService : IAITutorService
             : "ASK";
 
         var verifiedContext = await _contextVerifier.VerifyAndNormalizeAsync(userId, request.Context, cancellationToken);
+
+        Guid? sessionId = null;
+        if (!string.IsNullOrWhiteSpace(request.ConversationId) && Guid.TryParse(request.ConversationId, out var parsedId))
+        {
+            sessionId = parsedId;
+        }
+
+        AiConversationSession? session = null;
+        if (_dbContext is not null)
+        {
+            if (sessionId.HasValue)
+            {
+                session = await _dbContext.AiConversationSessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionId.Value && s.UserId == userId && s.SessionType == "TUTOR", cancellationToken);
+            }
+
+            if (session is null)
+            {
+                session = new AiConversationSession
+                {
+                    Id = sessionId ?? Guid.NewGuid(),
+                    UserId = userId,
+                    SessionType = "TUTOR",
+                    HskLevel = verifiedContext.EffectiveHskLevel,
+                    ScenarioCode = normalizedMode,
+                    ScenarioTitle = trimmedMessage.Length > 50 ? trimmedMessage[..50] + "..." : trimmedMessage,
+                    Status = "ACTIVE",
+                    StartedAt = DateTime.UtcNow,
+                    MessageCount = 0
+                };
+                _dbContext.AiConversationSessions.Add(session);
+            }
+            sessionId = session.Id;
+
+            var userMsg = new AiMessage
+            {
+                SessionId = session.Id,
+                UserId = userId,
+                Role = "user",
+                ContentZh = trimmedMessage,
+                StructuredPayloadJson = JsonSerializer.Serialize(request.Context),
+                CreatedAt = DateTime.UtcNow
+            };
+            _dbContext.AiMessages.Add(userMsg);
+            session.MessageCount++;
+            session.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         var sanitizedHistory = BuildSanitizedHistory(request.History);
         var systemInstruction = BuildSystemInstruction(normalizedMode, verifiedContext);
         var userPrompt = BuildUserPrompt(trimmedMessage, normalizedMode, verifiedContext);
@@ -96,6 +151,7 @@ public sealed class AITutorService : IAITutorService
         }
 
         var dto = ParseProviderResponse(providerResponse.RawText, _logger);
+        dto.ConversationId = sessionId?.ToString();
         dto.Meta = new AIProviderMetaDto
         {
             Provider = providerResponse.Provider,
@@ -106,6 +162,29 @@ public sealed class AITutorService : IAITutorService
             TotalTokens = providerResponse.TotalTokens,
             LatencyMs = providerResponse.LatencyMs
         };
+
+        if (_dbContext is not null && session is not null)
+        {
+            var assistantMsg = new AiMessage
+            {
+                SessionId = session.Id,
+                UserId = userId,
+                Role = "assistant",
+                ContentZh = dto.Summary ?? trimmedMessage,
+                StructuredPayloadJson = providerResponse.RawText,
+                Model = providerResponse.Model,
+                PromptTokens = providerResponse.PromptTokens,
+                CompletionTokens = providerResponse.CompletionTokens,
+                LatencyMs = providerResponse.LatencyMs,
+                CreatedAt = DateTime.UtcNow
+            };
+            _dbContext.AiMessages.Add(assistantMsg);
+            session.MessageCount++;
+            session.SummaryVi = dto.Summary;
+            session.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         return dto;
     }
 
@@ -579,6 +658,131 @@ public sealed class AITutorService : IAITutorService
         var val = prop.GetString()?.Trim();
         if (string.IsNullOrWhiteSpace(val)) return null;
         return val.Length <= maxLength ? val : val[..maxLength];
+    }
+
+    public async Task<List<AITutorSessionSummaryDto>> GetSessionsAsync(
+        Guid userId,
+        int limit = 20,
+        CancellationToken ct = default)
+    {
+        if (_dbContext is null) return new();
+
+        var sessions = await _dbContext.AiConversationSessions
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && s.SessionType == "TUTOR")
+            .OrderByDescending(s => s.UpdatedAt ?? s.StartedAt)
+            .Take(Math.Clamp(limit, 1, 50))
+            .ToListAsync(ct);
+
+        var sessionIds = sessions.Select(s => s.Id).ToList();
+        var lastMessages = await _dbContext.AiMessages
+            .AsNoTracking()
+            .Where(m => sessionIds.Contains(m.SessionId))
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync(ct);
+
+        var msgMap = lastMessages
+            .GroupBy(m => m.SessionId)
+            .ToDictionary(g => g.Key, g => g.First().ContentZh);
+
+        return sessions.Select(s => new AITutorSessionSummaryDto
+        {
+            SessionId = s.Id,
+            Title = s.ScenarioTitle,
+            Mode = s.ScenarioCode ?? "ASK",
+            HskLevel = s.HskLevel,
+            MessageCount = s.MessageCount,
+            LastMessageSnippet = msgMap.TryGetValue(s.Id, out var snippet)
+                ? (snippet.Length > 80 ? snippet[..80] + "..." : snippet)
+                : null,
+            CreatedAt = s.StartedAt,
+            UpdatedAt = s.UpdatedAt
+        }).ToList();
+    }
+
+    public async Task<AITutorSessionDetailDto?> GetSessionDetailAsync(
+        Guid userId,
+        Guid sessionId,
+        CancellationToken ct = default)
+    {
+        if (_dbContext is null) return null;
+
+        var session = await _dbContext.AiConversationSessions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.SessionType == "TUTOR", ct);
+
+        if (session is null) return null;
+
+        var messages = await _dbContext.AiMessages
+            .AsNoTracking()
+            .Where(m => m.SessionId == sessionId)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(ct);
+
+        return new AITutorSessionDetailDto
+        {
+            SessionId = session.Id,
+            Title = session.ScenarioTitle,
+            Mode = session.ScenarioCode ?? "ASK",
+            HskLevel = session.HskLevel,
+            CreatedAt = session.StartedAt,
+            Messages = messages.Select(m => new AITutorMessageDto
+            {
+                Id = m.Id,
+                Role = m.Role,
+                Content = m.ContentZh,
+                Pinyin = m.Pinyin,
+                StructuredPayloadJson = m.StructuredPayloadJson,
+                CreatedAt = m.CreatedAt
+            }).ToList()
+        };
+    }
+
+    public async Task<Guid> CreateSessionAsync(
+        Guid userId,
+        CreateAITutorSessionDto dto,
+        CancellationToken ct = default)
+    {
+        var sessionId = Guid.NewGuid();
+        if (_dbContext is null) return sessionId;
+
+        var title = string.IsNullOrWhiteSpace(dto.Title) ? "Hội thoại mới với Trợ giảng AI" : dto.Title.Trim();
+        var session = new AiConversationSession
+        {
+            Id = sessionId,
+            UserId = userId,
+            SessionType = "TUTOR",
+            HskLevel = dto.HskLevel ?? 1,
+            ScenarioCode = dto.Mode ?? "ASK",
+            ScenarioTitle = title,
+            Status = "ACTIVE",
+            StartedAt = DateTime.UtcNow,
+            MessageCount = 0
+        };
+
+        _dbContext.AiConversationSessions.Add(session);
+        await _dbContext.SaveChangesAsync(ct);
+        return sessionId;
+    }
+
+    public async Task<bool> DeleteSessionAsync(
+        Guid userId,
+        Guid sessionId,
+        CancellationToken ct = default)
+    {
+        if (_dbContext is null) return false;
+
+        var session = await _dbContext.AiConversationSessions
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.SessionType == "TUTOR", ct);
+
+        if (session is null) return false;
+
+        var messages = await _dbContext.AiMessages.Where(m => m.SessionId == sessionId).ToListAsync(ct);
+        _dbContext.AiMessages.RemoveRange(messages);
+        _dbContext.AiConversationSessions.Remove(session);
+
+        await _dbContext.SaveChangesAsync(ct);
+        return true;
     }
 }
 

@@ -112,11 +112,41 @@ export type AIResponseBlock =
   | AIVocabularyBlockData;
 
 export interface StructuredAIResponse {
+  conversationId?: string;
   type: 'structured' | 'markdown';
   summary?: string;
   markdownFallback?: string;
   blocks: AIResponseBlock[];
   suggestedActions: string[];
+}
+
+export interface AITutorSessionSummary {
+  sessionId: string;
+  title: string;
+  mode: string;
+  hskLevel: number;
+  messageCount: number;
+  lastMessageSnippet?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AITutorMessageItem {
+  id: string;
+  role: string;
+  content: string;
+  pinyin?: string;
+  structuredPayloadJson?: string;
+  createdAt: string;
+}
+
+export interface AITutorSessionDetail {
+  sessionId: string;
+  title: string;
+  mode: string;
+  hskLevel: number;
+  messages: AITutorMessageItem[];
+  createdAt: string;
 }
 
 export interface AITutorMessage {

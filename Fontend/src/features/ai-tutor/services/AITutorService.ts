@@ -7,6 +7,8 @@ import type {
   AITutorMode,
   AIResponseBlock,
   StructuredAIResponse,
+  AITutorSessionSummary,
+  AITutorSessionDetail,
 } from '../types';
 
 export interface ChatRequest {
@@ -127,6 +129,7 @@ export class AITutorService {
     }
 
     const summary = typeof raw.summary === 'string' ? raw.summary : undefined;
+    const conversationId = typeof raw.conversationId === 'string' ? raw.conversationId : undefined;
     const markdownFallback =
       typeof raw.markdownFallback === 'string' && raw.markdownFallback.trim().length > 0
         ? raw.markdownFallback.trim()
@@ -140,6 +143,7 @@ export class AITutorService {
 
     if (validBlocks.length > 0 && raw.type !== 'markdown') {
       return {
+        conversationId,
         type: 'structured',
         summary,
         markdownFallback,
@@ -149,6 +153,7 @@ export class AITutorService {
     }
 
     return {
+      conversationId,
       type: 'markdown',
       summary: summary || 'Phản hồi từ Trợ giảng AI',
       markdownFallback:
@@ -158,6 +163,42 @@ export class AITutorService {
       blocks: [],
       suggestedActions,
     };
+  }
+
+  static async getSessions(limit = 20): Promise<AITutorSessionSummary[]> {
+    try {
+      const res = await httpClient.get<AITutorSessionSummary[]>('/ai-tutor/sessions', {
+        params: { limit },
+        timeoutMs: 15000,
+      });
+      return res || [];
+    } catch {
+      return [];
+    }
+  }
+
+  static async getSessionDetail(sessionId: string): Promise<AITutorSessionDetail | null> {
+    try {
+      const res = await httpClient.get<AITutorSessionDetail>(`/ai-tutor/sessions/${sessionId}`, {
+        timeoutMs: 15000,
+      });
+      return res;
+    } catch {
+      return null;
+    }
+  }
+
+  static async createSession(dto: { title?: string; mode?: string; hskLevel?: number }): Promise<string> {
+    const res = await httpClient.post<{ sessionId: string }>('/ai-tutor/sessions', dto, {
+      timeoutMs: 15000,
+    });
+    return res.sessionId;
+  }
+
+  static async deleteSession(sessionId: string): Promise<void> {
+    await httpClient.delete(`/ai-tutor/sessions/${sessionId}`, {
+      timeoutMs: 15000,
+    });
   }
 
   static buildHistoryFromMessages(messages: AITutorMessage[], maxTurns = 8): AITutorHistoryTurn[] {
