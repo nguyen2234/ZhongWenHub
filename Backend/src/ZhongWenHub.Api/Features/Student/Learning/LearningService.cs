@@ -119,19 +119,25 @@ public class LearningService : ILearningService
             };
             _context.StudentLearningProfiles.Add(profile);
 
-            // Also initialize first lesson progress
-            var firstLesson = new StudentLessonProgress
+            // Also initialize first lesson progress if not already present
+            var hasFirstLesson = await _context.StudentLessonProgresses
+                .AnyAsync(l => l.UserId == userId && l.LessonId == Lesson1Guid, cancellationToken);
+
+            if (!hasFirstLesson)
             {
-                UserId = userId,
-                LessonId = Lesson1Guid,
-                Status = "NOT_STARTED",
-                CurrentStepIndex = 0,
-                MaxUnlockedStepIndex = 0,
-                QuizScore = 0,
-                TotalQuizQuestions = 5,
-                XpEarned = 0
-            };
-            _context.StudentLessonProgresses.Add(firstLesson);
+                var firstLesson = new StudentLessonProgress
+                {
+                    UserId = userId,
+                    LessonId = Lesson1Guid,
+                    Status = "NOT_STARTED",
+                    CurrentStepIndex = 0,
+                    MaxUnlockedStepIndex = 0,
+                    QuizScore = 0,
+                    TotalQuizQuestions = 5,
+                    XpEarned = 0
+                };
+                _context.StudentLessonProgresses.Add(firstLesson);
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
         }

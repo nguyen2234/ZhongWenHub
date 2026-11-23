@@ -14,6 +14,7 @@ using ZhongWenHub;
 using ZhongWenHub.Data;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
@@ -174,6 +175,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     {
                         userManager.AddToRoleAsync(user, testUser.Role).GetAwaiter().GetResult();
 
+                        if (testUser.Role == RoleConstants.Student)
+                        {
+                            context.StudentLearningProfiles.Add(new StudentLearningProfile
+                            {
+                                UserId = user.Id,
+                                SelectedHskLevel = 1,
+                                CurrentLessonId = "aaaaaaaa-1111-1111-1111-111111111111",
+                                XpTotal = 0,
+                                StreakDays = 0,
+                                LastActivityDate = string.Empty,
+                                TargetDailyMinutes = 30,
+                                TargetDailyXp = 50,
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
+
                         if (testUser.Role == RoleConstants.Student || testUser.Role == RoleConstants.Teacher)
                         {
                             var wallet = new UserWallet
@@ -210,6 +227,26 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     if (!userManager.IsInRoleAsync(existing, testUser.Role).GetAwaiter().GetResult())
                     {
                         userManager.AddToRoleAsync(existing, testUser.Role).GetAwaiter().GetResult();
+                    }
+
+                    if (testUser.Role == RoleConstants.Student)
+                    {
+                        var profile = context.StudentLearningProfiles.FirstOrDefault(p => p.UserId == existing.Id);
+                        if (profile == null)
+                        {
+                            context.StudentLearningProfiles.Add(new StudentLearningProfile
+                            {
+                                UserId = existing.Id,
+                                SelectedHskLevel = 1,
+                                CurrentLessonId = "aaaaaaaa-1111-1111-1111-111111111111",
+                                XpTotal = 0,
+                                StreakDays = 0,
+                                LastActivityDate = string.Empty,
+                                TargetDailyMinutes = 30,
+                                TargetDailyXp = 50,
+                                CreatedAt = DateTime.UtcNow
+                            });
+                        }
                     }
 
                     if (testUser.Role == RoleConstants.Student || testUser.Role == RoleConstants.Teacher)
