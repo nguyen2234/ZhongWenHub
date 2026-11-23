@@ -174,6 +174,10 @@ export const studentRoutes: RouteObject[] = [
         element: <AILetterWritingPage />,
       },
       {
+        path: 'practice/letter-writing',
+        element: <Navigate to="/letter-writing" replace />,
+      },
+      {
         path: 'ai-analytics',
         element: <AIAnalyticsPage />,
       },
