@@ -293,7 +293,7 @@ public class IntegrationTestMockSmtpServer : IAsyncDisposable
             using var client = await _listener.AcceptTcpClientAsync(_cts.Token);
             using var stream = client.GetStream();
             using var reader = new StreamReader(stream, System.Text.Encoding.ASCII);
-            using var writer = new StreamWriter(stream, System.Text.Encoding.ASCII) { AutoFlush = true };
+            using var writer = new StreamWriter(stream, System.Text.Encoding.ASCII) { AutoFlush = true, NewLine = "\r\n" };
 
             await writer.WriteLineAsync("220 localhost ESMTP ZhongWenHubMockSmtp");
 

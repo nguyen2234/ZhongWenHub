@@ -678,12 +678,8 @@ public class LearningService : ILearningService
         }
 
         var canonical = matches.FirstOrDefault(m => string.Equals(m.LessonId, normalizedId, StringComparison.OrdinalIgnoreCase))
+            ?? matches.FirstOrDefault(m => string.Equals(m.LessonId, Lesson1Guid, StringComparison.OrdinalIgnoreCase))
             ?? matches[0];
-
-        if (isLesson1 && string.Equals(canonical.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
-        {
-            canonical.LessonId = Lesson1Guid;
-        }
 
         foreach (var dup in matches)
         {
@@ -697,6 +693,11 @@ public class LearningService : ILearningService
             canonical.MaxUnlockedStepIndex = Math.Max(canonical.MaxUnlockedStepIndex, dup.MaxUnlockedStepIndex);
             canonical.XpEarned = Math.Max(canonical.XpEarned, dup.XpEarned);
             _context.StudentLessonProgresses.Remove(dup);
+        }
+
+        if (isLesson1 && string.Equals(canonical.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
+        {
+            canonical.LessonId = Lesson1Guid;
         }
 
         return canonical;

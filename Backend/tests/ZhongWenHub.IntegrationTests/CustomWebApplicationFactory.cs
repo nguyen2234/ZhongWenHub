@@ -104,6 +104,37 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 context.Database.Migrate();
             }
 
+            // Seed full HSK 3.0 curriculum dataset from CurriculumSeed.sql if database is fresh
+            var seedSqlPath = System.IO.Path.Combine(AppContext.BaseDirectory, "TestData", "CurriculumSeed.sql");
+            if (System.IO.File.Exists(seedSqlPath))
+            {
+                var conn = context.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    conn.Open();
+                }
+
+                using var checkCmd = conn.CreateCommand();
+                checkCmd.CommandText = "SELECT COUNT(*) FROM [hanzi_characters]";
+                var hasHanzi = Convert.ToInt32(checkCmd.ExecuteScalar() ?? 0);
+                if (hasHanzi == 0)
+                {
+                    logger.LogInformation("Seeding full curriculum dataset into isolated test database...");
+                    var sql = System.IO.File.ReadAllText(seedSqlPath);
+                    var batches = sql.Split(new[] { "\nGO\r\n", "\r\nGO\r\n", "\nGO\n", "\r\nGO\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var batch in batches)
+                    {
+                        var trimmed = batch.Trim();
+                        if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                        using var cmd = conn.CreateCommand();
+                        cmd.CommandText = trimmed;
+                        cmd.CommandTimeout = 300;
+                        cmd.ExecuteNonQuery();
+                    }
+                    logger.LogInformation("Full curriculum dataset seeded successfully.");
+                }
+            }
+
             // Seed base roles and demo content
             DbInitializer.SeedAsync(context, userManager, roleManager, logger).GetAwaiter().GetResult();
 

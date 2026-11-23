@@ -16,6 +16,7 @@ using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Collection("SqlServerIntegrationTests")]
 [Trait("Category", "Integration")]
 public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {

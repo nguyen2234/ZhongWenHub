@@ -18,6 +18,7 @@ publish/
 *.local.json
 appsettings.*.local.json
 *.sql
+!tests/**/TestData/*.sql
 *.bak
 *.dump
 zhongwenhub_dev_postgres_backup.sql
