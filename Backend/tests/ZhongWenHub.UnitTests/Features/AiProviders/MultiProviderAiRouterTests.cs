@@ -341,4 +341,92 @@ public class MultiProviderAiRouterTests
         Assert.Equal("AI_CONVERSATION", log.Feature);
         Assert.True(log.Success);
     }
+
+    [Theory]
+    [InlineData("http://localhost:8000")]
+    [InlineData("http://127.0.0.1:11434")]
+    [InlineData("http://169.254.169.254/latest/meta-data")]
+    [InlineData("http://metadata.google.internal/computeMetadata/v1/")]
+    [InlineData("http://10.0.0.1/api")]
+    [InlineData("http://172.20.0.1/api")]
+    [InlineData("http://192.168.1.100:8080")]
+    [InlineData("ftp://api.example.com")]
+    [InlineData("file:///etc/passwd")]
+    public void ValidateBaseUrl_RejectsSsrfTargets(string maliciousUrl)
+    {
+        var ex = Assert.Throws<ArgumentException>(() =>
+            AiProviderManagementService.ValidateBaseUrl(maliciousUrl));
+        Assert.NotEmpty(ex.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("https://api.deepseek.com")]
+    [InlineData("https://api.openai.com/v1")]
+    [InlineData("https://generativelanguage.googleapis.com")]
+    public void ValidateBaseUrl_AllowsLegitimatePublicEndpoints(string? validUrl)
+    {
+        AiProviderManagementService.ValidateBaseUrl(validUrl);
+    }
+
+    [Fact]
+    public async Task Router_RoutesToFeatureSpecificProvider_WhenAvailable()
+    {
+        using var db = CreateInMemoryDbContext();
+        var protector = CreateProtector();
+
+        var letterAdapter = new TestFakeAiProviderAdapter
+        {
+            ProviderType = "GEMINI",
+            OnGenerate = (config, key, prompt) => Task.FromResult(new AiAdapterResponse { Text = "Letter AI response", Model = config.DefaultModel })
+        };
+        var tutorAdapter = new TestFakeAiProviderAdapter
+        {
+            ProviderType = "OPENAI",
+            OnGenerate = (config, key, prompt) => Task.FromResult(new AiAdapterResponse { Text = "Tutor AI response", Model = config.DefaultModel })
+        };
+
+        db.AiProviderConfigurations.Add(new AiProviderConfiguration
+        {
+            Id = Guid.NewGuid(),
+            Name = "Tutor Dedicated Provider",
+            ProviderType = "OPENAI",
+            DefaultModel = "gpt-4o-mini",
+            EncryptedApiKey = protector.Encrypt("key-1"),
+            CapabilitiesJson = "[\"chat\", \"feature:AI_TUTOR\"]",
+            IsEnabled = true,
+            Priority = 1
+        });
+
+        db.AiProviderConfigurations.Add(new AiProviderConfiguration
+        {
+            Id = Guid.NewGuid(),
+            Name = "Letter Dedicated Provider",
+            ProviderType = "GEMINI",
+            DefaultModel = "gemini-1.5-flash",
+            EncryptedApiKey = protector.Encrypt("key-2"),
+            CapabilitiesJson = "[\"chat\", \"feature:AI_LETTER_WRITING\"]",
+            IsEnabled = true,
+            Priority = 2
+        });
+        await db.SaveChangesAsync();
+
+        var router = new MultiProviderAiRouter(db, new IAiProviderAdapter[] { letterAdapter, tutorAdapter }, protector, NullLogger<MultiProviderAiRouter>.Instance);
+
+        // Request for AI_LETTER_WRITING should route to Letter Dedicated Provider (GEMINI)
+        var letterRes = await router.GenerateAsync("chat", "Viết một bức thư", feature: "AI_LETTER_WRITING");
+        Assert.True(letterRes.IsSuccess);
+        Assert.Equal("Letter Dedicated Provider", letterRes.ProviderName);
+        Assert.Equal("Letter AI response", letterRes.Text);
+        Assert.Equal(1, letterAdapter.CallCount);
+        Assert.Equal(0, tutorAdapter.CallCount);
+
+        // Request for AI_TUTOR should route to Tutor Dedicated Provider (OPENAI)
+        var tutorRes = await router.GenerateAsync("chat", "Giải thích từ 你好", feature: "AI_TUTOR");
+        Assert.True(tutorRes.IsSuccess);
+        Assert.Equal("Tutor Dedicated Provider", tutorRes.ProviderName);
+        Assert.Equal("Tutor AI response", tutorRes.Text);
+        Assert.Equal(1, tutorAdapter.CallCount);
+    }
 }

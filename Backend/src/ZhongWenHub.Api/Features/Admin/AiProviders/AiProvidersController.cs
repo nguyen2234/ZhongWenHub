@@ -48,8 +48,15 @@ public class AiProvidersController : BaseApiController
             return BadRequest(ModelState);
         }
 
-        var provider = await _service.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetById), new { id = provider.Id }, provider);
+        try
+        {
+            var provider = await _service.CreateAsync(request, ct);
+            return CreatedAtAction(nameof(GetById), new { id = provider.Id }, provider);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPut("{id:guid}")]
@@ -60,12 +67,19 @@ public class AiProvidersController : BaseApiController
             return BadRequest(ModelState);
         }
 
-        var provider = await _service.UpdateAsync(id, request, ct);
-        if (provider == null)
+        try
         {
-            return NotFound(new { message = $"AI Provider with ID '{id}' not found." });
+            var provider = await _service.UpdateAsync(id, request, ct);
+            if (provider == null)
+            {
+                return NotFound(new { message = $"AI Provider with ID '{id}' not found." });
+            }
+            return Ok(provider);
         }
-        return Ok(provider);
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id:guid}")]

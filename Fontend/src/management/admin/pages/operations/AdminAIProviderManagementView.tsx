@@ -618,6 +618,35 @@ export const AdminAIProviderManagementView: React.FC = () => {
                             </span>
                           )}
                         </div>
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          {prov.capabilities
+                            ?.filter((c) => c.startsWith('feature:'))
+                            .map((f) => {
+                              const label =
+                                f === 'feature:AI_TUTOR'
+                                  ? 'Tutor'
+                                  : f === 'feature:AI_LETTER_WRITING'
+                                  ? 'Viết thư'
+                                  : f === 'feature:AI_CONVERSATION'
+                                  ? 'Hội thoại'
+                                  : f.replace('feature:', '');
+                              return (
+                                <span
+                                  key={f}
+                                  style={{
+                                    fontSize: '9.5px',
+                                    padding: '1px 5px',
+                                    borderRadius: '4px',
+                                    backgroundColor: '#dbeafe',
+                                    color: '#1e40af',
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {label}
+                                </span>
+                              );
+                            })}
+                        </div>
                       </td>
 
                       {/* Default Model */}
@@ -947,6 +976,62 @@ export const AdminAIProviderManagementView: React.FC = () => {
                     style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Phân luồng Chức năng AI (Feature Routing)
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { tag: 'feature:AI_TUTOR', label: 'Trợ giảng AI (AI Tutor)' },
+                    { tag: 'feature:AI_LETTER_WRITING', label: 'Viết thư bằng AI' },
+                    { tag: 'feature:AI_CONVERSATION', label: 'Hội thoại AI' },
+                  ].map((feat) => {
+                    const isChecked = formData.capabilities.includes(feat.tag);
+                    return (
+                      <label
+                        key={feat.tag}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '12px',
+                          backgroundColor: isChecked ? '#eff6ff' : '#f8fafc',
+                          border: isChecked ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          color: isChecked ? '#1d4ed8' : '#475569',
+                          fontWeight: isChecked ? 600 : 400,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                capabilities: [...formData.capabilities, feat.tag],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                capabilities: formData.capabilities.filter((c) => c !== feat.tag),
+                              });
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <span>{feat.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#94a3b8' }}>
+                  Nếu không chọn chức năng nào, nhà cung cấp này sẽ là provider dự phòng chung cho mọi chức năng.
+                </p>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>

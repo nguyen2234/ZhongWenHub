@@ -55,7 +55,7 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
 
         var matchingProviders = providers.Where(p =>
         {
-            if (string.IsNullOrWhiteSpace(capability) || string.IsNullOrWhiteSpace(p.CapabilitiesJson))
+            if (string.IsNullOrWhiteSpace(p.CapabilitiesJson))
             {
                 return true;
             }
@@ -63,13 +63,43 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
             try
             {
                 var caps = JsonSerializer.Deserialize<List<string>>(p.CapabilitiesJson);
-                return caps != null && (caps.Contains(capability, StringComparer.OrdinalIgnoreCase) || caps.Contains("*"));
+                if (caps == null || caps.Count == 0 || caps.Contains("*"))
+                {
+                    return true;
+                }
+
+                var hasCap = string.IsNullOrWhiteSpace(capability) || caps.Contains(capability, StringComparer.OrdinalIgnoreCase);
+
+                var featureTag = $"feature:{feature}";
+                var hasFeatureMatching = caps.Any(c => string.Equals(c, featureTag, StringComparison.OrdinalIgnoreCase));
+                var hasAnyFeatureTag = caps.Any(c => c.StartsWith("feature:", StringComparison.OrdinalIgnoreCase));
+
+                if (hasAnyFeatureTag && !hasFeatureMatching)
+                {
+                    return false;
+                }
+
+                return hasCap;
             }
             catch
             {
                 return true;
             }
         }).ToList();
+
+        // Sort providers: feature-specific providers come first, then by Priority
+        matchingProviders = matchingProviders
+            .OrderByDescending(p =>
+            {
+                try
+                {
+                    var caps = JsonSerializer.Deserialize<List<string>>(p.CapabilitiesJson ?? "[]");
+                    return caps != null && caps.Any(c => string.Equals(c, $"feature:{feature}", StringComparison.OrdinalIgnoreCase));
+                }
+                catch { return false; }
+            })
+            .ThenBy(p => p.Priority)
+            .ToList();
 
         if (matchingProviders.Count == 0)
         {

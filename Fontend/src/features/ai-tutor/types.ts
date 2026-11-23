@@ -131,7 +131,7 @@ export interface AITutorSessionSummary {
   updatedAt?: string;
 }
 
-export interface AITutorMessageItem {
+export interface AITutorSessionMessage {
   id: string;
   role: string;
   content: string;
@@ -145,7 +145,7 @@ export interface AITutorSessionDetail {
   title: string;
   mode: string;
   hskLevel: number;
-  messages: AITutorMessageItem[];
+  messages: AITutorSessionMessage[];
   createdAt: string;
 }
 

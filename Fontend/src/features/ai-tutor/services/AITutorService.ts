@@ -12,7 +12,7 @@ import type {
 } from '../types';
 
 export interface ChatRequest {
-  conversationId: string;
+  conversationId?: string;
   message: string;
   mode: AITutorMode;
   context: AITutorContext;
