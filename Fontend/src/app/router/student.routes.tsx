@@ -16,12 +16,6 @@ import {
 import { StudentAIWorkspacePage, AIExerciseGeneratorPage, DiagnosticAssessmentPage } from '../../features/ai';
 import { AITutorWorkspacePage } from '../../features/ai-tutor';
 import { GrammarPage } from '../../features/grammar';
-import {
-  SkillListeningPage,
-  SkillSpeakingPage,
-  SkillReadingPage,
-  SkillWritingPage,
-} from '../../features/skills';
 import { MockExamsPage } from '../../features/mock-exams';
 import { LearningGamesPage } from '../../features/games';
 import { StudentClassesPage } from '../../features/classes/pages/StudentClassesPage';
@@ -95,23 +89,23 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: 'skills/listening',
-        element: <SkillListeningPage />,
+        element: <Navigate to="/practice" replace />,
       },
       {
         path: 'skills/speaking',
-        element: <SkillSpeakingPage />,
+        element: <Navigate to="/conversation" replace />,
       },
       {
         path: 'speaking',
-        element: <SkillSpeakingPage />,
+        element: <Navigate to="/conversation" replace />,
       },
       {
         path: 'skills/reading',
-        element: <SkillReadingPage />,
+        element: <Navigate to="/practice" replace />,
       },
       {
         path: 'skills/writing',
-        element: <SkillWritingPage />,
+        element: <Navigate to="/letter-writing" replace />,
       },
 
       // C. LUYỆN TẬP & KIỂM TRA

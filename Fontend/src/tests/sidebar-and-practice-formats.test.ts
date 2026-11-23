@@ -11,18 +11,16 @@ import {
 import type { AdaptiveRecommendationsResponse } from '../features/practice/services/practice-question-bank.service';
 
 describe('Student Sidebar & Practice Formats Architecture', () => {
-  test('sidebar matches exact 4-group hierarchy with Bài tập in KHÓA HỌC and never in LUYỆN TẬP', () => {
+  test('sidebar matches exact 3-group hierarchy with Bài tập in KHÓA HỌC and never in LUYỆN TẬP', () => {
     expect(HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.groupTitle)).toEqual([
       'TỔNG QUAN',
       'KHÓA HỌC',
-      'KỸ NĂNG',
       'LUYỆN TẬP',
     ]);
 
     const overview = HANBEEGO_STUDENT_NAV_GROUPS[0].items.map((i) => i.label);
     const courses = HANBEEGO_STUDENT_NAV_GROUPS[1].items.map((i) => i.label);
-    const skills = HANBEEGO_STUDENT_NAV_GROUPS[2].items.map((i) => i.label);
-    const practiceZone = HANBEEGO_STUDENT_NAV_GROUPS[3].items.map((i) => i.label);
+    const practiceZone = HANBEEGO_STUDENT_NAV_GROUPS[2].items.map((i) => i.label);
 
     expect(overview).toEqual(['Dashboard']);
     expect(courses).toEqual([
@@ -33,7 +31,6 @@ describe('Student Sidebar & Practice Formats Architecture', () => {
       'Học qua video',
       'Bài tập',
     ]);
-    expect(skills).toEqual(['Luyện nghe', 'Luyện nói', 'Đọc hiểu', 'Luyện viết']);
     expect(practiceZone).toEqual(['Hội thoại', 'Viết thư', 'AI Tutor']);
   });
 

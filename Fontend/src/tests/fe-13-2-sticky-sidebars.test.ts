@@ -57,14 +57,14 @@ describe('FE-13.2: Sticky Sidebars & Independent Scrolling Architecture', () => 
       expect(typeof StudentSidebar).toBe('function');
     });
 
-    it('provides all 4 reorganized student navigation groups with correct IDs', () => {
+    it('provides all 3 reorganized student navigation groups with correct IDs', () => {
       const groupIds = HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.id);
-      expect(groupIds).toEqual(['overview', 'courses', 'skills', 'practice-zone']);
+      expect(groupIds).toEqual(['overview', 'courses', 'practice-zone']);
     });
 
     it('validates student nav items have valid paths, icons, and non-empty labels', () => {
       const items = HANBEEGO_STUDENT_NAV_GROUPS.flatMap((g) => g.items);
-      expect(items.length).toBeGreaterThanOrEqual(12);
+      expect(items.length).toBeGreaterThanOrEqual(10);
 
       items.forEach((item) => {
         expect(item.id.length).toBeGreaterThan(0);
@@ -81,10 +81,10 @@ describe('FE-13.2: Sticky Sidebars & Independent Scrolling Architecture', () => 
       expect(paths).toContain('/grammar');
       expect(paths).toContain('/videos');
       expect(paths).toContain('/practice');
-      expect(paths).toContain('/skills/listening');
       expect(paths).toContain('/ai-live');
-      expect(paths).toContain('/ai-grading');
+      expect(paths).toContain('/letter-writing');
       expect(paths).toContain('/ai-tutor');
+      expect(paths).not.toContain('/skills/listening');
     });
   });
 

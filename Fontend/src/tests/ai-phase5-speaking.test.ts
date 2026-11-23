@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import { speakingService } from '../features/ai/services/speaking.service';
-import { SkillSpeakingPage } from '../features/skills/pages/SkillSpeakingPage';
 
 describe('Phase 5 AI Speaking Practice & Conversation Contracts', () => {
   it('exposes Phase 5 speaking service endpoints and methods', () => {
@@ -144,11 +143,6 @@ describe('Phase 5 AI Speaking Practice & Conversation Contracts', () => {
     expect(stats.totalSpeakingAttempts).toBe(15);
     expect(stats.completedWords + stats.completedSentences + stats.completedScenarios).toBe(15);
     expect(stats.disclaimerNoteVi).toContain('Transcript Alignment');
-  });
-
-  it('exports SkillSpeakingPage component without runtime export errors', () => {
-    expect(SkillSpeakingPage).toBeDefined();
-    expect(typeof SkillSpeakingPage).toBe('function');
   });
 });
 
