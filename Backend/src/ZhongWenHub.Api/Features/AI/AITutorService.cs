@@ -60,9 +60,10 @@ public sealed class AITutorService : IAITutorService
             throw AITutorException.BadRequest($"Nội dung câu hỏi tối đa {maxInputLength} ký tự (hiện tại {trimmedMessage.Length} ký tự).");
         }
 
+        ZhongWenHub.Features.admin.AiGovernance.AiTokenReservation? reservation = null;
         if (_tokenGovernance != null)
         {
-            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_TUTOR", 1000, cancellationToken);
+            reservation = await _tokenGovernance.ReserveQuotaAsync(userId, "AI_TUTOR", 1000, cancellationToken);
         }
         else if (_usageLogger is not null)
         {
@@ -82,12 +83,25 @@ public sealed class AITutorService : IAITutorService
         }
 
         AiConversationSession? session = null;
+        IReadOnlyList<AIProviderTurn> sanitizedHistory = Array.Empty<AIProviderTurn>();
+
         if (_dbContext is not null)
         {
             if (sessionId.HasValue)
             {
-                session = await _dbContext.AiConversationSessions
-                    .FirstOrDefaultAsync(s => s.Id == sessionId.Value && s.UserId == userId && s.SessionType == "TUTOR", cancellationToken);
+                var existingSession = await _dbContext.AiConversationSessions
+                    .FirstOrDefaultAsync(s => s.Id == sessionId.Value, cancellationToken);
+
+                if (existingSession != null)
+                {
+                    if (existingSession.UserId != userId)
+                    {
+                        _logger.LogWarning("User {UserId} attempted to access AI Tutor session {SessionId} owned by user {OwnerId}",
+                            userId, sessionId.Value, existingSession.UserId);
+                        throw new AITutorException(403, "Truy cập bị từ chối", "Bạn không có quyền truy cập phiên hội thoại này.");
+                    }
+                    session = existingSession;
+                }
             }
 
             if (session is null)
@@ -108,6 +122,31 @@ public sealed class AITutorService : IAITutorService
             }
             sessionId = session.Id;
 
+            // Load authentic SQL history: previous messages from SQL Server
+            var previousSqlMessages = await _dbContext.AiMessages
+                .AsNoTracking()
+                .Where(m => m.SessionId == session.Id)
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(10)
+                .OrderBy(m => m.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            if (previousSqlMessages.Count > 0)
+            {
+                // Sanitize each message to prevent stored prompt injection
+                sanitizedHistory = previousSqlMessages
+                    .Select(m => new AIProviderTurn
+                    {
+                        Role = m.Role == "assistant" ? "model" : "user",
+                        Content = PromptSanitizer.SanitizeUntrustedText(m.ContentZh, 1000)
+                    })
+                    .ToList();
+            }
+            else
+            {
+                sanitizedHistory = BuildSanitizedHistory(request.History);
+            }
+
             var userMsg = new AiMessage
             {
                 SessionId = session.Id,
@@ -122,39 +161,67 @@ public sealed class AITutorService : IAITutorService
             session.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+        else
+        {
+            sanitizedHistory = BuildSanitizedHistory(request.History);
+        }
 
-        var sanitizedHistory = BuildSanitizedHistory(request.History);
         var systemInstruction = BuildSystemInstruction(normalizedMode, verifiedContext);
         var userPrompt = BuildUserPrompt(trimmedMessage, normalizedMode, verifiedContext);
 
         AIProviderResponse providerResponse;
         try
         {
+            var maxTokens = reservation != null 
+                ? Math.Min(reservation.MaxAllowedOutputTokens, _options.MaxOutputTokens) 
+                : Math.Clamp(_options.MaxOutputTokens, 256, 4096);
+
             providerResponse = await _aiProvider.GenerateContentAsync(
                 new AIProviderRequest
                 {
+                    ReservationId = reservation?.ReservationId,
                     Feature = "AI_TUTOR",
                     SystemInstruction = systemInstruction,
                     UserPrompt = userPrompt,
                     History = sanitizedHistory,
                     ExpectJson = true,
                     Temperature = normalizedMode == "CONVERSATION" ? 0.6 : 0.35,
-                    MaxOutputTokens = Math.Clamp(_options.MaxOutputTokens, 256, 4096)
+                    MaxOutputTokens = maxTokens
                 },
                 cancellationToken);
+
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, providerResponse, true, "COMPLETED", cancellationToken);
+            }
+            else if (_usageLogger is not null)
+            {
+                await _usageLogger.LogAsync(userId, "AI_TUTOR", providerResponse, true, null, cancellationToken);
+            }
         }
         catch (AITutorException ex)
         {
-            if (_usageLogger is not null)
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            else if (_usageLogger is not null)
             {
                 await _usageLogger.LogAsync(userId, "AI_TUTOR", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
             }
             throw;
         }
-
-        if (_usageLogger is not null)
+        catch (Exception ex)
         {
-            await _usageLogger.LogAsync(userId, "AI_TUTOR", providerResponse, true, null, cancellationToken);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, ex.GetType().Name, cancellationToken);
+            }
+            else if (_usageLogger is not null)
+            {
+                await _usageLogger.LogAsync(userId, "AI_TUTOR", null, false, ex.GetType().Name, cancellationToken);
+            }
+            throw;
         }
 
         var dto = ParseProviderResponse(providerResponse.RawText, _logger);

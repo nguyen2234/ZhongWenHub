@@ -101,15 +101,6 @@ public sealed class AIConversationService : IAIConversationService
         var scenario = Scenarios.FirstOrDefault(s => string.Equals(s.Code, request.ScenarioCode?.Trim(), StringComparison.OrdinalIgnoreCase))
             ?? Scenarios[0];
 
-        if (_tokenGovernance != null)
-        {
-            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
-        }
-        else
-        {
-            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
-        }
-
         var session = new AiConversationSession
         {
             UserId = userId,
@@ -181,15 +172,6 @@ public sealed class AIConversationService : IAIConversationService
         if (!string.Equals(session.Status, "ACTIVE", StringComparison.OrdinalIgnoreCase))
         {
             throw AITutorException.BadRequest("Phiên hội thoại đã kết thúc. Vui lòng tạo phiên mới.");
-        }
-
-        if (_tokenGovernance != null)
-        {
-            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
-        }
-        else
-        {
-            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
         }
 
         var previousMessages = await _dbContext.AiMessages
@@ -377,27 +359,64 @@ public sealed class AIConversationService : IAIConversationService
         IReadOnlyList<AIProviderTurn> history,
         CancellationToken cancellationToken)
     {
+        ZhongWenHub.Features.admin.AiGovernance.AiTokenReservation? reservation = null;
+        if (_tokenGovernance != null)
+        {
+            reservation = await _tokenGovernance.ReserveQuotaAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
+        }
+        else
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        }
+
         try
         {
             var res = await _aiProvider.GenerateContentAsync(
                 new AIProviderRequest
                 {
+                    ReservationId = reservation?.ReservationId,
                     Feature = "AI_CONVERSATION",
                     SystemInstruction = systemPrompt,
                     UserPrompt = userPrompt,
                     History = history,
                     ExpectJson = true,
                     Temperature = 0.55,
-                    MaxOutputTokens = 1000
+                    MaxOutputTokens = reservation?.MaxAllowedOutputTokens ?? 1000
                 },
                 cancellationToken);
 
-            await _usageLogger.LogAsync(userId, "AI_CONVERSATION", res, true, null, cancellationToken);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, res, true, "COMPLETED", cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", res, true, null, cancellationToken);
+            }
             return res;
         }
         catch (AITutorException ex)
         {
-            await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, ex.GetType().Name, cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, ex.GetType().Name, cancellationToken);
+            }
             throw;
         }
     }

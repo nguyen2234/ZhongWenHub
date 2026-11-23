@@ -299,60 +299,6 @@ public class AiProviderManagementService : IAiProviderManagementService
 
     public static void ValidateBaseUrl(string? baseUrl)
     {
-        if (string.IsNullOrWhiteSpace(baseUrl)) return;
-
-        if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out var uri))
-        {
-            throw new ArgumentException("BaseUrl không phải là URL hợp lệ.");
-        }
-
-        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-        {
-            throw new ArgumentException($"Giao thức {uri.Scheme} không được hỗ trợ. Chỉ chấp nhận HTTP hoặc HTTPS.");
-        }
-
-        var host = uri.Host.Trim().ToLowerInvariant();
-
-        // Check loopback / localhost
-        if (host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "[::1]")
-        {
-            throw new ArgumentException("Không được phép kết nối tới địa chỉ loopback/localhost vì lý do an toàn mạng (SSRF).");
-        }
-
-        // Check metadata endpoints (AWS, GCP, Azure, DigitalOcean)
-        if (host == "169.254.169.254" || host == "metadata.google.internal")
-        {
-            throw new ArgumentException("Không được phép kết nối tới cloud metadata service (SSRF).");
-        }
-
-        if (System.Net.IPAddress.TryParse(host, out var ip))
-        {
-            if (IsPrivateIp(ip))
-            {
-                throw new ArgumentException("Không được phép kết nối tới dải IP mạng nội bộ (private IP) vì lý do an toàn mạng (SSRF).");
-            }
-        }
-    }
-
-    private static bool IsPrivateIp(System.Net.IPAddress ip)
-    {
-        if (System.Net.IPAddress.IsLoopback(ip)) return true;
-
-        var bytes = ip.GetAddressBytes();
-        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-        {
-            // 10.0.0.0/8
-            if (bytes[0] == 10) return true;
-            // 172.16.0.0/12
-            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) return true;
-            // 192.168.0.0/16
-            if (bytes[0] == 192 && bytes[1] == 168) return true;
-            // 169.254.0.0/16
-            if (bytes[0] == 169 && bytes[1] == 254) return true;
-            // 0.0.0.0/8
-            if (bytes[0] == 0) return true;
-        }
-
-        return false;
+        SsrfProtection.ValidateBaseUrl(baseUrl);
     }
 }

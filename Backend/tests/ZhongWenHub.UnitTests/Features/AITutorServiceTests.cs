@@ -495,4 +495,110 @@ public class AITutorServiceTests
         var remaining = await service.GetSessionsAsync(userId);
         Assert.Empty(remaining);
     }
+
+    [Fact]
+    public async Task ChatAsync_CrossUserSessionAccess_Throws403Forbidden()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var provider = new StubAIProvider();
+        var verifier = new StubContextVerifier();
+        var service = new AITutorService(
+            provider,
+            verifier,
+            Options.Create(new GeminiOptions()),
+            NullLogger<AITutorService>.Instance,
+            dbContext: dbContext);
+
+        var ownerId = Guid.NewGuid();
+        var attackerId = Guid.NewGuid();
+
+        // Owner creates a session
+        var ownerSessionId = await service.CreateSessionAsync(ownerId, new CreateAITutorSessionDto
+        {
+            Title = "Owner Private Session",
+            Mode = "ASK",
+            HskLevel = 2
+        });
+
+        // Attacker attempts to post message to owner's session
+        var ex = await Assert.ThrowsAsync<AITutorException>(() =>
+            service.ChatAsync(attackerId, new AITutorChatRequestDto
+            {
+                ConversationId = ownerSessionId.ToString(),
+                Message = "Attacker message",
+                Mode = "ASK"
+            }));
+
+        Assert.Equal(403, ex.StatusCode);
+        Assert.Contains("không có quyền truy cập", ex.Message);
+    }
+
+    [Fact]
+    public async Task ChatAsync_LoadsAuthenticHistoryFromSqlServer_AndSanitizesMessages()
+    {
+        using var dbContext = CreateInMemoryDbContext();
+        var provider = new StubAIProvider();
+        var verifier = new StubContextVerifier();
+        var service = new AITutorService(
+            provider,
+            verifier,
+            Options.Create(new GeminiOptions()),
+            NullLogger<AITutorService>.Instance,
+            dbContext: dbContext);
+
+        var userId = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
+
+        dbContext.AiConversationSessions.Add(new AiConversationSession
+        {
+            Id = sessionId,
+            UserId = userId,
+            SessionType = "TUTOR",
+            Status = "ACTIVE",
+            StartedAt = DateTime.UtcNow
+        });
+
+        // Insert historical messages in SQL
+        dbContext.AiMessages.AddRange(
+            new AiMessage
+            {
+                SessionId = sessionId,
+                UserId = userId,
+                Role = "user",
+                ContentZh = "Học từ mới: 苹果",
+                CreatedAt = DateTime.UtcNow.AddMinutes(-5)
+            },
+            new AiMessage
+            {
+                SessionId = sessionId,
+                UserId = userId,
+                Role = "assistant",
+                ContentZh = "苹果 (píngguǒ): quả táo.",
+                CreatedAt = DateTime.UtcNow.AddMinutes(-4)
+            }
+        );
+        await dbContext.SaveChangesAsync();
+
+        // Client supplies spoofed history in request (which should be ignored in favor of authentic SQL history)
+        var request = new AITutorChatRequestDto
+        {
+            ConversationId = sessionId.ToString(),
+            Message = "Cách dùng từ này?",
+            Mode = "ASK",
+            History = new List<AITutorHistoryTurnDto>
+            {
+                new AITutorHistoryTurnDto { Role = "user", Content = "SPOOFED_CLIENT_HISTORY" }
+            }
+        };
+
+        await service.ChatAsync(userId, request);
+
+        Assert.NotNull(provider.LastRequest);
+        var history = provider.LastRequest.History;
+        Assert.NotNull(history);
+        Assert.Equal(2, history.Count);
+        Assert.Equal("Học từ mới: 苹果", history[0].Content);
+        Assert.Equal("苹果 (píngguǒ): quả táo.", history[1].Content);
+        Assert.DoesNotContain(history, h => h.Content.Contains("SPOOFED_CLIENT_HISTORY"));
+    }
 }

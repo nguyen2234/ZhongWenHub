@@ -429,4 +429,144 @@ public class MultiProviderAiRouterTests
         Assert.Equal("Tutor AI response", tutorRes.Text);
         Assert.Equal(1, tutorAdapter.CallCount);
     }
+
+    [Fact]
+    public async Task Router_WithReservationId_DoesNotInsertDuplicateUsageLog()
+    {
+        using var db = CreateInMemoryDbContext();
+        var protector = CreateProtector();
+
+        var adapter = new TestFakeAiProviderAdapter
+        {
+            ProviderType = "GEMINI",
+            OnGenerate = (_, _, _) => Task.FromResult(new AiAdapterResponse { Text = "Reservation test response", Model = "gemini-1.5-flash" })
+        };
+
+        db.AiProviderConfigurations.Add(new AiProviderConfiguration
+        {
+            Id = Guid.NewGuid(),
+            Name = "Gemini Main",
+            ProviderType = "GEMINI",
+            DefaultModel = "gemini-1.5-flash",
+            EncryptedApiKey = protector.Encrypt("key-1"),
+            CapabilitiesJson = "[\"chat\"]",
+            IsEnabled = true,
+            Priority = 1
+        });
+        await db.SaveChangesAsync();
+
+        var router = new MultiProviderAiRouter(db, new IAiProviderAdapter[] { adapter }, protector, NullLogger<MultiProviderAiRouter>.Instance);
+
+        var reservationId = Guid.NewGuid();
+        var options = new AiGenerationOptions
+        {
+            ReservationId = reservationId
+        };
+
+        var result = await router.GenerateAsync("chat", "Test prompt", options: options, feature: "AI_TUTOR");
+        Assert.True(result.IsSuccess);
+
+        // When ReservationId is passed, router must NOT insert an AiUsageLog (caller settles it)
+        var logs = await db.AiUsageLogs.ToListAsync();
+        Assert.Empty(logs);
+    }
+
+    [Fact]
+    public async Task ConfigurableAIProvider_WhenRouterUnavailable_ThrowsProviderUnavailable_WithoutFallingBackToGemini()
+    {
+        using var db = CreateInMemoryDbContext();
+        var protector = CreateProtector();
+
+        // Router with no enabled providers -> will throw AiRouterUnavailableException
+        var router = new MultiProviderAiRouter(db, Array.Empty<IAiProviderAdapter>(), protector, NullLogger<MultiProviderAiRouter>.Instance);
+
+        var geminiProvider = new ZhongWenHub.Business.AITutor.GeminiProvider(
+            new HttpClient(),
+            Microsoft.Extensions.Options.Options.Create(new ZhongWenHub.Business.AITutor.GeminiOptions { ApiKey = "fake" }),
+            NullLogger<ZhongWenHub.Business.AITutor.GeminiProvider>.Instance);
+
+        var configurableProvider = new ZhongWenHub.Business.AITutor.ConfigurableAIProvider(
+            geminiProvider,
+            Microsoft.Extensions.Options.Options.Create(new ZhongWenHub.Business.AITutor.GeminiOptions()),
+            router);
+
+        var ex = await Assert.ThrowsAsync<ZhongWenHub.Business.AITutor.AITutorException>(() =>
+            configurableProvider.GenerateContentAsync(new ZhongWenHub.Business.AITutor.AIProviderRequest
+            {
+                UserPrompt = "Hello",
+                Feature = "AI_TUTOR"
+            }));
+
+        Assert.Equal(503, ex.StatusCode);
+        Assert.Contains("unavailable", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("http://127.0.0.1:8080/v1")]
+    [InlineData("http://localhost:11434/v1")]
+    [InlineData("http://169.254.169.254/latest/meta-data")]
+    [InlineData("http://metadata.google.internal/computeMetadata/v1")]
+    [InlineData("http://10.0.0.1:8000/v1")]
+    [InlineData("http://172.20.0.1:8000/v1")]
+    [InlineData("http://192.168.1.1:8000/v1")]
+    [InlineData("http://100.64.0.1:8000/v1")] // CG-NAT
+    [InlineData("http://[::1]:8000/v1")]      // IPv6 Loopback
+    [InlineData("http://[fc00::1]:8000/v1")]  // IPv6 ULA
+    [InlineData("http://[fe80::1]:8000/v1")]  // IPv6 Link-Local
+    [InlineData("ftp://api.openai.com/v1")]   // Invalid scheme
+    public void SsrfProtection_ValidateBaseUrl_BlocksDangerousUrls(string url)
+    {
+        Assert.Throws<ArgumentException>(() => SsrfProtection.ValidateBaseUrl(url));
+    }
+
+    [Theory]
+    [InlineData("https://api.openai.com/v1")]
+    [InlineData("https://generativelanguage.googleapis.com")]
+    [InlineData("https://api.deepseek.com")]
+    [InlineData("https://api.groq.com/openai/v1")]
+    public void SsrfProtection_ValidateBaseUrl_AllowsPublicUrls(string url)
+    {
+        // Should not throw
+        SsrfProtection.ValidateBaseUrl(url);
+    }
+
+    [Fact]
+    public void SsrfProtection_IsPrivateOrBlockedIp_IdentifiesAllRestrictedRanges()
+    {
+        // Loopback
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Loopback));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.IPv6Loopback));
+
+        // RFC 1918 Private
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("10.1.2.3")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("172.16.0.1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("172.31.255.254")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("192.168.0.1")));
+
+        // Link-Local / Metadata
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("169.254.169.254")));
+
+        // CG-NAT (100.64.0.0/10)
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("100.64.0.1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("100.127.255.254")));
+
+        // 0.0.0.0 and Multicast/Reserved
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("0.0.0.0")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("224.0.0.1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("240.0.0.1")));
+
+        // IPv6 ULA & Link-Local
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("fc00::1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("fd12:3456:789a::1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("fe80::1")));
+
+        // IPv4-mapped IPv6
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("::ffff:127.0.0.1")));
+        Assert.True(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("::ffff:169.254.169.254")));
+
+        // Public IPs should return false
+        Assert.False(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("8.8.8.8")));
+        Assert.False(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("1.1.1.1")));
+        Assert.False(SsrfProtection.IsPrivateOrBlockedIp(IPAddress.Parse("2607:f8b0:4005:805::200e"))); // Google IPv6
+    }
 }

@@ -148,4 +148,189 @@ public class AiTokenGovernanceServiceTests
         Assert.Equal(100, updated.UserDailyRequestLimit);
         Assert.Equal(4096, updated.MaxTokensPerRequest);
     }
+
+    [Fact]
+    public async Task ReserveQuotaAsync_And_SettleQuotaAsync_Success_UpdatesStatusToCompleted()
+    {
+        using var db = CreateInMemoryDbContext();
+        var service = new AiTokenGovernanceService(db, NullLogger<AiTokenGovernanceService>.Instance);
+        var userId = Guid.NewGuid();
+
+        var reservation = await service.ReserveQuotaAsync(userId, "AI_TUTOR", 1200);
+
+        Assert.NotEqual(Guid.Empty, reservation.ReservationId);
+        Assert.Equal("AI_TUTOR", reservation.FeatureGroup);
+        Assert.Equal(1200, reservation.EstimatedTokens);
+
+        var log = await db.AiUsageLogs.FirstOrDefaultAsync(l => l.Id == reservation.ReservationId);
+        Assert.NotNull(log);
+        Assert.Equal("RESERVED", log.ErrorCode);
+        Assert.True(log.Success);
+        Assert.Equal(1200, log.TotalTokens);
+
+        var providerResponse = new AIProviderResponse
+        {
+            Provider = "OpenAI",
+            Model = "gpt-4o-mini",
+            PromptTokens = 400,
+            CompletionTokens = 350,
+            TotalTokens = 750,
+            LatencyMs = 850
+        };
+
+        await service.SettleQuotaAsync(reservation.ReservationId, providerResponse, true, "COMPLETED");
+
+        var settledLog = await db.AiUsageLogs.FirstOrDefaultAsync(l => l.Id == reservation.ReservationId);
+        Assert.NotNull(settledLog);
+        Assert.Equal("COMPLETED", settledLog.ErrorCode);
+        Assert.True(settledLog.Success);
+        Assert.Equal(750, settledLog.TotalTokens);
+        Assert.Equal(400, settledLog.PromptTokens);
+        Assert.Equal(350, settledLog.CompletionTokens);
+        Assert.Equal("OpenAI", settledLog.Provider);
+        Assert.Equal("gpt-4o-mini", settledLog.Model);
+    }
+
+    [Fact]
+    public async Task ReserveQuotaAsync_And_SettleQuotaAsync_Failure_ReleasesTokensToZero()
+    {
+        using var db = CreateInMemoryDbContext();
+        var service = new AiTokenGovernanceService(db, NullLogger<AiTokenGovernanceService>.Instance);
+        var userId = Guid.NewGuid();
+
+        var reservation = await service.ReserveQuotaAsync(userId, "AI_LETTER_WRITING", 1500);
+
+        await service.SettleQuotaAsync(reservation.ReservationId, null, false, "RELEASED");
+
+        var settledLog = await db.AiUsageLogs.FirstOrDefaultAsync(l => l.Id == reservation.ReservationId);
+        Assert.NotNull(settledLog);
+        Assert.Equal("RELEASED", settledLog.ErrorCode);
+        Assert.False(settledLog.Success);
+        Assert.Equal(0, settledLog.TotalTokens);
+
+        // Released tokens should not block next requests
+        var nextReservation = await service.ReserveQuotaAsync(userId, "AI_LETTER_WRITING", 1500);
+        Assert.NotEqual(Guid.Empty, nextReservation.ReservationId);
+    }
+
+    [Fact]
+    public async Task ReserveQuotaAsync_MonthlyTokenCeilingExceeded_Throws429()
+    {
+        using var db = CreateInMemoryDbContext();
+        var service = new AiTokenGovernanceService(db, NullLogger<AiTokenGovernanceService>.Instance);
+
+        await service.UpdateGovernanceAsync("AI_CONVERSATION", new UpdateAiFeatureGovernanceDto
+        {
+            IsEnabled = true,
+            DailyTokenQuota = 500_000,
+            MonthlyTokenQuota = 100_000,
+            UserDailyRequestLimit = 500
+        });
+
+        // Seed 99,500 tokens used this month
+        db.AiUsageLogs.Add(new AiUsageLog
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Feature = "AI_CONVERSATION",
+            TotalTokens = 99_500,
+            Success = true,
+            ErrorCode = "COMPLETED",
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var ex = await Assert.ThrowsAsync<AITutorException>(() =>
+            service.ReserveQuotaAsync(Guid.NewGuid(), "AI_CONVERSATION", 1000));
+
+        Assert.Equal(429, ex.StatusCode);
+        Assert.Contains("ngân sách token trong tháng", ex.Message);
+    }
+
+    [Fact]
+    public async Task ReserveQuotaAsync_ExpiredReservations_AreCleanedUpAutomatically()
+    {
+        using var db = CreateInMemoryDbContext();
+        var service = new AiTokenGovernanceService(db, NullLogger<AiTokenGovernanceService>.Instance);
+
+        await service.UpdateGovernanceAsync("AI_TUTOR", new UpdateAiFeatureGovernanceDto
+        {
+            IsEnabled = true,
+            DailyTokenQuota = 10_000,
+            UserDailyRequestLimit = 100
+        });
+
+        var staleId = Guid.NewGuid();
+        db.AiUsageLogs.Add(new AiUsageLog
+        {
+            Id = staleId,
+            UserId = Guid.NewGuid(),
+            Feature = "AI_TUTOR",
+            TotalTokens = 9500,
+            Success = true,
+            ErrorCode = "RESERVED",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-10) // 10 minutes ago
+        });
+        await db.SaveChangesAsync();
+
+        // Stale reservation of 9500 would normally block this, but cleanup releases it
+        var reservation = await service.ReserveQuotaAsync(Guid.NewGuid(), "AI_TUTOR", 2000);
+        Assert.NotEqual(Guid.Empty, reservation.ReservationId);
+
+        var staleLog = await db.AiUsageLogs.FirstOrDefaultAsync(l => l.Id == staleId);
+        Assert.NotNull(staleLog);
+        Assert.Equal("EXPIRED_RELEASED", staleLog.ErrorCode);
+        Assert.Equal(0, staleLog.TotalTokens);
+        Assert.False(staleLog.Success);
+    }
+
+    [Fact]
+    public async Task ReserveQuotaAsync_ConcurrentRequests_EnforcesQuotaFailClosed()
+    {
+        using var db = CreateInMemoryDbContext();
+        var service = new AiTokenGovernanceService(db, NullLogger<AiTokenGovernanceService>.Instance);
+
+        // Daily quota = 10,000. Seed 7,500 used tokens. Remaining room = 2,500 tokens.
+        await service.UpdateGovernanceAsync("AI_LETTER_WRITING", new UpdateAiFeatureGovernanceDto
+        {
+            IsEnabled = true,
+            DailyTokenQuota = 10_000,
+            UserDailyRequestLimit = 100,
+            MaxTokensPerRequest = 2048
+        });
+
+        db.AiUsageLogs.Add(new AiUsageLog
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.NewGuid(),
+            Feature = "AI_LETTER_WRITING",
+            TotalTokens = 7500,
+            Success = true,
+            ErrorCode = "COMPLETED",
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        // 10 concurrent requests each asking for 1,000 tokens
+        // Room = 2,500 tokens -> exactly 2 can succeed (2 x 1000 = 2000), 3rd would be 7500 + 3000 = 10500 > 10000.
+        var tasks = Enumerable.Range(0, 10).Select(async _ =>
+        {
+            try
+            {
+                await service.ReserveQuotaAsync(Guid.NewGuid(), "AI_LETTER_WRITING", 1000);
+                return true;
+            }
+            catch (AITutorException ex) when (ex.StatusCode == 429)
+            {
+                return false;
+            }
+        });
+
+        var results = await Task.WhenAll(tasks);
+        var successCount = results.Count(r => r);
+        var failCount = results.Count(r => !r);
+
+        Assert.Equal(2, successCount);
+        Assert.Equal(8, failCount);
+    }
 }

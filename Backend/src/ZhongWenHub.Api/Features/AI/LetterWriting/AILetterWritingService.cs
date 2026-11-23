@@ -49,9 +49,10 @@ public class AILetterWritingService : IAILetterWritingService
             throw AITutorException.BadRequest("Chủ đề thư không được để trống.");
         }
 
+        ZhongWenHub.Features.admin.AiGovernance.AiTokenReservation? reservation = null;
         if (_tokenGovernance != null)
         {
-            await _tokenGovernance.EnsureQuotaAvailableAsync(userId, "AI_LETTER_WRITING", 1500, ct);
+            reservation = await _tokenGovernance.ReserveQuotaAsync(userId, "AI_LETTER_WRITING", 1500, ct);
         }
         else
         {
@@ -73,12 +74,13 @@ public class AILetterWritingService : IAILetterWritingService
             var providerResponse = await _aiProvider.GenerateContentAsync(
                 new AIProviderRequest
                 {
+                    ReservationId = reservation?.ReservationId,
                     Feature = "AI_LETTER_WRITING",
                     SystemInstruction = systemPrompt,
                     UserPrompt = userPrompt,
                     ExpectJson = true,
                     Temperature = 0.5,
-                    MaxOutputTokens = 2048
+                    MaxOutputTokens = reservation?.MaxAllowedOutputTokens ?? 2048
                 },
                 ct);
 
@@ -89,17 +91,38 @@ public class AILetterWritingService : IAILetterWritingService
             totalTokens = providerResponse.TotalTokens;
             latencyMs = providerResponse.LatencyMs;
 
-            await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", providerResponse, true, null, ct);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, providerResponse, true, "COMPLETED", ct);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", providerResponse, true, null, ct);
+            }
         }
         catch (AITutorException ex)
         {
-            await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", null, false, $"HTTP_{ex.StatusCode}", ct);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, $"HTTP_{ex.StatusCode}", ct);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", null, false, $"HTTP_{ex.StatusCode}", ct);
+            }
             throw;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Lỗi khi gọi AI Provider để tạo thư cho học viên {UserId}", userId);
-            await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", null, false, ex.GetType().Name, ct);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, ex.GetType().Name, ct);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", null, false, ex.GetType().Name, ct);
+            }
             throw AITutorException.ProviderUnavailable("Không thể tạo thư bằng AI lúc này. Vui lòng thử lại sau.");
         }
 

@@ -216,9 +216,12 @@ public class Program
 
         // Multi-Provider AI Management & Router
         services.AddSingleton<IAiProviderSecretProtector, DataProtectionAiProviderSecretProtector>();
-        services.AddHttpClient<GeminiProviderAdapter>();
-        services.AddHttpClient<OpenAiProviderAdapter>();
-        services.AddHttpClient<OpenAiCompatibleProviderAdapter>();
+        services.AddHttpClient<GeminiProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
+        services.AddHttpClient<OpenAiProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
+        services.AddHttpClient<OpenAiCompatibleProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
         services.AddSingleton<IAiProviderAdapter, GeminiProviderAdapter>(sp => sp.GetRequiredService<GeminiProviderAdapter>());
         services.AddSingleton<IAiProviderAdapter, OpenAiProviderAdapter>(sp => sp.GetRequiredService<OpenAiProviderAdapter>());
         services.AddSingleton<IAiProviderAdapter, OpenAiCompatibleProviderAdapter>(sp => sp.GetRequiredService<OpenAiCompatibleProviderAdapter>());

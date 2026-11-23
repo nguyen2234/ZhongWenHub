@@ -1346,7 +1346,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.State == EntityState.Added && entry.Entity.CreatedAt == default)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
             }
@@ -1358,7 +1358,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         foreach (var entry in ChangeTracker.Entries<ApplicationUser>())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.State == EntityState.Added && entry.Entity.CreatedAt == default)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
             }

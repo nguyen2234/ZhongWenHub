@@ -38,7 +38,8 @@ public sealed class ConfigurableAIProvider : IAIProvider
                         MaxTokens = request.MaxOutputTokens,
                         Temperature = request.Temperature,
                         SystemInstruction = request.SystemInstruction,
-                        History = request.History
+                        History = request.History,
+                        ReservationId = request.ReservationId
                     },
                     userId: null,
                     feature: request.Feature ?? "AI_TUTOR",
@@ -56,10 +57,13 @@ public sealed class ConfigurableAIProvider : IAIProvider
                     LatencyMs = (int)routerResult.LatencyMs
                 };
             }
-            catch (AiRouterUnavailableException)
+            catch (AiRouterUnavailableException ex)
             {
-                // If router had no matching providers or all failed, fallback to geminiProvider if configured
-                return await _geminiProvider.GenerateContentAsync(request, cancellationToken);
+                // Strict Admin Routing: Never fallback to unmonitored Gemini when Router reports unavailable providers
+                throw new AITutorException(
+                    Microsoft.AspNetCore.Http.StatusCodes.Status503ServiceUnavailable,
+                    "Dịch vụ AI chưa sẵn sàng",
+                    ex.Message);
             }
         }
 

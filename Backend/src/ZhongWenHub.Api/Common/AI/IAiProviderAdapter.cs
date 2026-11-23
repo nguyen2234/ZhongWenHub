@@ -12,6 +12,7 @@ public class AiGenerationOptions
     public double? Temperature { get; set; }
     public string? SystemInstruction { get; set; }
     public IReadOnlyList<AIProviderTurn>? History { get; set; }
+    public Guid? ReservationId { get; set; }
 }
 
 public class AiAdapterResponse
