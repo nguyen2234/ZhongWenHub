@@ -37,8 +37,11 @@ public sealed class ConfigurableAIProvider : IAIProvider
                     {
                         MaxTokens = request.MaxOutputTokens,
                         Temperature = request.Temperature,
-                        SystemInstruction = request.SystemInstruction
+                        SystemInstruction = request.SystemInstruction,
+                        History = request.History
                     },
+                    userId: null,
+                    feature: request.Feature ?? "AI_TUTOR",
                     ct: cancellationToken);
 
                 return new AIProviderResponse

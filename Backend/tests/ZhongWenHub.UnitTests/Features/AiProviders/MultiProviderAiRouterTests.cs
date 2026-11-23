@@ -22,6 +22,7 @@ public class TestFakeAiProviderAdapter : IAiProviderAdapter
     public string ProviderType { get; set; } = "GEMINI";
     public Func<AiProviderConfiguration, string, string, Task<AiAdapterResponse>>? OnGenerate { get; set; }
     public int CallCount { get; private set; }
+    public AiGenerationOptions? LastOptions { get; private set; }
 
     public Task<AiAdapterResponse> GenerateTextAsync(
         AiProviderConfiguration config,
@@ -31,6 +32,7 @@ public class TestFakeAiProviderAdapter : IAiProviderAdapter
         CancellationToken ct = default)
     {
         CallCount++;
+        LastOptions = options;
         if (OnGenerate != null)
         {
             return OnGenerate(config, apiKey, prompt);
@@ -286,5 +288,57 @@ public class MultiProviderAiRouterTests
         var deleted = await service.DeleteAsync(created.Id);
         Assert.True(deleted);
         Assert.Empty(await service.GetAllAsync());
+    }
+
+    [Fact]
+    public async Task Router_PassesMultiTurnHistoryAndFeatureTag_ToAdapterAndLogs()
+    {
+        using var db = CreateInMemoryDbContext();
+        var protector = CreateProtector();
+        var adapter = new TestFakeAiProviderAdapter();
+
+        db.AiProviderConfigurations.Add(new AiProviderConfiguration
+        {
+            Id = Guid.NewGuid(),
+            Name = "MultiTurn Gemini",
+            ProviderType = "GEMINI",
+            DefaultModel = "gemini-1.5-flash",
+            EncryptedApiKey = protector.Encrypt("gemini-test-key"),
+            IsEnabled = true,
+            Priority = 1
+        });
+        await db.SaveChangesAsync();
+
+        var router = new MultiProviderAiRouter(db, new[] { adapter }, protector, NullLogger<MultiProviderAiRouter>.Instance);
+
+        var historyTurns = new List<ZhongWenHub.Business.AITutor.AIProviderTurn>
+        {
+            new() { Role = "user", Content = "Xin chào" },
+            new() { Role = "model", Content = "你好！很高兴认识你。" }
+        };
+
+        var options = new AiGenerationOptions
+        {
+            SystemInstruction = "Bạn là trợ lý tiếng Trung",
+            History = historyTurns
+        };
+
+        var result = await router.GenerateAsync(
+            capability: "chat",
+            prompt: "Hôm nay thời tiết thế nào?",
+            options: options,
+            userId: Guid.NewGuid(),
+            feature: "AI_CONVERSATION");
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(adapter.LastOptions);
+        Assert.NotNull(adapter.LastOptions!.History);
+        Assert.Equal(2, adapter.LastOptions.History!.Count);
+        Assert.Equal("Bạn là trợ lý tiếng Trung", adapter.LastOptions.SystemInstruction);
+
+        var log = await db.AiUsageLogs.FirstOrDefaultAsync();
+        Assert.NotNull(log);
+        Assert.Equal("AI_CONVERSATION", log.Feature);
+        Assert.True(log.Success);
     }
 }
