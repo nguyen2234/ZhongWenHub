@@ -17,5 +17,5 @@
 - `ZhongWenHub_Dev`: chỉ đọc (Zero-Write). Không thay đổi dữ liệu dev/prod khi chưa có phê duyệt.
 - Không commit/push khi chưa được người dùng xác nhận.
 - Kiểm tra nhanh Frontend: `cd Fontend && bun run lint && bun test src/tests`
-- Kiểm tra nhanh Backend: `dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj`
+- Kiểm tra nhanh Backend: `dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj` (hoặc test tích hợp: `dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj`)
 

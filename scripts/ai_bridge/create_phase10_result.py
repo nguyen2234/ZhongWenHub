@@ -45,7 +45,7 @@ result = {
     {
       "test_id": "TEST-DOTNET-BE-UNIT",
       "test_name": "Backend .NET Unit Test Suite",
-      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj --filter \"Category!=Integration\"",
+      "command": "dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj",
       "test_type": "UNIT",
       "environment": "Windows .NET 10.0 SDK",
       "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
@@ -58,7 +58,7 @@ result = {
     {
       "test_id": "TEST-DOTNET-BE-INTEGRATION",
       "test_name": "Backend .NET Integration Test Suite",
-      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj --filter \"Category=Integration\"",
+      "command": "dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj",
       "test_type": "INTEGRATION",
       "environment": "Windows .NET 10.0 SDK",
       "commit_sha": "48d11e3024ecfc8df43626b6a36a0a43d76196df",
