@@ -21,7 +21,6 @@ public class AILetterWritingService : IAILetterWritingService
 
     private readonly ApplicationDbContext _dbContext;
     private readonly IAIProvider _aiProvider;
-    private readonly IMultiProviderAiRouter? _router;
     private readonly IAIUsageLogger _usageLogger;
     private readonly ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? _tokenGovernance;
     private readonly ILogger<AILetterWritingService> _logger;
@@ -31,14 +30,12 @@ public class AILetterWritingService : IAILetterWritingService
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
         ILogger<AILetterWritingService> logger,
-        IMultiProviderAiRouter? router = null,
         ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? tokenGovernance = null)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
         _logger = logger;
-        _router = router;
         _tokenGovernance = tokenGovernance;
     }
 
@@ -73,51 +70,26 @@ public class AILetterWritingService : IAILetterWritingService
 
         try
         {
-            if (_router != null)
-            {
-                var routerResult = await _router.GenerateAsync(
-                    capability: "chat",
-                    prompt: userPrompt,
-                    options: new AiGenerationOptions
-                    {
-                        SystemInstruction = systemPrompt,
-                        MaxTokens = 2048,
-                        Temperature = 0.5
-                    },
-                    userId: userId,
-                    feature: "AI_LETTER_WRITING",
-                    ct: ct);
+            var providerResponse = await _aiProvider.GenerateContentAsync(
+                new AIProviderRequest
+                {
+                    Feature = "AI_LETTER_WRITING",
+                    SystemInstruction = systemPrompt,
+                    UserPrompt = userPrompt,
+                    ExpectJson = true,
+                    Temperature = 0.5,
+                    MaxOutputTokens = 2048
+                },
+                ct);
 
-                rawResponseText = routerResult.Text;
-                modelUsed = routerResult.Model;
-                promptTokens = routerResult.PromptTokens;
-                completionTokens = routerResult.CompletionTokens;
-                totalTokens = routerResult.TotalTokens;
-                latencyMs = (int)routerResult.LatencyMs;
-            }
-            else
-            {
-                var providerResponse = await _aiProvider.GenerateContentAsync(
-                    new AIProviderRequest
-                    {
-                        Feature = "AI_LETTER_WRITING",
-                        SystemInstruction = systemPrompt,
-                        UserPrompt = userPrompt,
-                        ExpectJson = true,
-                        Temperature = 0.5,
-                        MaxOutputTokens = 2048
-                    },
-                    ct);
+            rawResponseText = providerResponse.RawText;
+            modelUsed = providerResponse.Model;
+            promptTokens = providerResponse.PromptTokens;
+            completionTokens = providerResponse.CompletionTokens;
+            totalTokens = providerResponse.TotalTokens;
+            latencyMs = providerResponse.LatencyMs;
 
-                rawResponseText = providerResponse.RawText;
-                modelUsed = providerResponse.Model;
-                promptTokens = providerResponse.PromptTokens;
-                completionTokens = providerResponse.CompletionTokens;
-                totalTokens = providerResponse.TotalTokens;
-                latencyMs = providerResponse.LatencyMs;
-
-                await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", providerResponse, true, null, ct);
-            }
+            await _usageLogger.LogAsync(userId, "AI_LETTER_WRITING", providerResponse, true, null, ct);
         }
         catch (AITutorException ex)
         {

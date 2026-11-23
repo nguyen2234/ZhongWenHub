@@ -22,6 +22,7 @@ public class AiGovernanceController : BaseApiController
         _governanceService = governanceService;
     }
 
+    [HttpGet]
     [HttpGet("overview")]
     [ProducesResponseType(typeof(List<AiFeatureGovernanceDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOverview(CancellationToken ct)
