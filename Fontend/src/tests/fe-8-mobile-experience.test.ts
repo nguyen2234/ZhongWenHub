@@ -181,12 +181,12 @@ describe('FE-8: Mobile-First Student Experience & Responsive Architecture', () =
 
     it('should provide complete metadata for each roadmap step including hanzi, title, and practiceRoute', () => {
       const sampleSteps = [
-        { stepNumber: 1, hanzi: '拼', title: 'Pinyin – Phiên âm Latin', practiceRoute: '/skills/speaking?tab=pinyin' },
-        { stepNumber: 2, hanzi: '声', title: 'Thanh điệu tiếng Trung', practiceRoute: '/skills/speaking' },
-        { stepNumber: 3, hanzi: '字', title: 'Chữ Hán cơ bản', practiceRoute: '/skills/writing' },
+        { stepNumber: 1, hanzi: '拼', title: 'Pinyin – Phiên âm Latin', practiceRoute: '/lesson/les-hsk1-1' },
+        { stepNumber: 2, hanzi: '声', title: 'Thanh điệu tiếng Trung', practiceRoute: '/conversation' },
+        { stepNumber: 3, hanzi: '字', title: 'Chữ Hán cơ bản', practiceRoute: '/lesson/les-hsk1-3' },
         { stepNumber: 4, hanzi: '词', title: 'Từ vựng HSK 1', practiceRoute: '/vocabulary' },
         { stepNumber: 5, hanzi: '语', title: 'Ngữ pháp cơ bản', practiceRoute: '/grammar' },
-        { stepNumber: 6, hanzi: '听', title: 'Luyện nghe và nói', practiceRoute: '/skills' },
+        { stepNumber: 6, hanzi: '听', title: 'Luyện nghe và nói', practiceRoute: '/conversation' },
       ];
 
       expect(sampleSteps).toHaveLength(6);

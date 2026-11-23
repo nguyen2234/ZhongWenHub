@@ -42,6 +42,7 @@ public sealed class AIConversationService : IAIConversationService
     private readonly IAIProvider _aiProvider;
     private readonly IAIUsageLogger _usageLogger;
     private readonly ISpeechRecognitionService _sttService;
+    private readonly ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? _tokenGovernance;
     private readonly ILogger<AIConversationService> _logger;
 
     public AIConversationService(
@@ -49,13 +50,15 @@ public sealed class AIConversationService : IAIConversationService
         IAIProvider aiProvider,
         IAIUsageLogger usageLogger,
         ISpeechRecognitionService sttService,
-        ILogger<AIConversationService> logger)
+        ILogger<AIConversationService> logger,
+        ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService? tokenGovernance = null)
     {
         _dbContext = dbContext;
         _aiProvider = aiProvider;
         _usageLogger = usageLogger;
         _sttService = sttService;
         _logger = logger;
+        _tokenGovernance = tokenGovernance;
     }
 
     public IReadOnlyList<ConversationScenarioDto> GetScenarios() => Scenarios;
@@ -97,8 +100,6 @@ public sealed class AIConversationService : IAIConversationService
         var hskLevel = Math.Clamp(request.HskLevel, 1, 4);
         var scenario = Scenarios.FirstOrDefault(s => string.Equals(s.Code, request.ScenarioCode?.Trim(), StringComparison.OrdinalIgnoreCase))
             ?? Scenarios[0];
-
-        await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
 
         var session = new AiConversationSession
         {
@@ -172,8 +173,6 @@ public sealed class AIConversationService : IAIConversationService
         {
             throw AITutorException.BadRequest("Phiên hội thoại đã kết thúc. Vui lòng tạo phiên mới.");
         }
-
-        await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
 
         var previousMessages = await _dbContext.AiMessages
             .AsNoTracking()
@@ -360,27 +359,64 @@ public sealed class AIConversationService : IAIConversationService
         IReadOnlyList<AIProviderTurn> history,
         CancellationToken cancellationToken)
     {
+        ZhongWenHub.Features.admin.AiGovernance.AiTokenReservation? reservation = null;
+        if (_tokenGovernance != null)
+        {
+            reservation = await _tokenGovernance.ReserveQuotaAsync(userId, "AI_CONVERSATION", 800, cancellationToken);
+        }
+        else
+        {
+            await _usageLogger.EnsureWithinDailyBudgetAsync(userId, cancellationToken);
+        }
+
         try
         {
             var res = await _aiProvider.GenerateContentAsync(
                 new AIProviderRequest
                 {
+                    ReservationId = reservation?.ReservationId,
                     Feature = "AI_CONVERSATION",
                     SystemInstruction = systemPrompt,
                     UserPrompt = userPrompt,
                     History = history,
                     ExpectJson = true,
                     Temperature = 0.55,
-                    MaxOutputTokens = 1000
+                    MaxOutputTokens = reservation?.MaxAllowedOutputTokens ?? 1000
                 },
                 cancellationToken);
 
-            await _usageLogger.LogAsync(userId, "AI_CONVERSATION", res, true, null, cancellationToken);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, res, true, "COMPLETED", cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", res, true, null, cancellationToken);
+            }
             return res;
         }
         catch (AITutorException ex)
         {
-            await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, $"HTTP_{ex.StatusCode}", cancellationToken);
+            }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            if (_tokenGovernance != null && reservation != null)
+            {
+                await _tokenGovernance.SettleQuotaAsync(reservation.ReservationId, null, false, ex.GetType().Name, cancellationToken);
+            }
+            else
+            {
+                await _usageLogger.LogAsync(userId, "AI_CONVERSATION", null, false, ex.GetType().Name, cancellationToken);
+            }
             throw;
         }
     }

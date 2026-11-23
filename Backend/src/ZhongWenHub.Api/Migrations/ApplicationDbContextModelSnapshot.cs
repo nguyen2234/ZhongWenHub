@@ -436,6 +436,55 @@ namespace ZhongWenHub.Data.Persistence.Migrations
                     b.ToTable("ai_exercise_attempts", (string)null);
                 });
 
+            modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiFeatureGovernance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DailyTokenQuota")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DescriptionVi")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DisplayNameVi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FeatureGroup")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxTokensPerRequest")
+                        .HasColumnType("int");
+
+                    b.Property<long>("MonthlyTokenQuota")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserDailyRequestLimit")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeatureGroup")
+                        .IsUnique();
+
+                    b.ToTable("AiFeatureGovernances", (string)null);
+                });
+
             modelBuilder.Entity("ZhongWenHub.Data.Entities.AI.AiGeneratedExercise", b =>
                 {
                     b.Property<Guid>("Id")

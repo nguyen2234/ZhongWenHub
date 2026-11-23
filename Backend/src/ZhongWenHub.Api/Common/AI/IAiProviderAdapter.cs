@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ZhongWenHub.Business.AITutor;
 using ZhongWenHub.Data.Entities.AI;
 
 namespace ZhongWenHub.Common.AI;
@@ -9,6 +11,8 @@ public class AiGenerationOptions
     public int? MaxTokens { get; set; }
     public double? Temperature { get; set; }
     public string? SystemInstruction { get; set; }
+    public IReadOnlyList<AIProviderTurn>? History { get; set; }
+    public Guid? ReservationId { get; set; }
 }
 
 public class AiAdapterResponse

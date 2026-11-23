@@ -15,6 +15,7 @@ public sealed class AIProviderRequest
     public bool ExpectJson { get; init; } = true;
     public double Temperature { get; init; } = 0.4;
     public int MaxOutputTokens { get; init; } = 1400;
+    public Guid? ReservationId { get; init; }
 }
 
 public sealed class AIProviderResponse

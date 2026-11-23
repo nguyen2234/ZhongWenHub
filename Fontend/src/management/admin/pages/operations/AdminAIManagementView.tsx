@@ -11,11 +11,12 @@ import {
 } from 'lucide-react';
 import { adminOperationsService, type AIServiceModel, type AIOperationsStats } from '../../services/admin-operations.service';
 import { AdminAIProviderManagementView } from './AdminAIProviderManagementView';
+import { AdminAiTokenGovernanceView } from './AdminAiTokenGovernanceView';
 
 const INCIDENT_LOGS: Array<{ id: string; time: string; service: string; event: string; level: string }> = [];
 
 export const AdminAIManagementView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'providers' | 'telemetry'>('providers');
+  const [activeTab, setActiveTab] = useState<'providers' | 'governance' | 'telemetry'>('providers');
   const [quotaThreshold, setQuotaThreshold] = useState<number>(85);
   const [services, setServices] = useState<AIServiceModel[]>([]);
   const [aiStats, setAiStats] = useState<AIOperationsStats | null>(null);
@@ -68,6 +69,23 @@ export const AdminAIManagementView: React.FC = () => {
         </button>
         <button
           type="button"
+          onClick={() => setActiveTab('governance')}
+          data-testid="tab-ai-governance"
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: activeTab === 'governance' ? 'var(--primary, #2563eb)' : '#f1f5f9',
+            color: activeTab === 'governance' ? '#ffffff' : '#475569',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Quản Trị Token & Hạn Mức (Governance)
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveTab('telemetry')}
           style={{
             padding: '8px 16px',
@@ -85,6 +103,7 @@ export const AdminAIManagementView: React.FC = () => {
       </div>
 
       {activeTab === 'providers' && <AdminAIProviderManagementView />}
+      {activeTab === 'governance' && <AdminAiTokenGovernanceView />}
 
       {activeTab === 'telemetry' && (
         <>

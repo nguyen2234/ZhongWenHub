@@ -201,6 +201,7 @@ public class Program
         services.AddScoped<IAIUsageLogger, EfAIUsageLogger>();
         services.AddScoped<IAITutorContextVerifier, EfAITutorContextVerifier>();
         services.AddScoped<IAITutorService, AITutorService>();
+        services.AddScoped<IAILetterWritingService, AILetterWritingService>();
         services.AddScoped<IAIConversationService, AIConversationService>();
         services.AddScoped<IAIExerciseService, AIExerciseService>();
         services.AddScoped<IAIErrorAnalysisService, AIErrorAnalysisService>();
@@ -215,13 +216,17 @@ public class Program
 
         // Multi-Provider AI Management & Router
         services.AddSingleton<IAiProviderSecretProtector, DataProtectionAiProviderSecretProtector>();
-        services.AddHttpClient<GeminiProviderAdapter>();
-        services.AddHttpClient<OpenAiProviderAdapter>();
-        services.AddHttpClient<OpenAiCompatibleProviderAdapter>();
+        services.AddHttpClient<GeminiProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
+        services.AddHttpClient<OpenAiProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
+        services.AddHttpClient<OpenAiCompatibleProviderAdapter>()
+            .ConfigurePrimaryHttpMessageHandler(() => SsrfProtection.CreateSafeSocketsHttpHandler());
         services.AddSingleton<IAiProviderAdapter, GeminiProviderAdapter>(sp => sp.GetRequiredService<GeminiProviderAdapter>());
         services.AddSingleton<IAiProviderAdapter, OpenAiProviderAdapter>(sp => sp.GetRequiredService<OpenAiProviderAdapter>());
         services.AddSingleton<IAiProviderAdapter, OpenAiCompatibleProviderAdapter>(sp => sp.GetRequiredService<OpenAiCompatibleProviderAdapter>());
         services.AddScoped<IMultiProviderAiRouter, MultiProviderAiRouter>();
         services.AddScoped<IAiProviderManagementService, AiProviderManagementService>();
+        services.AddScoped<ZhongWenHub.Features.admin.AiGovernance.IAiTokenGovernanceService, ZhongWenHub.Features.admin.AiGovernance.AiTokenGovernanceService>();
     }
 }

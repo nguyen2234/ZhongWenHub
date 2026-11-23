@@ -167,7 +167,7 @@ export const BeginnerGuidanceSection: React.FC<BeginnerGuidanceSectionProps> = (
             <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
               <button
                 type="button"
-                onClick={() => navigate('/skills/speaking')}
+                onClick={() => navigate('/conversation')}
                 style={{
                   background: 'none',
                   border: 'none',

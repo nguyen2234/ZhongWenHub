@@ -16,6 +16,7 @@ using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Collection("SqlServerIntegrationTests")]
 [Trait("Category", "Integration")]
 public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
@@ -140,9 +141,12 @@ public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactor
         }
 
         Assert.NotNull(stateAfterFirst);
-        Assert.Contains("les-3", stateAfterFirst.CompletedLessonIds);
+        const string lesson3Guid = "aaaaaaaa-3333-3333-3333-333333333333";
+        Assert.True(stateAfterFirst.CompletedLessonIds.Contains("les-3") || stateAfterFirst.CompletedLessonIds.Contains(lesson3Guid),
+            $"CompletedLessonIds should contain 'les-3' or canonical '{lesson3Guid}'. Actual: [{string.Join(", ", stateAfterFirst.CompletedLessonIds)}]");
         Assert.True(stateAfterFirst.XpTotal >= 100);
-        Assert.Contains("lesson_complete_les-3", stateAfterFirst.RewardedEventIds);
+        Assert.True(stateAfterFirst.RewardedEventIds.Contains("lesson_complete_les-3") || stateAfterFirst.RewardedEventIds.Contains($"lesson_complete_{lesson3Guid}"),
+            $"RewardedEventIds should contain completion event for lesson 3. Actual: [{string.Join(", ", stateAfterFirst.RewardedEventIds)}]");
 
         var xpBeforeSecond = stateAfterFirst.XpTotal;
 

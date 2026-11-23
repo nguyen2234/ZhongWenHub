@@ -840,16 +840,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            {/* Card 3: Luyện nghe phản xạ */}
+            {/* Card 3: Luyện tập trọng tâm */}
             <div
               className="rec-card"
-              onClick={() => navigate('/skills/listening')}
+              onClick={() => navigate('/practice')}
               tabIndex={0}
               role="button"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigate('/skills/listening');
+                  navigate('/practice');
                 }
               }}
             >

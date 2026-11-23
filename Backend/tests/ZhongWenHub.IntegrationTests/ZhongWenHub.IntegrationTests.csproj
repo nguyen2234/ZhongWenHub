@@ -27,4 +27,10 @@
     <ProjectReference Include="..\..\src\ZhongWenHub.Api\ZhongWenHub.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestData/CurriculumSeed.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -34,18 +34,59 @@ public class GeminiProviderAdapter : IAiProviderAdapter
 
         var url = $"{baseUrl}/v1beta/models/{model}:generateContent?key={apiKey}";
 
-        var requestBody = new
+        var contentsList = new System.Collections.Generic.List<object>();
+
+        if (options?.History != null)
         {
-            contents = new[]
+            foreach (var turn in options.History)
             {
-                new { parts = new[] { new { text = prompt } } }
-            },
-            generationConfig = new
-            {
-                maxOutputTokens = options?.MaxTokens ?? config.MaxTokens ?? 2048,
-                temperature = options?.Temperature ?? config.Temperature ?? 0.7
+                var role = string.Equals(turn.Role, "model", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(turn.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    ? "model"
+                    : "user";
+                contentsList.Add(new
+                {
+                    role = role,
+                    parts = new[] { new { text = turn.Content } }
+                });
             }
-        };
+        }
+
+        contentsList.Add(new
+        {
+            role = "user",
+            parts = new[] { new { text = prompt } }
+        });
+
+        object requestBody;
+        if (!string.IsNullOrWhiteSpace(options?.SystemInstruction))
+        {
+            requestBody = new
+            {
+                system_instruction = new
+                {
+                    parts = new[] { new { text = options.SystemInstruction } }
+                },
+                contents = contentsList,
+                generationConfig = new
+                {
+                    maxOutputTokens = options?.MaxTokens ?? config.MaxTokens ?? 2048,
+                    temperature = options?.Temperature ?? config.Temperature ?? 0.7
+                }
+            };
+        }
+        else
+        {
+            requestBody = new
+            {
+                contents = contentsList,
+                generationConfig = new
+                {
+                    maxOutputTokens = options?.MaxTokens ?? config.MaxTokens ?? 2048,
+                    temperature = options?.Temperature ?? config.Temperature ?? 0.7
+                }
+            };
+        }
 
         var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 

@@ -55,12 +55,52 @@ public sealed class AITutorExerciseContextDto
 
 public sealed class AITutorChatResponseDto
 {
+    public string? ConversationId { get; set; }
     public string Type { get; set; } = "structured";
     public string? Summary { get; set; }
     public string? MarkdownFallback { get; set; }
     public List<JsonElement> Blocks { get; set; } = new();
     public List<string> SuggestedActions { get; set; } = new();
     public AIProviderMetaDto? Meta { get; set; }
+}
+
+public sealed class AITutorSessionSummaryDto
+{
+    public Guid SessionId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Mode { get; set; } = "ASK";
+    public int HskLevel { get; set; }
+    public int MessageCount { get; set; }
+    public string? LastMessageSnippet { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public sealed class CreateAITutorSessionDto
+{
+    public string? Title { get; set; }
+    public string? Mode { get; set; } = "ASK";
+    public int? HskLevel { get; set; } = 1;
+}
+
+public sealed class AITutorSessionDetailDto
+{
+    public Guid SessionId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Mode { get; set; } = "ASK";
+    public int HskLevel { get; set; }
+    public List<AITutorMessageDto> Messages { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+}
+
+public sealed class AITutorMessageDto
+{
+    public Guid Id { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string? Pinyin { get; set; }
+    public string? StructuredPayloadJson { get; set; }
+    public DateTime CreatedAt { get; set; }
 }
 
 public sealed class AIProviderMetaDto

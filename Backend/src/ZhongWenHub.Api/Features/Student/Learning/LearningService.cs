@@ -119,19 +119,25 @@ public class LearningService : ILearningService
             };
             _context.StudentLearningProfiles.Add(profile);
 
-            // Also initialize first lesson progress
-            var firstLesson = new StudentLessonProgress
+            // Also initialize first lesson progress if not already present
+            var hasFirstLesson = await _context.StudentLessonProgresses
+                .AnyAsync(l => l.UserId == userId && l.LessonId == Lesson1Guid, cancellationToken);
+
+            if (!hasFirstLesson)
             {
-                UserId = userId,
-                LessonId = Lesson1Guid,
-                Status = "NOT_STARTED",
-                CurrentStepIndex = 0,
-                MaxUnlockedStepIndex = 0,
-                QuizScore = 0,
-                TotalQuizQuestions = 5,
-                XpEarned = 0
-            };
-            _context.StudentLessonProgresses.Add(firstLesson);
+                var firstLesson = new StudentLessonProgress
+                {
+                    UserId = userId,
+                    LessonId = Lesson1Guid,
+                    Status = "NOT_STARTED",
+                    CurrentStepIndex = 0,
+                    MaxUnlockedStepIndex = 0,
+                    QuizScore = 0,
+                    TotalQuizQuestions = 5,
+                    XpEarned = 0
+                };
+                _context.StudentLessonProgresses.Add(firstLesson);
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
         }
@@ -678,12 +684,8 @@ public class LearningService : ILearningService
         }
 
         var canonical = matches.FirstOrDefault(m => string.Equals(m.LessonId, normalizedId, StringComparison.OrdinalIgnoreCase))
+            ?? matches.FirstOrDefault(m => string.Equals(m.LessonId, Lesson1Guid, StringComparison.OrdinalIgnoreCase))
             ?? matches[0];
-
-        if (isLesson1 && string.Equals(canonical.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
-        {
-            canonical.LessonId = Lesson1Guid;
-        }
 
         foreach (var dup in matches)
         {
@@ -697,6 +699,11 @@ public class LearningService : ILearningService
             canonical.MaxUnlockedStepIndex = Math.Max(canonical.MaxUnlockedStepIndex, dup.MaxUnlockedStepIndex);
             canonical.XpEarned = Math.Max(canonical.XpEarned, dup.XpEarned);
             _context.StudentLessonProgresses.Remove(dup);
+        }
+
+        if (isLesson1 && string.Equals(canonical.LessonId, LegacyLesson1Id, StringComparison.OrdinalIgnoreCase))
+        {
+            canonical.LessonId = Lesson1Guid;
         }
 
         return canonical;

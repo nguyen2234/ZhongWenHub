@@ -8,10 +8,6 @@ import {
   TrendingUp,
   GraduationCap,
   BookText,
-  Headphones,
-  Mic,
-  FileText,
-  PenTool,
   Film,
   Award,
   User,
@@ -149,44 +145,7 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
     ],
   },
 
-  // 3. Nhóm Kỹ năng (đổi tên từ Luyện tập)
-  {
-    id: 'skills',
-    groupTitle: 'KỸ NĂNG',
-    defaultOpen: true,
-    items: [
-      {
-        id: 'listening',
-        path: '/skills/listening',
-        label: 'Luyện nghe',
-        icon: Headphones,
-        matchPrefixes: ['/skills/listening'],
-      },
-      {
-        id: 'speaking',
-        path: '/skills/speaking',
-        label: 'Luyện nói',
-        icon: Mic,
-        matchPrefixes: ['/skills/speaking'],
-      },
-      {
-        id: 'reading',
-        path: '/skills/reading',
-        label: 'Đọc hiểu',
-        icon: FileText,
-        matchPrefixes: ['/skills/reading'],
-      },
-      {
-        id: 'writing',
-        path: '/skills/writing',
-        label: 'Luyện viết',
-        icon: PenTool,
-        matchPrefixes: ['/skills/writing'],
-      },
-    ],
-  },
-
-  // 4. Nhóm Luyện tập (tạo mới bên dưới Kỹ năng)
+  // 3. Nhóm Luyện tập
   {
     id: 'practice-zone',
     groupTitle: 'LUYỆN TẬP',
@@ -201,10 +160,10 @@ export const HANBEEGO_STUDENT_NAV_GROUPS: StudentNavCollapsibleGroup[] = [
       },
       {
         id: 'letter-writing',
-        path: '/ai-grading',
+        path: '/letter-writing',
         label: 'Viết thư',
         icon: Mail,
-        matchPrefixes: ['/ai-grading', '/letter-writing'],
+        matchPrefixes: ['/letter-writing', '/ai-grading'],
       },
       {
         id: 'ai-tutor',
@@ -238,15 +197,11 @@ export const STUDENT_MAIN_NAV_ITEMS: StudentNavItem[] = [
     label: 'Học HSK',
     shortLabel: 'Học HSK',
     icon: BookOpen,
-    activeMatchPaths: ['/learning-path', '/lesson', '/grammar', '/skills'],
+    activeMatchPaths: ['/learning-path', '/lesson', '/grammar'],
     secondaryFeatures: [
       { id: 'path', path: '/learning-path', label: 'Lộ trình HSK', icon: BookOpen },
       { id: 'lesson', path: '/lesson', label: 'Bài học', icon: GraduationCap, badge: 'Bài 8' },
       { id: 'grammar', path: '/grammar', label: 'Ngữ pháp', icon: BookText },
-      { id: 'listening', path: '/skills/listening', label: 'Luyện nghe', icon: Headphones },
-      { id: 'speaking', path: '/skills/speaking', label: 'Luyện nói', icon: Mic },
-      { id: 'reading', path: '/skills/reading', label: 'Luyện đọc', icon: FileText },
-      { id: 'writing', path: '/skills/writing', label: 'Luyện viết', icon: PenTool },
     ],
   },
   {

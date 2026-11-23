@@ -42,10 +42,10 @@ describe('Phase FE-4: Simplified Student Dashboard and Navigation', () => {
       expect(secondaryPaths).toContain('/learning-path');
       expect(secondaryPaths).toContain('/lesson');
       expect(secondaryPaths).toContain('/grammar');
-      expect(secondaryPaths).toContain('/skills/listening');
-      expect(secondaryPaths).toContain('/skills/speaking');
-      expect(secondaryPaths).toContain('/skills/reading');
-      expect(secondaryPaths).toContain('/skills/writing');
+      expect(secondaryPaths).not.toContain('/skills/listening');
+      expect(secondaryPaths).not.toContain('/skills/speaking');
+      expect(secondaryPaths).not.toContain('/skills/reading');
+      expect(secondaryPaths).not.toContain('/skills/writing');
     });
 
     it('moves Từ vựng secondary features into parent page config', () => {

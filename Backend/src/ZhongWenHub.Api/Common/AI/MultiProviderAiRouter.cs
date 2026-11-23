@@ -55,7 +55,7 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
 
         var matchingProviders = providers.Where(p =>
         {
-            if (string.IsNullOrWhiteSpace(capability) || string.IsNullOrWhiteSpace(p.CapabilitiesJson))
+            if (string.IsNullOrWhiteSpace(p.CapabilitiesJson))
             {
                 return true;
             }
@@ -63,13 +63,43 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
             try
             {
                 var caps = JsonSerializer.Deserialize<List<string>>(p.CapabilitiesJson);
-                return caps != null && (caps.Contains(capability, StringComparer.OrdinalIgnoreCase) || caps.Contains("*"));
+                if (caps == null || caps.Count == 0 || caps.Contains("*"))
+                {
+                    return true;
+                }
+
+                var hasCap = string.IsNullOrWhiteSpace(capability) || caps.Contains(capability, StringComparer.OrdinalIgnoreCase);
+
+                var featureTag = $"feature:{feature}";
+                var hasFeatureMatching = caps.Any(c => string.Equals(c, featureTag, StringComparison.OrdinalIgnoreCase));
+                var hasAnyFeatureTag = caps.Any(c => c.StartsWith("feature:", StringComparison.OrdinalIgnoreCase));
+
+                if (hasAnyFeatureTag && !hasFeatureMatching)
+                {
+                    return false;
+                }
+
+                return hasCap;
             }
             catch
             {
                 return true;
             }
         }).ToList();
+
+        // Sort providers: feature-specific providers come first, then by Priority
+        matchingProviders = matchingProviders
+            .OrderByDescending(p =>
+            {
+                try
+                {
+                    var caps = JsonSerializer.Deserialize<List<string>>(p.CapabilitiesJson ?? "[]");
+                    return caps != null && caps.Any(c => string.Equals(c, $"feature:{feature}", StringComparison.OrdinalIgnoreCase));
+                }
+                catch { return false; }
+            })
+            .ThenBy(p => p.Priority)
+            .ToList();
 
         if (matchingProviders.Count == 0)
         {
@@ -104,22 +134,26 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
                 var response = await adapter.GenerateTextAsync(config, apiKey, prompt, options, ct);
                 sw.Stop();
 
-                // Log successful usage
-                var usageLog = new AiUsageLog
+                // Log successful usage only if caller has not already reserved a tracking record
+                if (options?.ReservationId == null)
                 {
-                    UserId = userId ?? Guid.Empty,
-                    Feature = feature,
-                    Provider = config.Name,
-                    Model = response.Model,
-                    PromptTokens = response.PromptTokens,
-                    CompletionTokens = response.CompletionTokens,
-                    TotalTokens = response.TotalTokens,
-                    LatencyMs = (int)response.LatencyMs,
-                    Success = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _dbContext.AiUsageLogs.Add(usageLog);
-                await _dbContext.SaveChangesAsync(ct);
+                    var usageLog = new AiUsageLog
+                    {
+                        UserId = userId ?? Guid.Empty,
+                        Feature = feature,
+                        Provider = config.Name,
+                        Model = response.Model,
+                        PromptTokens = response.PromptTokens,
+                        CompletionTokens = response.CompletionTokens,
+                        TotalTokens = response.TotalTokens,
+                        LatencyMs = (int)response.LatencyMs,
+                        Success = true,
+                        ErrorCode = "COMPLETED",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _dbContext.AiUsageLogs.Add(usageLog);
+                    await _dbContext.SaveChangesAsync(ct);
+                }
 
                 return new AiRouterResult
                 {
@@ -149,26 +183,29 @@ public class MultiProviderAiRouter : IMultiProviderAiRouter
 
                 failureReasons.Add($"Provider '{config.Name}' failed: {ex.Message}");
 
-                // Log failed attempt
-                try
+                // Log failed attempt only if caller has not reserved a tracking record
+                if (options?.ReservationId == null)
                 {
-                    var failLog = new AiUsageLog
+                    try
                     {
-                        UserId = userId ?? Guid.Empty,
-                        Feature = feature,
-                        Provider = config.Name,
-                        Model = config.DefaultModel,
-                        LatencyMs = (int)sw.ElapsedMilliseconds,
-                        Success = false,
-                        ErrorCode = statusCode?.ToString() ?? ex.GetType().Name,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _dbContext.AiUsageLogs.Add(failLog);
-                    await _dbContext.SaveChangesAsync(ct);
-                }
-                catch
-                {
-                    // Ignore usage logging failure
+                        var failLog = new AiUsageLog
+                        {
+                            UserId = userId ?? Guid.Empty,
+                            Feature = feature,
+                            Provider = config.Name,
+                            Model = config.DefaultModel,
+                            LatencyMs = (int)sw.ElapsedMilliseconds,
+                            Success = false,
+                            ErrorCode = statusCode?.ToString() ?? ex.GetType().Name,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        _dbContext.AiUsageLogs.Add(failLog);
+                        await _dbContext.SaveChangesAsync(ct);
+                    }
+                    catch
+                    {
+                        // Ignore usage logging failure
+                    }
                 }
             }
         }

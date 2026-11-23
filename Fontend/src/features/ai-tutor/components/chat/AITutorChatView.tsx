@@ -38,34 +38,8 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
   onSwitchToLive,
 }) => {
   // Conversation History List
-  const [conversations, setConversations] = useState<ChatSessionMeta[]>([
-    {
-      id: 'conv-1',
-      title: 'Bài 8: Ngữ pháp 想 (xiǎng) & Gọi món cà phê',
-      lastMessage: 'Công thức: Chủ ngữ + 想 + Động từ + Tân ngữ...',
-      updatedAt: '10:45',
-      category: 'today',
-      hskLevel: 2,
-    },
-    {
-      id: 'conv-2',
-      title: 'Hỏi giá tiền: Cấu trúc 这个多少钱？',
-      lastMessage: 'Giải thích từ vựng 多少 và lượng từ đi kèm...',
-      updatedAt: 'Hôm qua',
-      category: 'earlier',
-      hskLevel: 2,
-    },
-    {
-      id: 'conv-3',
-      title: 'Sửa lỗi câu: 我想喝咖啡了',
-      lastMessage: 'Trong ngữ cảnh này không nên dùng trợ từ 了...',
-      updatedAt: '2 ngày trước',
-      category: 'earlier',
-      hskLevel: 2,
-    },
-  ]);
-
-  const [activeConvId, setActiveConvId] = useState<string>('conv-1');
+  const [conversations, setConversations] = useState<ChatSessionMeta[]>([]);
+  const [activeConvId, setActiveConvId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
@@ -81,6 +55,57 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
   const forceScrollRef = useRef(false);
   const isSendingRef = useRef(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
+
+  // Load real sessions from backend on mount
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    try {
+      const items = await AITutorService.getSessions(20);
+      if (items && items.length > 0) {
+        const mapped: ChatSessionMeta[] = items.map((item) => ({
+          id: item.sessionId,
+          title: item.title,
+          lastMessage: item.lastMessageSnippet || 'Hội thoại với Trợ giảng AI',
+          updatedAt: new Date(item.updatedAt || item.createdAt).toLocaleDateString('vi-VN'),
+          category: 'today',
+          hskLevel: item.hskLevel,
+        }));
+        setConversations(mapped);
+        if (!activeConvId) {
+          setActiveConvId(mapped[0].id);
+        }
+      } else {
+        const defaultId = 'conv-init';
+        setConversations([
+          {
+            id: defaultId,
+            title: 'Hội thoại mới với Trợ giảng AI',
+            lastMessage: 'Sẵn sàng học tiếng Trung cùng bạn',
+            updatedAt: 'Hôm nay',
+            category: 'today',
+            hskLevel: initialContext?.hskLevel || 2,
+          },
+        ]);
+        setActiveConvId(defaultId);
+      }
+    } catch {
+      const defaultId = 'conv-init';
+      setConversations([
+        {
+          id: defaultId,
+          title: 'Hội thoại mới với Trợ giảng AI',
+          lastMessage: 'Sẵn sàng học tiếng Trung cùng bạn',
+          updatedAt: 'Hôm nay',
+          category: 'today',
+          hskLevel: initialContext?.hskLevel || 2,
+        },
+      ]);
+      setActiveConvId(defaultId);
+    }
+  };
 
   const handleThreadScroll = () => {
     const el = messagesScrollRef.current;
@@ -101,18 +126,73 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSidebarOpenMobile]);
 
-  // Initialize messages for active conversation once per switch
+  // Load conversation messages when activeConvId changes
   useEffect(() => {
-    setMessages([
-      {
-        id: `m-init-${activeConvId}`,
-        conversationId: activeConvId,
-        role: 'assistant',
-        content: AI_TUTOR_WELCOME_MESSAGE,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-    forceScrollRef.current = true;
+    if (!activeConvId) return;
+
+    if (activeConvId.startsWith('conv-')) {
+      setMessages([
+        {
+          id: `m-init-${activeConvId}`,
+          conversationId: activeConvId,
+          role: 'assistant',
+          content: AI_TUTOR_WELCOME_MESSAGE,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      forceScrollRef.current = true;
+      return;
+    }
+
+    const fetchDetail = async () => {
+      try {
+        const detail = await AITutorService.getSessionDetail(activeConvId);
+        if (detail && detail.messages && detail.messages.length > 0) {
+          const mappedMsgs: AITutorMessage[] = detail.messages.map((m) => {
+            let structured = undefined;
+            if (m.structuredPayloadJson) {
+              try {
+                structured = AITutorService.normalizeResponse(JSON.parse(m.structuredPayloadJson));
+              } catch {
+                // Ignore parse errors for raw text
+              }
+            }
+            return {
+              id: m.id,
+              conversationId: activeConvId,
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+              structuredResponse: structured,
+              createdAt: m.createdAt,
+            };
+          });
+          setMessages(mappedMsgs);
+        } else {
+          setMessages([
+            {
+              id: `m-init-${activeConvId}`,
+              conversationId: activeConvId,
+              role: 'assistant',
+              content: AI_TUTOR_WELCOME_MESSAGE,
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+        }
+      } catch {
+        setMessages([
+          {
+            id: `m-init-${activeConvId}`,
+            conversationId: activeConvId,
+            role: 'assistant',
+            content: AI_TUTOR_WELCOME_MESSAGE,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
+      }
+      forceScrollRef.current = true;
+    };
+
+    fetchDetail();
   }, [activeConvId]);
 
   // Smart Auto scroll: only when near bottom or user just sent a message
@@ -151,16 +231,21 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     try {
       const history = AITutorService.buildHistoryFromMessages(messages);
       const resp = await AITutorService.sendChatMessage({
-        conversationId: activeConvId,
+        conversationId: activeConvId.startsWith('conv-') ? undefined : activeConvId,
         message: query,
         mode: 'ASK',
         context: initialContext || { source: 'dashboard', hskLevel: 2 },
         history,
       });
 
+      const effectiveConvId = resp.conversationId || activeConvId;
+      if (resp.conversationId && activeConvId !== resp.conversationId) {
+        setActiveConvId(resp.conversationId);
+      }
+
       const aiMsg: AITutorMessage = {
         id: `msg-ai-${Date.now()}`,
-        conversationId: activeConvId,
+        conversationId: effectiveConvId,
         role: 'assistant',
         content:
           resp.type === 'markdown'
@@ -175,7 +260,9 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
       // Update last message in active conversation list
       setConversations((prev) =>
         prev.map((c) =>
-          c.id === activeConvId ? { ...c, lastMessage: query, updatedAt: 'Vừa xong' } : c
+          c.id === activeConvId
+            ? { ...c, id: effectiveConvId, lastMessage: query, updatedAt: 'Vừa xong' }
+            : c
         )
       );
     } catch (err) {
@@ -194,24 +281,52 @@ export const AITutorChatView: React.FC<AITutorChatViewProps> = ({
     }
   };
 
-  const handleCreateNewConversation = () => {
-    const newId = 'conv-' + Date.now();
-    const newConv: ChatSessionMeta = {
-      id: newId,
-      title: 'Hội thoại mới ' + (conversations.length + 1),
-      lastMessage: 'Chưa có tin nhắn',
-      updatedAt: 'Vừa xong',
-      category: 'today',
-      hskLevel: 2,
-    };
-    setConversations([newConv, ...conversations]);
-    setActiveConvId(newId);
+  const handleCreateNewConversation = async () => {
+    try {
+      const newSessionId = await AITutorService.createSession({
+        title: 'Hội thoại mới ' + (conversations.length + 1),
+        mode: 'ASK',
+        hskLevel: initialContext?.hskLevel || 2,
+      });
+
+      const newConv: ChatSessionMeta = {
+        id: newSessionId,
+        title: 'Hội thoại mới ' + (conversations.length + 1),
+        lastMessage: 'Chưa có tin nhắn',
+        updatedAt: 'Vừa xong',
+        category: 'today',
+        hskLevel: initialContext?.hskLevel || 2,
+      };
+      setConversations([newConv, ...conversations]);
+      setActiveConvId(newSessionId);
+    } catch {
+      const fallbackId = 'conv-' + Date.now();
+      const newConv: ChatSessionMeta = {
+        id: fallbackId,
+        title: 'Hội thoại mới ' + (conversations.length + 1),
+        lastMessage: 'Chưa có tin nhắn',
+        updatedAt: 'Vừa xong',
+        category: 'today',
+        hskLevel: 2,
+      };
+      setConversations([newConv, ...conversations]);
+      setActiveConvId(fallbackId);
+    }
     setIsSidebarOpenMobile(false);
   };
 
-  const handleDeleteConversation = (id: string, e: React.MouseEvent) => {
+  const handleDeleteConversation = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (conversations.length <= 1) return;
+
+    if (!id.startsWith('conv-')) {
+      try {
+        await AITutorService.deleteSession(id);
+      } catch {
+        // Continue UI deletion
+      }
+    }
+
     const remaining = conversations.filter((c) => c.id !== id);
     setConversations(remaining);
     if (activeConvId === id) {

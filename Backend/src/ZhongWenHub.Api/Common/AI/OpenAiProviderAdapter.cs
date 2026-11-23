@@ -45,13 +45,31 @@ public class OpenAiProviderAdapter : IAiProviderAdapter
         var model = string.IsNullOrWhiteSpace(config.DefaultModel) ? "gpt-4o-mini" : config.DefaultModel;
         var url = GetEndpoint(config);
 
+        var messagesList = new System.Collections.Generic.List<object>();
+
+        if (!string.IsNullOrWhiteSpace(options?.SystemInstruction))
+        {
+            messagesList.Add(new { role = "system", content = options.SystemInstruction });
+        }
+
+        if (options?.History != null)
+        {
+            foreach (var turn in options.History)
+            {
+                var role = string.Equals(turn.Role, "model", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(turn.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    ? "assistant"
+                    : (string.Equals(turn.Role, "system", StringComparison.OrdinalIgnoreCase) ? "system" : "user");
+                messagesList.Add(new { role = role, content = turn.Content });
+            }
+        }
+
+        messagesList.Add(new { role = "user", content = prompt });
+
         var requestBody = new
         {
             model = model,
-            messages = new object[]
-            {
-                new { role = "user", content = prompt }
-            },
+            messages = messagesList,
             max_tokens = options?.MaxTokens ?? config.MaxTokens ?? 2048,
             temperature = options?.Temperature ?? config.Temperature ?? 0.7
         };

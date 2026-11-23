@@ -71,6 +71,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<LearningSkillStatistic> LearningSkillStatistics => Set<LearningSkillStatistic>();
     public DbSet<AiUsageLog> AiUsageLogs => Set<AiUsageLog>();
     public DbSet<AiProviderConfiguration> AiProviderConfigurations => Set<AiProviderConfiguration>();
+    public DbSet<AiFeatureGovernance> AiFeatureGovernances => Set<AiFeatureGovernance>();
 
     // Teacher & Class Management DbSets
     public DbSet<TeachingClass> TeachingClasses => Set<TeachingClass>();
@@ -983,6 +984,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             b.HasIndex(x => x.IsEnabled);
         });
 
+        builder.Entity<AiFeatureGovernance>(b =>
+        {
+            b.ToTable("AiFeatureGovernances");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.FeatureGroup).HasMaxLength(50).IsRequired();
+            b.Property(x => x.DisplayNameVi).HasMaxLength(100).IsRequired();
+            b.Property(x => x.DescriptionVi).HasMaxLength(500);
+            b.HasIndex(x => x.FeatureGroup).IsUnique();
+        });
+
         builder.Entity<SupportTicket>(b =>
         {
             b.ToTable("support_tickets");
@@ -1335,7 +1346,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.State == EntityState.Added && entry.Entity.CreatedAt == default)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
             }
@@ -1347,7 +1358,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         foreach (var entry in ChangeTracker.Entries<ApplicationUser>())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.State == EntityState.Added && entry.Entity.CreatedAt == default)
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
             }

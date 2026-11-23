@@ -16,18 +16,12 @@ import {
 import { StudentAIWorkspacePage, AIExerciseGeneratorPage, DiagnosticAssessmentPage } from '../../features/ai';
 import { AITutorWorkspacePage } from '../../features/ai-tutor';
 import { GrammarPage } from '../../features/grammar';
-import {
-  SkillListeningPage,
-  SkillSpeakingPage,
-  SkillReadingPage,
-  SkillWritingPage,
-} from '../../features/skills';
 import { MockExamsPage } from '../../features/mock-exams';
 import { LearningGamesPage } from '../../features/games';
 import { StudentClassesPage } from '../../features/classes/pages/StudentClassesPage';
 import { LearningResultsPage } from '../../features/results/pages/LearningResultsPage';
 import { AILivePage } from '../../features/ai-live/pages/AILivePage';
-import { AIGradingPage } from '../../features/ai-grading/pages/AIGradingPage';
+import { AILetterWritingPage } from '../../features/ai-grading';
 import { AIAnalyticsPage } from '../../features/ai-analytics/pages/AIAnalyticsPage';
 import { ProgressPage } from '../../features/progress/pages/ProgressPage';
 import { LeaderboardPage } from '../../features/leaderboard/pages/LeaderboardPage';
@@ -95,23 +89,23 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: 'skills/listening',
-        element: <SkillListeningPage />,
+        element: <Navigate to="/practice" replace />,
       },
       {
         path: 'skills/speaking',
-        element: <SkillSpeakingPage />,
+        element: <Navigate to="/conversation" replace />,
       },
       {
         path: 'speaking',
-        element: <SkillSpeakingPage />,
+        element: <Navigate to="/conversation" replace />,
       },
       {
         path: 'skills/reading',
-        element: <SkillReadingPage />,
+        element: <Navigate to="/practice" replace />,
       },
       {
         path: 'skills/writing',
-        element: <SkillWritingPage />,
+        element: <Navigate to="/letter-writing" replace />,
       },
 
       // C. LUYỆN TẬP & KIỂM TRA
@@ -173,11 +167,15 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: 'ai-grading',
-        element: <AIGradingPage />,
+        element: <AILetterWritingPage />,
       },
       {
         path: 'letter-writing',
-        element: <AIGradingPage />,
+        element: <AILetterWritingPage />,
+      },
+      {
+        path: 'practice/letter-writing',
+        element: <Navigate to="/letter-writing" replace />,
       },
       {
         path: 'ai-analytics',

@@ -54,6 +54,8 @@ public class AiProviderManagementService : IAiProviderManagementService
 
     public async Task<AiProviderResponse> CreateAsync(CreateAiProviderRequest request, CancellationToken ct = default)
     {
+        ValidateBaseUrl(request.BaseUrl);
+
         var encryptedKey = _secretProtector.Encrypt(request.ApiKey);
 
         var entity = new AiProviderConfiguration
@@ -84,6 +86,8 @@ public class AiProviderManagementService : IAiProviderManagementService
 
     public async Task<AiProviderResponse?> UpdateAsync(Guid id, UpdateAiProviderRequest request, CancellationToken ct = default)
     {
+        ValidateBaseUrl(request.BaseUrl);
+
         var entity = await _context.AiProviderConfigurations.FirstOrDefaultAsync(p => p.Id == id, ct);
         if (entity == null)
         {
@@ -291,5 +295,10 @@ public class AiProviderManagementService : IAiProviderManagementService
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt
         };
+    }
+
+    public static void ValidateBaseUrl(string? baseUrl)
+    {
+        SsrfProtection.ValidateBaseUrl(baseUrl);
     }
 }
