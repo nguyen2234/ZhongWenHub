@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace ZhongWenHub.Data.Entities;
+namespace ZhongWenHub.Models.Users;
 
 public class ApplicationRole : IdentityRole<Guid>
 {

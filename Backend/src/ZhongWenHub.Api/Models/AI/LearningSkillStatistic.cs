@@ -1,6 +1,6 @@
 using System;
 
-namespace ZhongWenHub.Data.Entities.AI;
+namespace ZhongWenHub.Models.AI;
 
 public class LearningSkillStatistic : BaseEntity
 {

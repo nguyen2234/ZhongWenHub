@@ -5,7 +5,7 @@ using ZhongWenHub.Features.AI.Services.LearningPath;
 using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Features.Admin.Users;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Student.Learning;
 
 [Authorize(Policy = PolicyConstants.StudentAccess)]
 [ApiController]

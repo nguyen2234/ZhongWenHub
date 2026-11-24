@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Data.Entities;
+namespace ZhongWenHub.Models.Users;
 
 public class UserWallet : BaseEntity
 {

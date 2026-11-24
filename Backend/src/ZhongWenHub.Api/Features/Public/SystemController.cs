@@ -5,7 +5,7 @@ using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Public;
 
 [ApiController]
 [Route("api/v1/system")]

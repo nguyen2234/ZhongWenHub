@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Features.AI.Services.Speech;
 using ZhongWenHub.Features.AI;
-using ZhongWenHub.Data.Entities.AI;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.AI;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.AI;

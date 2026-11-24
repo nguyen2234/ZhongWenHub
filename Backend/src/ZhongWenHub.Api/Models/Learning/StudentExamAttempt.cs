@@ -1,6 +1,6 @@
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
-namespace ZhongWenHub.Data.Entities.Learning;
+namespace ZhongWenHub.Models.Learning;
 
 public class StudentExamAttempt : BaseEntity
 {

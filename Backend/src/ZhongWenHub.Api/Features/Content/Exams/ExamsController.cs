@@ -6,7 +6,7 @@ using ZhongWenHub.Features.Content.Exams;
 using ZhongWenHub.Features.Content.Exams.DTOs;
 using ZhongWenHub.Data.Constants;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Content.Exams;
 
 [ApiController]
 [Route("api/v1/exams")]

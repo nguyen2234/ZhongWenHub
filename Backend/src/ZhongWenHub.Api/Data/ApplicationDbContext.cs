@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.AI;
-using ZhongWenHub.Data.Entities.Content;
-using ZhongWenHub.Data.Entities.Learning;
-using ZhongWenHub.Data.Entities.Teacher;
-using ZhongWenHub.Api.Features.Support.Entities;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.AI;
+using ZhongWenHub.Models.Content;
+using ZhongWenHub.Models.Learning;
+using ZhongWenHub.Models.Teacher;
+using ZhongWenHub.Models.Support;
 
 namespace ZhongWenHub.Data.Persistence;
 

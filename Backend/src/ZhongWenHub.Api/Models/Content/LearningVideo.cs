@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Data.Entities.Content;
+namespace ZhongWenHub.Models.Content;
 
 public class LearningVideo : BaseEntity
 {

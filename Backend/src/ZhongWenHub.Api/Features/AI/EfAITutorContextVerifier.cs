@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Features.AI.DTOs;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.AI;

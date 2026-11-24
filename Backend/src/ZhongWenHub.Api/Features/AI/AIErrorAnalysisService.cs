@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Features.AI;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.AI;

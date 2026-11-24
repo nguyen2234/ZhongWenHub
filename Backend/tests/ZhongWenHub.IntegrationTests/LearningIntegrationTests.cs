@@ -11,7 +11,7 @@ using Xunit;
 using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Features.Student.Learning;
 using ZhongWenHub.Features.Student.Learning.DTOs;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;

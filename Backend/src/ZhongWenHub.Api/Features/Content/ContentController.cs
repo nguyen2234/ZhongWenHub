@@ -6,7 +6,7 @@ using ZhongWenHub.Features.Content;
 using ZhongWenHub.Features.Content.DTOs;
 using ZhongWenHub.Data.Constants;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Content;
 
 [ApiController]
 [Route("api/v1/content")]

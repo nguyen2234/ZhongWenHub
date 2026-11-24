@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Common.AI;
 using ZhongWenHub.Data;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 using ZhongWenHub.Features.admin.AiProviders.DTO;
 
-namespace ZhongWenHub.Features.admin.AiProviders;
+namespace ZhongWenHub.Features.Admin.AiProviders;
 
 public class AiProviderManagementService : IAiProviderManagementService
 {

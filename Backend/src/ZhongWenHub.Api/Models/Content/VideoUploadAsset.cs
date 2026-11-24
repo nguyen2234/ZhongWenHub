@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ZhongWenHub.Data.Entities.Content;
+namespace ZhongWenHub.Models.Content;
 
 public static class VideoUploadAssetStatus
 {

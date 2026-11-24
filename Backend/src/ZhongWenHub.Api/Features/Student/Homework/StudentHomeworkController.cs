@@ -11,7 +11,7 @@ using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Teacher.DTOs;
 using ZhongWenHub.Features.Teacher.Services;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Student.Homework;
 
 [ApiController]
 [Route("api/v1/student/homework")]

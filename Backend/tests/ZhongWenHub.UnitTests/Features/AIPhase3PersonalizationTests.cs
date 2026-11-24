@@ -8,10 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZhongWenHub.Features.AI;
 using ZhongWenHub.Features.AI.DTOs;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.AI;
-using ZhongWenHub.Data.Entities.Content;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.AI;
+using ZhongWenHub.Models.Content;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;

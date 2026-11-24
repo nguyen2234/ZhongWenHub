@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
 namespace ZhongWenHub.Features.Content.Services.Storage;
 

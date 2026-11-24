@@ -265,17 +265,17 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
         // 1. Seed or prepare a user with elevated role (CONTENT_MANAGER)
         using (var scope = _factory.Services.CreateScope())
         {
-            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ZhongWenHub.Data.Entities.ApplicationUser>>();
+            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ZhongWenHub.Models.Users.ApplicationUser>>();
             var user = await userMgr.FindByEmailAsync("content_mgr_test@zhongwenhub.edu.vn");
             if (user == null)
             {
-                user = new ZhongWenHub.Data.Entities.ApplicationUser
+                user = new ZhongWenHub.Models.Users.ApplicationUser
                 {
                     Id = Guid.NewGuid(),
                     UserName = "content_mgr_test@zhongwenhub.edu.vn",
                     Email = "content_mgr_test@zhongwenhub.edu.vn",
                     DisplayName = "Test Content Manager",
-                    Status = ZhongWenHub.Data.Entities.UserStatus.ACTIVE,
+                    Status = ZhongWenHub.Models.Users.UserStatus.ACTIVE,
                     EmailConfirmed = true
                 };
                 await userMgr.CreateAsync(user, "Demo@2026!ZhongWen");

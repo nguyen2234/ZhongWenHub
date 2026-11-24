@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ZhongWenHub.Data.Entities.Teacher;
+namespace ZhongWenHub.Models.Teacher;
 
 [Table("assignment_questions")]
 public class AssignmentQuestion : BaseEntity

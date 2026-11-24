@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Features.Content.Helpers;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Content.Services.Storage;

@@ -13,7 +13,7 @@ using ZhongWenHub.Features.Content.Helpers;
 using ZhongWenHub.Features.Content.Services.Storage;
 using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Content;

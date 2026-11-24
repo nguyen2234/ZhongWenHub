@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using ZhongWenHub.Features.AI.DTOs;
-using ZhongWenHub.Data.Entities.Content;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Content;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.AI.Services.Diagnostic;

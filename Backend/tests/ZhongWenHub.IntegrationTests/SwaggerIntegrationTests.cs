@@ -237,7 +237,6 @@ public class SwaggerIntegrationTests
         }
         routeList.Sort();
 
-        var updateBaseline = string.Equals(Environment.GetEnvironmentVariable("UPDATE_OPENAPI_BASELINE"), "true", StringComparison.OrdinalIgnoreCase);
         var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs"));
         if (!Directory.Exists(docsDir))
         {
@@ -245,42 +244,25 @@ public class SwaggerIntegrationTests
         }
         var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
 
-        if (updateBaseline && Directory.Exists(docsDir))
-        {
-            var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
-            await File.WriteAllTextAsync(jsonPath, json);
+        Assert.True(File.Exists(txtPath), $"OpenAPI route baseline file not found at: {txtPath}");
+        var baselineLines = await File.ReadAllLinesAsync(txtPath);
+        var baselineOperations = baselineLines
+            .Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("ZhongWenHub") && !l.StartsWith("Total") && !l.StartsWith("Captured"))
+            .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => $"{parts[0]} {parts[1]}")
+            .OrderBy(x => x)
+            .ToList();
 
-            using var writer = new StreamWriter(txtPath, false, System.Text.Encoding.UTF8);
-            writer.WriteLine("ZhongWenHub Runtime OpenAPI Route Baseline (P0)");
-            writer.WriteLine($"Total Operations: {totalOperations}");
-            writer.WriteLine($"Captured At: {DateTime.UtcNow:O}");
-            writer.WriteLine();
-            foreach (var line in routeList)
-            {
-                writer.WriteLine(line);
-            }
-        }
-        else if (File.Exists(txtPath))
-        {
-            var baselineLines = await File.ReadAllLinesAsync(txtPath);
-            var baselineOperations = baselineLines
-                .Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("ZhongWenHub") && !l.StartsWith("Total") && !l.StartsWith("Captured"))
-                .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                .Where(parts => parts.Length >= 2)
-                .Select(parts => $"{parts[0]} {parts[1]}")
-                .OrderBy(x => x)
-                .ToList();
+        var currentOperations = routeList
+            .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => $"{parts[0]} {parts[1]}")
+            .OrderBy(x => x)
+            .ToList();
 
-            var currentOperations = routeList
-                .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                .Where(parts => parts.Length >= 2)
-                .Select(parts => $"{parts[0]} {parts[1]}")
-                .OrderBy(x => x)
-                .ToList();
-
-            Assert.Equal(baselineOperations.Count, currentOperations.Count);
-            Assert.Equal(baselineOperations, currentOperations);
-        }
+        Assert.Equal(baselineOperations.Count, currentOperations.Count);
+        Assert.Equal(baselineOperations, currentOperations);
     }
 }
 

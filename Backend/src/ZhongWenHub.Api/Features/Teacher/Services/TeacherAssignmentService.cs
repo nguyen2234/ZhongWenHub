@@ -11,7 +11,7 @@ using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Teacher.DTOs;
 using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities.Teacher;
+using ZhongWenHub.Models.Teacher;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Teacher.Services;

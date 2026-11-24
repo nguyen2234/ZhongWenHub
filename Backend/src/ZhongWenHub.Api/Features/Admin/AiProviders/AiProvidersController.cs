@@ -4,11 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Api.Controllers;
+using ZhongWenHub.Common.Api;
 using ZhongWenHub.Common.Auth;
 using ZhongWenHub.Features.admin.AiProviders.DTO;
 
-namespace ZhongWenHub.Features.admin.AiProviders;
+namespace ZhongWenHub.Features.Admin.AiProviders;
 
 [ApiController]
 [Route("api/v1/admin/ai-providers")]

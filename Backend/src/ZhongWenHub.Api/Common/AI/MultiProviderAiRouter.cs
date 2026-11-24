@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Data;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 
 namespace ZhongWenHub.Common.AI;
 

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Admin;

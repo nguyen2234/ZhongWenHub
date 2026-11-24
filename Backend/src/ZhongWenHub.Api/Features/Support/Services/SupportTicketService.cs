@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Data.Persistence;
 using ZhongWenHub.Api.Features.Support.DTOs;
-using ZhongWenHub.Api.Features.Support.Entities;
+using ZhongWenHub.Models.Support;
 
 namespace ZhongWenHub.Api.Features.Support.Services;
 

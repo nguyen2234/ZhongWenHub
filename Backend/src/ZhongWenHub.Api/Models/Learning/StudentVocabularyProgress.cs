@@ -1,6 +1,6 @@
 using System;
 
-namespace ZhongWenHub.Data.Entities.Learning;
+namespace ZhongWenHub.Models.Learning;
 
 public class StudentVocabularyProgress : BaseEntity
 {

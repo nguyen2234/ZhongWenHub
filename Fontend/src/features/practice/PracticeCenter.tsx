@@ -21,12 +21,7 @@ import { MistakeReviewCard } from './components/MistakeReviewCard';
 import { SkillPracticeCard } from './components/SkillPracticeCard';
 import { HSKFilterSection, type CustomPracticeOptions } from './components/HSKFilterSection';
 import { PracticeSession } from './PracticeSession';
-import {
-  SKILL_ITEMS,
-  MOCK_RECOMMENDATION,
-  MOCK_MISTAKE_RECORDS,
-  PRACTICE_EXERCISE_POOL,
-} from './data/mockPracticeData';
+import { SKILL_ITEMS } from './data/practiceUiConfig';
 import {
   PRACTICE_FORMATS,
   formatHskRangeSummary,
@@ -147,7 +142,6 @@ export const PracticeCenter: React.FC = () => {
   const mistakeCount = recommendationsMeta?.mistakeReviewCount ?? 0;
 
   const recommendation: PracticeRecommendation | null = useMemo(() => {
-    if (isIsolatedTestRuntime()) return MOCK_RECOMMENDATION;
     if (!recommendationsMeta || recommendationsMeta.totalPublishedQuestions === 0) return null;
 
     if (primaryWeakArea) {
@@ -182,7 +176,6 @@ export const PracticeCenter: React.FC = () => {
   const isRealEvidence = Boolean(primaryWeakArea);
 
   const mistakes: MistakeRecord[] = useMemo(() => {
-    if (isIsolatedTestRuntime()) return MOCK_MISTAKE_RECORDS;
     if (mistakeCount <= 0) return [];
     return Array.from({ length: Math.min(mistakeCount, 5) }, (_, idx) => ({
       exerciseId: `wrong-${idx}`,
@@ -195,11 +188,7 @@ export const PracticeCenter: React.FC = () => {
   }, [mistakeCount, primaryWeakArea]);
 
   const dynamicHskLevels = useMemo(
-    () =>
-      resolveDynamicHskLevels(
-        recommendationsMeta,
-        isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined
-      ),
+    () => resolveDynamicHskLevels(recommendationsMeta, undefined),
     [recommendationsMeta]
   );
 
@@ -210,7 +199,7 @@ export const PracticeCenter: React.FC = () => {
         availability: getFormatAvailability(
           format,
           recommendationsMeta,
-          isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined,
+          undefined,
           selectedHskFilter
         ),
       })),
@@ -254,29 +243,6 @@ export const PracticeCenter: React.FC = () => {
     questionCount?: number;
     prioritizeWeakness?: boolean;
   }) => {
-    if (isIsolatedTestRuntime()) {
-      const poolList = Object.values(PRACTICE_EXERCISE_POOL);
-      const filtered = poolList.filter((ex) => {
-        if (params.hskLevel && ex.hskLevel !== params.hskLevel) return false;
-        if (params.skill && ex.skill !== params.skill) return false;
-        if (params.type && ex.type !== params.type) return false;
-        return true;
-      });
-      if (params.type && filtered.length === 0) {
-        setLoadError('Chưa có câu hỏi khả dụng cho dạng bài này.');
-        return;
-      }
-      const chosen = (filtered.length > 0 ? filtered : poolList).slice(0, params.questionCount || 5);
-      setActiveSession({
-        mode: params.mode,
-        title: params.title,
-        subtitle: params.subtitle,
-        hskLevel: params.hskLevel || dynamicHskLevels[0] || 1,
-        exercises: chosen,
-      });
-      return;
-    }
-
     setIsStartingSession(true);
     setLoadError(null);
     try {
@@ -779,7 +745,7 @@ export const PracticeCenter: React.FC = () => {
 
       <section aria-label="Bộ lọc luyện tập theo HSK">
         <HSKFilterSection
-          exercisePool={isIsolatedTestRuntime() ? PRACTICE_EXERCISE_POOL : undefined}
+          exercisePool={undefined}
           publishedByHsk={recommendationsMeta?.publishedByHsk}
           availableHskLevels={dynamicHskLevels}
           mistakeCount={mistakeCount}

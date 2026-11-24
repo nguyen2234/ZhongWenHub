@@ -5,8 +5,8 @@ using ZhongWenHub.Features.Student.Learning;
 using ZhongWenHub.Features.Student.Learning.DTOs;
 using ZhongWenHub.Features.Content.QuestionBank.DTOs;
 using ZhongWenHub.Features.Content.QuestionBank.Helpers;
-using ZhongWenHub.Data.Entities.Content;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Content;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Content.QuestionBank;

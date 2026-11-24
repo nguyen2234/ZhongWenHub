@@ -1,6 +1,6 @@
 using System;
 
-namespace ZhongWenHub.Api.Features.Support.Entities;
+namespace ZhongWenHub.Models.Support;
 
 public class SupportTicketMessage
 {

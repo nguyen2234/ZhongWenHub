@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Data;

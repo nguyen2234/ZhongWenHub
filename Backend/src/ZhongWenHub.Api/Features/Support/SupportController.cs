@@ -10,7 +10,7 @@ using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Api.Features.Support.DTOs;
 using ZhongWenHub.Api.Features.Support.Services;
 
-namespace ZhongWenHub.Api.Features.Support;
+namespace ZhongWenHub.Features.Support;
 
 [ApiController]
 [Route("api/v1/support")]

@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ZhongWenHub.Data.Entities.AI;
+namespace ZhongWenHub.Models.AI;
 
 [Table("AiProviderConfigurations")]
 public class AiProviderConfiguration : BaseEntity

@@ -6,7 +6,7 @@ using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Content.QuestionBank;
 using ZhongWenHub.Features.Content.QuestionBank.DTOs;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Content.QuestionBank;
 
 [ApiController]
 [Route("api/v1/question-bank")]

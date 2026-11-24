@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Content.QuestionBank.DTOs;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 

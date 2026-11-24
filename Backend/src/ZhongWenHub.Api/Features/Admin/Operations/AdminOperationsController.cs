@@ -7,7 +7,7 @@ using ZhongWenHub.Features.Admin;
 using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Admin.Operations;
 
 [ApiController]
 [Route("api/v1/admin/operations")]

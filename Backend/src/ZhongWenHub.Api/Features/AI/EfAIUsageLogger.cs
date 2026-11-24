@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.AI;

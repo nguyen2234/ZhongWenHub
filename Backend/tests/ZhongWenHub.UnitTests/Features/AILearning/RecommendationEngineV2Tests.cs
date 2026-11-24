@@ -10,8 +10,8 @@ using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Features.AI.Services.Competency;
 using ZhongWenHub.Features.AI.Services.Recommendation;
 using ZhongWenHub.Features.AI;
-using ZhongWenHub.Data.Entities.Content;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Content;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests.AILearning;

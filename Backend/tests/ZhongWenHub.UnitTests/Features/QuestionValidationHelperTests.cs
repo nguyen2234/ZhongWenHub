@@ -1,5 +1,5 @@
 using ZhongWenHub.Features.Content.QuestionBank.Helpers;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
 namespace ZhongWenHub.UnitTests;
 

@@ -6,7 +6,7 @@ using ZhongWenHub.Features.Auth;
 using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Features.Admin.Users;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Auth;
 
 [ApiController]
 [Route("api/v1/auth")]

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZhongWenHub.Features.admin.AiProviders.DTO;
 
-namespace ZhongWenHub.Features.admin.AiProviders;
+namespace ZhongWenHub.Features.Admin.AiProviders;
 
 public interface IAiProviderManagementService
 {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using ZhongWenHub.Features.Auth.DTOs;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 
 namespace ZhongWenHub.UnitTests;
 

@@ -11,7 +11,7 @@ using ZhongWenHub.Features.AI.Services.Speech;
 using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Features.Admin.Users;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.AI;
 
 [Authorize(Policy = PolicyConstants.StudentAccess)]
 [ApiController]

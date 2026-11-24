@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Xunit;
 using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Features.AI.Services.Diagnostic;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests.AILearning;

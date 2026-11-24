@@ -5,7 +5,7 @@ using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Features.Admin.Users.DTOs;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Admin.Accounts;
 
 [ApiController]
 [Route("api/v1/admin/users")]

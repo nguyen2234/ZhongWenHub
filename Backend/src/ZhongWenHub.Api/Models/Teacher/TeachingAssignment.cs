@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
-namespace ZhongWenHub.Data.Entities.Teacher;
+namespace ZhongWenHub.Models.Teacher;
 
 [Table("teaching_assignments")]
 public class TeachingAssignment : BaseEntity

@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Data.Entities.Content;
+namespace ZhongWenHub.Models.Content;
 
 public class ExerciseEntity : BaseEntity
 {

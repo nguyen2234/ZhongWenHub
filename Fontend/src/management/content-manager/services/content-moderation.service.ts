@@ -3,14 +3,58 @@ import type {
   ModerationStatus,
   ModerationContentType,
 } from '../types/content-manager.types';
-import { INITIAL_MODERATION_ITEMS } from '../data/mockContentManagerData';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { contentAuditService } from './content-audit.service';
 
 class ContentModerationService {
-  private items: ModerationItem[] = [...INITIAL_MODERATION_ITEMS];
+  private items: ModerationItem[] = [];
+
+  setTestStore(items: ModerationItem[]): void {
+    this.items = [...items];
+  }
 
   resetToInitial(): void {
-    this.items = [...INITIAL_MODERATION_ITEMS];
+    this.items = [];
+  }
+
+  async getModerationItemsAsync(filter?: {
+    status?: ModerationStatus;
+    contentType?: ModerationContentType;
+    search?: string;
+    hskLevel?: number;
+  }): Promise<ModerationItem[]> {
+    if (this.items.length > 0) {
+      return this.getModerationItems(filter);
+    }
+    try {
+      const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+      const token = authTokenService.getAccessToken();
+      const res = await fetch(`${base}/content/lessons/readiness`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return (data || []).map((l: any) => ({
+          id: l.id || `mod-${l.lessonId}`,
+          contentId: l.lessonId || l.id,
+          contentType: 'CURRICULUM_LESSON',
+          title: l.titleZh || l.titleVi || 'Bài học HSK',
+          hskLevel: l.hskLevel || 1,
+          authorName: 'Giảng viên',
+          authorRole: 'TEACHER',
+          status: (l.status === 'Draft' ? 'DRAFT' : l.status === 'Published' ? 'PUBLISHED' : 'PENDING_REVIEW') as ModerationStatus,
+          priority: 'MEDIUM',
+          version: 1,
+          submittedAt: l.createdAt || new Date().toISOString(),
+          updatedAt: l.updatedAt || new Date().toISOString(),
+          changesSummary: l.readinessSummary || 'Học liệu cần kiểm duyệt nội dung',
+          previewData: { title: l.titleZh || l.titleVi || '' },
+        }));
+      }
+    } catch {
+      // ignore
+    }
+    return [];
   }
 
   getModerationItems(filter?: {

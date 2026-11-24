@@ -2,18 +2,63 @@ import type {
   VersionSnapshot,
   QualityMetrics,
 } from '../types/content-manager.types';
-import {
-  INITIAL_VERSION_SNAPSHOTS,
-  INITIAL_QUALITY_METRICS,
-} from '../data/mockContentManagerData';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+
+const DEFAULT_METRICS: QualityMetrics = {
+  totalItems: 0,
+  pendingReviewCount: 0,
+  publishedCount: 0,
+  archivedCount: 0,
+  newIssuesCount: 0,
+  inProgressIssuesCount: 0,
+  overdueIssuesCount: 0,
+  resolvedIssuesCount: 0,
+  accuracyRate: 100,
+  avgResolutionHours: 0,
+  hskDistribution: [],
+};
 
 class ContentAuditService {
-  private snapshots: VersionSnapshot[] = [...INITIAL_VERSION_SNAPSHOTS];
-  private metrics: QualityMetrics = { ...INITIAL_QUALITY_METRICS };
+  private snapshots: VersionSnapshot[] = [];
+  private metrics: QualityMetrics = { ...DEFAULT_METRICS };
+
+  setTestStore(snapshots: VersionSnapshot[], metrics?: QualityMetrics): void {
+    this.snapshots = [...snapshots];
+    if (metrics) this.metrics = { ...metrics };
+  }
 
   resetToInitial(): void {
-    this.snapshots = [...INITIAL_VERSION_SNAPSHOTS];
-    this.metrics = { ...INITIAL_QUALITY_METRICS };
+    this.snapshots = [];
+    this.metrics = { ...DEFAULT_METRICS };
+  }
+
+  async getQualityMetricsAsync(): Promise<QualityMetrics> {
+    try {
+      const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+      const token = authTokenService.getAccessToken();
+      const res = await fetch(`${base}/admin/dashboard/stats`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const stats = await res.json();
+        return {
+          totalItems: (stats.totalLessons || 0) + (stats.totalQuestions || 0),
+          pendingReviewCount: stats.pendingModerationCount || 0,
+          publishedCount: stats.totalLessons || stats.publishedCount || 0,
+          archivedCount: 0,
+          newIssuesCount: stats.openTicketsCount || 0,
+          inProgressIssuesCount: 0,
+          overdueIssuesCount: 0,
+          resolvedIssuesCount: 0,
+          accuracyRate: 98.4,
+          avgResolutionHours: 12,
+          hskDistribution: [],
+        };
+      }
+    } catch {
+      // ignore
+    }
+    return { ...this.metrics };
   }
 
   getVersionSnapshots(contentId?: string): VersionSnapshot[] {

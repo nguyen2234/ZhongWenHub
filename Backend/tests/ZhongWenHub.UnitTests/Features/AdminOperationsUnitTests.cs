@@ -8,9 +8,9 @@ using Xunit;
 using ZhongWenHub.Features.Admin;
 using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.AI;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.AI;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 
 namespace ZhongWenHub.Common.AI;
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Data.Entities.AI;
+namespace ZhongWenHub.Models.AI;
 
 public class AiConversationSession : BaseEntity
 {

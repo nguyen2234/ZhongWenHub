@@ -121,7 +121,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
             bool hasDraft = await db.Vocabularies.AnyAsync(v => v.Status == "DRAFT");
             if (!hasDraft)
             {
-                var tempDraft = new ZhongWenHub.Data.Entities.Content.VocabularyEntity
+                var tempDraft = new ZhongWenHub.Models.Content.VocabularyEntity
                 {
                     Id = Guid.NewGuid(),
                     HskLevel = 1,
@@ -380,7 +380,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
             var anyCourse = await db.Courses.FirstAsync();
             var anyUnit = await db.Units.FirstAsync(u => u.CourseId == anyCourse.Id);
 
-            db.Lessons.Add(new ZhongWenHub.Data.Entities.Content.LessonEntity
+            db.Lessons.Add(new ZhongWenHub.Models.Content.LessonEntity
             {
                 Id = probeLessonId,
                 CourseId = anyCourse.Id,
@@ -393,7 +393,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
                 CreatedAt = DateTime.UtcNow,
             });
 
-            db.Exercises.Add(new ZhongWenHub.Data.Entities.Content.ExerciseEntity
+            db.Exercises.Add(new ZhongWenHub.Models.Content.ExerciseEntity
             {
                 Id = probeExerciseId,
                 LessonId = probeLessonId,

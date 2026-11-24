@@ -1,29 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using ZhongWenHub;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.IntegrationTests;
+namespace ZhongWenHub.Tools.OpenApiBaselineGenerator;
 
-[Trait("Category", "BaselineGenerator")]
-public class OpenApiBaselineGenerator
+public class Program
 {
     private static readonly string TestConnectionString =
         Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING")
         ?? "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
-    private sealed class GeneratorSwaggerAppFactory : WebApplicationFactory<Program>
+    private sealed class GeneratorSwaggerAppFactory : WebApplicationFactory<ZhongWenHub.Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
+            var contentRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "src", "ZhongWenHub.Api"));
+            if (!Directory.Exists(contentRoot))
+            {
+                contentRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "src", "ZhongWenHub.Api"));
+            }
+            if (Directory.Exists(contentRoot))
+            {
+                builder.UseContentRoot(contentRoot);
+            }
             builder.UseSetting("JwtSettings:Secret", "ZhongWenHub_IntegrationTest_Super_Secret_Key_32_Bytes_Long_2026!");
             builder.UseSetting("ConnectionStrings:DefaultConnection", TestConnectionString);
             builder.UseSetting("Database:AutoMigrate", "false");
@@ -47,15 +57,18 @@ public class OpenApiBaselineGenerator
         }
     }
 
-    [Fact]
-    [Trait("Category", "BaselineGenerator")]
-    public async Task GenerateOpenApiBaseline()
+    public static async Task<int> Main(string[] args)
     {
+        Console.WriteLine("==> Initializing Generator WebApplicationFactory in Development mode...");
         using var factory = new GeneratorSwaggerAppFactory();
         var client = factory.CreateClient();
 
         var response = await client.GetAsync("/swagger/v1/swagger.json");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            Console.Error.WriteLine($"Failed to retrieve /swagger/v1/swagger.json, status code: {response.StatusCode}");
+            return 1;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
@@ -65,35 +78,39 @@ public class OpenApiBaselineGenerator
         var routeList = new List<string>();
         var totalOperations = 0;
 
-        foreach (var pathProp in paths.EnumerateObject())
+        foreach (var path in paths.EnumerateObject())
         {
-            var pathKey = pathProp.Name;
-            foreach (var methodProp in pathProp.Value.EnumerateObject())
+            var pathKey = path.Name;
+            foreach (var method in path.Value.EnumerateObject())
             {
-                var httpMethod = methodProp.Name.ToUpperInvariant();
-                totalOperations++;
-                var op = methodProp.Value;
-                var opId = op.TryGetProperty("operationId", out var idProp) ? idProp.GetString() : "";
-                var tag = "Default";
+                var httpMethod = method.Name.ToUpperInvariant();
+                var op = method.Value;
+                var opId = op.TryGetProperty("operationId", out var oid) ? oid.GetString() : "";
+                var tag = "Unknown";
                 if (op.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array && tags.GetArrayLength() > 0)
                 {
                     tag = tags[0].GetString() ?? "Unknown";
                 }
                 var summary = op.TryGetProperty("summary", out var sm) ? sm.GetString() : "";
                 routeList.Add($"{httpMethod,-7} {pathKey,-60} [{tag}] ({opId}) {summary}".Trim());
+                totalOperations++;
             }
         }
         routeList.Sort();
 
-        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs"));
+        var currentDir = AppContext.BaseDirectory;
+        var docsDir = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "docs"));
         if (!Directory.Exists(docsDir))
         {
-            docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
+            docsDir = Path.GetFullPath(Path.Combine(currentDir, "..", "..", "..", "..", "..", "docs"));
         }
-        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
-        var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
+        if (!Directory.Exists(docsDir))
+        {
+            Directory.CreateDirectory(docsDir);
+        }
 
-        Assert.True(Directory.Exists(docsDir), $"Docs directory not found at {docsDir}");
+        var jsonPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.json");
+        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
 
         await File.WriteAllTextAsync(jsonPath, json);
 
@@ -109,7 +126,7 @@ public class OpenApiBaselineGenerator
             }
         }
 
-        Assert.True(File.Exists(txtPath));
-        Assert.True(File.Exists(jsonPath));
+        Console.WriteLine($"==> Successfully generated baseline for {totalOperations} operations into {docsDir}");
+        return 0;
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ZhongWenHub.Common.DTOs;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Common.Api;
 
 [ApiController]
 [Route("api/v1/[controller]")]

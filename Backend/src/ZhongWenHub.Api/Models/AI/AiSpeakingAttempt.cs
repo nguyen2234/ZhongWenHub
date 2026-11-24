@@ -1,7 +1,7 @@
 using System;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 
-namespace ZhongWenHub.Data.Entities.AI;
+namespace ZhongWenHub.Models.AI;
 
 public class AiSpeakingAttempt : BaseEntity
 {

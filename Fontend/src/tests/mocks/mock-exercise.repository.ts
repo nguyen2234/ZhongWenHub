@@ -1,4 +1,4 @@
-import { PRACTICE_EXERCISE_POOL } from '../../features/practice/data/mockPracticeData';
+import { PRACTICE_EXERCISE_POOL } from './mockPracticeData';
 import type { SharedExerciseItem, MatchingPair } from '../../features/exercise-engine/types';
 import { MOCK_LESSON_8_DRAFT } from '../../management/admin/content/data/mockLessonEditorData';
 import type {

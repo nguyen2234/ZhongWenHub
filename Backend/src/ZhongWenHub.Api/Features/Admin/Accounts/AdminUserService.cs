@@ -14,7 +14,7 @@ using ZhongWenHub.Features.Admin.Users.DTOs;
 
 using ZhongWenHub.Data.Constants;
 
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 
 using ZhongWenHub.Data.Persistence;
 

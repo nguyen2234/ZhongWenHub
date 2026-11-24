@@ -7,7 +7,7 @@ import {
   PRACTICE_EXERCISE_POOL,
   MOCK_RECOMMENDATION,
   MOCK_MISTAKE_RECORDS,
-} from '../features/practice/data/mockPracticeData';
+} from './mocks/mockPracticeData';
 
 describe('FE-9: Practice & Grammar UX Redesign Suite', () => {
   describe('1. Practice Center Architecture & Metadata Integrity', () => {

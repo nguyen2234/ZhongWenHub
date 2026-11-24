@@ -8,8 +8,8 @@ using Xunit;
 using ZhongWenHub.Features.AI;
 using ZhongWenHub.Features.AI.Services.Competency;
 using ZhongWenHub.Features.AI.Services.Recommendation;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests.AILearning;

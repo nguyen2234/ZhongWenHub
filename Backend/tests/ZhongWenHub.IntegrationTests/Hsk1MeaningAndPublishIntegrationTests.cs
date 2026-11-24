@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Content.DTOs;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 

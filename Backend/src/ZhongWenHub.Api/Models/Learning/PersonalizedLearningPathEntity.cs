@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Data.Entities.Learning;
+namespace ZhongWenHub.Models.Learning;
 
 public class PersonalizedLearningPathEntity : BaseEntity
 {

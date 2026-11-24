@@ -2,7 +2,7 @@ using System;
 using Xunit;
 using ZhongWenHub.Features.Student.Learning;
 using ZhongWenHub.Features.Student.Learning.DTOs;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Learning;
 
 namespace ZhongWenHub.UnitTests;
 

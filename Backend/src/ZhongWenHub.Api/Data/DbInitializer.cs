@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.Content;
 namespace ZhongWenHub.Data.Persistence;
 
 public static class DbInitializer

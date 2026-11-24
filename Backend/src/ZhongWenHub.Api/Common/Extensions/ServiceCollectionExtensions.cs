@@ -12,7 +12,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using ZhongWenHub.Data;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 using ZhongWenHub.Common.Auth;
 using ZhongWenHub.Features.Auth;
 

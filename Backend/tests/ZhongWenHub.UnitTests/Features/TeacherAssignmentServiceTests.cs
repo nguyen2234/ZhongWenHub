@@ -9,8 +9,8 @@ using ZhongWenHub.Features.Teacher.DTOs;
 using ZhongWenHub.Features.Teacher.Services;
 using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.Teacher;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.Teacher;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;

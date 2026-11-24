@@ -8,7 +8,7 @@ using ZhongWenHub.Features.Student.Learning;
 using ZhongWenHub.Features.Student.Learning.DTOs;
 using ZhongWenHub.Features.Admin.Users;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Student.Learning;
 
 [Authorize]
 [ApiController]

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Xunit;
 using ZhongWenHub.Data.Persistence;
 using ZhongWenHub.Api.Features.Support.DTOs;
-using ZhongWenHub.Api.Features.Support.Entities;
+using ZhongWenHub.Models.Support;
 using ZhongWenHub.Api.Features.Support.Services;
 
 namespace ZhongWenHub.Tests.Features;

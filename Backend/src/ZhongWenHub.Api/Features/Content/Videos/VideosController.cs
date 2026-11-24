@@ -13,9 +13,9 @@ using ZhongWenHub.Features.Content;
 using ZhongWenHub.Features.Content.DTOs;
 using ZhongWenHub.Features.Content.Services.Storage;
 using ZhongWenHub.Data.Constants;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Content.Videos;
 
 [ApiController]
 [Route("api/v1/[controller]")]

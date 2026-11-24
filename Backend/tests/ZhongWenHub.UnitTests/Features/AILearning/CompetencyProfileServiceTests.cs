@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using ZhongWenHub.Features.AI.Services.Competency;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.AI;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.AI;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests.AILearning;

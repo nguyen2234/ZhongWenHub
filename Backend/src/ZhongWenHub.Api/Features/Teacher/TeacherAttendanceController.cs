@@ -11,7 +11,7 @@ using ZhongWenHub.Common.DTOs;
 using ZhongWenHub.Features.Teacher.DTOs;
 using ZhongWenHub.Features.Teacher.Services;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Teacher;
 
 [ApiController]
 [Route("api/v1/teacher/classes/{classId:guid}/attendance")]

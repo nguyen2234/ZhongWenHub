@@ -15,7 +15,7 @@ using ZhongWenHub.Features.Content;
 using ZhongWenHub.Features.Content.DTOs;
 using ZhongWenHub.Features.Content.Helpers;
 using ZhongWenHub.Features.Content.Services.Storage;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.UnitTests;

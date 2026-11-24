@@ -4,7 +4,7 @@ using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Features.Admin.Users.DTOs;
 using ZhongWenHub.Data.Constants;
 
-namespace ZhongWenHub.Api.Controllers;
+namespace ZhongWenHub.Features.Admin.Analytics;
 
 [ApiController]
 [Route("api/v1/admin/dashboard")]

@@ -1,6 +1,6 @@
-using ZhongWenHub.Data.Entities;
+using ZhongWenHub.Models.Users;
 
-namespace ZhongWenHub.Data.Entities.Content;
+namespace ZhongWenHub.Models.Content;
 
 /// <summary>
 /// Persists a student's Question Bank practice session so grading, answer privacy,

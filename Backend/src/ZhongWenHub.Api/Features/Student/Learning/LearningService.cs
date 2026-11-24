@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ZhongWenHub.Features.Student.Learning.DTOs;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.Features.Student.Learning;

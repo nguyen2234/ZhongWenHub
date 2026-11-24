@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 
 namespace ZhongWenHub.Features.Content.QuestionBank.Helpers;
 

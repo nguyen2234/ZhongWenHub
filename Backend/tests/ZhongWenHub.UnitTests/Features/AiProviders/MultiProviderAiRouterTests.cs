@@ -9,9 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZhongWenHub.Common.AI;
+using ZhongWenHub.Features.Admin.AiProviders;
 using ZhongWenHub.Data;
 using ZhongWenHub.Data.Persistence;
-using ZhongWenHub.Data.Entities.AI;
+using ZhongWenHub.Models.AI;
 using ZhongWenHub.Features.admin.AiProviders;
 using ZhongWenHub.Features.admin.AiProviders.DTO;
 

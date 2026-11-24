@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Features.Content.DTOs;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
