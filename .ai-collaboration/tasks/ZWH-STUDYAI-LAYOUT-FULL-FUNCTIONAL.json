@@ -1,15 +1,15 @@
 {
   "schema_version": "1.0.0",
   "task_id": "ZWH-STUDYAI-LAYOUT-FULL-FUNCTIONAL",
-  "title": "Adopt STUDY_AI modular-monolith layout and restore all real full-stack flows",
-  "description": "Starting from PR #34 head bf8c365, repair EF migrations/routes/contracts, move the single API into Backend/src/ZhongWenHub.Api, split unit and integration test projects under Backend/tests, normalize feature ownership, keep local security simple, remove production mock fallbacks, and verify every Admin, Content Manager, Teacher, Support and Student flow against real APIs and isolated SQL Server.",
+  "title": "Adopt STUDY_AI single-project feature layout, retire four skills, and restore real flows",
+  "description": "Starting from PR #34 head bf8c365, adopt the STUDY_AI-style single deployable API with feature folders (never separate Api/Business/Data projects), safely retire the standalone Listening/Speaking/Reading/Writing modules, repair EF migrations/routes/contracts, split unit and integration tests, remove production mock fallbacks, and verify every remaining Admin, Content Manager, Teacher, Support and Student flow against real APIs and isolated SQL Server.",
   "project": "ZhongWenHub",
   "phase": "Reference-layout migration and full functional acceptance",
   "owner": "Codex",
   "reviewer": "Codex",
   "executor": "Antigravity",
   "status": "PENDING",
-  "revision": 1,
+  "revision": 2,
   "issue_number": 34,
   "expected_branch": "refactor/simple-feature-backend-multiprovider-fe-fixes",
   "source_commit": "bf8c365f10620955df924bfde73c7e9c216e5a4a",
@@ -31,6 +31,19 @@
     "Backend/ZhongWenHub.sln",
     ".github/workflows/backend-tests.yml"
   ],
+  "architecture_decisions": [
+    "Use one deployable backend project at Backend/src/ZhongWenHub.Api, matching the reference repository's StudyAI.Api shape",
+    "Do not create separate Api, Business or Data class-library projects",
+    "Keep Data as an internal folder for ApplicationDbContext and initialization only",
+    "Co-locate controller, DTO, validation, service and feature-specific persistence behavior under Features/<Feature>",
+    "Use the reference repository for folder/navigation principles only; do not copy its domain code"
+  ],
+  "retired_features": [
+    "Standalone Listening skill module and /skills/listening",
+    "Standalone Speaking skill module and /skills/speaking plus legacy /speaking",
+    "Standalone Reading skill module and /skills/reading",
+    "Standalone Writing skill module and /skills/writing"
+  ],
   "known_blockers": [
     "EF migrations target ApplicationDbContext while runtime migration uses AppDbContext",
     "AddMultiProviderAiConfigurations designer and model snapshot are incomplete",
@@ -38,10 +51,12 @@
     "Swagger integration test rewrites its own route baseline",
     "Active AI bridge scripts reference removed backend paths",
     "CI does not provision SQL Server or enforce integration tests",
-    "Frontend production flows require a zero-mock real-API audit"
+    "Frontend production flows require a zero-mock real-API audit",
+    "Retired skill routes, navigation, mock fixtures, deep links and exclusive speaking services remain active"
   ],
   "acceptance_criteria": [
     "Exactly one production API project, one unit-test project and one integration-test project exist under Backend",
+    "No separate Api, Business or Data production project exists; Data is only an internal folder of ZhongWenHub.Api",
     "The production project is Backend/src/ZhongWenHub.Api/ZhongWenHub.Api.csproj",
     "ApplicationDbContext is the only real EF context used by runtime, Identity, migrations and tests",
     "Fresh and upgrade migration paths pass on disposable SQL Server without manual DDL",
@@ -53,6 +68,9 @@
     "Production has no MockAIProvider, fake LLM success, static admin success data or silent API fallback",
     "Admin Multi-Provider AI CRUD, testing, priorities, masking, usage and failover work with real persistence",
     "Admin, Content Manager, Teacher, Support and Student frontend flows use real APIs and persist after reload",
+    "Listening, Speaking, Reading and Writing standalone routes, navigation, pages, mocks and exclusive runtime APIs are removed",
+    "Legacy skill URLs redirect to /practice while shared lesson reading/listening content, audio/video playback and general AI Tutor remain functional",
+    "Historical migrations and existing skill data are preserved; retirement introduces no table drop or destructive data migration",
     "Backend CI provisions isolated SQL Server and executes integration tests",
     "Backend unit/integration tests, frontend lint/tests/build and role Playwright flows pass",
     "ZhongWenHub_Dev remains unchanged under zero-write policy"
@@ -64,10 +82,13 @@
     "Never commit real JWT secrets, provider keys, email credentials or database passwords",
     "Never expose provider keys in API responses or logs",
     "Do not copy domain code or fake providers from the reference repository",
+    "Do not create separate Api, Business or Data class-library projects",
+    "Do not delete historical migrations, drop retired-skill tables or erase existing user data",
+    "Do not remove shared lesson text/audio/video capabilities based only on skill-related names",
     "Do not introduce microservices, MediatR, CQRS, generic repositories, custom UnitOfWork or enterprise permission infrastructure",
     "Do not force-push or merge directly to main",
     "Do not claim blocked, skipped or unexecuted tests as passed"
   ],
   "created_at": "2026-11-23T00:00:00+07:00",
-  "updated_at": "2026-11-23T00:00:00+07:00"
+  "updated_at": "2026-11-24T00:00:00+07:00"
 }

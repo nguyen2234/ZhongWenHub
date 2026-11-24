@@ -1,4 +1,4 @@
-# Antigravity plan: STUDY_AI-style modular monolith layout and full functional recovery
+# Antigravity plan: STUDY_AI-style single-project feature layout and full functional recovery
 
 ## 1. Execution contract
 
@@ -7,7 +7,7 @@
 - Existing review: Draft PR #34
 - Layout reference only: `hthuyngan/STUDY_AI-`, branch `feature/backend-redesign-modular-monolith`, inspected at commit `16593c0`
 - Executor: Antigravity
-- Goal: reorganize ZhongWenHub into the same easy-to-navigate modular-monolith shape as the reference repository, repair all known backend/frontend blockers, and demonstrate that every supported role flow uses real APIs and persists correctly.
+- Goal: reorganize ZhongWenHub into the same easy-to-navigate, single-project feature layout as the reference repository, retire the four standalone skill modules, repair all known backend/frontend blockers, and demonstrate that every remaining supported role flow uses real APIs and persists correctly.
 - Database rule: `ZhongWenHub_Dev` is read-only. All migrations, seeds, CRUD tests, imports, uploads, grading, AI-provider tests, and E2E writes must use `ZhongWenHub_Test` or a disposable database.
 
 The reference repository is a naming and folder-layout guide, not a source-code donor. Do not copy its domain classes, fake LLM behavior, custom password stack, or unrelated services into ZhongWenHub.
@@ -15,6 +15,8 @@ The reference repository is a naming and folder-layout guide, not a source-code 
 Do not merge PR #34 into `main` before this plan is complete and independently reviewed.
 
 ## 2. Required target layout
+
+This architecture decision is mandatory: **do not split the backend into separate `Api`, `Business` and `Data` projects/layers**. The reference repository uses one deployable API project at `backend/src/StudyAI.Api`; ZhongWenHub must likewise use one deployable project at `Backend/src/ZhongWenHub.Api`. `Data/` below is only an internal folder for EF Core infrastructure, not a class-library project. Business behavior belongs with its owning feature under `Features/<FeatureName>`.
 
 ```text
 Backend/
@@ -56,6 +58,22 @@ Backend/
 
 Final project count under `Backend`: exactly three `.csproj` files — one production API, one unit-test project, and one integration-test project.
 
+The reference shape to copy is the navigation/layout principle only:
+
+```text
+single API project
+├── Common/                 # genuinely cross-cutting code only
+├── Data/                   # DbContext/initializer only; not a separate project
+├── Features/<Feature>/     # controller + DTO + service + validation together
+├── Migrations/
+├── Models/                 # persisted/shared entities only
+└── Program.cs
+```
+
+Forbidden target shapes include `Backend/src/Api + Backend/src/Business + Backend/src/Data`, separate Business/Data `.csproj` files, horizontal `Services/Repositories/Controllers` trees spanning all domains, or copying the reference repository's domain implementation.
+
+Keep the repository's current `Backend/` and `Fontend/` root names during this phase to avoid a high-risk case-only/mass path rename. Match the reference repository's internal organization, not its letter casing or unrelated frontend layout. The frontend remains organized by functional feature; only retired skill modules and dead compatibility files are removed.
+
 ## 3. Feature mapping
 
 Move by feature with `git mv`; do not duplicate files and delete later.
@@ -64,7 +82,7 @@ Move by feature with `git mv`; do not duplicate files and delete later.
 |---|---|
 | `Features/admin/Accounts`, `Analytics`, `Operations` | `Features/Admin` |
 | Admin AI-provider controller and management UI contract | `Features/Admin/AiProviders` |
-| AI tutor, learning engine, speech, personalization | `Features/AI` |
+| AI tutor, learning engine and personalization retained after skill retirement | `Features/AI` |
 | Provider adapters, router and provider capability contracts | `Features/AI/Providers` |
 | Authentication, JWT, password-reset delivery | `Features/Auth` |
 | Curriculum, lessons, vocabularies, grammar, question bank, exams and video content management | `Features/Content` |
@@ -80,6 +98,20 @@ Controllers, service/interface pairs, validators and DTOs should be co-located i
 
 Normalize namespaces to the physical layout (`ZhongWenHub.Features.*`, `ZhongWenHub.Common.*`, `ZhongWenHub.Data`, `ZhongWenHub.Models.*`) one feature at a time. Build after each feature move. Preserve public JSON names and HTTP routes; folder and namespace changes must not break the frontend contract.
 
+### 3.1 Approved product-scope reduction: retire four standalone skills
+
+The owner has approved ending development of the four standalone modules **Listening, Speaking, Reading and Writing**. Retire only the dedicated skill products, not ordinary lesson/content capabilities that happen to use text or audio.
+
+| Remove from the supported product | Keep and continue to support |
+|---|---|
+| `/skills/listening`, `/skills/speaking`, legacy `/speaking`, `/skills/reading`, `/skills/writing` pages and route registrations | General lesson playback, video/audio playback and lesson content |
+| Skill navigation entries, dashboard cards, roadmap/deep links and recommendations whose only destination is one of those routes | Lesson reading passages, lesson listening/audio metadata and content-editor fields |
+| `Fontend/src/features/skills` and its production mock data after all imports are removed | Vocabulary, grammar, SRS, general practice, exams, homework and results |
+| Dedicated speaking/pronunciation UI, API client, endpoints and DI registrations that have no remaining caller | General AI Tutor chat, diagnostics and recommendations that do not require a retired skill |
+| Tests that assert the retired product behavior | Migration history, existing database tables/data and shared entities needed to keep the EF model stable |
+
+Do not delete or rewrite historical migrations, drop tables, erase user attempts, or remove shared fields merely because their names contain `listening`, `reading`, `writing`, `speaking`, `speech` or `pronunciation`. If removing an entity mapping would produce a destructive schema change, keep it as clearly marked legacy persistence until a separate owner-approved archival migration. Old skill URLs must redirect to `/practice` during the compatibility period instead of rendering a blank page or 404.
+
 ## 4. Verified blockers that must be repaired
 
 1. `AddMultiProviderAiConfigurations.Designer.cs` has an almost empty target model and `ApplicationDbContextModelSnapshot` does not contain `AiProviderConfiguration`.
@@ -89,6 +121,7 @@ Normalize namespaces to the physical layout (`ZhongWenHub.Features.*`, `ZhongWen
 5. Active `scripts/ai_bridge` files still reference deleted `Backend/src/Api`, `Backend/src/Business`, or old `Backend/tests` projects.
 6. Backend CI does not provision SQL Server or execute integration tests by default, so the reported 479-test result is not independently enforced.
 7. Frontend routes include admin, content-manager, teacher, support and student screens. Each production screen must be audited for static mock stores, fake success, silent catch/fallback, non-persistent mutation, or missing backend endpoint.
+8. Dedicated Listening/Speaking/Reading/Writing routes, navigation entries, mock fixtures, deep links and speaking backend services still exist even though the owner has retired those four products.
 
 ## 5. Implementation phases
 
@@ -118,12 +151,23 @@ Exit gate: all pre-existing failures and unimplemented FE flows are listed befor
 
 Exit gate: EF commands work without manual SQL, no malformed route exists, and adding/removing a route makes the contract test fail.
 
+### R1A — Decommission the four standalone skill modules safely
+
+1. Build a dependency inventory for the five retired URL forms, `Fontend/src/features/skills`, `Fontend/src/features/ai/services/speaking.service.ts`, speaking/pronunciation backend services and endpoints, DI registrations, tests, navigation, dashboard, learning-path links and recommendation data.
+2. Remove the four skill entries from all menus/cards/search and stop advertising them as supported functionality. Replace every active deep link with a relevant remaining flow; add redirects from all retired URLs to `/practice`.
+3. Delete the dedicated skill pages, their mock fixtures and exclusive frontend API client/components only after `rg` proves no production import remains. Do not delete shared lesson, video, audio, content-editor or exercise-engine capabilities without evidence they are exclusive.
+4. Remove exclusive speaking/pronunciation endpoints and runtime DI registrations. Preserve historical migrations and database data. Keep legacy EF mappings when required to avoid an implicit drop; document them as legacy and do not expose new runtime flows.
+5. Update the approved OpenAPI baseline through the explicit generator for intentional endpoint removals; keep the regression test read-only. Remove or rewrite tests that exclusively assert retired behavior, and add route/navigation retirement tests proving absence plus redirect compatibility.
+6. Run FE lint/tests/build and focused backend tests immediately. Record the exact files/endpoints removed and the shared capabilities deliberately retained.
+
+Exit gate: no menu, production page, mock fixture, API call or runtime registration exposes the four retired modules; old links redirect to `/practice`; lessons, videos, general practice and AI Tutor still build and work; no destructive database migration is introduced.
+
 ### R2 — Move the production project into `Backend/src`
 
 1. Use `git mv Backend/ZhongWenHub Backend/src/ZhongWenHub.Api`.
 2. Rename `ZhongWenHub.csproj` to `ZhongWenHub.Api.csproj`; keep the root namespace/API contracts compatible unless a feature is being normalized deliberately.
 3. Update `Backend/ZhongWenHub.sln`, project references, EF commands, launch settings, Docker paths, scripts, workflow paths, README, AGENTS and API guides.
-4. Ensure only one production project exists. Do not recreate separate Business/Data projects.
+4. Ensure only one production project exists. Do not recreate separate `Api`, `Business` or `Data` class-library projects; `Data` remains an internal folder of `ZhongWenHub.Api` only.
 5. Build the API immediately before proceeding to feature moves.
 
 Exit gate: `dotnet build Backend/src/ZhongWenHub.Api/ZhongWenHub.Api.csproj` passes from a clean checkout and no active reference points to `Backend/ZhongWenHub`.
@@ -198,8 +242,9 @@ Audit and repair the following vertical slices. For every mutation, prove succes
 
 #### Student
 
-- Dashboard, learning path, lessons, vocabulary/SRS, grammar, listening/speaking/reading/writing, practice, mock exams, videos, enrolled classes, homework and results.
-- AI tutor, AI exercises, diagnostic assessment, recommendations, speaking and progress persistence use real providers/APIs or show an explicit unavailable state.
+- Dashboard, learning path, lessons, vocabulary/SRS, grammar, general practice, mock exams, videos, enrolled classes, homework and results.
+- AI Tutor, AI exercises, diagnostic assessment, recommendations and progress persistence use real providers/APIs or show an explicit unavailable state. Do not restore the retired Listening/Speaking/Reading/Writing products as part of AI work.
+- No navigation, dashboard, learning-path, recommendation or search result advertises a retired skill route; legacy URLs redirect to `/practice`.
 
 #### Support
 
@@ -261,21 +306,24 @@ Use reviewable commits in this order:
 1. `fix(preflight): repair ef context migrations routes and contract gates`
 2. `refactor(layout): move api into backend src modular monolith`
 3. `refactor(features): normalize feature ownership and namespaces`
-4. `test(layout): split unit and integration test projects`
-5. `fix(fullstack): complete real api role flows and remove mock fallbacks`
-6. `build(ci): align sql integration docker scripts and documentation`
-7. `test(acceptance): verify backend frontend migrations and role e2e`
+4. `refactor(scope): retire standalone skill modules without destructive data changes`
+5. `test(layout): split unit and integration test projects`
+6. `fix(fullstack): complete real api role flows and remove mock fallbacks`
+7. `build(ci): align sql integration docker scripts and documentation`
+8. `test(acceptance): verify backend frontend migrations and role e2e`
 
 Update Draft PR #34 with these commits. Do not force-push, merge to `main`, squash away the existing P0–C6 history, or create a second parallel implementation containing the same source files.
 
 ## 7. Definition of done
 
 - The target `src/ZhongWenHub.Api` plus split `tests` tree is exact and contains only three backend projects.
+- There are no separate production `Api`, `Business` or `Data` projects; feature behavior is co-located under the single API project's `Features` tree.
 - A single `ApplicationDbContext` owns runtime, Identity, EF migrations and test migration execution.
 - No manual SQL is needed for fresh or upgrade databases.
-- All API routes and JSON contracts used by the frontend remain compatible; known malformed routes are fixed.
+- All API routes and JSON contracts used by the remaining frontend flows stay compatible; known malformed routes are fixed and intentionally retired skill URLs redirect to `/practice`.
 - All role portals use real APIs with persistent data and honest loading/empty/error states.
 - Production contains no mock data provider or fake-success fallback.
+- The four standalone skill modules are absent from production navigation/routes/runtime APIs, legacy URLs redirect to `/practice`, and shared lesson/audio/video capabilities plus historical database data remain intact.
 - Simple local Identity/JWT/RBAC and ownership checks work without enterprise security additions.
 - Backend unit/integration tests, frontend lint/tests/build, and role E2E pass in CI or are honestly reported as blocked.
 - `ZhongWenHub_Dev` remains unchanged.
