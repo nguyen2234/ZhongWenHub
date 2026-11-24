@@ -27,7 +27,6 @@ public class AILearningEngineController : BaseApiController
     private readonly ICompetencyProfileService _competencyService;
     private readonly IRecommendationEngineV2 _recommendationEngineV2;
     private readonly IDiagnosticAssessmentService _diagnosticService;
-    private readonly IAISpeakingService _speakingService;
     private readonly ICurrentUserService _currentUserService;
 
     public AILearningEngineController(
@@ -38,7 +37,6 @@ public class AILearningEngineController : BaseApiController
         ICompetencyProfileService competencyService,
         IRecommendationEngineV2 recommendationEngineV2,
         IDiagnosticAssessmentService diagnosticService,
-        IAISpeakingService speakingService,
         ICurrentUserService currentUserService)
     {
         _conversationService = conversationService;
@@ -48,7 +46,6 @@ public class AILearningEngineController : BaseApiController
         _competencyService = competencyService;
         _recommendationEngineV2 = recommendationEngineV2;
         _diagnosticService = diagnosticService;
-        _speakingService = speakingService;
         _currentUserService = currentUserService;
     }
 
@@ -415,112 +412,6 @@ public class AILearningEngineController : BaseApiController
         var result = await _diagnosticService.GetLatestResultAsync(userId.Value, cancellationToken);
         return Ok(result);
     }
-
-    // ==================== SPEAKING PRACTICE ====================
-
-    [HttpGet("speaking/items")]
-    [ProducesResponseType(typeof(List<SpeakingPracticeItemDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSpeakingItems(
-        [FromQuery] int hskLevel = 1,
-        [FromQuery] string type = "WORD",
-        CancellationToken cancellationToken = default)
-    {
-        var items = await _speakingService.GetPracticeItemsAsync(hskLevel, type, cancellationToken);
-        return Ok(items);
-    }
-
-    [HttpPost("speaking/submit")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(SpeakingAssessmentResultDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> SubmitSpeakingPractice(
-        [FromForm] SubmitSpeakingPracticeFormRequest form,
-        CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (!userId.HasValue) return Unauthorized();
-
-        try
-        {
-            Stream? audioStream = null;
-            if (form.Audio != null && form.Audio.Length > 0)
-            {
-                audioStream = form.Audio.OpenReadStream();
-            }
-
-            var dto = new SubmitSpeakingPracticeDto
-            {
-                PracticeType = form.PracticeType,
-                HskLevel = form.HskLevel,
-                TargetTextZh = form.TargetTextZh,
-                TargetPinyin = form.TargetPinyin,
-                TargetMeaningVi = form.TargetMeaningVi,
-                DirectText = form.DirectText,
-                AudioDurationSeconds = form.AudioDurationSeconds
-            };
-
-            var result = await _speakingService.SubmitPracticeAsync(userId.Value, dto, audioStream, form.Audio?.ContentType, cancellationToken);
-            return Ok(result);
-        }
-        catch (AITutorException ex)
-        {
-            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
-        }
-    }
-
-    [HttpPost("speaking/submit-json")]
-    [Consumes("application/json")]
-    [ProducesResponseType(typeof(SpeakingAssessmentResultDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> SubmitSpeakingPracticeJson(
-        [FromBody] SubmitSpeakingPracticeDto request,
-        CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (!userId.HasValue) return Unauthorized();
-
-        try
-        {
-            var result = await _speakingService.SubmitPracticeAsync(userId.Value, request, null, null, cancellationToken);
-            return Ok(result);
-        }
-        catch (AITutorException ex)
-        {
-            return ProblemDetailsResult(ex.StatusCode, ex.Title, ex.Message);
-        }
-    }
-
-    [HttpGet("speaking/history")]
-    [ProducesResponseType(typeof(List<SpeakingAssessmentResultDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSpeakingHistory(
-        [FromQuery] int limit = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var userId = _currentUserService.UserId;
-        if (!userId.HasValue) return Unauthorized();
-
-        return Ok(await _speakingService.GetHistoryAsync(userId.Value, limit, cancellationToken));
-    }
-
-    [HttpGet("speaking/stats")]
-    [ProducesResponseType(typeof(SpeakingStatsDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSpeakingStats(CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (!userId.HasValue) return Unauthorized();
-
-        return Ok(await _speakingService.GetStatsAsync(userId.Value, cancellationToken));
-    }
-}
-
-public sealed class SubmitSpeakingPracticeFormRequest
-{
-    public string PracticeType { get; set; } = "WORD";
-    public int HskLevel { get; set; } = 1;
-    public string TargetTextZh { get; set; } = string.Empty;
-    public string? TargetPinyin { get; set; }
-    public string? TargetMeaningVi { get; set; }
-    public string? DirectText { get; set; }
-    public int AudioDurationSeconds { get; set; }
-    public IFormFile? Audio { get; set; }
 }
 
 public sealed class SendConversationAudioFormRequest

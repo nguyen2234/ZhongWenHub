@@ -1,6 +1,6 @@
 ﻿ZhongWenHub Runtime OpenAPI Route Baseline (P0)
-Total Operations: 271
-Captured At: 2026-11-23T03:05:38.1075283Z
+Total Operations: 266
+Captured At: 2026-11-24T14:23:34.7137330Z
 
 DELETE  /api/v1/admin/ai-providers/{id}                              [AiProviders] ()
 DELETE  /api/v1/admin/exercises/{id}                                 [Content] ()
@@ -52,9 +52,6 @@ GET     /api/v1/ai/error-analysis                                    [AILearning
 GET     /api/v1/ai/exercises                                         [AILearningEngine] ()
 GET     /api/v1/ai/recommendations                                   [AILearningEngine] ()
 GET     /api/v1/ai/recommendations/v2                                [AILearningEngine] ()
-GET     /api/v1/ai/speaking/history                                  [AILearningEngine] ()
-GET     /api/v1/ai/speaking/items                                    [AILearningEngine] ()
-GET     /api/v1/ai/speaking/stats                                    [AILearningEngine] ()
 GET     /api/v1/auth/me                                              [Auth] ()
 GET     /api/v1/content/characters                                   [Content] ()
 GET     /api/v1/content/characters/{id}                              [Content] ()
@@ -169,8 +166,6 @@ POST    /api/v1/ai/error-analysis/explain                            [AILearning
 POST    /api/v1/ai/exercises/{exerciseId}/attempts                   [AILearningEngine] ()
 POST    /api/v1/ai/exercises/adaptive/session                        [AILearningEngine] ()
 POST    /api/v1/ai/exercises/generate                                [AILearningEngine] ()
-POST    /api/v1/ai/speaking/submit                                   [AILearningEngine] ()
-POST    /api/v1/ai/speaking/submit-json                              [AILearningEngine] ()
 POST    /api/v1/auth/forgot-password                                 [Auth] ()
 POST    /api/v1/auth/login                                           [Auth] ()
 POST    /api/v1/auth/logout                                          [Auth] ()

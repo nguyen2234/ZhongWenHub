@@ -210,8 +210,6 @@ public class Program
         services.AddScoped<IDiagnosticAssessmentService, DiagnosticAssessmentService>();
         services.AddScoped<ZhongWenHub.Business.AILearning.Services.LearningPath.ILearningPathService, ZhongWenHub.Business.AILearning.Services.LearningPath.LearningPathService>();
         services.AddScoped<ISpeechRecognitionService, GeminiSpeechRecognitionService>();
-        services.AddScoped<IAIPronunciationService, AIPronunciationService>();
-        services.AddScoped<IAISpeakingService, AISpeakingService>();
 
         // Multi-Provider AI Management & Router
         services.AddSingleton<IAiProviderSecretProtector, DataProtectionAiProviderSecretProtector>();

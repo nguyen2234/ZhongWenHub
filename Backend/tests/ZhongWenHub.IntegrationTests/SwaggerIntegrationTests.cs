@@ -238,7 +238,11 @@ public class SwaggerIntegrationTests
         routeList.Sort();
 
         var updateBaseline = string.Equals(Environment.GetEnvironmentVariable("UPDATE_OPENAPI_BASELINE"), "true", StringComparison.OrdinalIgnoreCase);
-        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
+        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs"));
+        if (!Directory.Exists(docsDir))
+        {
+            docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
+        }
         var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
 
         if (updateBaseline && Directory.Exists(docsDir))

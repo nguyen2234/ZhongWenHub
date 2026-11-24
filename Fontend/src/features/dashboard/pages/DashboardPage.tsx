@@ -17,7 +17,6 @@ import {
   Circle,
   GraduationCap,
   Trophy,
-  Headphones,
   Mic,
   Bookmark,
   VideoOff,
@@ -840,16 +839,16 @@ export const DashboardPage: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            {/* Card 3: Luyện nghe phản xạ */}
+            {/* Card 3: Trung tâm Luyện tập */}
             <div
               className="rec-card"
-              onClick={() => navigate('/skills/listening')}
+              onClick={() => navigate('/practice')}
               tabIndex={0}
               role="button"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigate('/skills/listening');
+                  navigate('/practice');
                 }
               }}
             >
@@ -867,7 +866,7 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       justifyContent: 'center',
                     }}
                   >
-                    <Headphones size={18} />
+                    <Dumbbell size={18} />
                   </div>
                   <span
                     style={{
@@ -879,18 +878,18 @@ export const DashboardPage: React.FC<DashboardProps> = ({
                       color: '#6d28d9',
                     }}
                   >
-                    Kỹ năng
+                    Luyện tập
                   </span>
                 </div>
                 <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#172033', margin: '0 0 4px 0' }}>
-                  Luyện nghe hiểu hội thoại
+                  Trung tâm Luyện tập & Đề thi
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
-                  Luyện nghe tốc độ tự nhiên kèm bài tập nối tranh và điền từ khuyết.
+                  Luyện phản xạ với ngân hàng bài tập đa dạng và đề thi thử HSK.
                 </p>
               </div>
               <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#7c3aed' }}>
-                <span>Vào luyện nghe</span>
+                <span>Vào luyện tập</span>
                 <ChevronRight size={14} />
               </div>
             </div>
