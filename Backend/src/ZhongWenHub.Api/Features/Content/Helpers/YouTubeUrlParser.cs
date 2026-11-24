@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace ZhongWenHub.Business.Content.Helpers;
+namespace ZhongWenHub.Features.Content.Helpers;
 
 public static class YouTubeUrlParser
 {

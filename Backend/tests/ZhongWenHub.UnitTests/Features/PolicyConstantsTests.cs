@@ -1,4 +1,4 @@
-using ZhongWenHub.Business.Authorization;
+using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Common.Auth;
 using ZhongWenHub.Data.Constants;
 

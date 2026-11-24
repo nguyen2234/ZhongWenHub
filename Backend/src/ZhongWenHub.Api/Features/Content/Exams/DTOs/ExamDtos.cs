@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Business.Exams.DTOs;
+namespace ZhongWenHub.Features.Content.Exams.DTOs;
 
 public class ExamQuestionItemDto
 {

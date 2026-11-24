@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Authentication;
+namespace ZhongWenHub.Features.Auth;
 
 public class AuthService : IAuthService
 {

@@ -1,7 +1,7 @@
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.QuestionBank.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.QuestionBank.DTOs;
 
-namespace ZhongWenHub.Business.QuestionBank;
+namespace ZhongWenHub.Features.Content.QuestionBank;
 
 public interface IQuestionBankService
 {

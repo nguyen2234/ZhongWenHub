@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 public class VideoStorageCleanupWorker : BackgroundService
 {

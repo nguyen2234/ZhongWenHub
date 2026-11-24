@@ -2,15 +2,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using ZhongWenHub.Business.AILearning;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AILearning.Services.Competency;
-using ZhongWenHub.Business.AILearning.Services.Diagnostic;
-using ZhongWenHub.Business.AILearning.Services.Recommendation;
-using ZhongWenHub.Business.AILearning.Services.Speech;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI.Services.Competency;
+using ZhongWenHub.Features.AI.Services.Diagnostic;
+using ZhongWenHub.Features.AI.Services.Recommendation;
+using ZhongWenHub.Features.AI.Services.Speech;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Features.Admin.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 

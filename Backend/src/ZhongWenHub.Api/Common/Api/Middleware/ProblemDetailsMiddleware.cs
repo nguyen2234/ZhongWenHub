@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Common.DTOs;
 
 namespace ZhongWenHub.Api.Middleware;
 

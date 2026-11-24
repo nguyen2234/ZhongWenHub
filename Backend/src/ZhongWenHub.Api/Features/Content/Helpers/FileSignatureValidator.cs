@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace ZhongWenHub.Business.Content.Helpers;
+namespace ZhongWenHub.Features.Content.Helpers;
 
 /// <summary>
 /// Validates binary file signatures (Magic Bytes) to verify actual MIME types and prevent spoofing.

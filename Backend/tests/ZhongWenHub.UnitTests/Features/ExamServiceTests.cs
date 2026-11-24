@@ -1,4 +1,4 @@
-using ZhongWenHub.Business.Exams;
+using ZhongWenHub.Features.Content.Exams;
 
 namespace ZhongWenHub.UnitTests;
 

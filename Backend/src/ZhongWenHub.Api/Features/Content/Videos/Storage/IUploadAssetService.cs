@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZhongWenHub.Data.Entities.Content;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 public interface IUploadAssetService
 {

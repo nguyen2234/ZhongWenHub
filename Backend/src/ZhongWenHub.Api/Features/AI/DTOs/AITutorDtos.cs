@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ZhongWenHub.Business.AITutor.DTOs;
+namespace ZhongWenHub.Features.AI.DTOs;
 
 public sealed class AITutorChatRequestDto
 {

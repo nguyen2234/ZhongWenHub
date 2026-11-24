@@ -5,7 +5,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public sealed class GeminiProvider : IAIProvider
 {

@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.AILearning.Services.Competency;
+namespace ZhongWenHub.Features.AI.Services.Competency;
 
 /// <summary>
 /// Configurable Bayesian Knowledge Tracing (BKT) parameters for skill and concept mastery estimation.

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
-using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Features.AI.Services.Competency;
 
 namespace ZhongWenHub.UnitTests.AILearning;
 

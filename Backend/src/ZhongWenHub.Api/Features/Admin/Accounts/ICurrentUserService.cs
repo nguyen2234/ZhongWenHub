@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Users;
+namespace ZhongWenHub.Features.Admin.Users;
 
 public interface ICurrentUserService
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public sealed class AITutorException : Exception
 {

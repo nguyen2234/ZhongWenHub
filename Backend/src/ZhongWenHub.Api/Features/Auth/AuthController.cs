@@ -2,9 +2,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using ZhongWenHub.Business.Authentication;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.Auth;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Features.Admin.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 

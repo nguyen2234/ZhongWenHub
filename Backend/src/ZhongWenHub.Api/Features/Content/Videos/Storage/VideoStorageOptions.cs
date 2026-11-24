@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 public static class VideoStorageProviders
 {

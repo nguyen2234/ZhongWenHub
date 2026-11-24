@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Authorization;
+namespace ZhongWenHub.Common.Authorization;
 
 public static class AuthorizationMarker
 {

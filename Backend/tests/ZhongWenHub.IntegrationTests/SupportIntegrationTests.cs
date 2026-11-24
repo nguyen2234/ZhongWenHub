@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using ZhongWenHub.Api.Features.Support.DTOs;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 

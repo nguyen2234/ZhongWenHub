@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Authentication.DTOs;
+namespace ZhongWenHub.Features.Auth.DTOs;
 
 public class LoginResponseDto
 {

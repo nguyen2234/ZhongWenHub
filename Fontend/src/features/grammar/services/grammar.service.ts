@@ -1,7 +1,6 @@
 import type { GrammarPoint, GrammarExample, GrammarPracticeExercise } from '../types/grammar.types';
 import { MOCK_GRAMMAR_POINTS } from '../mock/mockGrammarData';
 import { httpClient } from '../../../core/api/client/http-client';
-import { defaultApiConfig } from '../../../core/api/client/api-config';
 
 export interface GrammarFilterParams {
   hskLevel?: number | null;
@@ -60,20 +59,6 @@ export class GrammarService {
   static async fetchGrammarPointsAsync(params: GrammarFilterParams = {}): Promise<GrammarListResponse> {
     const page = params.page ?? 1;
     const pageSize = params.pageSize ?? 12;
-
-    // In Bun unit tests environment without network
-    if (defaultApiConfig.useMock && typeof window === 'undefined') {
-      const all = this.getGrammarPoints(params);
-      const start = (page - 1) * pageSize;
-      const paged = all.slice(start, start + pageSize);
-      return {
-        items: paged,
-        totalItems: all.length,
-        totalPages: Math.max(1, Math.ceil(all.length / pageSize)),
-        page,
-        pageSize,
-      };
-    }
 
     const res = await httpClient.get<any>('/content/grammar', {
       params: {

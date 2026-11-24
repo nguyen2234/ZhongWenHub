@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Users.DTOs;
+namespace ZhongWenHub.Features.Admin.Users.DTOs;
 
 public class AdminUserDetailDto : AdminUserListItemDto
 {

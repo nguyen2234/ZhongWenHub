@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 
-namespace ZhongWenHub.Business.Authentication;
+namespace ZhongWenHub.Features.Auth;
 
 public interface IJwtTokenService
 {

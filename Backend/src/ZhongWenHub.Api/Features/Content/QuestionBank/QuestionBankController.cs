@@ -1,10 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.QuestionBank;
-using ZhongWenHub.Business.QuestionBank.DTOs;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.QuestionBank;
+using ZhongWenHub.Features.Content.QuestionBank.DTOs;
 
 namespace ZhongWenHub.Api.Controllers;
 

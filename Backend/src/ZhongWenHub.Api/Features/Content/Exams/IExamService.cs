@@ -1,7 +1,7 @@
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Exams.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.Exams.DTOs;
 
-namespace ZhongWenHub.Business.Exams;
+namespace ZhongWenHub.Features.Content.Exams;
 
 public interface IExamService
 {

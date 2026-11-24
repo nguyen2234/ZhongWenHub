@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AITutor;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AILearning;
+namespace ZhongWenHub.Features.AI;
 
 public interface IPersonalizedLearningService
 {

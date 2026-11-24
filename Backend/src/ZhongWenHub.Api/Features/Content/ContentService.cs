@@ -6,12 +6,12 @@ using ClosedXML.Excel;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Content;
+namespace ZhongWenHub.Features.Content;
 
 public class ContentService : IContentService
 {

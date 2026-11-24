@@ -1,13 +1,22 @@
 // @ts-nocheck
-import { describe, test, expect, beforeEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterAll } from 'bun:test';
 import { adminGrammarService } from '../management/admin/content/services/admin-grammar.service';
 import { adminExerciseService } from '../management/admin/content/services/admin-exercise.service';
+import { repositoryContainer } from '../core/repositories';
+import { MockGrammarRepository } from './mocks/mock-grammar.repository';
+import { MockExerciseRepository } from './mocks/mock-exercise.repository';
 
 describe('FE-10.2: Admin Content Management - Grammar & Exercise Services', () => {
   beforeEach(() => {
-    // Reset services to pristine seeded state
+    // Inject test fixture repositories into container
+    repositoryContainer.setGrammarRepository(new MockGrammarRepository());
+    repositoryContainer.setExerciseRepository(new MockExerciseRepository());
     adminGrammarService.resetToDefault();
     adminExerciseService.resetToDefault();
+  });
+
+  afterAll(() => {
+    repositoryContainer.reset();
   });
 
   describe('1. Admin Grammar Service', () => {

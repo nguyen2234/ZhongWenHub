@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 /// <summary>
 /// Deterministic mock AI provider for automated testing and offline verification when AI:Provider / Gemini:Provider is set to "Mock".

@@ -1,4 +1,4 @@
-using ZhongWenHub.Business.QuestionBank.Helpers;
+using ZhongWenHub.Features.Content.QuestionBank.Helpers;
 using ZhongWenHub.Data.Entities.Content;
 
 namespace ZhongWenHub.UnitTests;

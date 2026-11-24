@@ -7,7 +7,7 @@ import {
   type StudentPracticeQuestionPayload,
 } from '../features/practice/services/practice-question-bank.service';
 import { questionBankService } from '../management/admin/content/services/question-bank.service';
-import { defaultApiConfig } from '../core/api/client/api-config';
+import { httpClient } from '../core/api/client/http-client';
 
 describe('Question Bank Frontend Contract & Privacy Rules', () => {
   test('adaptPracticeQuestionToShared strips answer keys and explanations before submit', () => {
@@ -56,17 +56,33 @@ describe('Question Bank Frontend Contract & Privacy Rules', () => {
     expect(src).toContain('QuestionBankGenerateModal');
   });
 
-  test('questionBankService supports mock-mode server-shaped pagination in unit tests', async () => {
-    const prevMock = defaultApiConfig.useMock;
-    defaultApiConfig.useMock = true;
+  test('questionBankService sends paginated query params to HTTP backend', async () => {
+    const originalGet = httpClient.get;
+    let requestedUrl = '';
+    let requestedParams: any = null;
+    (httpClient as any).get = async (url: string, opts: any) => {
+      requestedUrl = url;
+      requestedParams = opts?.params;
+      return {
+        items: [{ id: 'ex-1', title: 'Test', promptHanzi: '你好', hskLevel: 1, skill: 'vocabulary', type: 'multiple-choice', difficulty: 'EASY', status: 'PUBLISHED' }],
+        totalItems: 1,
+        pageNumber: 1,
+        pageSize: 5,
+        totalPages: 1,
+      };
+    };
+
     try {
       const page = await questionBankService.getQuestionBankPage({ hskLevel: 'ALL' }, 1, 5);
+      expect(requestedUrl).toBe('/question-bank');
+      expect(requestedParams.page).toBe(1);
+      expect(requestedParams.pageSize).toBe(5);
       expect(Array.isArray(page.items)).toBe(true);
+      expect(page.items.length).toBe(1);
       expect(page.pageNumber).toBe(1);
       expect(page.pageSize).toBe(5);
-      expect(page.totalItems).toBeGreaterThanOrEqual(page.items.length);
     } finally {
-      defaultApiConfig.useMock = prevMock;
+      (httpClient as any).get = originalGet;
     }
   });
 

@@ -4,7 +4,7 @@ import { validateTaskRequest, validateStructuredAIResponse } from '../features/a
 import { studentAIService } from '../features/ai/student/services/student-ai.service';
 import { teacherAIService } from '../features/ai/teacher/services/teacher-ai.service';
 import { aiUsageService } from '../features/ai/usage/services/ai-usage.service';
-import { mockAIProviderAdapter } from '../features/ai/core/adapters/mock-ai-provider.adapter';
+import { mockAIProviderAdapter } from './mocks/mock-ai-provider.adapter';
 import type { AITaskRequest } from '../features/ai/core/types/ai-task.types';
 import { authTokenService } from '../core/api/client/auth-token.service';
 
@@ -14,6 +14,7 @@ describe('Phase AI-0 Dual AI Workspace Tests', () => {
   beforeEach(() => {
     globalThis.fetch = originalFetch;
     authTokenService.clearTokens();
+    aiCoreService.setProvider(mockAIProviderAdapter);
   });
 
   afterEach(() => {
@@ -24,6 +25,7 @@ describe('Phase AI-0 Dual AI Workspace Tests', () => {
   afterAll(() => {
     globalThis.fetch = originalFetch;
     authTokenService.clearTokens();
+    aiCoreService.setProvider(null);
   });
 
   it('TEST 01: Core Task Validation rejects invalid input', () => {
@@ -152,5 +154,21 @@ describe('Phase AI-0 Dual AI Workspace Tests', () => {
   it('TEST 25: Cross-role isolation strictly blocked between student and teacher AI tasks', () => {
     const studentTutorAccess = aiUsageService.checkFeatureAccess('STUDENT', 'usr-st-01', 'TEACHER_LESSON_PLANNER' as any);
     expect(studentTutorAccess.allowed).toBe(false);
+  });
+
+  it('TEST 26: Honest MODEL_UNAVAILABLE error when no AI provider adapter configured in production', async () => {
+    aiCoreService.setProvider(null);
+    const validReq: AITaskRequest = {
+      taskId: 'task-no-provider',
+      taskType: 'STUDENT_TUTOR_CHAT',
+      actorId: 'usr-st-01',
+      actorRole: 'STUDENT',
+      payload: { query: 'Hello' },
+      timestamp: new Date().toISOString(),
+    };
+    const response = await aiCoreService.dispatchTask(validReq);
+    expect(response.status).toBe('ERROR');
+    expect(response.error?.code).toBe('MODEL_UNAVAILABLE');
+    expect(response.error?.message).toContain('Dịch vụ AI hiện không khả dụng');
   });
 });

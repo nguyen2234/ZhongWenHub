@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace ZhongWenHub.Business.Authentication;
+namespace ZhongWenHub.Features.Auth;
 
 public class PasswordResetEmailSender : IPasswordResetEmailSender
 {

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 /// <summary>
 /// Thrown when the cleanup table does not yet exist in the database (pending migration).

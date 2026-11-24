@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using ZhongWenHub.Business.Content.Helpers;
+using ZhongWenHub.Features.Content.Helpers;
 
-namespace ZhongWenHub.Business.Content.DTOs;
+namespace ZhongWenHub.Features.Content.DTOs;
 
 public class LearningVideoDto
 {

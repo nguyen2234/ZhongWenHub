@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Business.AILearning.Services.Competency;
+namespace ZhongWenHub.Features.AI.Services.Competency;
 
 /// <summary>
 /// Deterministic Bayesian Knowledge Tracing (BKT) engine for language mastery inference.

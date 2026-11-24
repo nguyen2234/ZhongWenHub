@@ -1,7 +1,7 @@
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Users.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Admin.Users.DTOs;
 
-namespace ZhongWenHub.Business.Users;
+namespace ZhongWenHub.Features.Admin.Users;
 
 public interface IAdminUserService
 {

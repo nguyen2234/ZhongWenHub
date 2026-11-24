@@ -6,12 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AILearning.Services.Competency;
-using ZhongWenHub.Business.AITutor;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI.Services.Competency;
+using ZhongWenHub.Features.AI;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AILearning.Services.Recommendation;
+namespace ZhongWenHub.Features.AI.Services.Recommendation;
 
 public sealed class RecommendationEngineV2 : IRecommendationEngineV2
 {
@@ -301,10 +301,10 @@ public sealed class RecommendationEngineV2 : IRecommendationEngineV2
             EvidenceData = new Dictionary<string, object>
             {
                 { "hskLevel", currentHsk },
-                { "targetSkills", new[] { "listening", "speaking", "grammar" } }
+                { "targetSkills", new[] { "vocabulary", "grammar" } }
             },
             EstimatedMinutes = Math.Min(10, plannedMinutes),
-            DestinationRoute = "/conversation",
+            DestinationRoute = "/ai-live",
             Badge = "Hội thoại",
             ActionLabel = "Vào phòng hội thoại"
         });

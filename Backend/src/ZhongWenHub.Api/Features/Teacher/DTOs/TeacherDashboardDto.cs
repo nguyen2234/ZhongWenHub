@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Business.Teacher.DTOs;
+namespace ZhongWenHub.Features.Teacher.DTOs;
 
 public class TeacherKpiMetricsDto
 {

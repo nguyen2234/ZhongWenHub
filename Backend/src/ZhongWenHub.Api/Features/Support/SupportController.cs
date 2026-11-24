@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Business.Authorization;
+using ZhongWenHub.Common.Authorization;
 using ZhongWenHub.Api.Features.Support.DTOs;
 using ZhongWenHub.Api.Features.Support.Services;
 

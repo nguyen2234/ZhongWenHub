@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Data.Entities;
 
 namespace ZhongWenHub.UnitTests;
@@ -92,9 +92,9 @@ public class PasswordResetUnitTests
             { "PasswordReset:MailHost", "" }
         });
 
-        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+        var sender = new ZhongWenHub.Features.Auth.PasswordResetEmailSender(
             config,
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Features.Auth.PasswordResetEmailSender>.Instance);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
@@ -111,9 +111,9 @@ public class PasswordResetUnitTests
             { "PasswordReset:FrontendUrl", "http://insecure-site.com/reset-password" }
         });
 
-        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+        var sender = new ZhongWenHub.Features.Auth.PasswordResetEmailSender(
             config,
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Features.Auth.PasswordResetEmailSender>.Instance);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
@@ -130,9 +130,9 @@ public class PasswordResetUnitTests
             { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
         });
 
-        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+        var sender = new ZhongWenHub.Features.Auth.PasswordResetEmailSender(
             config,
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Features.Auth.PasswordResetEmailSender>.Instance);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -152,9 +152,9 @@ public class PasswordResetUnitTests
             { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
         });
 
-        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+        var sender = new ZhongWenHub.Features.Auth.PasswordResetEmailSender(
             config,
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Features.Auth.PasswordResetEmailSender>.Instance);
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
             sender.SendPasswordResetEmailAsync("test@example.com", "sample-token-123"));
@@ -174,9 +174,9 @@ public class PasswordResetUnitTests
             { "PasswordReset:FrontendUrl", "https://zhongwenhub.edu.vn/reset-password" }
         });
 
-        var sender = new ZhongWenHub.Business.Authentication.PasswordResetEmailSender(
+        var sender = new ZhongWenHub.Features.Auth.PasswordResetEmailSender(
             config,
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Business.Authentication.PasswordResetEmailSender>.Instance);
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<ZhongWenHub.Features.Auth.PasswordResetEmailSender>.Instance);
 
         using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         await sender.SendPasswordResetEmailAsync("learner@zhongwenhub.edu.vn", "real-smtp-token-98765", testCts.Token);

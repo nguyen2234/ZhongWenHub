@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Exams.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.Exams.DTOs;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Exams;
+namespace ZhongWenHub.Features.Content.Exams;
 
 public class ExamService : IExamService
 {

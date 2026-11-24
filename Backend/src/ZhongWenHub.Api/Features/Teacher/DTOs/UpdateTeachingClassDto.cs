@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Business.Teacher.DTOs;
+namespace ZhongWenHub.Features.Teacher.DTOs;
 
 public class UpdateTeachingClassDto
 {

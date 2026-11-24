@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 
-namespace ZhongWenHub.Business.Authentication;
+namespace ZhongWenHub.Features.Auth;
 
 public class JwtTokenService : IJwtTokenService
 {

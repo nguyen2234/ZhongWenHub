@@ -1,17 +1,17 @@
-import { MOCK_GRAMMAR_POINTS as STUDENT_GRAMMAR_POINTS } from '../../../features/grammar/mock/mockGrammarData';
-import { MOCK_GRAMMAR_POINTS as HSK_REPO_GRAMMAR_POINTS } from '../../../management/admin/content/data/mockHskRepositoryData';
+import { MOCK_GRAMMAR_POINTS as STUDENT_GRAMMAR_POINTS } from '../../features/grammar/mock/mockGrammarData';
+import { MOCK_GRAMMAR_POINTS as HSK_REPO_GRAMMAR_POINTS } from '../../management/admin/content/data/mockHskRepositoryData';
 import type {
   AdminGrammarPoint,
   AdminGrammarFilters,
   CreateAdminGrammarDTO,
   UpdateAdminGrammarDTO,
   AdminGrammarExample,
-} from '../../../management/admin/content/types/admin-content.types';
-import type { ContentStatus } from '../../../management/admin/content/types/common-content.types';
+} from '../../management/admin/content/types/admin-content.types';
+import type { ContentStatus } from '../../management/admin/content/types/common-content.types';
 import type {
   IGrammarRepository,
   AdminGrammarStats,
-} from '../interfaces/grammar-repository.interface';
+} from '../../core/repositories/interfaces/grammar-repository.interface';
 
 const STORAGE_KEY = 'zhongwenhub_admin_grammar_v1';
 

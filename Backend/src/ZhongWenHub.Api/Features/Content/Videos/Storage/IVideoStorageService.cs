@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 public class StorageUploadResult
 {

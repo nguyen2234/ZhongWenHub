@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.AITutor;
+using ZhongWenHub.Features.AI;
 
-namespace ZhongWenHub.Business.AILearning.Services.Speech;
+namespace ZhongWenHub.Features.AI.Services.Speech;
 
 public sealed class GeminiSpeechRecognitionService : ISpeechRecognitionService
 {

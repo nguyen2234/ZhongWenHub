@@ -5,7 +5,6 @@ import { studentHomeworkService } from '../services/student-homework.service';
 import { studentAttemptService } from '../services/student-attempt.service';
 import { useCurrentStudent } from '../../auth/services/student-identity.adapter';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
-import { defaultApiConfig } from '../../../core/api/client/api-config';
 import type {
   StudentAssignmentRunnerDTO,
   StudentAssignmentAttempt,
@@ -44,7 +43,7 @@ export const StudentAssignmentRunnerPage: React.FC = () => {
         setRunnerData(null);
         setAttempt(null);
 
-        if (!authTokenService.isAuthenticated() && !defaultApiConfig.useMock) {
+        if (!authTokenService.isAuthenticated()) {
           throw new Error('Vui lòng đăng nhập với tài khoản học viên để tham gia làm bài tập.');
         }
 

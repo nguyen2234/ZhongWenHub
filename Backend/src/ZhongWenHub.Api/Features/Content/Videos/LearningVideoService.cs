@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Business.Content.Helpers;
-using ZhongWenHub.Business.Content.Services.Storage;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Features.Content.Helpers;
+using ZhongWenHub.Features.Content.Services.Storage;
+using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Content;
+namespace ZhongWenHub.Features.Content;
 
 public class LearningVideoService : ILearningVideoService
 {

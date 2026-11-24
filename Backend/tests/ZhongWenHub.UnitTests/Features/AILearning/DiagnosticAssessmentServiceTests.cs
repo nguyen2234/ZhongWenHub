@@ -5,8 +5,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AILearning.Services.Diagnostic;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI.Services.Diagnostic;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 

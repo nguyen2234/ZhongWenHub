@@ -7,10 +7,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AILearning.Services.Competency;
+namespace ZhongWenHub.Features.AI.Services.Competency;
 
 public sealed class CompetencyProfileService : ICompetencyProfileService
 {
@@ -20,11 +20,8 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
     {
         ("vocabulary", "Từ vựng (Vocabulary)"),
         ("grammar", "Ngữ pháp (Grammar)"),
-        ("reading", "Đọc hiểu (Reading)"),
-        ("listening", "Nghe hiểu (Listening)"),
-        ("hanzi", "Nhận diện & Viết chữ Hán"),
-        ("pinyin", "Phiên âm & Thanh điệu (Pinyin)"),
-        ("speaking", "Phát âm & Nói (Speaking)")
+        ("hanzi", "Nhận diện & Viết chữ Hán (Hanzi)"),
+        ("pinyin", "Phiên âm & Thanh điệu (Pinyin)")
     };
 
     private readonly ApplicationDbContext _dbContext;
@@ -72,25 +69,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
                 a.AttemptedAt))
             .ToListAsync(cancellationToken);
 
-        // Fetch valid authentic audio speaking attempts (exclude DirectText input)
-        var validAudioSpeakingAttempts = await _dbContext.AiSpeakingAttempts
-            .AsNoTracking()
-            .Where(a => a.UserId == userId &&
-                        a.AudioStorageStatus != "DIRECT_TEXT" &&
-                        a.AudioStorageStatus != "DIRECT_TEXT_NO_AUDIO" &&
-                        a.DurationSeconds > 0)
-            .OrderByDescending(a => a.AttemptedAt)
-            .Take(MaxAttemptsWindow)
-            .ToListAsync(cancellationToken);
 
-        var audioSpeakingRecords = validAudioSpeakingAttempts
-            .Select(a => new AttemptRecord(
-                "speaking",
-                $"Luyện nói {a.PracticeType} HSK {a.HskLevel}",
-                a.HskLevel,
-                a.TranscriptAccuracyPercent >= 70.0,
-                a.AttemptedAt))
-            .ToList();
 
         // Fetch Vocabulary SRS summary with SQL Server aggregation (no entity materialization)
         var vocabStats = await _dbContext.StudentVocabularyProgresses
@@ -108,7 +87,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         // Reverse to ascending chronological order for BKT sequence processing
         var allAttempts = practiceAttempts
             .Concat(aiAttempts)
-            .Concat(audioSpeakingRecords)
+            .Where(a => a.SkillCategory != "legacy_retired")
             .OrderBy(a => a.AttemptedAt)
             .ToList();
 
@@ -125,31 +104,7 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             var attemptsForSkill = allAttempts.Where(a => a.SkillCategory == key).ToList();
             var count = attemptsForSkill.Count;
 
-            // Transparent handling of speaking/pronunciation
-            if (key == "speaking")
-            {
-                var correctCount = attemptsForSkill.Count(a => a.IsCorrect);
-                var acc = count > 0 ? Math.Round(correctCount * 100.0 / count, 1) : 0.0;
-                var hasRealData = count > 0;
 
-                skillDtos.Add(new SkillCompetencyDto
-                {
-                    SkillCategory = key,
-                    LabelVi = label,
-                    TotalAttempts = count,
-                    CorrectAttempts = correctCount,
-                    AccuracyPercent = acc,
-                    MasteryScore = hasRealData ? Math.Clamp(acc / 100.0, 0.0, 1.0) : 0.0,
-                    MasteryPercent = acc,
-                    ConfidenceScore = hasRealData ? Math.Min(1.0, count / 10.0) : 0.0,
-                    MasteryTier = hasRealData
-                        ? (acc >= 85 ? "MASTERED" : acc >= 70 ? "PROFICIENT" : acc >= 50 ? "DEVELOPING" : "BEGINNER")
-                        : "NOT_ASSESSED",
-                    IsMeasuredRealData = hasRealData,
-                    WeakTopics = new List<string>()
-                });
-                continue;
-            }
 
             if (count == 0)
             {
@@ -333,12 +288,10 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
             OverallMasteryPercent = overallMastery,
             TotalEvaluations = totalEvals,
             UnclassifiedEvaluationsCount = unclassifiedCount,
-            HasSpeakingAudioData = validAudioSpeakingAttempts.Count > 0,
-            SpeakingAudioNote = validAudioSpeakingAttempts.Count > 0
-                ? "Dữ liệu kỹ năng nói được tổng hợp từ các lượt phát âm âm thanh thực tế (Transcript Alignment). Lưu ý: Điểm số phản ánh độ khớp nội dung nhận diện từ giọng nói, không suy đoán âm học thanh điệu."
-                : "Chưa có dữ liệu âm thanh hợp lệ được ghi nhận; hệ thống không suy đoán điểm nói từ văn bản nhập trực tiếp.",
+            HasSpeakingAudioData = false,
+            SpeakingAudioNote = "Các module năng lực độc lập (Nghe, Nói, Đọc, Viết) đã ngừng hoạt động theo phạm vi thu hồi.",
             MacroSkills = skillDtos,
-            TopWeakConcepts = weakConcepts,
+            TopWeakConcepts = weakConcepts.Where(c => c.SkillCategory != "legacy_retired").ToList(),
             TopStrengths = topStrengths,
             LastAssessedAt = DateTime.UtcNow
         };
@@ -357,11 +310,9 @@ public sealed class CompetencyProfileService : ICompetencyProfileService
         {
             "vocabulary" or "vocab" => "vocabulary",
             "grammar" or "sentence" => "grammar",
-            "reading" => "reading",
-            "listening" => "listening",
-            "hanzi" or "character" or "writing" => "hanzi",
+            "reading" or "listening" or "speaking" or "writing" => "legacy_retired",
+            "hanzi" or "character" => "hanzi",
             "pinyin" or "tone" or "phonetics" => "pinyin",
-            "speaking" => "speaking",
             _ => $"unclassified:{c}"
         };
     }

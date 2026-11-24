@@ -2,7 +2,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZhongWenHub.Business.AILearning.Services.Speech;
+namespace ZhongWenHub.Features.AI.Services.Speech;
 
 public sealed class SpeechRecognitionResult
 {

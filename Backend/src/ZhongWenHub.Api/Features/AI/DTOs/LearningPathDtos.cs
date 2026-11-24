@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Business.AILearning.DTOs;
+namespace ZhongWenHub.Features.AI.DTOs;
 
 public sealed class LearningGoalDto
 {

@@ -4,8 +4,8 @@
  * Strictly avoids calling external LLM APIs or storing API secrets in client code.
  */
 
-import type { AIProviderAdapter, AIModelMetadata } from '../types/ai-provider.types';
-import type { AITaskRequest, AITaskResponse } from '../types/ai-task.types';
+import type { AIProviderAdapter, AIModelMetadata } from '../../features/ai/core/types/ai-provider.types';
+import type { AITaskRequest, AITaskResponse } from '../../features/ai/core/types/ai-task.types';
 
 export const MOCK_AI_MODELS: AIModelMetadata[] = [
   {

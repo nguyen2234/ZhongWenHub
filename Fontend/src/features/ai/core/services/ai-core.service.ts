@@ -7,13 +7,12 @@ import type { AIProviderAdapter } from '../types/ai-provider.types';
 import type { AITaskRequest, AITaskResponse } from '../types/ai-task.types';
 import type { AIAuditRecord } from '../types/ai-metadata.types';
 import { validateTaskRequest } from '../utils/ai-validation.utils';
-import { mockAIProviderAdapter } from '../adapters/mock-ai-provider.adapter';
 
 class AICoreService {
-  private provider: AIProviderAdapter = mockAIProviderAdapter;
+  private provider: AIProviderAdapter | null = null;
   private auditLogs: AIAuditRecord[] = [];
 
-  setProvider(provider: AIProviderAdapter): void {
+  setProvider(provider: AIProviderAdapter | null): void {
     this.provider = provider;
   }
 
@@ -27,6 +26,24 @@ class AICoreService {
         taskType: request.taskType,
         status: 'ERROR',
         error: validation.error,
+        modelUsed: 'none',
+        promptVersion: 'none',
+        tokensConsumed: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        durationMs: 0,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    if (!this.provider) {
+      return {
+        taskId: request.taskId,
+        taskType: request.taskType,
+        status: 'ERROR',
+        error: {
+          code: 'MODEL_UNAVAILABLE',
+          message: 'Dịch vụ AI hiện không khả dụng. Vui lòng kiểm tra cấu hình kết nối AI Provider.',
+          retryable: false,
+        },
         modelUsed: 'none',
         promptVersion: 'none',
         tokensConsumed: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },

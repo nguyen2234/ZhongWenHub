@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public sealed class EfAITutorContextVerifier : IAITutorContextVerifier
 {

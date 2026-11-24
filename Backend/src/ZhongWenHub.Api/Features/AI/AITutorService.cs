@@ -3,9 +3,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public sealed class AITutorService : IAITutorService
 {

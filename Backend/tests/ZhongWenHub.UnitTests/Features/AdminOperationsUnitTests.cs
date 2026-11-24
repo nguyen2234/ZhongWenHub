@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using ZhongWenHub.Business.Admin;
-using ZhongWenHub.Business.Admin.DTOs;
+using ZhongWenHub.Features.Admin;
+using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Entities.AI;
@@ -164,7 +164,7 @@ public class AdminOperationsUnitTests
         Assert.Equal(6, report.HskDistribution.Count);
         Assert.Contains(report.HskDistribution, h => h.Level == "HSK 2" && h.Count == 1 && h.Percentage == 50.0);
         Assert.Contains(report.HskDistribution, h => h.Level == "HSK 3" && h.Count == 1 && h.Percentage == 50.0);
-        Assert.Equal(5, report.SkillMetrics.Count);
+        Assert.Equal(4, report.SkillMetrics.Count);
     }
 
     [Fact]

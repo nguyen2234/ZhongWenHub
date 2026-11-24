@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Business.Teacher.DTOs;
+using ZhongWenHub.Features.Teacher.DTOs;
 
-namespace ZhongWenHub.Business.Teacher.Services;
+namespace ZhongWenHub.Features.Teacher.Services;
 
 public interface IStudentHomeworkService
 {

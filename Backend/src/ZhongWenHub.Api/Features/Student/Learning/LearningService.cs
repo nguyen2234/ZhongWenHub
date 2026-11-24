@@ -5,11 +5,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.Learning.DTOs;
+using ZhongWenHub.Features.Student.Learning.DTOs;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Learning;
+namespace ZhongWenHub.Features.Student.Learning;
 
 public class LearningService : ILearningService
 {

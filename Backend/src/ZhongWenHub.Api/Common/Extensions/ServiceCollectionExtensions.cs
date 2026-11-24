@@ -14,7 +14,7 @@ using ZhongWenHub.Data;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Common.Auth;
-using ZhongWenHub.Business.Authentication;
+using ZhongWenHub.Features.Auth;
 
 namespace ZhongWenHub.Common.Extensions;
 

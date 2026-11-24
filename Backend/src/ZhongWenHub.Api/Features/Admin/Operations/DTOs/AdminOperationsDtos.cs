@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZhongWenHub.Business.Admin.DTOs;
+namespace ZhongWenHub.Features.Admin.DTOs;
 
 public class AdminAIServiceStatusDto
 {

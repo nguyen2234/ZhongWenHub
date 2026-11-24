@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Business.Learning.DTOs;
+using ZhongWenHub.Features.Student.Learning.DTOs;
 
-namespace ZhongWenHub.Business.Learning;
+namespace ZhongWenHub.Features.Student.Learning;
 
 public interface ILearningService
 {

@@ -1,6 +1,4 @@
 import { httpClient } from '../../../../core/api/client/http-client';
-import { defaultApiConfig } from '../../../../core/api/client/api-config';
-import { adminExerciseService } from './admin-exercise.service';
 import type {
   AdminExerciseFilters,
   AdminExerciseItem,
@@ -198,19 +196,6 @@ class QuestionBankService {
     page = 1,
     pageSize = 20
   ): Promise<QuestionBankPageResponse> {
-    if (defaultApiConfig.useMock) {
-      const all = await adminExerciseService.getAllAsync(filters);
-      const start = (page - 1) * pageSize;
-      const items = all.slice(start, start + pageSize);
-      return {
-        items,
-        totalItems: all.length,
-        pageNumber: page,
-        pageSize,
-        totalPages: Math.max(1, Math.ceil(all.length / pageSize)),
-      };
-    }
-
     const params: Record<string, string | number> = { page, pageSize };
     if (filters.hskLevel && filters.hskLevel !== 'ALL') params.hskLevel = filters.hskLevel;
     if (filters.skill && filters.skill !== 'ALL') params.skill = filters.skill;
@@ -239,38 +224,10 @@ class QuestionBankService {
   }
 
   async getStats(): Promise<QuestionBankStats> {
-    if (defaultApiConfig.useMock) {
-      const s = await adminExerciseService.getStatsAsync();
-      return {
-        total: s.total,
-        published: s.published,
-        draft: s.draft,
-        pendingReview: s.pending,
-        validatedReview: 0,
-        needsAcademicReview: 0,
-        approvedReview: s.published,
-        rejectedReview: 0,
-        archived: s.archived,
-        withSubstantiveExplanation: s.total,
-        reportedCount: 0,
-        linkedToLessons: 0,
-        standaloneBank: s.total,
-        byHsk: s.byHsk,
-        bySkill: s.bySkill,
-        byType: s.byType,
-        byDifficulty: {},
-        byReviewStatus: {},
-      };
-    }
-
     return httpClient.get<QuestionBankStats>(`${this.baseEndpoint}/stats`);
   }
 
   async create(dto: CreateAdminExerciseDTO): Promise<AdminExerciseItem> {
-    if (defaultApiConfig.useMock) {
-      return adminExerciseService.createAsync(dto);
-    }
-
     const payload = {
       type: dto.type,
       skill: dto.skill,
@@ -302,10 +259,6 @@ class QuestionBankService {
   }
 
   async update(id: string, dto: UpdateAdminExerciseDTO): Promise<AdminExerciseItem> {
-    if (defaultApiConfig.useMock) {
-      return adminExerciseService.updateAsync(id, dto);
-    }
-
     const payload = {
       type: dto.type,
       skill: dto.skill,
@@ -337,9 +290,6 @@ class QuestionBankService {
   }
 
   async delete(id: string): Promise<boolean> {
-    if (defaultApiConfig.useMock) {
-      return adminExerciseService.deleteAsync(id);
-    }
     await httpClient.delete(`${this.baseEndpoint}/${id}`);
     return true;
   }

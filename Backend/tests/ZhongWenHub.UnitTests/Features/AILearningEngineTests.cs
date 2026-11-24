@@ -1,9 +1,8 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.AILearning;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AITutor;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.DTOs;
 
 namespace ZhongWenHub.UnitTests;
 

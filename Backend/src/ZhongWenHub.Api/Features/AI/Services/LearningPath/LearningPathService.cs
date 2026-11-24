@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AILearning.Services.Competency;
-using ZhongWenHub.Business.AITutor;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI.Services.Competency;
+using ZhongWenHub.Features.AI;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AILearning.Services.LearningPath;
+namespace ZhongWenHub.Features.AI.Services.LearningPath;
 
 public sealed class LearningPathService : ILearningPathService
 {

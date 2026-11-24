@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using ZhongWenHub.Business.AILearning.Services.Competency;
+using ZhongWenHub.Features.AI.Services.Competency;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Entities.Learning;
@@ -39,11 +39,10 @@ public class CompetencyProfileServiceTests
         Assert.Equal(0, profile.TotalEvaluations);
         Assert.Equal(0.0, profile.ConfidenceScore);
         Assert.False(profile.HasSpeakingAudioData);
-
-        var speaking = profile.MacroSkills.FirstOrDefault(s => s.SkillCategory == "speaking");
-        Assert.NotNull(speaking);
-        Assert.False(speaking.IsMeasuredRealData);
-        Assert.Equal("NOT_ASSESSED", speaking.MasteryTier);
+        Assert.Equal(4, profile.MacroSkills.Count);
+        Assert.Null(profile.MacroSkills.FirstOrDefault(s => s.SkillCategory == "speaking"));
+        Assert.Null(profile.MacroSkills.FirstOrDefault(s => s.SkillCategory == "listening"));
+        Assert.Null(profile.MacroSkills.FirstOrDefault(s => s.SkillCategory == "reading"));
     }
 
     [Fact]
@@ -136,10 +135,10 @@ public class CompetencyProfileServiceTests
         var profile = await service.GetCompetencyProfileAsync(userId);
 
         var vocab = profile.MacroSkills.First(s => s.SkillCategory == "vocabulary");
-        var reading = profile.MacroSkills.First(s => s.SkillCategory == "reading");
+        var grammar = profile.MacroSkills.First(s => s.SkillCategory == "grammar");
 
         Assert.Equal("MASTERED", vocab.MasteryTier);
-        Assert.Equal("NOT_ASSESSED", reading.MasteryTier);
+        Assert.Equal("NOT_ASSESSED", grammar.MasteryTier);
 
         // Even though vocabulary has high accuracy, estimated HSK level should not be automatically bumped
         Assert.True(profile.SelectedHskLevel == 1);
@@ -153,7 +152,11 @@ public class CompetencyProfileServiceTests
         Assert.Equal("pinyin", CompetencyProfileService.NormalizeSkill("phonetics"));
 
         Assert.Equal("hanzi", CompetencyProfileService.NormalizeSkill("hanzi"));
-        Assert.Equal("hanzi", CompetencyProfileService.NormalizeSkill("writing"));
+        Assert.Equal("hanzi", CompetencyProfileService.NormalizeSkill("character"));
+        Assert.Equal("legacy_retired", CompetencyProfileService.NormalizeSkill("reading"));
+        Assert.Equal("legacy_retired", CompetencyProfileService.NormalizeSkill("listening"));
+        Assert.Equal("legacy_retired", CompetencyProfileService.NormalizeSkill("speaking"));
+        Assert.Equal("legacy_retired", CompetencyProfileService.NormalizeSkill("writing"));
 
         Assert.Equal("grammar", CompetencyProfileService.NormalizeSkill("grammar"));
         Assert.Equal("vocabulary", CompetencyProfileService.NormalizeSkill("vocab"));
@@ -175,8 +178,8 @@ public class CompetencyProfileServiceTests
             seedContext.StudentPracticeAttempts.Add(new StudentPracticeAttempt
             {
                 UserId = userId,
-                Category = "reading",
-                TopicTitle = "Đoạn văn ngắn HSK 1",
+                Category = "grammar",
+                TopicTitle = "Ngữ pháp HSK 1",
                 IsCorrect = true,
                 AttemptedAt = DateTime.UtcNow
             });

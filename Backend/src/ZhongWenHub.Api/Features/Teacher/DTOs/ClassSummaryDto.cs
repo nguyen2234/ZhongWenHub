@@ -1,6 +1,6 @@
 using System;
 
-namespace ZhongWenHub.Business.Teacher.DTOs;
+namespace ZhongWenHub.Features.Teacher.DTOs;
 
 public class ClassSummaryDto
 {

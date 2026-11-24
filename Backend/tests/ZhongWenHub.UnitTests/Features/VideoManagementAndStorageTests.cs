@@ -11,10 +11,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
-using ZhongWenHub.Business.Content;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Business.Content.Helpers;
-using ZhongWenHub.Business.Content.Services.Storage;
+using ZhongWenHub.Features.Content;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Features.Content.Helpers;
+using ZhongWenHub.Features.Content.Services.Storage;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 

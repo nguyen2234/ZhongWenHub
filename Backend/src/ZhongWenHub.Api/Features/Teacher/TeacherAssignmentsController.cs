@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Teacher.DTOs;
-using ZhongWenHub.Business.Teacher.Services;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Teacher.DTOs;
+using ZhongWenHub.Features.Teacher.Services;
 
 namespace ZhongWenHub.Api.Controllers;
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using ZhongWenHub.Common.AI;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public sealed class ConfigurableAIProvider : IAIProvider
 {

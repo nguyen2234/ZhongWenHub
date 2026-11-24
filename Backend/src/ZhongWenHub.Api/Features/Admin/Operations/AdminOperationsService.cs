@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.Admin.DTOs;
+using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Admin;
+namespace ZhongWenHub.Features.Admin;
 
 public class AdminOperationsService : IAdminOperationsService
 {
@@ -53,10 +53,9 @@ public class AdminOperationsService : IAdminOperationsService
             : null;
 
         var tutorCount = await _dbContext.AiConversationSessions.CountAsync(cancellationToken);
-        var speakingCount = await _dbContext.AiSpeakingAttempts.CountAsync(cancellationToken);
         var gradingCount = await _dbContext.AiExerciseAttempts.CountAsync(cancellationToken);
         var skillStatCount = await _dbContext.LearningSkillStatistics.CountAsync(cancellationToken);
-        var totalEventsSum = tutorCount + speakingCount + gradingCount + skillStatCount;
+        var totalEventsSum = tutorCount + gradingCount + skillStatCount;
 
         // Query real aggregated feature logs from database (excluding mocks)
         var featureStats = await realLogsQuery
@@ -127,16 +126,16 @@ public class AdminOperationsService : IAdminOperationsService
             new()
             {
                 Id = "ai-live",
-                Name = "AI Live (Luyện phát âm & Phản xạ)",
-                Role = "Nhận diện giọng nói (ASR) và đánh giá ngữ điệu Pinyin",
-                Provider = "Whisper-Large-v3 & FunASR Speech",
-                LatencyMs = GetFeatureLatency("SPEAKING"),
-                SuccessRate = GetFeatureSuccessRate("SPEAKING"),
+                Name = "AI Conversation (Hội thoại tình huống)",
+                Role = "Hội thoại ngữ cảnh và phản xạ giao tiếp tiếng Trung theo chủ đề",
+                Provider = "Google Gemini 2.5 Flash / DeepSeek",
+                LatencyMs = GetFeatureLatency("CONVERSATION") ?? GetFeatureLatency("AI_LIVE"),
+                SuccessRate = GetFeatureSuccessRate("CONVERSATION") ?? GetFeatureSuccessRate("AI_LIVE"),
                 Uptime = null,
-                UsagePercent = GetUsagePercent(speakingCount),
-                Status = ResolveServiceStatus("SPEAKING", speakingCount),
-                Description = $"Chấm điểm 4 thanh điệu tiếng Trung, phát hiện lỗi phát âm. Lượt ghi nhận: {speakingCount}.",
-                TotalEvents = speakingCount
+                UsagePercent = GetUsagePercent(tutorCount),
+                Status = ResolveServiceStatus("CONVERSATION", tutorCount),
+                Description = $"Thực hành giao tiếp tương tác thời gian thực với AI. Lượt hội thoại: {tutorCount}.",
+                TotalEvents = tutorCount
             },
             new()
             {
@@ -269,10 +268,9 @@ public class AdminOperationsService : IAdminOperationsService
         var skillLabels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "vocabulary", "Từ vựng (Flashcard & Spaced Repetition)" },
-            { "listening", "Luyện nghe & Nhận diện âm đọc" },
-            { "speaking", "Luyện phát âm & Phản xạ câu" },
             { "grammar", "Ngữ pháp & Cấu trúc câu" },
-            { "hanzi", "Tập viết & Thứ tự nét Hán tự" }
+            { "hanzi", "Tập viết & Thứ tự nét Hán tự" },
+            { "pinyin", "Phiên âm & Thanh điệu (Pinyin)" }
         };
 
         var skillMetrics = new List<AdminSkillMetricDto>();

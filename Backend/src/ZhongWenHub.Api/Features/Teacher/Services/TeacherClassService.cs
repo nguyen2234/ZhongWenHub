@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Teacher.DTOs;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Teacher.DTOs;
+using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Teacher;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Teacher.Services;
+namespace ZhongWenHub.Features.Teacher.Services;
 
 public class TeacherClassService : ITeacherClassService
 {

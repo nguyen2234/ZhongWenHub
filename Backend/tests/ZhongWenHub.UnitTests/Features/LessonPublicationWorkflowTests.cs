@@ -1,4 +1,4 @@
-using ZhongWenHub.Business.Content;
+using ZhongWenHub.Features.Content;
 using ZhongWenHub.Data.Entities.Content;
 
 namespace ZhongWenHub.UnitTests;

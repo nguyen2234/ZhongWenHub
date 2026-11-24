@@ -3,7 +3,7 @@ using System.IO;
 using System.Security;
 using System.Text.RegularExpressions;
 
-namespace ZhongWenHub.Business.Content.Helpers;
+namespace ZhongWenHub.Features.Content.Helpers;
 
 /// <summary>
 /// Security utility for validating storage paths, preventing path traversal and handling provider URI schemes.

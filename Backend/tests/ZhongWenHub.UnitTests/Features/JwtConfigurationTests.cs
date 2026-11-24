@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.Authentication;
+using ZhongWenHub.Features.Auth;
 using ZhongWenHub.Common.Extensions;
 
 namespace ZhongWenHub.Tests.Features;

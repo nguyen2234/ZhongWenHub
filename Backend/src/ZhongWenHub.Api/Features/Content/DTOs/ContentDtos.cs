@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Business.Content.DTOs;
+namespace ZhongWenHub.Features.Content.DTOs;
 
 public class CourseDto
 {

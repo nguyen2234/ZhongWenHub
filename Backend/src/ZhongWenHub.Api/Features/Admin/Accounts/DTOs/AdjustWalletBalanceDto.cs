@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Business.Users.DTOs;
+namespace ZhongWenHub.Features.Admin.Users.DTOs;
 
 public class AdjustWalletBalanceDto
 {

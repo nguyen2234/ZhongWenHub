@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Common.DTOs;
+namespace ZhongWenHub.Common.DTOs;
 
 public class SystemInfoResponseDto
 {

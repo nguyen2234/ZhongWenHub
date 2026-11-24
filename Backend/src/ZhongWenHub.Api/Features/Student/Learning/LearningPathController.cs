@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AILearning.Services.LearningPath;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI.Services.LearningPath;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Features.Admin.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 

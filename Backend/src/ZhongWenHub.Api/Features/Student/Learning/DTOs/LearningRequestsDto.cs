@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ZhongWenHub.Business.Learning.DTOs;
+namespace ZhongWenHub.Features.Student.Learning.DTOs;
 
 public class UpdateLessonStepDto
 {

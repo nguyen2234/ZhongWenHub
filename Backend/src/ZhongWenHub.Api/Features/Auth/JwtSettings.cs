@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Authentication;
+namespace ZhongWenHub.Features.Auth;
 
 public class JwtSettings
 {

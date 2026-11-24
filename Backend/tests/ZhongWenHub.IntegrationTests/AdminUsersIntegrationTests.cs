@@ -3,9 +3,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Users.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Admin.Users.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 

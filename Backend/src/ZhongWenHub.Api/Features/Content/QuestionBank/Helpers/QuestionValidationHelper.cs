@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using ZhongWenHub.Data.Entities.Content;
 
-namespace ZhongWenHub.Business.QuestionBank.Helpers;
+namespace ZhongWenHub.Features.Content.QuestionBank.Helpers;
 
 public sealed record QuestionValidationResult(
     bool IsValid,

@@ -1,6 +1,6 @@
-using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public interface IAITutorService
 {

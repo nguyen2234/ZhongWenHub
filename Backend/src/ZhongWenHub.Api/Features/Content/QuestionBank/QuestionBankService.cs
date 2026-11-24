@@ -1,15 +1,15 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Learning;
-using ZhongWenHub.Business.Learning.DTOs;
-using ZhongWenHub.Business.QuestionBank.DTOs;
-using ZhongWenHub.Business.QuestionBank.Helpers;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Student.Learning;
+using ZhongWenHub.Features.Student.Learning.DTOs;
+using ZhongWenHub.Features.Content.QuestionBank.DTOs;
+using ZhongWenHub.Features.Content.QuestionBank.Helpers;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.QuestionBank;
+namespace ZhongWenHub.Features.Content.QuestionBank;
 
 public class QuestionBankService : IQuestionBankService
 {

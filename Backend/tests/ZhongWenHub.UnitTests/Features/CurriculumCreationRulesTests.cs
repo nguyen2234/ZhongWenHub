@@ -1,5 +1,5 @@
-using ZhongWenHub.Business.Content;
-using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Features.Content;
+using ZhongWenHub.Features.Content.DTOs;
 
 namespace ZhongWenHub.UnitTests;
 

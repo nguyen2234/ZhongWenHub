@@ -5,23 +5,22 @@ using ZhongWenHub.Api.Middleware;
 using ZhongWenHub.Common.Extensions;
 using ZhongWenHub.Data;
 using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Business.Admin;
-using ZhongWenHub.Business.AILearning;
-using ZhongWenHub.Business.AILearning.Services.Competency;
-using ZhongWenHub.Business.AILearning.Services.Diagnostic;
-using ZhongWenHub.Business.AILearning.Services.Recommendation;
-using ZhongWenHub.Business.AILearning.Services.Speech;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.Authentication;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Common;
-using ZhongWenHub.Business.Content;
-using ZhongWenHub.Business.Content.Services.Storage;
-using ZhongWenHub.Business.Exams;
-using ZhongWenHub.Business.QuestionBank;
-using ZhongWenHub.Business.Learning;
-using ZhongWenHub.Business.Teacher.Services;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.Admin;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.Services.Competency;
+using ZhongWenHub.Features.AI.Services.Diagnostic;
+using ZhongWenHub.Features.AI.Services.Recommendation;
+using ZhongWenHub.Features.AI.Services.Speech;
+using ZhongWenHub.Features.Auth;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Common;
+using ZhongWenHub.Features.Content;
+using ZhongWenHub.Features.Content.Services.Storage;
+using ZhongWenHub.Features.Content.Exams;
+using ZhongWenHub.Features.Content.QuestionBank;
+using ZhongWenHub.Features.Student.Learning;
+using ZhongWenHub.Features.Teacher.Services;
+using ZhongWenHub.Features.Admin.Users;
 using ZhongWenHub.Common.AI;
 using ZhongWenHub.Features.admin.AiProviders;
 
@@ -87,7 +86,7 @@ public class Program
             if (context.Response.StatusCode == StatusCodes.Status401Unauthorized && !context.Response.HasStarted)
             {
                 context.Response.ContentType = "application/problem+json";
-                var problem = new ZhongWenHub.Business.Common.DTOs.ApiProblemDetailsDto
+                var problem = new ZhongWenHub.Common.DTOs.ApiProblemDetailsDto
                 {
                     Type = "https://httpstatuses.com/401",
                     Title = "Yêu cầu chưa được xác thực",
@@ -101,7 +100,7 @@ public class Program
             else if (context.Response.StatusCode == StatusCodes.Status403Forbidden && !context.Response.HasStarted)
             {
                 context.Response.ContentType = "application/problem+json";
-                var problem = new ZhongWenHub.Business.Common.DTOs.ApiProblemDetailsDto
+                var problem = new ZhongWenHub.Common.DTOs.ApiProblemDetailsDto
                 {
                     Type = "https://httpstatuses.com/403",
                     Title = "Truy cập bị từ chối",
@@ -208,7 +207,7 @@ public class Program
         services.AddScoped<ICompetencyProfileService, CompetencyProfileService>();
         services.AddScoped<IRecommendationEngineV2, RecommendationEngineV2>();
         services.AddScoped<IDiagnosticAssessmentService, DiagnosticAssessmentService>();
-        services.AddScoped<ZhongWenHub.Business.AILearning.Services.LearningPath.ILearningPathService, ZhongWenHub.Business.AILearning.Services.LearningPath.LearningPathService>();
+        services.AddScoped<ZhongWenHub.Features.AI.Services.LearningPath.ILearningPathService, ZhongWenHub.Features.AI.Services.LearningPath.LearningPathService>();
         services.AddScoped<ISpeechRecognitionService, GeminiSpeechRecognitionService>();
 
         // Multi-Provider AI Management & Router

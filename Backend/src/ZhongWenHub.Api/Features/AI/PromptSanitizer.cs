@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public static partial class PromptSanitizer
 {

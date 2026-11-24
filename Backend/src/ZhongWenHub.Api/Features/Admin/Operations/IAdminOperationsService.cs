@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Business.Admin.DTOs;
+using ZhongWenHub.Features.Admin.DTOs;
 
-namespace ZhongWenHub.Business.Admin;
+namespace ZhongWenHub.Features.Admin;
 
 public interface IAdminOperationsService
 {

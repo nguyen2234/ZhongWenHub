@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Business.Learning;
-using ZhongWenHub.Business.Learning.DTOs;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.Student.Learning;
+using ZhongWenHub.Features.Student.Learning.DTOs;
+using ZhongWenHub.Features.Admin.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 

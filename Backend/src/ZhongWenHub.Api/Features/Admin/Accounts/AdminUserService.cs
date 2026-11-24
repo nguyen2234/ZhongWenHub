@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 using Microsoft.Extensions.Logging;
 
-using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Common.DTOs;
 
-using ZhongWenHub.Business.Users.DTOs;
+using ZhongWenHub.Features.Admin.Users.DTOs;
 
 
 
@@ -20,7 +20,7 @@ using ZhongWenHub.Data.Persistence;
 
 
 
-namespace ZhongWenHub.Business.Users;
+namespace ZhongWenHub.Features.Admin.Users;
 
 
 

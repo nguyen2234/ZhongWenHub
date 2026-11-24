@@ -1,16 +1,16 @@
-import { PRACTICE_EXERCISE_POOL } from '../../../features/practice/data/mockPracticeData';
-import type { SharedExerciseItem, MatchingPair } from '../../../features/exercise-engine/types';
-import { MOCK_LESSON_8_DRAFT } from '../../../management/admin/content/data/mockLessonEditorData';
+import { PRACTICE_EXERCISE_POOL } from '../../features/practice/data/mockPracticeData';
+import type { SharedExerciseItem, MatchingPair } from '../../features/exercise-engine/types';
+import { MOCK_LESSON_8_DRAFT } from '../../management/admin/content/data/mockLessonEditorData';
 import type {
   AdminExerciseItem,
   AdminExerciseFilters,
   CreateAdminExerciseDTO,
   UpdateAdminExerciseDTO,
-} from '../../../management/admin/content/types/admin-content.types';
+} from '../../management/admin/content/types/admin-content.types';
 import type {
   IExerciseRepository,
   AdminExerciseStats,
-} from '../interfaces/exercise-repository.interface';
+} from '../../core/repositories/interfaces/exercise-repository.interface';
 
 const STORAGE_KEY = 'zhongwenhub_admin_exercises_v1';
 

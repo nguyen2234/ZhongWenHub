@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Business.Content.Services.Storage;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Features.Content.Services.Storage;
 using ZhongWenHub.Data.Constants;
 using ZhongWenHub.Data.Entities.Content;
 

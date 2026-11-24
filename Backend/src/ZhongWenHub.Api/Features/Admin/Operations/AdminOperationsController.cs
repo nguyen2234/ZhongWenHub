@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ZhongWenHub.Business.Admin;
-using ZhongWenHub.Business.Admin.DTOs;
+using ZhongWenHub.Features.Admin;
+using ZhongWenHub.Features.Admin.DTOs;
 using ZhongWenHub.Data.Constants;
 
 namespace ZhongWenHub.Api.Controllers;

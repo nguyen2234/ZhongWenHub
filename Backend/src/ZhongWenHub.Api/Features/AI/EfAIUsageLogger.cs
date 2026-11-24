@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ZhongWenHub.Data.Entities.AI;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AITutor;
+namespace ZhongWenHub.Features.AI;
 
 public interface IAIUsageLogger
 {

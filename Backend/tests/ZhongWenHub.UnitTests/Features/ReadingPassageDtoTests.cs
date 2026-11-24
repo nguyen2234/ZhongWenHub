@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Xunit;
-using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
 
 namespace ZhongWenHub.UnitTests;
 

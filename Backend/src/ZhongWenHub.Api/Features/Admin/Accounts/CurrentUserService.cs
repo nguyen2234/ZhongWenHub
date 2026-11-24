@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 
-namespace ZhongWenHub.Business.Users;
+namespace ZhongWenHub.Features.Admin.Users;
 
 public class CurrentUserService : ICurrentUserService
 {

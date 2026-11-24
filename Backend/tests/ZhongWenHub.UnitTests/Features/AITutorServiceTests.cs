@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.AITutor.DTOs;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.DTOs;
 
 namespace ZhongWenHub.UnitTests;
 

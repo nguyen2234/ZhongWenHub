@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.AITutor.DTOs;
-using ZhongWenHub.Business.Authorization;
-using ZhongWenHub.Business.Users;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Common.Authorization;
+using ZhongWenHub.Features.Admin.Users;
 
 namespace ZhongWenHub.Api.Controllers;
 

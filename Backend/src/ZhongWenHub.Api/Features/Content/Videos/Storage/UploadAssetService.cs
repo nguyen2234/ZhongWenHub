@@ -3,11 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using ZhongWenHub.Business.Content.Helpers;
+using ZhongWenHub.Features.Content.Helpers;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.Content.Services.Storage;
+namespace ZhongWenHub.Features.Content.Services.Storage;
 
 public class UploadAssetService : IUploadAssetService
 {

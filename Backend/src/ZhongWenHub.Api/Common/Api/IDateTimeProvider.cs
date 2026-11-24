@@ -1,4 +1,4 @@
-namespace ZhongWenHub.Business.Common;
+namespace ZhongWenHub.Common;
 
 public interface IDateTimeProvider
 {

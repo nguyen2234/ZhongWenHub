@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
 
-namespace ZhongWenHub.Business.Content;
+namespace ZhongWenHub.Features.Content;
 
 public interface ILearningVideoService
 {

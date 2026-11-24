@@ -7,12 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 using ZhongWenHub.Data.Entities.Content;
 using ZhongWenHub.Data.Entities.Learning;
 using ZhongWenHub.Data.Persistence;
 
-namespace ZhongWenHub.Business.AILearning.Services.Diagnostic;
+namespace ZhongWenHub.Features.AI.Services.Diagnostic;
 
 public sealed class DiagnosticAssessmentService : IDiagnosticAssessmentService
 {

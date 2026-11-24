@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Common.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 

@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ZhongWenHub.Business.AILearning.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
 
-namespace ZhongWenHub.Business.AILearning.Services.Competency;
+namespace ZhongWenHub.Features.AI.Services.Competency;
 
 public interface ICompetencyProfileService
 {
