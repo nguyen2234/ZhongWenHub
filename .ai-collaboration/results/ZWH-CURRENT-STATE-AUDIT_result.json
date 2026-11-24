@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-CURRENT-STATE-AUDIT",
+  "title": "Audit current structure and functional status for Codex review",
+  "project": "ZhongWenHub",
+  "phase": "Pre-refactor evidence audit",
+  "owner": "Codex",
+  "reviewer": "Codex",
+  "executor": "Antigravity",
+  "status": "COMPLETED",
+  "source_branch": "refactor/simple-feature-backend-multiprovider-fe-fixes",
+  "source_commit": "bf8c365f10620955df924bfde73c7e9c216e5a4a",
+  "audit_branch": "audit/current-structure-functional-status-20261124",
+  "reference_plan_branch": "docs/antigravity-study-ai-layout-plan",
+  "reference_plan_commit": "14b8d91417e303705f6a5a152bb0a06a49a4eb34",
+  "timestamp": "2026-11-24T16:49:00+07:00",
+  "verdict": "NOT_READY",
+  "environment": {
+    "operating_system": "Microsoft Windows 11 Pro for Workstations (Build 26300, x64)",
+    "dotnet_sdk": "10.0.404",
+    "bun_version": "1.4.3",
+    "node_version": "v24.20.0",
+    "sql_server_version": "Microsoft SQL Server 2025 (RTM-GDR) Express Edition (17.0.1155.3)",
+    "playwright_version": "1.64.1"
+  },
+  "verification_commands": [
+    {
+      "command": "dotnet restore Backend/ZhongWenHub.sln",
+      "working_directory": ".",
+      "exit_code": 0,
+      "summary": "Restored 2 projects in 1.31s"
+    },
+    {
+      "command": "dotnet build Backend/ZhongWenHub.sln -c Release --no-restore",
+      "working_directory": ".",
+      "exit_code": 0,
+      "summary": "Build succeeded: 0 errors, 8 warnings in 23.69s"
+    },
+    {
+      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj -c Release --no-build",
+      "working_directory": ".",
+      "exit_code": 0,
+      "summary": "Passed: 479, Failed: 0, Skipped: 0 in 52s"
+    },
+    {
+      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj -c Release --no-build --filter \"Category!=Integration\"",
+      "working_directory": ".",
+      "exit_code": 0,
+      "summary": "Passed: 335, Failed: 0, Skipped: 0 in 10s"
+    },
+    {
+      "command": "dotnet test Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj -c Release --no-build --filter \"Category=Integration\"",
+      "working_directory": ".",
+      "exit_code": 0,
+      "summary": "Passed: 144, Failed: 0, Skipped: 0 in 1m 13s"
+    },
+    {
+      "command": "bun install --frozen-lockfile",
+      "working_directory": "Fontend",
+      "exit_code": 0,
+      "summary": "Checked 35 installs across 79 packages (no changes) in 759ms"
+    },
+    {
+      "command": "bun run lint",
+      "working_directory": "Fontend",
+      "exit_code": 0,
+      "summary": "0 errors, 164 warnings in 1.5s across 626 files"
+    },
+    {
+      "command": "bun test src/tests",
+      "working_directory": "Fontend",
+      "exit_code": 0,
+      "summary": "Passed: 513, Failed: 0 across 55 files (5,174 expect calls) in 11.68s"
+    },
+    {
+      "command": "bun run build",
+      "working_directory": "Fontend",
+      "exit_code": 0,
+      "summary": "tsc -b && vite build succeeded in 2.78s"
+    }
+  ],
+  "structure_audit": {
+    "solutions_count": 1,
+    "csproj_count": 2,
+    "production_projects_count": 1,
+    "production_project_path": "Backend/ZhongWenHub/ZhongWenHub.csproj",
+    "test_projects_count": 1,
+    "test_project_path": "Backend/ZhongWenHub.Tests/ZhongWenHub.Tests.csproj",
+    "production_in_src": 0,
+    "unit_tests_in_tests": 0,
+    "integration_tests_in_tests": 0,
+    "legacy_namespace_declarations_count": 48,
+    "layout_verdict": "READY_FOR_LAYOUT_MIGRATION"
+  },
+  "ef_migration_audit": {
+    "total_migrations_defined": 25,
+    "applied_migrations_in_dev": 18,
+    "pending_migrations_count": 7,
+    "hypothesis_1_runtime_vs_migration_context": {
+      "statement": "Runtime uses AppDbContext while migrations target ApplicationDbContext",
+      "result": "VALIDATED",
+      "evidence": "Program.cs calls MigrateAsync on AppDbContext which discovers 0 migrations; all migrations have [DbContext(typeof(ApplicationDbContext))]"
+    },
+    "hypothesis_2_incomplete_migration_designer": {
+      "statement": "AddMultiProviderAiConfigurations.Designer.cs has an incomplete target model",
+      "result": "VALIDATED",
+      "evidence": "20261122150000_AddMultiProviderAiConfigurations.Designer.cs is 25 lines with empty BuildTargetModel containing 0 entities"
+    },
+    "hypothesis_3_missing_entity_in_snapshot": {
+      "statement": "The model snapshot does not contain AiProviderConfiguration",
+      "result": "VALIDATED",
+      "evidence": "ApplicationDbContextModelSnapshot.cs has zero matches for AiProviderConfiguration"
+    },
+    "database_update_health": "BROKEN",
+    "database_update_error": "System.InvalidOperationException: PendingModelChangesWarning - The model for context 'ApplicationDbContext' has pending changes"
+  },
+  "route_contract_audit": {
+    "total_operations_in_baseline": 263,
+    "baseline_file": "Backend/docs/RUNTIME_OPENAPI_ROUTES_BASELINE.txt",
+    "duplicated_route_prefixes": [
+      "/api/v1/teacher/assignments/api/v1/teacher/submissions/{id}",
+      "/api/v1/teacher/assignments/api/v1/teacher/submissions/{id}/grade"
+    ],
+    "swagger_test_defect": "SwaggerIntegrationTests actively overwrites RUNTIME_OPENAPI_ROUTES_BASELINE.json and .txt on every run, defeating regression assertion",
+    "missing_support_routes": "Zero backend endpoints exist for /api/v1/support/tickets"
+  },
+  "mock_inventory": [
+    {
+      "area": "Support Module",
+      "file": "Fontend/src/management/support/services/support-ticket.service.ts",
+      "type": "In-memory static mock",
+      "details": "Hardcoded INITIAL_TICKETS with 5 items; mutates local array; makes zero HTTP fetch calls; resets on page refresh"
+    },
+    {
+      "area": "Admin Content Data",
+      "file": "Fontend/src/management/admin/content/data/mockCurriculumData.ts",
+      "type": "Dead mock code",
+      "details": "Exports MOCK_COURSES, MOCK_COURSE_LEVELS, MOCK_UNITS; unreferenced by production views"
+    },
+    {
+      "area": "Repository Container",
+      "file": "Fontend/src/core/repositories/adapters/mock-grammar.repository.ts",
+      "type": "Configurable mock adapter",
+      "details": "Wired via defaultApiConfig.useMock; defaults to mock in Bun test runner and HTTP in browser"
+    }
+  ],
+  "role_status_summary": {
+    "auth": "WORKING",
+    "admin": "PARTIAL",
+    "content_manager": "WORKING",
+    "teacher": "BROKEN",
+    "student": "WORKING",
+    "support": "NOT_IMPLEMENTED"
+  },
+  "defects": [
+    {
+      "id": "DEF-01",
+      "severity": "P0",
+      "location": "Backend/ZhongWenHub/Program.cs:129,140",
+      "title": "Runtime MigrateAsync runs against AppDbContext finding zero migrations",
+      "reproduction": "Start application with Database:AutoMigrate=true",
+      "expected": "Pending EF Core migrations are executed",
+      "actual": "Finds 0 migrations because migrations target ApplicationDbContext"
+    },
+    {
+      "id": "DEF-02",
+      "severity": "P0",
+      "location": "Backend/ZhongWenHub/Migrations/20261122150000_AddMultiProviderAiConfigurations.Designer.cs",
+      "title": "Incomplete migration designer and model snapshot block database update",
+      "reproduction": "Run dotnet ef database update --context ApplicationDbContext",
+      "expected": "Database upgrades cleanly to latest schema",
+      "actual": "Fails with PendingModelChangesWarning"
+    },
+    {
+      "id": "DEF-03",
+      "severity": "P0",
+      "location": "Backend/ZhongWenHub/Features/users/Teacher/TeacherAssignmentsController.cs:268,296",
+      "title": "Duplicated route prefix in Teacher submission detail and grade routes",
+      "reproduction": "Call GET /api/v1/teacher/submissions/{id} or POST .../grade",
+      "expected": "Returns submission detail or accepts grade",
+      "actual": "Returns 404 because controller route prefix is prepended twice"
+    },
+    {
+      "id": "DEF-04",
+      "severity": "P0",
+      "location": "Backend/ZhongWenHub.Tests/Integration/SwaggerIntegrationTests.cs:240",
+      "title": "Swagger integration test overwrites its own baseline",
+      "reproduction": "Run dotnet test --filter AnalyzeSwaggerEndpointsMetadata",
+      "expected": "Asserts equality against committed baseline",
+      "actual": "Overwrites RUNTIME_OPENAPI_ROUTES_BASELINE.json and .txt on disk"
+    },
+    {
+      "id": "DEF-05",
+      "severity": "P1",
+      "location": ".github/workflows/backend-tests.yml:47",
+      "title": "CI workflow silently skips integration tests and lacks SQL Server container",
+      "reproduction": "Inspect CI workflow on PR",
+      "expected": "All 144 integration tests run against SQL container",
+      "actual": "Integration test step is skipped because RUN_SQLSERVER_INTEGRATION is not set"
+    },
+    {
+      "id": "DEF-06",
+      "severity": "P1",
+      "location": "Fontend/src/management/support/services/support-ticket.service.ts",
+      "title": "Support ticket workflow is not implemented in backend",
+      "reproduction": "Update ticket in support queue and refresh",
+      "expected": "Status change is persisted via API",
+      "actual": "Mutates in-memory array only; no backend controller exists"
+    },
+    {
+      "id": "DEF-07",
+      "severity": "P2",
+      "location": "Backend/ZhongWenHub/Features/**",
+      "title": "Over 40 source files retain legacy ZhongWenHub.Business.* namespaces",
+      "reproduction": "Search namespace declarations in Features/",
+      "expected": "Namespaces match folder structure",
+      "actual": "Files declare legacy Business namespaces"
+    },
+    {
+      "id": "DEF-08",
+      "severity": "P3",
+      "location": "Fontend/src/management/admin/content/data/mockCurriculumData.ts",
+      "title": "Dead mock curriculum data file remains in production source",
+      "reproduction": "Inspect imports of mockCurriculumData.ts",
+      "expected": "Unused mock files are removed from production tree",
+      "actual": "File exists unreferenced"
+    }
+  ],
+  "zero_write_safety": {
+    "database_name": "ZhongWenHub_Dev",
+    "pre_verification_tables": 40,
+    "post_verification_tables": 40,
+    "pre_verification_users": 40,
+    "post_verification_users": 40,
+    "max_user_updated_at": "2026-11-23 07:22:15.6746177",
+    "migrations_count": 18,
+    "latest_migration": "20261113105123_AddLearningVideosTable",
+    "zero_write_maintained": true
+  }
+}
