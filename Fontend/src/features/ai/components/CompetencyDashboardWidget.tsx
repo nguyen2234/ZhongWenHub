@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   ArrowRight,
   RefreshCw,
-  Mic,
   ShieldCheck,
   Compass,
   Clock,
@@ -22,9 +21,6 @@ const SKILL_COLOR_MAP: Record<string, string> = {
   grammar: '#be123c',    // Rose
   hanzi: '#d97706',      // Amber
   pinyin: '#8b5cf6',     // Violet
-  reading: '#0284c7',    // Sky
-  listening: '#059669',  // Emerald
-  speaking: '#64748b',   // Slate (muted unassessed)
 };
 
 const MASTERY_TIER_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -439,7 +435,7 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
         </div>
       )}
 
-      {/* 6 Macro-Skills Grid */}
+      {/* Active Macro-Skills Grid */}
       {profile && (
         <div
           data-testid="competency-macro-skills-section"
@@ -456,7 +452,7 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
-                Chi Tiết 6 Kỹ Năng Ngôn Ngữ
+                Chi Tiết Kỹ Năng Ngôn Ngữ Trọng Tâm
               </h3>
               <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--muted, #64748b)' }}>
                 Độ thành thạo được tính toán độc lập qua thuật toán Bayesian Knowledge Tracing.
@@ -471,126 +467,87 @@ export const CompetencyDashboardWidget: React.FC<CompetencyDashboardWidgetProps>
               gap: '14px',
             }}
           >
-            {profile.macroSkills.map((skill: SkillCompetency) => {
-              const tierInfo = MASTERY_TIER_LABELS[skill.masteryTier] || MASTERY_TIER_LABELS.NOT_ASSESSED;
-              const skillColor = SKILL_COLOR_MAP[skill.skillCategory] || '#4338ca';
-              const isSpeaking = skill.skillCategory === 'speaking';
+            {profile.macroSkills
+              .filter((s: SkillCompetency) => !['listening', 'speaking', 'reading', 'writing', 'legacy_retired'].includes(s.skillCategory))
+              .map((skill: SkillCompetency) => {
+                const tierInfo = MASTERY_TIER_LABELS[skill.masteryTier] || MASTERY_TIER_LABELS.NOT_ASSESSED;
+                const skillColor = SKILL_COLOR_MAP[skill.skillCategory] || '#4338ca';
 
-              return (
-                <div
-                  key={skill.skillCategory}
-                  data-testid={`skill-card-${skill.skillCategory}`}
-                  style={{
-                    padding: '16px',
-                    borderRadius: '14px',
-                    backgroundColor: 'var(--background, #f8fafc)',
-                    border: '1px solid var(--border, #e2e8f0)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                return (
+                  <div
+                    key={skill.skillCategory}
+                    data-testid={`skill-card-${skill.skillCategory}`}
+                    style={{
+                      padding: '16px',
+                      borderRadius: '14px',
+                      backgroundColor: 'var(--background, #f8fafc)',
+                      border: '1px solid var(--border, #e2e8f0)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            backgroundColor: skillColor,
+                            display: 'inline-block',
+                          }}
+                        />
+                        <span style={{ fontWeight: 800, fontSize: '14px' }}>{skill.labelVi}</span>
+                      </div>
+
                       <span
                         style={{
-                          width: '10px',
-                          height: '10px',
-                          borderRadius: '50%',
-                          backgroundColor: skillColor,
-                          display: 'inline-block',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          backgroundColor: tierInfo.bg,
+                          color: tierInfo.color,
                         }}
-                      />
-                      <span style={{ fontWeight: 800, fontSize: '14px' }}>{skill.labelVi}</span>
+                      >
+                        {tierInfo.label}
+                      </span>
                     </div>
 
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: '9999px',
-                        backgroundColor: tierInfo.bg,
-                        color: tierInfo.color,
-                      }}
-                    >
-                      {tierInfo.label}
-                    </span>
-                  </div>
-
-                  {isSpeaking ? (
-                    <div
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        backgroundColor: '#f1f5f9',
-                        fontSize: '12px',
-                        color: '#475569',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <Mic size={14} style={{ color: '#64748b' }} />
-                      <span>{profile.speakingAudioNote}</span>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Progress Bar */}
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                          <span style={{ color: 'var(--muted, #64748b)' }}>Độ thành thạo</span>
-                          <span style={{ fontWeight: 800, color: skillColor }}>{Math.round(skill.masteryPercent)}%</span>
-                        </div>
+                    {/* Progress Bar */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                        <span style={{ color: 'var(--muted, #64748b)' }}>Độ thành thạo</span>
+                        <span style={{ fontWeight: 800, color: skillColor }}>{Math.round(skill.masteryPercent)}%</span>
+                      </div>
+                      <div
+                        style={{
+                          height: '6px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#e2e8f0',
+                          overflow: 'hidden',
+                        }}
+                      >
                         <div
                           style={{
-                            height: '6px',
+                            width: `${Math.min(100, Math.max(0, skill.masteryPercent))}%`,
+                            height: '100%',
+                            backgroundColor: skillColor,
                             borderRadius: '9999px',
-                            backgroundColor: '#e2e8f0',
-                            overflow: 'hidden',
+                            transition: 'width 0.4s ease',
                           }}
-                        >
-                          <div
-                            style={{
-                              width: `${Math.min(100, Math.max(0, skill.masteryPercent))}%`,
-                              height: '100%',
-                              backgroundColor: skillColor,
-                              borderRadius: '9999px',
-                              transition: 'width 0.4s ease',
-                            }}
-                          />
-                        </div>
+                        />
                       </div>
+                    </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted, #64748b)' }}>
-                        <span>Làm bài: {skill.correctAttempts}/{skill.totalAttempts} câu</span>
-                        <span>Độ tin cậy: {Math.round(skill.confidenceScore * 100)}%</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Transparent audio notice */}
-          <div
-            style={{
-              padding: '10px 14px',
-              borderRadius: '12px',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              fontSize: '12px',
-              color: '#475569',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <Mic size={15} style={{ color: '#64748b' }} />
-            <span>
-              <strong>Chính sách minh bạch AI:</strong> Kỹ năng Nói yêu cầu đánh giá âm thanh thực tế. Khi chưa thu âm chấm điểm trực tiếp, hệ thống ghi nhận rõ ràng là <em>Chưa đánh giá</em> và không suy đoán điểm ảo.
-            </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted, #64748b)' }}>
+                      <span>Làm bài: {skill.correctAttempts}/{skill.totalAttempts} câu</span>
+                      <span>Độ tin cậy: {Math.round(skill.confidenceScore * 100)}%</span>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         </div>
       )}

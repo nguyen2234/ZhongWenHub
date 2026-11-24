@@ -1,8 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ZhongWenHub;
+using ZhongWenHub.Data;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
@@ -15,34 +21,50 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public const string TestConnectionString =
         "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
+    public static string ResolveConnectionString() =>
+        Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING") ?? TestConnectionString;
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        var testConn = ResolveConnectionString();
+        var builderCs = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(testConn);
+        var dbName = builderCs.InitialCatalog;
+        if (!string.Equals(dbName, "ZhongWenHub_Test", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(dbName, "ZhongWenHub_FreshTest", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Safety Guard: Integration tests must connect to an approved test database (ZhongWenHub_Test or ZhongWenHub_FreshTest). Attempted: {dbName}");
+        }
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["ConnectionStrings:DefaultConnection"] = testConn,
                 ["JwtSettings:Secret"] = "ZhongWenHub_IntegrationTest_Super_Secret_Key_32_Bytes_Long_2026!",
-                ["RateLimiting:LoginPermitLimit"] = "1000"
+                ["RateLimiting:LoginPermitLimit"] = "1000",
+                ["Database:AutoMigrate"] = "false",
+                ["Database:EnableSeed"] = "false"
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            // Remove existing ApplicationDbContext descriptor
-            var dbContextDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-            if (dbContextDescriptor != null)
+            // Remove existing ApplicationDbContext descriptors
+            var descriptors = services.Where(d =>
+                d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
+                d.ServiceType == typeof(ApplicationDbContext)).ToList();
+
+            foreach (var d in descriptors)
             {
-                services.Remove(dbContextDescriptor);
+                services.Remove(d);
             }
 
             // Register SQL Server with test database
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(TestConnectionString);
+                options.UseSqlServer(testConn);
             });
         });
     }

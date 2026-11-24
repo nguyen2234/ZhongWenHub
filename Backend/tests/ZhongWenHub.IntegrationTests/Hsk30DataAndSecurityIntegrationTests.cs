@@ -4,14 +4,15 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -120,7 +121,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
             bool hasDraft = await db.Vocabularies.AnyAsync(v => v.Status == "DRAFT");
             if (!hasDraft)
             {
-                var tempDraft = new ZhongWenHub.Data.Entities.Content.VocabularyEntity
+                var tempDraft = new ZhongWenHub.Models.Content.VocabularyEntity
                 {
                     Id = Guid.NewGuid(),
                     HskLevel = 1,
@@ -379,7 +380,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
             var anyCourse = await db.Courses.FirstAsync();
             var anyUnit = await db.Units.FirstAsync(u => u.CourseId == anyCourse.Id);
 
-            db.Lessons.Add(new ZhongWenHub.Data.Entities.Content.LessonEntity
+            db.Lessons.Add(new ZhongWenHub.Models.Content.LessonEntity
             {
                 Id = probeLessonId,
                 CourseId = anyCourse.Id,
@@ -392,7 +393,7 @@ public class Hsk30DataAndSecurityIntegrationTests : IClassFixture<CustomWebAppli
                 CreatedAt = DateTime.UtcNow,
             });
 
-            db.Exercises.Add(new ZhongWenHub.Data.Entities.Content.ExerciseEntity
+            db.Exercises.Add(new ZhongWenHub.Models.Content.ExerciseEntity
             {
                 Id = probeExerciseId,
                 LessonId = probeLessonId,

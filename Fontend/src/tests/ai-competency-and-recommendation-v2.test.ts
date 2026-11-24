@@ -52,34 +52,8 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
           weakTopics: ['Trợ từ 的'],
         },
         {
-          skillCategory: 'reading',
-          labelVi: 'Đọc hiểu (Reading)',
-          totalAttempts: 0,
-          correctAttempts: 0,
-          accuracyPercent: 0.0,
-          masteryScore: 0.0,
-          masteryPercent: 0.0,
-          confidenceScore: 0.0,
-          masteryTier: 'NOT_ASSESSED',
-          isMeasuredRealData: true,
-          weakTopics: [],
-        },
-        {
-          skillCategory: 'listening',
-          labelVi: 'Nghe hiểu (Listening)',
-          totalAttempts: 0,
-          correctAttempts: 0,
-          accuracyPercent: 0.0,
-          masteryScore: 0.0,
-          masteryPercent: 0.0,
-          confidenceScore: 0.0,
-          masteryTier: 'NOT_ASSESSED',
-          isMeasuredRealData: true,
-          weakTopics: [],
-        },
-        {
           skillCategory: 'hanzi',
-          labelVi: 'Nhận diện & Viết chữ Hán',
+          labelVi: 'Nhận diện & Viết chữ Hán (Hanzi)',
           totalAttempts: 0,
           correctAttempts: 0,
           accuracyPercent: 0.0,
@@ -101,19 +75,6 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
           confidenceScore: 0.0,
           masteryTier: 'NOT_ASSESSED',
           isMeasuredRealData: true,
-          weakTopics: [],
-        },
-        {
-          skillCategory: 'speaking',
-          labelVi: 'Phát âm & Nói (Speaking)',
-          totalAttempts: 0,
-          correctAttempts: 0,
-          accuracyPercent: 0.0,
-          masteryScore: 0.0,
-          masteryPercent: 0.0,
-          confidenceScore: 0.0,
-          masteryTier: 'NOT_ASSESSED',
-          isMeasuredRealData: false,
           weakTopics: [],
         },
       ],
@@ -139,14 +100,17 @@ describe('Phase 1 AI Competency Profile & Recommendation Engine V2 Frontend Cont
     expect(mockProfile.estimatedHskLevel).toBeNull();
     expect(mockProfile.hasSpeakingAudioData).toBe(false);
     expect(mockProfile.unclassifiedEvaluationsCount).toBe(0);
+    expect(mockProfile.macroSkills.length).toBe(4);
 
-    const speakingSkill = mockProfile.macroSkills.find(
-      (s: SkillCompetency) => s.skillCategory === 'speaking'
-    );
-    expect(speakingSkill).toBeDefined();
-    expect(speakingSkill?.masteryTier).toBe('NOT_ASSESSED');
-    expect(speakingSkill?.isMeasuredRealData).toBe(false);
-    expect(mockProfile.speakingAudioNote).toContain('không suy đoán điểm nói');
+    const activeSkillCategories = mockProfile.macroSkills.map((s: SkillCompetency) => s.skillCategory);
+    expect(activeSkillCategories).toContain('vocabulary');
+    expect(activeSkillCategories).toContain('grammar');
+    expect(activeSkillCategories).toContain('hanzi');
+    expect(activeSkillCategories).toContain('pinyin');
+    expect(activeSkillCategories).not.toContain('speaking');
+    expect(activeSkillCategories).not.toContain('listening');
+    expect(activeSkillCategories).not.toContain('reading');
+    expect(activeSkillCategories).not.toContain('writing');
 
     // Verify ConceptCode is unique and prefixed CP-
     expect(mockProfile.topWeakConcepts[0].conceptCode).toMatch(/^CP-2-GRAMMAR-/);

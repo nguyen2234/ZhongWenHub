@@ -6,13 +6,19 @@ import { adminRolePermissionService } from '../management/admin/roles/services/r
 import { contentModerationService } from '../management/content-manager/services/content-moderation.service';
 import { contentIssuesService } from '../management/content-manager/services/content-issues.service';
 import { contentAuditService } from '../management/content-manager/services/content-audit.service';
+import {
+  INITIAL_MODERATION_ITEMS,
+  INITIAL_CONTENT_ISSUES,
+  INITIAL_VERSION_SNAPSHOTS,
+  INITIAL_QUALITY_METRICS,
+} from './mocks/mockContentManagerData';
 
 describe('Phase FE-12: Content Manager Workspace & Moderation Architecture', () => {
   beforeEach(() => {
-    // Reset service state before each test
-    contentModerationService.resetToInitial();
-    contentIssuesService.resetToInitial();
-    contentAuditService.resetToInitial();
+    // Inject isolated test fixtures before each test
+    contentModerationService.setTestStore(INITIAL_MODERATION_ITEMS);
+    contentIssuesService.setTestStore(INITIAL_CONTENT_ISSUES);
+    contentAuditService.setTestStore(INITIAL_VERSION_SNAPSHOTS, INITIAL_QUALITY_METRICS);
   });
 
   describe('1. Role & Permission System Alignment', () => {

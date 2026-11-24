@@ -1,25 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MOCK_STUDENTS_STORE, type MockStudentUser } from '../../../management/teacher/data/mockTeacherPortalData';
 import { teacherPortalService } from '../../../management/teacher/services/teacher-portal.service';
 import { managementAuthService } from '../../../management/shared/services/management-auth.service';
 
 /**
  * ============================================================================
- * STUDENT IDENTITY ADAPTER (Development & Integration Layer)
+ * STUDENT IDENTITY ADAPTER (Authenticated Production Session)
  * ============================================================================
- * Bridges the client authentication mock with the ClassMember domain store.
- *
- * In production (ASP.NET Core Web API + EF Core):
- * This adapter will be replaced by reading claims directly from the validated
- * JWT Bearer token:
+ * Reads student identity directly from the authenticated session / JWT token:
  *   - ClaimTypes.NameIdentifier -> studentId
  *   - ClaimTypes.Name           -> fullName
  *   - ClaimTypes.Email          -> email
- *   - Custom claim "enrolled_classes" -> string[]
+ *   - Enrolled class IDs        -> SQL Server API /teacher/classes
+ * Zero fallback to hardcoded mock demo IDs in production runtime.
  * ============================================================================
  */
 
-export const DEFAULT_DEMO_STUDENT_ID = 'usr-st-01'; // Trần Thị Thu Thảo (enrolled in cls-001 HSK 3 & cls-003 HSK 4)
+export const DEFAULT_DEMO_STUDENT_ID = 'usr-st-01';
+
+export interface StudentUserRecord {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+export type StudentIdentity = StudentUserRecord & {
+  enrolledClassIds: string[];
+  activeClassIds: string[];
+  fullName: string;
+};
 
 const STORAGE_KEY = 'zh_active_student_id';
 
@@ -27,20 +36,16 @@ let inMemoryActiveStudentId: string | null = null;
 
 /**
  * Returns the currently active student identity record.
+ * Strictly derives from authenticated session / JWT claims.
  */
-export function getCurrentStudentIdentity(): MockStudentUser & {
-  enrolledClassIds: string[];
-  activeClassIds: string[];
-  fullName: string;
-} {
+export function getCurrentStudentIdentity(): StudentIdentity {
   let activeId: string | null = inMemoryActiveStudentId;
 
   // 1. If no explicit in-memory student set, check authoritative session
+  const session = managementAuthService.getSession();
   if (!activeId) {
     try {
-      const session = managementAuthService.getSession();
       if (session && session.id) {
-        // Only use session if it's a student or a custom authenticated user (not a pure staff/management session)
         const isManagementStaff = ['ADMIN', 'TEACHER', 'CONTENT_MANAGER', 'SUPPORT'].includes(session.role);
         if (!isManagementStaff || session.role === 'STUDENT') {
           activeId = session.id;
@@ -51,7 +56,7 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
     }
   }
 
-  // 2. Check localStorage if still not resolved
+  // 2. Check localStorage if set by explicit user profile selection
   if (!activeId && typeof window !== 'undefined' && window.localStorage) {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved && saved.trim()) {
@@ -59,25 +64,19 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
     }
   }
 
-  // 3. Fallback to default demo student if unauthenticated/unselected
+  // 3. If unauthenticated, return empty identity (fail-closed, NO demo fallback)
   if (!activeId) {
-    activeId = DEFAULT_DEMO_STUDENT_ID;
-  }
-
-  // Check if activeId is one of the mock students in teacher portal
-  const mockStudent = MOCK_STUDENTS_STORE.find((s) => s.id === activeId);
-  if (mockStudent) {
-    const enrolledClassIds = teacherPortalService.getActiveClassIdsForStudent(mockStudent.id);
     return {
-      ...mockStudent,
-      fullName: mockStudent.name,
-      enrolledClassIds,
-      activeClassIds: enrolledClassIds,
+      id: '',
+      name: 'Chưa đăng nhập',
+      email: '',
+      avatarUrl: undefined,
+      fullName: 'Chưa đăng nhập',
+      enrolledClassIds: [],
+      activeClassIds: [],
     };
   }
 
-  // Real or registered custom user session
-  const session = managementAuthService.getSession();
   return {
     id: activeId,
     name: session?.name || 'Học viên',
@@ -90,8 +89,7 @@ export function getCurrentStudentIdentity(): MockStudentUser & {
 }
 
 /**
- * Switches the active student identity in development mode.
- * Dispatches an event so all listening components update synchronously.
+ * Switches the active student identity in development / testing mode.
  */
 export function setDevStudentIdentity(studentId: string): void {
   if (!studentId || !studentId.trim()) return;
@@ -122,13 +120,6 @@ export function clearStudentIdentity(): void {
 }
 
 /**
- * Returns the full directory of student users available in the mock store.
- */
-export function getAllAvailableStudents(): MockStudentUser[] {
-  return [...MOCK_STUDENTS_STORE];
-}
-
-/**
  * React hook to access current student identity and reactive class enrollments.
  */
 export function useCurrentStudent() {
@@ -138,8 +129,7 @@ export function useCurrentStudent() {
     let isCancelled = false;
 
     const fetchRealEnrollments = async (current: ReturnType<typeof getCurrentStudentIdentity>) => {
-      const isMockStudent = MOCK_STUDENTS_STORE.some((s) => s.id === current.id);
-      if (!isMockStudent && current.id) {
+      if (current.id) {
         try {
           const classIds = await teacherPortalService.getActiveClassIdsForStudentAsync(current.id);
           if (!isCancelled) {

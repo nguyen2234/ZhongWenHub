@@ -4,13 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RootNamespace>ZhongWenHub.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.14" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
@@ -23,8 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Business\ZhongWenHub.Business.csproj" />
-    <ProjectReference Include="..\..\src\Data\ZhongWenHub.Data.csproj" />
+    <ProjectReference Include="..\..\src\ZhongWenHub.Api\ZhongWenHub.Api.csproj" />
   </ItemGroup>
 
 </Project>

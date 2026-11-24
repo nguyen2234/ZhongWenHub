@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, mock } from 'bun:test';
 import { authService } from '../features/auth/services/authService';
 import {
   getCurrentStudentIdentity,
@@ -9,14 +9,67 @@ import {
 import { studentAttemptService } from '../features/homework/services/student-attempt.service';
 import { authTokenService } from '../core/api/client/auth-token.service';
 import { managementAuthService } from '../management/shared/services/management-auth.service';
+import { setTestTeacherPortalStores } from '../management/teacher/services/teacher-portal.service';
+import { setTestAssignmentStores } from '../management/teacher/services/assignment.service';
+import {
+  INITIAL_TEACHING_CLASSES,
+  INITIAL_CLASS_MEMBERS,
+  INITIAL_CLASS_SCHEDULES,
+  INITIAL_DEMO_SUBMISSIONS,
+  INITIAL_RECENT_ACTIVITIES,
+} from './mocks/mockTeacherPortalData';
+import {
+  INITIAL_ASSIGNMENTS,
+  INITIAL_ASSIGNMENT_QUESTIONS,
+  INITIAL_ASSIGNMENT_TARGETS,
+} from './mocks/mockAssignmentData';
+import { MOCK_QUESTION_CATALOG } from './mocks/mockQuestionCatalog';
 
 describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeAll(() => {
+    setTestTeacherPortalStores({
+      classes: INITIAL_TEACHING_CLASSES,
+      members: INITIAL_CLASS_MEMBERS,
+      schedules: INITIAL_CLASS_SCHEDULES,
+      submissions: INITIAL_DEMO_SUBMISSIONS,
+      activities: INITIAL_RECENT_ACTIVITIES,
+    });
+    setTestAssignmentStores({
+      assignments: INITIAL_ASSIGNMENTS,
+      questions: INITIAL_ASSIGNMENT_QUESTIONS,
+      targets: INITIAL_ASSIGNMENT_TARGETS,
+      catalog: MOCK_QUESTION_CATALOG,
+      classes: INITIAL_TEACHING_CLASSES,
+    });
+  });
+
   beforeEach(async () => {
+    globalThis.fetch = originalFetch;
     await authService.logout();
   });
 
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
   describe('1. Mock Mode vs HTTP Mode Authentication', () => {
-    it('logs in student demo account in mock mode with correct role and student identity', async () => {
+    it('logs in student account via HTTP API with correct role and student identity', async () => {
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({
+          accessToken: 'jwt-student-token',
+          refreshToken: 'refresh-token',
+          user: {
+            id: DEFAULT_DEMO_STUDENT_ID,
+            email: 'student@zhongwenhub.edu.vn',
+            fullName: 'Trần Thị Thu Thảo',
+            roles: ['STUDENT'],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       const res = await authService.login({
         email: 'student@zhongwenhub.edu.vn',
         password: 'Password123!',
@@ -33,6 +86,20 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
     });
 
     it('logs in teacher demo account with TEACHER role', async () => {
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({
+          accessToken: 'jwt-teacher-token',
+          refreshToken: 'refresh-token',
+          user: {
+            id: 'usr-teacher-01',
+            email: 'teacher@zhongwenhub.edu.vn',
+            fullName: 'Thầy Hùng',
+            roles: ['TEACHER'],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       const res = await authService.login({
         email: 'teacher@zhongwenhub.edu.vn',
         password: 'Password123!',
@@ -47,6 +114,20 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
     });
 
     it('logs in admin demo account with ADMIN role', async () => {
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({
+          accessToken: 'jwt-admin-token',
+          refreshToken: 'refresh-token',
+          user: {
+            id: 'usr-admin-01',
+            email: 'admin@zhongwenhub.edu.vn',
+            fullName: 'Admin Tổng',
+            roles: ['ADMIN'],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       const res = await authService.login({
         email: 'admin@zhongwenhub.edu.vn',
         password: 'Password123!',
@@ -57,20 +138,16 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
       expect(res.user?.id).toBe('usr-admin-01');
     });
 
-    it('supports Google login in mock mode with a dedicated demo student account', async () => {
-      const res = await authService.loginWithGoogle();
-
-      expect(res.success).toBe(true);
-      expect(res.user?.id).toBe('usr-google-demo');
-      expect(res.user?.email).toBe('student.google@zhongwenhub.edu.vn');
-      expect(res.user?.role).toBe('STUDENT');
-
-      const current = getCurrentStudentIdentity();
-      expect(current.id).toBe('usr-google-demo');
-      expect(current.fullName).toBe('Học viên Google (Demo)');
+    it('rejects Google OAuth login when server configuration is not provisioned', async () => {
+      expect(authService.loginWithGoogle()).rejects.toThrow('Google OAuth');
     });
 
     it('handles forgot password and returns informative response', async () => {
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({ message: 'Email đặt lại mật khẩu đã được gửi.' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       const res = await authService.forgotPassword('student@zhongwenhub.edu.vn');
       expect(res.success).toBe(true);
       expect(res.message).toBeDefined();
@@ -90,6 +167,11 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
         })
       ).rejects.toThrow('Mật khẩu xác nhận không khớp.');
 
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({ message: 'Mật khẩu đã được đặt lại thành công.' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       const successRes = await authService.resetPassword({
         email: 'student@zhongwenhub.edu.vn',
         token: 'DEMO-TOKEN',
@@ -100,6 +182,20 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
     });
 
     it('clears all session state, student identity, and caches on logout', async () => {
+      globalThis.fetch = mock(async () => new Response(
+        JSON.stringify({
+          accessToken: 'jwt-student-token',
+          refreshToken: 'refresh-token',
+          user: {
+            id: DEFAULT_DEMO_STUDENT_ID,
+            email: 'student@zhongwenhub.edu.vn',
+            fullName: 'Trần Thị Thu Thảo',
+            roles: ['STUDENT'],
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      ));
+
       await authService.login({
         email: 'student@zhongwenhub.edu.vn',
         password: 'Password123!',
@@ -141,8 +237,8 @@ describe('Auth, Identity Isolation, and Runner Protection Suite', () => {
       expect(getCurrentStudentIdentity().id).toBe('usr-temporary-id');
 
       clearStudentIdentity();
-      // When cleared and unauthenticated, safely falls back to default demo
-      expect(getCurrentStudentIdentity().id).toBe(DEFAULT_DEMO_STUDENT_ID);
+      // When cleared and unauthenticated, strictly returns empty identity (zero fallback to demo)
+      expect(getCurrentStudentIdentity().id).toBe('');
     });
   });
 

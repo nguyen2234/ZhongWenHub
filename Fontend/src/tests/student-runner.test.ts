@@ -1,13 +1,44 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'bun:test';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test';
 import { studentHomeworkService } from '../features/homework/services/student-homework.service';
 import { studentAttemptService } from '../features/homework/services/student-attempt.service';
 import { isExerciseTypeSupported } from '../features/exercise-engine/utils/exercise-capability';
 import { authTokenService } from '../core/api/client/auth-token.service';
-import { teacherPortalService } from '../management/teacher/services/teacher-portal.service';
+import { teacherPortalService, setTestTeacherPortalStores } from '../management/teacher/services/teacher-portal.service';
+import { setTestAssignmentStores } from '../management/teacher/services/assignment.service';
+import {
+  INITIAL_TEACHING_CLASSES,
+  INITIAL_CLASS_MEMBERS,
+  INITIAL_CLASS_SCHEDULES,
+  INITIAL_DEMO_SUBMISSIONS,
+  INITIAL_RECENT_ACTIVITIES,
+} from './mocks/mockTeacherPortalData';
+import {
+  INITIAL_ASSIGNMENTS,
+  INITIAL_ASSIGNMENT_QUESTIONS,
+  INITIAL_ASSIGNMENT_TARGETS,
+} from './mocks/mockAssignmentData';
+import { MOCK_QUESTION_CATALOG } from './mocks/mockQuestionCatalog';
 
 describe('Phase 2B.2 Student Runner Tests', () => {
   const originalFetch = globalThis.fetch;
   const studentId = 'usr-st-01'; // Trần Thị Thu Thảo (enrolled in cls-001)
+
+  beforeAll(() => {
+    setTestTeacherPortalStores({
+      classes: INITIAL_TEACHING_CLASSES,
+      members: INITIAL_CLASS_MEMBERS,
+      schedules: INITIAL_CLASS_SCHEDULES,
+      submissions: INITIAL_DEMO_SUBMISSIONS,
+      activities: INITIAL_RECENT_ACTIVITIES,
+    });
+    setTestAssignmentStores({
+      assignments: INITIAL_ASSIGNMENTS,
+      questions: INITIAL_ASSIGNMENT_QUESTIONS,
+      targets: INITIAL_ASSIGNMENT_TARGETS,
+      catalog: MOCK_QUESTION_CATALOG,
+      classes: INITIAL_TEACHING_CLASSES,
+    });
+  });
 
   beforeEach(() => {
     globalThis.fetch = originalFetch;

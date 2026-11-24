@@ -7,5 +7,5 @@ export * from './components/MistakeReviewCard';
 export * from './components/SkillPracticeCard';
 export * from './components/HSKFilterSection';
 export * from './components/PracticeResult';
-export * from './data/mockPracticeData';
+export * from './data/practiceUiConfig';
 export * from './pages/PracticePage';

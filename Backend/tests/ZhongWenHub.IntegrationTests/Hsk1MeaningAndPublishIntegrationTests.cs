@@ -4,16 +4,17 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Data.Entities;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Models.Users;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class Hsk1MeaningAndPublishIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

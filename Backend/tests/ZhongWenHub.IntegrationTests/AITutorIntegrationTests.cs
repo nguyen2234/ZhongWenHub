@@ -5,12 +5,13 @@ using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.AITutor.DTOs;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class AITutorIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

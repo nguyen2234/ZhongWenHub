@@ -2,17 +2,7 @@ import { curriculumService } from '../../admin/content/services/curriculum.servi
 import { hskRepositoryService } from '../../admin/content/services/hsk-repository.service';
 import type { PaginatedResponse } from '../../shared/types';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
-import {
-  CURRENT_TEACHER_EMAIL,
-  CURRENT_TEACHER_ID,
-  CURRENT_TEACHER_NAME,
-  INITIAL_CLASS_MEMBERS,
-  INITIAL_CLASS_SCHEDULES,
-  INITIAL_DEMO_SUBMISSIONS,
-  INITIAL_QUICK_ACTIONS,
-  INITIAL_RECENT_ACTIVITIES,
-  INITIAL_TEACHING_CLASSES,
-} from '../data/mockTeacherPortalData';
+import { TEACHER_QUICK_ACTIONS } from '../data/teacherUiConfig';
 import type {
   ClassDetailDTO,
   ClassFilters,
@@ -65,12 +55,30 @@ async function extractErrorDetail(res: Response, fallbackMessage: string): Promi
   }
 }
 
+export const DEFAULT_TEACHER_ID = 'tch-001';
+export const DEFAULT_TEACHER_NAME = 'Nguyễn Thị Minh Hạnh';
+export const DEFAULT_TEACHER_EMAIL = 'teacher.hanh@zhongwenhub.edu.vn';
+
 // In-memory test store for test fixtures and backwards-compatibility
-const classesStore: TeachingClass[] = [...INITIAL_TEACHING_CLASSES];
-const membersStore: ClassMember[] = [...INITIAL_CLASS_MEMBERS];
-const schedulesStore: ClassSchedule[] = [...INITIAL_CLASS_SCHEDULES];
-const submissionsStore = [...INITIAL_DEMO_SUBMISSIONS];
-const activitiesStore = [...INITIAL_RECENT_ACTIVITIES];
+let classesStore: TeachingClass[] = [];
+let membersStore: ClassMember[] = [];
+let schedulesStore: ClassSchedule[] = [];
+let submissionsStore: any[] = [];
+let activitiesStore: any[] = [];
+
+export function setTestTeacherPortalStores(data?: {
+  classes?: TeachingClass[];
+  members?: ClassMember[];
+  schedules?: ClassSchedule[];
+  submissions?: any[];
+  activities?: any[];
+}): void {
+  classesStore = data?.classes ? [...data.classes] : [];
+  membersStore = data?.members ? [...data.members] : [];
+  schedulesStore = data?.schedules ? [...data.schedules] : [];
+  submissionsStore = data?.submissions ? [...data.submissions] : [];
+  activitiesStore = data?.activities ? [...data.activities] : [];
+}
 
 /**
  * Safely decodes JWT payload to extract user identity (sub or nameid),
@@ -152,7 +160,7 @@ class TeacherPortalService {
   }
 
   getCurrentTeacherId(): string {
-    return CURRENT_TEACHER_ID;
+    return this.getCurrentSessionUserId() || DEFAULT_TEACHER_ID;
   }
 
   /* ==========================================================================
@@ -807,7 +815,7 @@ class TeacherPortalService {
      ========================================================================== */
 
   getMockDashboardForTest(): TeacherDashboardDTO {
-    const teacherId = CURRENT_TEACHER_ID;
+    const teacherId = this.getCurrentSessionUserId() || DEFAULT_TEACHER_ID;
     const teacherClasses = classesStore.filter((c) => c.teacherId === teacherId);
     const activeClasses = teacherClasses.filter((c) => c.status === 'ACTIVE');
 
@@ -832,8 +840,8 @@ class TeacherPortalService {
 
     return {
       teacherId,
-      teacherName: CURRENT_TEACHER_NAME,
-      teacherEmail: CURRENT_TEACHER_EMAIL,
+      teacherName: DEFAULT_TEACHER_NAME,
+      teacherEmail: DEFAULT_TEACHER_EMAIL,
       metrics: {
         activeClassesCount: activeClasses.length,
         totalEnrolledStudents,
@@ -844,7 +852,7 @@ class TeacherPortalService {
       activeClasses: activeClassSummaries,
       pendingSubmissions: submissionsStore,
       recentActivities: activitiesStore,
-      quickActions: INITIAL_QUICK_ACTIONS,
+      quickActions: TEACHER_QUICK_ACTIONS,
     };
   }
 

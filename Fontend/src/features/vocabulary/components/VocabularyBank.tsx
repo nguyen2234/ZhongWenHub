@@ -17,7 +17,6 @@ import { VocabularyFilters } from './VocabularyFilters';
 import { VocabularyDetailDrawer } from './VocabularyDetailDrawer';
 import { Button } from '../../../design-system';
 import { httpClient } from '../../../core/api/client/http-client';
-import { defaultApiConfig } from '../../../core/api/client/api-config';
 
 interface VocabularyBankProps {
   onStartReviewSession: () => void;
@@ -84,30 +83,6 @@ export const VocabularyBank: React.FC<VocabularyBankProps> = ({
     let isMounted = true;
     setLoading(true);
     setError(null);
-
-    // In unit test environment without real browser window
-    if (defaultApiConfig.useMock && typeof window === 'undefined') {
-      let filtered = [...INITIAL_VOCABULARY_LIST];
-      if (filters.hskLevel !== 'all') {
-        filtered = filtered.filter((v) => v.hskLevel === filters.hskLevel);
-      }
-      if (filters.searchQuery.trim()) {
-        const q = filters.searchQuery.toLowerCase().trim();
-        filtered = filtered.filter(
-          (v) =>
-            v.hanzi.includes(q) ||
-            v.pinyin.toLowerCase().includes(q) ||
-            v.primaryMeaning.toLowerCase().includes(q)
-        );
-      }
-      const start = (page - 1) * pageSize;
-      const paged = filtered.slice(start, start + pageSize);
-      setItems(paged);
-      setTotalItems(filtered.length);
-      setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
-      setLoading(false);
-      return;
-    }
 
     const queryParams: Record<string, string | number | undefined> = {
       page,

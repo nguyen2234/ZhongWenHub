@@ -6,15 +6,18 @@ import type {
   AuthUser,
 } from '../types/auth.types';
 import type { UserRole } from '../../../types/roles';
-import { defaultApiConfig } from '../../../core/api/client/api-config';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { managementAuthService } from '../../../management/shared/services/management-auth.service';
 import { adminRolePermissionService } from '../../../management/admin/roles/services/role-permission.service';
-import { setDevStudentIdentity, clearStudentIdentity, DEFAULT_DEMO_STUDENT_ID } from './student-identity.adapter';
+import { setDevStudentIdentity, clearStudentIdentity } from './student-identity.adapter';
 import { studentAttemptService } from '../../homework/services/student-attempt.service';
 
 function getApiUrl(endpoint: string): string {
-  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const base =
+    (import.meta.env?.VITE_API_BASE_URL as string) ||
+    (typeof window !== 'undefined' && window.location?.origin
+      ? `${window.location.origin}/api/v1`
+      : 'http://localhost:5000/api/v1');
   const cleanBase = base.replace(/\/+$/, '');
   const cleanEndpoint = endpoint.replace(/^\/+/, '');
   return `${cleanBase}/${cleanEndpoint}`;
@@ -42,6 +45,7 @@ interface BackendUserPayload {
   username?: string;
   email: string;
   displayName?: string;
+  fullName?: string;
   avatarUrl?: string;
   roles?: string[];
   currentHskLevel?: string | number;
@@ -64,7 +68,7 @@ function mapBackendUserToAuthUser(user: BackendUserPayload): AuthUser {
 
   return {
     id: user.id,
-    fullName: user.displayName || user.username || 'Người dùng',
+    fullName: user.fullName || user.displayName || user.username || 'Người dùng',
     email: user.email,
     avatarUrl: user.avatarUrl,
     currentHskLevel: hskLevel,
@@ -89,71 +93,6 @@ export const authService = {
     }
     if (!request.password) {
       throw new Error('Mật khẩu không được để trống.');
-    }
-
-    if (defaultApiConfig.useMock) {
-      const emailLower = emailTrimmed.toLowerCase();
-      let role: UserRole = 'STUDENT';
-      let id = `usr-${emailLower.split('@')[0]}`;
-      let name = 'Học viên Demo';
-
-      if (emailLower.includes('admin')) {
-        role = 'ADMIN';
-        id = 'usr-admin-01';
-        name = 'Quản Trị Viên (Admin)';
-      } else if (emailLower.includes('teacher')) {
-        role = 'TEACHER';
-        id = 'usr-teacher-01';
-        name = 'Trần Thị Mai (Teacher)';
-      } else if (emailLower.includes('content')) {
-        role = 'CONTENT_MANAGER';
-        id = 'usr-cm-01';
-        name = 'Nguyễn Văn Minh (CM)';
-      } else if (emailLower.includes('support')) {
-        role = 'SUPPORT';
-        id = 'usr-support-01';
-        name = 'Hoàng Long (Support)';
-      } else if (emailLower.includes('student') || emailLower.includes('demo') || emailLower === 'usr-st-01') {
-        role = 'STUDENT';
-        id = DEFAULT_DEMO_STUDENT_ID;
-        name = 'Trần Thị Thu Thảo';
-      }
-
-      const mockUser: AuthUser = {
-        id,
-        fullName: name,
-        email: emailTrimmed,
-        avatarUrl: undefined,
-        currentHskLevel: 2,
-        streakDays: 3,
-        xpPoints: 120,
-        roles: [role],
-        role,
-      };
-
-      const mockToken = `mock-jwt-token-${id}`;
-      authTokenService.setSession({
-        accessToken: mockToken,
-        expiresAt: Date.now() + 86400000,
-      });
-
-      managementAuthService.setSession({
-        id: mockUser.id,
-        name: mockUser.fullName,
-        email: mockUser.email,
-        role: mockUser.role as UserRole,
-        permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(role))?.permissions || [],
-        avatarUrl: mockUser.avatarUrl,
-      });
-
-      setDevStudentIdentity(mockUser.id);
-
-      return {
-        success: true,
-        message: 'Đăng nhập thành công (Demo Mode)! Đang chuyển hướng...',
-        user: mockUser,
-        accessToken: mockToken,
-      };
     }
 
     try {
@@ -211,7 +150,7 @@ export const authService = {
       // Sync management session
       managementAuthService.setSession({
         id: data.user.id,
-        name: data.user.displayName || data.user.username || 'Người dùng',
+        name: data.user.fullName || data.user.displayName || data.user.username || 'Người dùng',
         email: data.user.email,
         role: authUser.role as UserRole,
         permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
@@ -339,15 +278,13 @@ export const authService = {
    */
   async logout(): Promise<void> {
     try {
-      if (!defaultApiConfig.useMock) {
-        await fetch(getApiUrl('auth/logout'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-      }
+      await fetch(getApiUrl('auth/logout'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
     } catch {
       // Ignore network errors on logout
     } finally {
@@ -442,43 +379,6 @@ export const authService = {
       throw new Error('Mật khẩu xác nhận không khớp.');
     }
 
-    if (defaultApiConfig.useMock) {
-      const mockId = `usr-st-${Date.now()}`;
-      const mockUser: AuthUser = {
-        id: mockId,
-        fullName: request.fullName.trim(),
-        email: emailTrimmed,
-        currentHskLevel: 1,
-        streakDays: 0,
-        xpPoints: 0,
-        roles: ['STUDENT'],
-        role: 'STUDENT',
-      };
-
-      const mockToken = `mock-jwt-token-${mockId}`;
-      authTokenService.setSession({
-        accessToken: mockToken,
-        expiresAt: Date.now() + 86400000,
-      });
-
-      managementAuthService.setSession({
-        id: mockUser.id,
-        name: mockUser.fullName,
-        email: mockUser.email,
-        role: 'STUDENT',
-        permissions: adminRolePermissionService.getRoleByCode('STUDENT')?.permissions || [],
-      });
-
-      setDevStudentIdentity(mockUser.id);
-
-      return {
-        success: true,
-        message: 'Đăng ký tài khoản thành công! Đang chuyển hướng đến bảng điều khiển...',
-        user: mockUser,
-        accessToken: mockToken,
-      };
-    }
-
     try {
       const response = await fetch(getApiUrl('auth/register'), {
         method: 'POST',
@@ -534,7 +434,7 @@ export const authService = {
       // Sync management session
       managementAuthService.setSession({
         id: data.user.id,
-        name: data.user.displayName || data.user.username || 'Người dùng',
+        name: data.user.fullName || data.user.displayName || data.user.username || 'Người dùng',
         email: data.user.email,
         role: authUser.role as UserRole,
         permissions: adminRolePermissionService.getRoleByCode(getSystemRoleCode(authUser.role || 'STUDENT'))?.permissions || [],
@@ -562,44 +462,6 @@ export const authService = {
    * Google OAuth login
    */
   async loginWithGoogle(): Promise<AuthResponse> {
-    if (defaultApiConfig.useMock) {
-      const mockUser: AuthUser = {
-        id: 'usr-google-demo',
-        fullName: 'Học viên Google (Demo)',
-        email: 'student.google@zhongwenhub.edu.vn',
-        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop',
-        currentHskLevel: 2,
-        streakDays: 5,
-        xpPoints: 350,
-        roles: ['STUDENT'],
-        role: 'STUDENT',
-      };
-
-      const mockToken = 'mock-google-token-demo';
-      authTokenService.setSession({
-        accessToken: mockToken,
-        expiresAt: Date.now() + 86400000,
-      });
-
-      managementAuthService.setSession({
-        id: mockUser.id,
-        name: mockUser.fullName,
-        email: mockUser.email,
-        role: 'STUDENT',
-        permissions: adminRolePermissionService.getRoleByCode('STUDENT')?.permissions || [],
-        avatarUrl: mockUser.avatarUrl,
-      });
-
-      setDevStudentIdentity(mockUser.id);
-
-      return {
-        success: true,
-        message: 'Đăng nhập Google thành công (Demo Mode)! Đang chuyển hướng...',
-        user: mockUser,
-        accessToken: mockToken,
-      };
-    }
-
     throw new Error('Tính năng đăng nhập với Google trên máy chủ ASP.NET Core yêu cầu cấu hình Google OAuth ClientId và RedirectURI.');
   },
 
@@ -610,13 +472,6 @@ export const authService = {
     const emailTrimmed = email.trim().toLowerCase();
     if (!emailTrimmed || !emailTrimmed.includes('@')) {
       throw new Error('Vui lòng cung cấp địa chỉ email hợp lệ.');
-    }
-
-    if (defaultApiConfig.useMock) {
-      return {
-        success: true,
-        message: 'Nếu địa chỉ email tồn tại trên hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi đến hòm thư của bạn.',
-      };
     }
 
     try {
@@ -669,13 +524,6 @@ export const authService = {
     }
     if (payload.confirmPassword && payload.newPassword !== payload.confirmPassword) {
       throw new Error('Mật khẩu xác nhận không khớp.');
-    }
-
-    if (defaultApiConfig.useMock) {
-      return {
-        success: true,
-        message: 'Đặt lại mật khẩu thành công (Demo Mode)! Bạn có thể đăng nhập bằng mật khẩu mới.',
-      };
     }
 
     try {

@@ -2,11 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

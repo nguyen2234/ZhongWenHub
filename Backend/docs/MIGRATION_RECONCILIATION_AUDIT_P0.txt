@@ -1,0 +1,45 @@
+ZhongWenHub Migration Reconciliation Audit (Phase P0)
+Date: 2026-11-22
+Environment: Local / ZhongWenHub_Test vs ZhongWenHub_Dev
+
+1. Migrations in Code (main @ 2ff648a): 24 migrations
+- 20261103143751_InitialSqlServerCreate
+- 20261103165910_AddStudentLearningProgressTables
+- 20261104102234_AddContentManagementTables
+- 20261104112017_AddUnitManagementTable
+- 20261104123000_AddLessonDialogueAndListeningColumns
+- 20261104130000_AddVocabularySourceMetadata
+- 20261104145500_AddVocabularySourceDatasetAndEntryId
+- 20261105111933_AddUserWalletAndSubscription
+- 20261105161541_AddHsk30GrammarAndHanziTables
+- 20261106004600_AddContentReviewAndHanziFields
+- 20261109000000_AddLessonReviewAndAuditFields
+- 20261111060000_AddExamRepositoryTables
+- 20261111152940_AddQuestionBankArchitecture
+- 20261111170115_AddAdministrativeApprovalFields
+- 20261111173747_AddLessonVocabulariesAndNormalizedKeys
+- 20261111174226_EnforceVocabularyUniqueCanonicalKey
+- 20261112150501_AddAiLearningEngineTables
+- 20261113105123_AddLearningVideosTable
+- 20261113151257_AddVideoStorageOutboxAndUploadAssets
+- 20261115170022_AddAiPersonalizationPhase3And4
+- 20261115173345_AddAiPersonalizationPhase5Speaking
+- 20261119064142_AddTeacherClassManagementEntities
+- 20261119091411_AddTeacherAssignmentAndAttendanceEntities
+- 20261120075241_AddLessonExercisePresentation
+
+2. Applied Migrations in ZhongWenHub_Test: 25 migrations
+- Contains all 24 migrations above plus:
+  - 20261120132625_AddSupportTicketsAndAiProviders (applied during testing of PR #31 feature branch)
+
+3. Reconciliation & Forward-only Strategy:
+- In fresh database provisioning, migrations 1-24 apply cleanly.
+- For Phase P4 Multi-Provider AI and Support, all new models (AiProviderConfiguration, etc.) will be added with forward-only schema updates.
+- No historical migration entries in __EFMigrationsHistory will be deleted.
+
+4. Database Zero-Write Audit:
+- Target: ZhongWenHub_Dev
+- Table: users
+- Count: 40 users (verified unchanged)
+- MaxCreatedAt: 2026-11-14 14:00:26.2778967 (verified unchanged)
+- MaxUpdatedAt: 2026-11-20 16:37:16.1049195 (verified unchanged)

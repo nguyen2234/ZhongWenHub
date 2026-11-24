@@ -4,14 +4,58 @@ import type {
   ContentPriority,
   ContentIssueType,
 } from '../types/content-manager.types';
-import { INITIAL_CONTENT_ISSUES } from '../data/mockContentManagerData';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
 import { contentAuditService } from './content-audit.service';
 
 class ContentIssuesService {
-  private issues: ContentIssue[] = structuredClone(INITIAL_CONTENT_ISSUES);
+  private issues: ContentIssue[] = [];
+
+  setTestStore(issues: ContentIssue[]): void {
+    this.issues = structuredClone(issues);
+  }
 
   resetToInitial(): void {
-    this.issues = structuredClone(INITIAL_CONTENT_ISSUES);
+    this.issues = [];
+  }
+
+  async getIssuesAsync(filter?: {
+    status?: ContentIssueStatus;
+    priority?: ContentPriority;
+    issueType?: ContentIssueType;
+    search?: string;
+  }): Promise<ContentIssue[]> {
+    if (this.issues.length > 0) {
+      return this.getIssues(filter);
+    }
+    try {
+      const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+      const token = authTokenService.getAccessToken();
+      const res = await fetch(`${base}/support/tickets?category=ContentError`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return (data?.items || data || []).map((t: any) => ({
+          id: t.id || `ISS-${t.ticketNumber}`,
+          targetContentId: t.targetContentId || '',
+          targetContentType: 'CURRICULUM_LESSON',
+          targetContentTitle: t.title || 'Báo cáo lỗi học liệu',
+          title: t.title || '',
+          description: t.description || '',
+          issueType: 'OTHER',
+          priority: (t.priority || 'MEDIUM').toUpperCase() as ContentPriority,
+          reportedBy: t.studentName || 'Học viên',
+          supportStaffName: t.assignedToName || 'Bộ phận hỗ trợ',
+          status: (t.status === 'Resolved' ? 'RESOLVED' : t.status === 'Closed' ? 'CLOSED' : 'NEW') as ContentIssueStatus,
+          createdAt: t.createdAt || new Date().toISOString(),
+          updatedAt: t.updatedAt || new Date().toISOString(),
+          history: [],
+        }));
+      }
+    } catch {
+      // ignore
+    }
+    return [];
   }
 
   getIssues(filter?: {

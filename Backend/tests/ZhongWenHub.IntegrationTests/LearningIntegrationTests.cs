@@ -8,14 +8,15 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Learning;
-using ZhongWenHub.Business.Learning.DTOs;
-using ZhongWenHub.Data.Entities.Learning;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Features.Student.Learning;
+using ZhongWenHub.Features.Student.Learning.DTOs;
+using ZhongWenHub.Models.Learning;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class LearningIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

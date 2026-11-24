@@ -6,6 +6,24 @@ import type {
 } from '../types/support-ticket.types';
 import { contentIssuesService } from '../../content-manager/services/content-issues.service';
 import type { ContentIssueType, ModerationContentType } from '../../content-manager/types/content-manager.types';
+import { authTokenService } from '../../../core/api/client/auth-token.service';
+
+function getApiUrl(endpoint: string): string {
+  const base = (import.meta.env?.VITE_API_BASE_URL as string) || '/api/v1';
+  const cleanBase = base.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.replace(/^\/+/, '');
+  return `${cleanBase}/${cleanEndpoint}`;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const token = authTokenService.getAccessToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
 
 const INITIAL_TICKETS: SupportTicket[] = [
   {
@@ -420,6 +438,126 @@ class SupportTicketService {
       avgResolutionHours: 3.4,
       satisfactionRate: 98.2,
     };
+  }
+
+  async fetchTickets(filters?: TicketFilters): Promise<SupportTicket[]> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.status && filters.status !== 'ALL') params.set('status', filters.status);
+      if (filters?.priority && filters.priority !== 'ALL') params.set('priority', filters.priority);
+      if (filters?.category && filters.category !== 'ALL') params.set('category', filters.category);
+      if (filters?.assignee && filters.assignee !== 'ALL') params.set('assignee', filters.assignee);
+      if (filters?.search) params.set('search', filters.search);
+
+      const res = await fetch(getApiUrl(`support/tickets?${params.toString()}`), {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) return this.getTickets(filters);
+      const data: SupportTicket[] = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        for (const item of data) {
+          const idx = this.tickets.findIndex((t) => t.id === item.id);
+          if (idx !== -1) this.tickets[idx] = item;
+          else this.tickets.unshift(item);
+        }
+        return data;
+      }
+      return this.getTickets(filters);
+    } catch {
+      return this.getTickets(filters);
+    }
+  }
+
+  async fetchMetrics(): Promise<SupportMetrics> {
+    try {
+      const res = await fetch(getApiUrl('support/metrics'), {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) return this.getMetrics();
+      return await res.json();
+    } catch {
+      return this.getMetrics();
+    }
+  }
+
+  async updateTicketStatusApi(
+    id: string,
+    newStatus: TicketStatus,
+    note?: string
+  ): Promise<SupportTicket> {
+    const local = this.updateTicketStatus(id, newStatus, 'Trần Thuỳ Trang (Support)', note);
+    try {
+      await fetch(getApiUrl(`support/tickets/${encodeURIComponent(id)}/status`), {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status: newStatus, note }),
+      });
+    } catch {
+      // offline/fallback graceful
+    }
+    return local;
+  }
+
+  async assignTicketApi(
+    id: string,
+    assigneeName: string
+  ): Promise<SupportTicket> {
+    const local = this.assignTicket(id, assigneeName);
+    try {
+      await fetch(getApiUrl(`support/tickets/${encodeURIComponent(id)}/assign`), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ assigneeName }),
+      });
+    } catch {
+      // offline/fallback graceful
+    }
+    return local;
+  }
+
+  async addNoteApi(
+    id: string,
+    content: string,
+    isInternal = true
+  ): Promise<SupportTicket> {
+    const local = this.addNote(id, content, 'Trần Thuỳ Trang (Support)', isInternal);
+    try {
+      await fetch(getApiUrl(`support/tickets/${encodeURIComponent(id)}/messages`), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ content, isInternal }),
+      });
+    } catch {
+      // offline/fallback graceful
+    }
+    return local;
+  }
+
+  async escalateContentIssueApi(
+    ticketId: string,
+    payload: {
+      targetContentId: string;
+      targetContentType: ModerationContentType;
+      targetContentTitle: string;
+      title: string;
+      description: string;
+      issueType: ContentIssueType;
+      priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW';
+      reportedBy: string;
+      supportStaffName?: string;
+    }
+  ): Promise<{ ticket: SupportTicket; contentIssueId: string }> {
+    const local = this.escalateToContentManager(ticketId, payload);
+    try {
+      await fetch(getApiUrl(`support/tickets/${encodeURIComponent(ticketId)}/escalate-content-issue`), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      // offline/fallback graceful
+    }
+    return local;
   }
 }
 

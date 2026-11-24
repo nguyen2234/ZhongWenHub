@@ -40,7 +40,7 @@ jobs:
         run: dotnet build Backend/ZhongWenHub.sln --configuration Release --no-restore
 
       - name: Run Backend Unit Tests
-        run: dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --configuration Release --no-build --filter "Category!=Integration" --verbosity normal --logger "trx;LogFileName=unit_tests.trx"
+        run: dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=unit_tests.trx"
 
       - name: Note on Database Integration Tests
         run: |
@@ -50,7 +50,7 @@ jobs:
       - name: Optional SQL Server Integration Tests (Isolated Test Runner Only)
         if: env.RUN_SQLSERVER_INTEGRATION == 'true'
         run: |
-          dotnet test Backend/tests/ZhongWenHub.UnitTests/ZhongWenHub.UnitTests.csproj --configuration Release --no-build --filter "Category=Integration" --verbosity normal
+          dotnet test Backend/tests/ZhongWenHub.IntegrationTests/ZhongWenHub.IntegrationTests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4

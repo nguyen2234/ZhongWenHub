@@ -1,15 +1,45 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'bun:test';
-import { assignmentService } from '../management/teacher/services/assignment.service';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test';
+import { assignmentService, setTestAssignmentStores } from '../management/teacher/services/assignment.service';
 import { studentHomeworkService } from '../features/homework/services/student-homework.service';
 import { getCurrentStudentIdentity, setDevStudentIdentity } from '../features/auth/services/student-identity.adapter';
 import { isExerciseTypeSupported } from '../features/exercise-engine';
 import { resolveHskLevelMeta, hskLevelIdToNumber, hskNumberToLevelId } from '../utils/hsk.utils';
 import { authTokenService } from '../core/api/client/auth-token.service';
-import { teacherPortalService } from '../management/teacher/services/teacher-portal.service';
+import { teacherPortalService, setTestTeacherPortalStores } from '../management/teacher/services/teacher-portal.service';
+import {
+  INITIAL_TEACHING_CLASSES,
+  INITIAL_CLASS_MEMBERS,
+  INITIAL_CLASS_SCHEDULES,
+  INITIAL_DEMO_SUBMISSIONS,
+  INITIAL_RECENT_ACTIVITIES,
+} from './mocks/mockTeacherPortalData';
+import {
+  INITIAL_ASSIGNMENTS,
+  INITIAL_ASSIGNMENT_QUESTIONS,
+  INITIAL_ASSIGNMENT_TARGETS,
+} from './mocks/mockAssignmentData';
+import { MOCK_QUESTION_CATALOG } from './mocks/mockQuestionCatalog';
 
 describe('Pre-Phase 2B.1 Integration Foundation Tests', () => {
   const originalFetch = globalThis.fetch;
   let publishedId = '';
+
+  beforeAll(() => {
+    setTestTeacherPortalStores({
+      classes: INITIAL_TEACHING_CLASSES,
+      members: INITIAL_CLASS_MEMBERS,
+      schedules: INITIAL_CLASS_SCHEDULES,
+      submissions: INITIAL_DEMO_SUBMISSIONS,
+      activities: INITIAL_RECENT_ACTIVITIES,
+    });
+    setTestAssignmentStores({
+      assignments: INITIAL_ASSIGNMENTS,
+      questions: INITIAL_ASSIGNMENT_QUESTIONS,
+      targets: INITIAL_ASSIGNMENT_TARGETS,
+      catalog: MOCK_QUESTION_CATALOG,
+      classes: INITIAL_TEACHING_CLASSES,
+    });
+  });
 
   beforeEach(() => {
     globalThis.fetch = originalFetch;

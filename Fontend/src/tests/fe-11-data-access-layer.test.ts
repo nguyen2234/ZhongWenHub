@@ -9,12 +9,12 @@ import {
   HttpClient,
 } from '../core/api';
 import {
-  MockGrammarRepository,
-  MockExerciseRepository,
   HttpGrammarRepository,
   HttpExerciseRepository,
   repositoryContainer,
 } from '../core/repositories';
+import { MockGrammarRepository } from './mocks/mock-grammar.repository';
+import { MockExerciseRepository } from './mocks/mock-exercise.repository';
 import { adminGrammarService } from '../management/admin/content/services/admin-grammar.service';
 import { adminExerciseService } from '../management/admin/content/services/admin-exercise.service';
 import { defaultApiConfig } from '../core/api/client/api-config';
@@ -213,7 +213,7 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
   describe('6. Dependency Injection Container & Sync Guards', () => {
     test('provides active repository and allows test mocking overrides', () => {
       const defaultGrammarRepo = repositoryContainer.getGrammarRepository();
-      expect(defaultGrammarRepo).toBeInstanceOf(MockGrammarRepository);
+      expect(defaultGrammarRepo).toBeInstanceOf(HttpGrammarRepository);
 
       // Override with custom mock
       const customMock = new MockGrammarRepository();
@@ -221,23 +221,16 @@ describe('FE-11: Data Access Layer & Backend Readiness Unit Tests', () => {
       expect(repositoryContainer.getGrammarRepository()).toBe(customMock);
 
       repositoryContainer.reset();
-      expect(repositoryContainer.getGrammarRepository()).not.toBe(customMock);
+      expect(repositoryContainer.getGrammarRepository()).toBeInstanceOf(HttpGrammarRepository);
     });
 
     test('guards against calling synchronous methods when HTTP mode is active', () => {
-      const originalMode = defaultApiConfig.useMock;
-      try {
-        defaultApiConfig.useMock = false;
-
-        expect(() => adminGrammarService.getAll()).toThrow(
-          /Phương thức đồng bộ không khả dụng khi đang ở chế độ HTTP API Adapter/
-        );
-        expect(() => adminExerciseService.getAll()).toThrow(
-          /Phương thức đồng bộ không khả dụng khi đang ở chế độ HTTP API Adapter/
-        );
-      } finally {
-        defaultApiConfig.useMock = originalMode;
-      }
+      expect(() => adminGrammarService.getAll()).toThrow(
+        /Phương thức đồng bộ không khả dụng/
+      );
+      expect(() => adminExerciseService.getAll()).toThrow(
+        /Phương thức đồng bộ không khả dụng/
+      );
     });
   });
 

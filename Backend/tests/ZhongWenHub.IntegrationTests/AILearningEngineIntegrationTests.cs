@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ZhongWenHub.Business.AILearning.DTOs;
-using ZhongWenHub.Business.AITutor;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.AI.DTOs;
+using ZhongWenHub.Features.AI;
+using ZhongWenHub.Features.Auth.DTOs;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class AILearningEngineIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

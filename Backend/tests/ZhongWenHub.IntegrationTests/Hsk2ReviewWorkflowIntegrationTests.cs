@@ -8,15 +8,16 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class Hsk2ReviewWorkflowIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -490,6 +491,12 @@ public class Hsk2ReviewWorkflowIntegrationTests : IClassFixture<CustomWebApplica
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var existing = await db.Vocabularies.Where(x => x.HskLevel == 2 && x.Hanzi == "无意词").ToListAsync();
+            if (existing.Count > 0)
+            {
+                db.Vocabularies.RemoveRange(existing);
+                await db.SaveChangesAsync();
+            }
             var v = new VocabularyEntity
             {
                 Id = Guid.NewGuid(),

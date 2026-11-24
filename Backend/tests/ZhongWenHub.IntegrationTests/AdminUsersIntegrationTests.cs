@@ -3,12 +3,13 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Common.DTOs;
-using ZhongWenHub.Business.Users.DTOs;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Common.DTOs;
+using ZhongWenHub.Features.Admin.Users.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -264,17 +265,17 @@ public class AdminUsersIntegrationTests : IClassFixture<CustomWebApplicationFact
         // 1. Seed or prepare a user with elevated role (CONTENT_MANAGER)
         using (var scope = _factory.Services.CreateScope())
         {
-            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ZhongWenHub.Data.Entities.ApplicationUser>>();
+            var userMgr = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ZhongWenHub.Models.Users.ApplicationUser>>();
             var user = await userMgr.FindByEmailAsync("content_mgr_test@zhongwenhub.edu.vn");
             if (user == null)
             {
-                user = new ZhongWenHub.Data.Entities.ApplicationUser
+                user = new ZhongWenHub.Models.Users.ApplicationUser
                 {
                     Id = Guid.NewGuid(),
                     UserName = "content_mgr_test@zhongwenhub.edu.vn",
                     Email = "content_mgr_test@zhongwenhub.edu.vn",
                     DisplayName = "Test Content Manager",
-                    Status = ZhongWenHub.Data.Entities.UserStatus.ACTIVE,
+                    Status = ZhongWenHub.Models.Users.UserStatus.ACTIVE,
                     EmailConfirmed = true
                 };
                 await userMgr.CreateAsync(user, "Demo@2026!ZhongWen");

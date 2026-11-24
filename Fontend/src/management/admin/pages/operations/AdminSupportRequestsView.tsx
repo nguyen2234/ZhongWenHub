@@ -23,6 +23,16 @@ export const AdminSupportRequestsView: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  React.useEffect(() => {
+    let mounted = true;
+    supportTicketService.fetchTickets().then(() => {
+      if (mounted) setRefreshKey((k) => k + 1);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const metrics = useMemo(() => {
     void refreshKey;
     return supportTicketService.getMetrics();
@@ -44,24 +54,28 @@ export const AdminSupportRequestsView: React.FC = () => {
   }, [tickets, page, pageSize]);
 
   const handleUpdateStatus = (id: string, newStatus: TicketStatus, note?: string) => {
+    void supportTicketService.updateTicketStatusApi(id, newStatus, note);
     const updated = supportTicketService.updateTicketStatus(id, newStatus, 'Quản trị viên (Admin)', note);
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
   };
 
   const handleAssign = (id: string, assigneeName: string) => {
+    void supportTicketService.assignTicketApi(id, assigneeName);
     const updated = supportTicketService.assignTicket(id, assigneeName, 'Quản trị viên (Admin)');
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
   };
 
   const handleAddNote = (id: string, content: string, isInternal: boolean) => {
+    void supportTicketService.addNoteApi(id, content, isInternal);
     const updated = supportTicketService.addNote(id, content, 'Quản trị viên (Admin)', isInternal);
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
   };
 
   const handleEscalate = (ticketId: string, payload: any) => {
+    void supportTicketService.escalateContentIssueApi(ticketId, payload);
     const res = supportTicketService.escalateToContentManager(ticketId, payload);
     setSelectedTicket(res.ticket);
     setRefreshKey((k) => k + 1);

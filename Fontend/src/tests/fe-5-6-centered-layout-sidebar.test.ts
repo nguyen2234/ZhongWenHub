@@ -20,10 +20,10 @@ import { StudentLayout } from '../layouts/StudentLayout';
 
 describe('Phase FE-5.6: Centered Layout, Better Spacing & Invisible Sidebar Scrollbar', () => {
   describe('1. Sidebar Navigation Structure & Badges Integrity', () => {
-    it('contains all 4 reorganized navigation groups in required order', () => {
-      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(4);
+    it('contains all 3 active navigation groups in required order without retired skills', () => {
+      expect(HANBEEGO_STUDENT_NAV_GROUPS.length).toBe(3);
       const groupIds = HANBEEGO_STUDENT_NAV_GROUPS.map((g) => g.id);
-      expect(groupIds).toEqual(['overview', 'courses', 'skills', 'practice-zone']);
+      expect(groupIds).toEqual(['overview', 'courses', 'practice-zone']);
     });
 
     it('validates badges for AI Tutor, Lộ trình mới and SRS features in sidebar and keeps legacy modules in STUDENT_MAIN_NAV_ITEMS', () => {
@@ -53,7 +53,7 @@ describe('Phase FE-5.6: Centered Layout, Better Spacing & Invisible Sidebar Scro
 
     it('ensures all sidebar items have valid paths and icon components', () => {
       const allItems = HANBEEGO_STUDENT_NAV_GROUPS.flatMap((g) => g.items);
-      expect(allItems.length).toBeGreaterThanOrEqual(12);
+      expect(allItems.length).toBeGreaterThanOrEqual(10);
 
       allItems.forEach((item) => {
         expect(item.id.length).toBeGreaterThan(0);

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -6,14 +8,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using ZhongWenHub;
+using ZhongWenHub.Data;
 using ZhongWenHub.Data.Persistence;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class SwaggerIntegrationTests
 {
-    private const string TestConnectionString =
-        "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
+    private static readonly string TestConnectionString =
+        Environment.GetEnvironmentVariable("TEST_SQLSERVER_CONNECTION_STRING")
+        ?? "Server=.\\SQLEXPRESS;Database=ZhongWenHub_Test;Trusted_Connection=True;TrustServerCertificate=True;";
 
     private sealed class DevelopmentSwaggerAppFactory : WebApplicationFactory<Program>
     {
@@ -27,8 +33,10 @@ public class SwaggerIntegrationTests
 
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (descriptor != null)
+                var descriptors = services.Where(d =>
+                    d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
+                    d.ServiceType == typeof(ApplicationDbContext)).ToList();
+                foreach (var descriptor in descriptors)
                 {
                     services.Remove(descriptor);
                 }
@@ -53,8 +61,10 @@ public class SwaggerIntegrationTests
 
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (descriptor != null)
+                var descriptors = services.Where(d =>
+                    d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
+                    d.ServiceType == typeof(ApplicationDbContext)).ToList();
+                foreach (var descriptor in descriptors)
                 {
                     services.Remove(descriptor);
                 }
@@ -206,14 +216,53 @@ public class SwaggerIntegrationTests
         System.Console.WriteLine($"WITH_SUMMARY:{operationsWithSummary}");
         System.Console.WriteLine($"WITH_DESCRIPTION:{operationsWithDescription}");
         System.Console.WriteLine($"WITHOUT_SUMMARY_OR_DESC:{operationsWithoutSummary}");
-        foreach (var kvp in tagCounts)
+
+        var routeList = new List<string>();
+        foreach (var path in paths.EnumerateObject())
         {
-            System.Console.WriteLine($"TAG:{kvp.Key}={kvp.Value}");
+            var pathKey = path.Name;
+            foreach (var method in path.Value.EnumerateObject())
+            {
+                var httpMethod = method.Name.ToUpperInvariant();
+                var op = method.Value;
+                var opId = op.TryGetProperty("operationId", out var oid) ? oid.GetString() : "";
+                var tag = "Unknown";
+                if (op.TryGetProperty("tags", out var tags) && tags.ValueKind == JsonValueKind.Array && tags.GetArrayLength() > 0)
+                {
+                    tag = tags[0].GetString() ?? "Unknown";
+                }
+                var summary = op.TryGetProperty("summary", out var sm) ? sm.GetString() : "";
+                routeList.Add($"{httpMethod,-7} {pathKey,-60} [{tag}] ({opId}) {summary}".Trim());
+            }
         }
-        foreach (var item in missingSummaryList.Take(30))
+        routeList.Sort();
+
+        var docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "docs"));
+        if (!Directory.Exists(docsDir))
         {
-            System.Console.WriteLine($"MISSING_META:{item}");
+            docsDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "docs"));
         }
+        var txtPath = Path.Combine(docsDir, "RUNTIME_OPENAPI_ROUTES_BASELINE.txt");
+
+        Assert.True(File.Exists(txtPath), $"OpenAPI route baseline file not found at: {txtPath}");
+        var baselineLines = await File.ReadAllLinesAsync(txtPath);
+        var baselineOperations = baselineLines
+            .Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("ZhongWenHub") && !l.StartsWith("Total") && !l.StartsWith("Captured"))
+            .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => $"{parts[0]} {parts[1]}")
+            .OrderBy(x => x)
+            .ToList();
+
+        var currentOperations = routeList
+            .Select(l => l.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            .Where(parts => parts.Length >= 2)
+            .Select(parts => $"{parts[0]} {parts[1]}")
+            .OrderBy(x => x)
+            .ToList();
+
+        Assert.Equal(baselineOperations.Count, currentOperations.Count);
+        Assert.Equal(baselineOperations, currentOperations);
     }
 }
 

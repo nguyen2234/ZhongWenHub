@@ -8,14 +8,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ZhongWenHub.Business.Authentication.DTOs;
-using ZhongWenHub.Business.Content.DTOs;
-using ZhongWenHub.Data.Entities.Content;
+using ZhongWenHub.Features.Auth.DTOs;
+using ZhongWenHub.Features.Content.DTOs;
+using ZhongWenHub.Models.Content;
 using ZhongWenHub.Data.Persistence;
 using Xunit;
 
 namespace ZhongWenHub.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class LessonReleaseGateIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

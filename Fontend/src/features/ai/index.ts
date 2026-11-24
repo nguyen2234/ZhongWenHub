@@ -3,7 +3,6 @@ export * from './core/types/ai-task.types';
 export * from './core/types/ai-provider.types';
 export * from './core/types/ai-metadata.types';
 export * from './core/utils/ai-validation.utils';
-export * from './core/adapters/mock-ai-provider.adapter';
 export * from './core/services/ai-core.service';
 
 // Dataset contracts

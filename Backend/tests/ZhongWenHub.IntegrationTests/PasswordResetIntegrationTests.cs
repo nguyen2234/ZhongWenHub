@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using ZhongWenHub.Business.Authentication;
-using ZhongWenHub.Business.Authentication.DTOs;
+using ZhongWenHub.Features.Auth;
+using ZhongWenHub.Features.Auth.DTOs;
 
 namespace ZhongWenHub.IntegrationTests;
 
@@ -33,6 +33,7 @@ public class TestEmailSenderSpy : IPasswordResetEmailSender
     }
 }
 
+[Trait("Category", "Integration")]
 public class PasswordResetIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

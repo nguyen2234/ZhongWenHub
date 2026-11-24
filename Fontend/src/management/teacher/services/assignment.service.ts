@@ -2,14 +2,7 @@ import { hskRepositoryService } from '../../admin/content/services/hsk-repositor
 import type { SharedExerciseItem } from '../../../features/exercise-engine/types';
 import type { PaginatedResponse } from '../../shared/types';
 import { authTokenService } from '../../../core/api/client/auth-token.service';
-import { CURRENT_TEACHER_ID, INITIAL_TEACHING_CLASSES } from '../data/mockTeacherPortalData';
-import { MOCK_QUESTION_CATALOG } from '../data/mockQuestionCatalog';
-import {
-  INITIAL_ASSIGNMENTS,
-  INITIAL_ASSIGNMENT_QUESTIONS,
-  INITIAL_ASSIGNMENT_TARGETS,
-} from '../data/mockAssignmentData';
-import { teacherPortalService } from './teacher-portal.service';
+import { DEFAULT_TEACHER_ID, teacherPortalService } from './teacher-portal.service';
 import { resolveHskLevelMeta, normalizeEntityId } from '../../../utils/hsk.utils';
 import type {
   StudentHomeworkSummaryDTO,
@@ -35,9 +28,27 @@ import type {
 // ============================================================
 // In-memory stores — used ONLY in test fixtures without JWT token
 // ============================================================
-let assignmentsStore: Assignment[] = [...INITIAL_ASSIGNMENTS];
-let questionsStore: AssignmentQuestion[] = [...INITIAL_ASSIGNMENT_QUESTIONS];
-let targetsStore: AssignmentTarget[] = [...INITIAL_ASSIGNMENT_TARGETS];
+// In-memory stores — used ONLY in test fixtures without JWT token
+// ============================================================
+let assignmentsStore: Assignment[] = [];
+let questionsStore: AssignmentQuestion[] = [];
+let targetsStore: AssignmentTarget[] = [];
+let catalogStore: SharedExerciseItem[] = [];
+let testClassesStore: Array<{ id: string; name: string; code: string; teacherId: string; hskLevelId: string }> = [];
+
+export function setTestAssignmentStores(options?: {
+  assignments?: Assignment[];
+  questions?: AssignmentQuestion[];
+  targets?: AssignmentTarget[];
+  catalog?: SharedExerciseItem[];
+  classes?: Array<{ id: string; name: string; code: string; teacherId: string; hskLevelId: string }>;
+}): void {
+  assignmentsStore = options?.assignments ? [...options.assignments] : [];
+  questionsStore = options?.questions ? [...options.questions] : [];
+  targetsStore = options?.targets ? [...options.targets] : [];
+  catalogStore = options?.catalog ? [...options.catalog] : [];
+  testClassesStore = options?.classes ? [...options.classes] : [];
+}
 
 function isIsolatedTestRuntime(): boolean {
   const mode = (import.meta as any)?.env?.MODE;
@@ -82,26 +93,28 @@ async function extractErrorDetail(res: Response, fallbackMessage: string): Promi
  * Returns a shallow copy of the fallback question catalog for tests.
  */
 function getCatalog(): SharedExerciseItem[] {
-  return [...MOCK_QUESTION_CATALOG];
+  return [...catalogStore];
 }
 
 // ============================================================
 // Helper utilities for in-memory test fallback
 // ============================================================
 function ownsAssignment(id: string): Assignment | undefined {
+  const teacherId = teacherPortalService.getCurrentTeacherId() || DEFAULT_TEACHER_ID;
   return assignmentsStore.find(
-    (a) => a.id === id && a.teacherId === CURRENT_TEACHER_ID
+    (a) => a.id === id && (a.teacherId === teacherId || a.teacherId === DEFAULT_TEACHER_ID)
   );
 }
 
 function getOwnedClasses(): string[] {
-  return INITIAL_TEACHING_CLASSES
-    .filter((c) => c.teacherId === CURRENT_TEACHER_ID)
+  const teacherId = teacherPortalService.getCurrentTeacherId() || DEFAULT_TEACHER_ID;
+  return testClassesStore
+    .filter((c) => c.teacherId === teacherId || c.teacherId === DEFAULT_TEACHER_ID)
     .map((c) => c.id);
 }
 
 function getClassInfo(classId: string): { name: string; code: string; hskLevelName: string } {
-  const cls = INITIAL_TEACHING_CLASSES.find((c) => c.id === classId);
+  const cls = testClassesStore.find((c) => c.id === classId);
   if (!cls) return { name: classId, code: classId, hskLevelName: 'HSK' };
   const level = hskRepositoryService.getLevelById(cls.hskLevelId);
   return {
@@ -189,7 +202,7 @@ class AssignmentService {
    * Returns current teacher ID.
    */
   getCurrentTeacherId(): string {
-    return CURRENT_TEACHER_ID;
+    return teacherPortalService.getCurrentTeacherId() || DEFAULT_TEACHER_ID;
   }
 
   /**
@@ -318,7 +331,8 @@ class AssignmentService {
 
     // Isolated test runner fallback without JWT
     await new Promise((r) => setTimeout(r, 40));
-    let result = assignmentsStore.filter((a) => a.teacherId === CURRENT_TEACHER_ID);
+    const teacherId = this.getCurrentTeacherId();
+    let result = assignmentsStore.filter((a) => a.teacherId === teacherId || a.teacherId === DEFAULT_TEACHER_ID);
 
     if (filters.search.trim()) {
       const q = filters.search.trim().toLowerCase();
@@ -528,10 +542,11 @@ class AssignmentService {
 
     const now = new Date().toISOString();
     const id = `asgn-${Date.now()}`;
+    const teacherId = this.getCurrentTeacherId();
 
     const newAssignment: Assignment = {
       id,
-      teacherId: CURRENT_TEACHER_ID,
+      teacherId,
       title: dto.title.trim(),
       description: (dto.description ?? '').trim(),
       hskLevelId: dto.hskLevelId,

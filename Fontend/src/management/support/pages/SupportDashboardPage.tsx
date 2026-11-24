@@ -28,6 +28,16 @@ export const SupportDashboardPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  React.useEffect(() => {
+    let mounted = true;
+    supportTicketService.fetchTickets().then(() => {
+      if (mounted) setRefreshKey((k) => k + 1);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Metrics
   const metrics = useMemo(() => {
     void refreshKey;
@@ -52,6 +62,7 @@ export const SupportDashboardPage: React.FC = () => {
   }, [tickets, page, pageSize]);
 
   const handleUpdateStatus = (id: string, newStatus: TicketStatus, note?: string) => {
+    void supportTicketService.updateTicketStatusApi(id, newStatus, note);
     const updated = supportTicketService.updateTicketStatus(id, newStatus, 'Trần Thuỳ Trang (Support)', note);
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
@@ -60,6 +71,7 @@ export const SupportDashboardPage: React.FC = () => {
   };
 
   const handleAssign = (id: string, assigneeName: string) => {
+    void supportTicketService.assignTicketApi(id, assigneeName);
     const updated = supportTicketService.assignTicket(id, assigneeName);
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
@@ -68,6 +80,7 @@ export const SupportDashboardPage: React.FC = () => {
   };
 
   const handleAddNote = (id: string, content: string, isInternal: boolean) => {
+    void supportTicketService.addNoteApi(id, content, isInternal);
     const updated = supportTicketService.addNote(id, content, 'Trần Thuỳ Trang (Support)', isInternal);
     setSelectedTicket(updated);
     setRefreshKey((k) => k + 1);
@@ -76,6 +89,7 @@ export const SupportDashboardPage: React.FC = () => {
   };
 
   const handleEscalate = (ticketId: string, payload: any) => {
+    void supportTicketService.escalateContentIssueApi(ticketId, payload);
     const res = supportTicketService.escalateToContentManager(ticketId, payload);
     setSelectedTicket(res.ticket);
     setRefreshKey((k) => k + 1);

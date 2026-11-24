@@ -1,39 +1,33 @@
-import { defaultApiConfig } from '../api/client/api-config';
 import type { IGrammarRepository } from './interfaces/grammar-repository.interface';
 import type { IExerciseRepository } from './interfaces/exercise-repository.interface';
-import { MockGrammarRepository } from './adapters/mock-grammar.repository';
 import { HttpGrammarRepository } from './adapters/http-grammar.repository';
-import { MockExerciseRepository } from './adapters/mock-exercise.repository';
 import { HttpExerciseRepository } from './adapters/http-exercise.repository';
 
 /**
  * Service container for data repositories.
- * Controls dependency injection between Mock adapters and ASP.NET Core HTTP adapters.
+ * In production runtime, delegates exclusively to ASP.NET Core HTTP adapters.
+ * Test fixtures may inject test doubles via setGrammarRepository / setExerciseRepository.
  */
 class RepositoryContainer {
   private grammarRepositoryInstance?: IGrammarRepository;
   private exerciseRepositoryInstance?: IExerciseRepository;
 
   /**
-   * Returns active Grammar Repository (Mock or HTTP based on config).
+   * Returns active Grammar Repository (HTTP Adapter in production runtime).
    */
   getGrammarRepository(): IGrammarRepository {
     if (!this.grammarRepositoryInstance) {
-      this.grammarRepositoryInstance = defaultApiConfig.useMock
-        ? new MockGrammarRepository()
-        : new HttpGrammarRepository();
+      this.grammarRepositoryInstance = new HttpGrammarRepository();
     }
     return this.grammarRepositoryInstance;
   }
 
   /**
-   * Returns active Exercise Repository (Mock or HTTP based on config).
+   * Returns active Exercise Repository (HTTP Adapter in production runtime).
    */
   getExerciseRepository(): IExerciseRepository {
     if (!this.exerciseRepositoryInstance) {
-      this.exerciseRepositoryInstance = defaultApiConfig.useMock
-        ? new MockExerciseRepository()
-        : new HttpExerciseRepository();
+      this.exerciseRepositoryInstance = new HttpExerciseRepository();
     }
     return this.exerciseRepositoryInstance;
   }

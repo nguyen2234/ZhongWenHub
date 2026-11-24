@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'bun:test';
 import { supportTicketService } from '../management/support/services/support-ticket.service';
 import { videoManagementService } from '../management/content-manager/services/video-management.service';
 import { contentIssuesService } from '../management/content-manager/services/content-issues.service';
+import { INITIAL_CONTENT_ISSUES } from './mocks/mockContentManagerData';
 import type { PagedResponse, ApiProblemDetails } from '../types/api/common.dto';
 import type { SupportTicketDto } from '../types/api/support.dto';
 
@@ -10,7 +11,7 @@ describe('FE-13.3 API Readiness & Immutability Verification', () => {
   beforeEach(() => {
     supportTicketService.resetToInitial();
     videoManagementService.resetToInitial();
-    contentIssuesService.resetToInitial();
+    contentIssuesService.setTestStore(INITIAL_CONTENT_ISSUES);
   });
 
   describe('1. Support Ticket Service Immutability', () => {

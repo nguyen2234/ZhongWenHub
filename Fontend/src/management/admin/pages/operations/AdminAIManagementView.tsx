@@ -10,59 +10,14 @@ import {
   Database,
 } from 'lucide-react';
 import { adminOperationsService, type AIServiceModel, type AIOperationsStats } from '../../services/admin-operations.service';
-
-const INITIAL_AI_SERVICES: AIServiceModel[] = [
-  {
-    id: 'ai-tutor',
-    name: 'AI Tutor (Trợ lý đối thoại)',
-    role: 'Hội thoại tiếng Trung, giải đáp ngữ pháp và sửa lỗi ngữ cảnh',
-    provider: 'Google Gemini 2.5 Flash',
-    latencyMs: null as any,
-    uptime: null as any,
-    usagePercent: 0,
-    status: 'UNKNOWN',
-    description: 'Hỗ trợ hội thoại và phân tích ngữ pháp tiếng Trung HSK 1-6.',
-  },
-  {
-    id: 'ai-live',
-    name: 'AI Live (Luyện phát âm & Phản xạ)',
-    role: 'Nhận diện giọng nói (ASR) và đánh giá ngữ điệu Pinyin',
-    provider: 'Whisper-Large-v3 & FunASR Speech',
-    latencyMs: null as any,
-    uptime: null as any,
-    usagePercent: 0,
-    status: 'UNKNOWN',
-    description: 'Chấm điểm 4 thanh điệu tiếng Trung, phát hiện phát âm sai phụ âm đầu và vần.',
-  },
-  {
-    id: 'ai-grading',
-    name: 'AI Grading (Chấm bài tập & Đoạn văn)',
-    role: 'Chấm điểm tự động bài tập viết chữ Hán và dịch câu',
-    provider: 'Gemini 2.5 Pro Pedagogical',
-    latencyMs: null as any,
-    uptime: null as any,
-    usagePercent: 0,
-    status: 'UNKNOWN',
-    description: 'Hỗ trợ giáo viên chấm bài tập về nhà và gợi ý nhận xét.',
-  },
-  {
-    id: 'ai-analytics',
-    name: 'AI Analytics (Gợi ý lộ trình thích ứng)',
-    role: 'Phân tích điểm yếu kiến thức và lập lịch ôn tập ngắt quãng (SRS)',
-    provider: 'ZhongWenHub Adaptive Pedagogical Engine',
-    latencyMs: null as any,
-    uptime: null as any,
-    usagePercent: 0,
-    status: 'UNKNOWN',
-    description: 'Cá nhân hóa danh sách từ vựng cần ôn luyện hôm nay dựa trên SRS.',
-  },
-];
+import { AdminAIProviderManagementView } from './AdminAIProviderManagementView';
 
 const INCIDENT_LOGS: Array<{ id: string; time: string; service: string; event: string; level: string }> = [];
 
 export const AdminAIManagementView: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'providers' | 'telemetry'>('providers');
   const [quotaThreshold, setQuotaThreshold] = useState<number>(85);
-  const [services, setServices] = useState<AIServiceModel[]>(INITIAL_AI_SERVICES);
+  const [services, setServices] = useState<AIServiceModel[]>([]);
   const [aiStats, setAiStats] = useState<AIOperationsStats | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -93,26 +48,66 @@ export const AdminAIManagementView: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-      {/* Security & Architecture Warning */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '10px',
-          padding: '12px 16px',
-          borderRadius: 'var(--radius-lg)',
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          color: '#1e40af',
-          fontSize: '12.5px',
-          lineHeight: 1.5,
-        }}
-      >
-        <Shield size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
-        <div>
-          <strong>Chính sách Bảo mật & Vận hành AI:</strong> Mã khóa API (API keys) và thông tin xác thực nhà cung cấp AI được bảo vệ nghiêm ngặt ở tầng hạ tầng Backend ASP.NET Core & Secure Secrets. Giám sát thời gian thực hoạt động AI trên toàn hệ thống.
-        </div>
+      {/* Sub-tab Navigation */}
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('providers')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: activeTab === 'providers' ? 'var(--primary, #2563eb)' : '#f1f5f9',
+            color: activeTab === 'providers' ? '#ffffff' : '#475569',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Nhà Cung Cấp & Failover Router
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('telemetry')}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: activeTab === 'telemetry' ? 'var(--primary, #2563eb)' : '#f1f5f9',
+            color: activeTab === 'telemetry' ? '#ffffff' : '#475569',
+            fontSize: '13px',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Giám Sát Viễn Thám & Hạn Mức Quota
+        </button>
       </div>
+
+      {activeTab === 'providers' && <AdminAIProviderManagementView />}
+
+      {activeTab === 'telemetry' && (
+        <>
+          {/* Security & Architecture Warning */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              color: '#1e40af',
+              fontSize: '12.5px',
+              lineHeight: 1.5,
+            }}
+          >
+            <Shield size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#2563eb' }} />
+            <div>
+              <strong>Chính sách Bảo mật & Vận hành AI:</strong> Mã khóa API (API keys) và thông tin xác thực nhà cung cấp AI được bảo vệ nghiêm ngặt ở tầng hạ tầng Backend ASP.NET Core & Secure Secrets. Giám sát thời gian thực hoạt động AI trên toàn hệ thống.
+            </div>
+          </div>
 
       {/* Real-time AI Telemetry Strip */}
       <div
@@ -483,6 +478,8 @@ export const AdminAIManagementView: React.FC = () => {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
