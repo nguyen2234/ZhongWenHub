@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "ZWH-CURRENT-STATE-AUDIT",
+  "title": "Audit current structure and functional status for Codex review",
+  "description": "Perform an audit-only inspection of the current ZhongWenHub implementation. Report the actual repository/backend structure, working, partial, broken, missing and unverified functions by role, migration/route/CI/mock risks, then push exactly two evidence files on a dedicated audit branch and open a Draft PR for Codex review.",
+  "project": "ZhongWenHub",
+  "phase": "Pre-refactor evidence audit",
+  "owner": "Codex",
+  "reviewer": "Codex",
+  "executor": "Antigravity",
+  "status": "PENDING",
+  "revision": 1,
+  "source_branch": "refactor/simple-feature-backend-multiprovider-fe-fixes",
+  "source_commit": "bf8c365f10620955df924bfde73c7e9c216e5a4a",
+  "expected_branch": "audit/current-structure-functional-status-20261124",
+  "draft_pr_base": "refactor/simple-feature-backend-multiprovider-fe-fixes",
+  "prompt_file": "docs/ANTIGRAVITY_CURRENT_STATE_AUDIT_AND_CODEX_REVIEW_PROMPT.md",
+  "reference_plan_branch": "docs/antigravity-study-ai-layout-plan",
+  "reference_plan_commit": "14b8d91417e303705f6a5a152bb0a06a49a4eb34",
+  "expected_outputs": [
+    "docs/audit/2026-11-24_CURRENT_STRUCTURE_FUNCTIONAL_STATUS.md",
+    ".ai-collaboration/results/ZWH-CURRENT-STATE-AUDIT_result.json"
+  ],
+  "status_values": [
+    "WORKING",
+    "PARTIAL",
+    "BROKEN",
+    "NOT_IMPLEMENTED",
+    "NOT_VERIFIED"
+  ],
+  "required_audit_areas": [
+    "repository and backend project structure",
+    "target-layout comparison",
+    "EF contexts, migrations and model snapshot",
+    "runtime routes and frontend API contracts",
+    "backend build, unit and integration tests",
+    "frontend lint, tests and production build",
+    "production mock and false-success inventory",
+    "authentication and shared error states",
+    "admin and multi-provider AI management",
+    "content-manager workflows",
+    "teacher workflows",
+    "student learning and AI workflows",
+    "support-ticket workflows",
+    "CI, Docker and developer documentation",
+    "ZhongWenHub_Dev zero-write verification"
+  ],
+  "acceptance_criteria": [
+    "Every function has one allowed status and concrete evidence",
+    "Working status requires real API and persistence evidence where applicable",
+    "Blocked, skipped and unexecuted tests are not reported as passed",
+    "Known migration, route, baseline, stale-script and CI hypotheses are explicitly validated or rejected",
+    "Actual and target structures are compared path by path",
+    "Defects include severity, location, reproduction, expected and actual behavior",
+    "Only the two required audit output files are committed",
+    "The audit branch is pushed and a Draft PR is opened for Codex review",
+    "ZhongWenHub_Dev remains unchanged"
+  ],
+  "safety_constraints": [
+    "Audit only; do not modify production code, tests, workflows, migrations or configuration",
+    "Never write to ZhongWenHub_Dev or production services",
+    "Never run manual DDL or edit migration history",
+    "Never commit secrets, credentials, tokens, dumps, private data or large raw logs",
+    "Never force-push, merge or update main",
+    "Never weaken tests or rewrite baselines to hide failures",
+    "Never claim Codex approval before independent review"
+  ],
+  "created_at": "2026-11-24T00:00:00+07:00",
+  "updated_at": "2026-11-24T00:00:00+07:00"
+}
